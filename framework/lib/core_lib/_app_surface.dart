@@ -8,6 +8,7 @@ import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_theme.dart';
 import 'package:device_info/device_info.dart';
 import '_app_keypair.dart';
+import '_exceptions.dart';
 import '_page.dart';
 import '_portal.dart';
 import '_principal.dart';
@@ -33,6 +34,8 @@ mixin IAppSurface {
   OnGenerateRoute get onGenerateRoute => null;
 
   OnGenerateTitle get onGenerateTitle => null;
+
+  Route<dynamic> Function(RouteSettings) get onUnknownRoute => null;
 
   ThemeData themeData(BuildContext context);
 
@@ -111,7 +114,34 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   }
 
   @override
-  OnGenerateRoute get onGenerateRoute {}
+  OnGenerateRoute get onGenerateRoute {
+    return (settings) {
+      String path = settings?.name;
+      if (StringUtil.isEmpty(path)) {
+        return null;
+      }
+      if (!current.containsPage(path)) {
+        return null;
+      }
+      Page page = current.getPage(path);
+      if (page.buildRoute == null) {
+        return null;
+      }
+      return page.buildRoute(settings, page, _shareServiceContainer);
+    };
+  }
+
+  @override
+  Route Function(RouteSettings) get onUnknownRoute {
+    return (settings) {
+      return MaterialPageRoute(
+        settings: settings,
+        builder: (BuildContext buildContext) {
+          return ErrorPage404();
+        },
+      );
+    };
+  }
 
   @override
   String get initialRoute => _entrypoint;

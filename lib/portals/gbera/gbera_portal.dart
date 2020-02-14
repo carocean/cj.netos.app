@@ -51,6 +51,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_settings.d
 import 'package:netos_app/portals/gbera/pages/netflow/publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/scan_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_channel.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/see_channelpin_persons.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/service_menu.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/settings_main.dart';
@@ -396,6 +397,16 @@ class GberaPortal {
           icon: FontAwesomeIcons.qrcode,
           url: '/netflow/manager/scan_channel',
           buildPage: (PageContext pageContext) => ScanChannel(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '搜索用户',
+          subtitle: '',
+          desc: '用于添加用户',
+          icon: FontAwesomeIcons.search,
+          url: '/netflow/manager/search_person',
+          buildPage: (PageContext pageContext) => SearchPerson(
             context: pageContext,
           ),
         ),

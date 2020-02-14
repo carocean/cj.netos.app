@@ -36,6 +36,13 @@ mixin IScene implements IDisposable {
     String defaultTheme,
     List<ThemeStyle> themeStyles,
   });
+
+  bool containsPage(String path) {
+  }
+
+  Page getPage(String path) {}
+
+
 }
 
 class DefaultScene implements IScene, IServiceProvider {
@@ -53,7 +60,14 @@ class DefaultScene implements IScene, IServiceProvider {
   DefaultScene({
     @required this.name,
   });
-
+  @override
+  bool containsPage(String path) {
+    return _pages.containsKey(path);
+  }
+  @override
+  Page getPage(String path) {
+    return _pages[path];
+  }
   @override
   getService(String name) {
     if ('@.principal' == name) {
@@ -153,6 +167,9 @@ class DefaultScene implements IScene, IServiceProvider {
     var map = <String, Widget Function(BuildContext)>{};
     for (var key in _pages.keys) {
       var page = _pages[key];
+      if(page.buildPage==null) {
+        continue;
+      }
       map[key] = (context) {
         var pageContext = PageContext(
             page: page,

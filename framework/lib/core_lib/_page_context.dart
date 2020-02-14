@@ -391,12 +391,7 @@ class PageContext {
     if (StringUtil.isEmpty(name)) {
       return false;
     }
-    int pos = name.indexOf('://');
-    if (pos < 0) {
-      return false;
-    }
-    String reurl = name.substring(pos + 2, name.length);
-    return !reurl.startsWith(url);
+    return !name.startsWith(url);
   }
 
   ///下载文件

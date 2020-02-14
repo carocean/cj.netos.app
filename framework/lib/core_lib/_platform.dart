@@ -100,6 +100,7 @@ class __PlatformAppState extends State<_PlatformApp> {
         routes: _appSurface.routes,
         initialRoute: _appSurface.initialRoute,
         onGenerateRoute: _appSurface.onGenerateRoute,
+        onUnknownRoute: _appSurface.onUnknownRoute,
         onGenerateTitle: _appSurface.onGenerateTitle,
         theme: _appSurface.themeData(context),
         home: _appSurface.home,
