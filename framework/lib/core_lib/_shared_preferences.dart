@@ -7,28 +7,25 @@ mixin ISharedPreferences {
   Future<ISharedPreferences> init(IServiceProvider site);
 
   Future<bool> setStringList(String key, List<String> value,
-      {StoreScope scope=StoreScope.personOnScene});
+      {String scene, String person});
 
-  Future<bool> setInt(String key, int value,
-      {StoreScope scope=StoreScope.personOnScene});
+  Future<bool> setInt(String key, int value, {String scene, String person});
 
   Future<bool> setDouble(String key, double value,
-      {StoreScope scope=StoreScope.personOnScene});
+      {String scene, String person});
 
-  Future<bool> setBool(String key, bool value,
-      {StoreScope scope=StoreScope.personOnScene});
+  Future<bool> setBool(String key, bool value, {String scene, String person});
 
   Future<bool> setString(String key, String value,
-      {StoreScope scope=StoreScope.personOnScene});
+      {String scene, String person});
 
-  bool containsKey(String key, {StoreScope scope=StoreScope.personOnScene});
+  bool containsKey(String key, {String scene, String person});
 
-  String getString(String key, {StoreScope scope=StoreScope.personOnScene});
+  String getString(String key, {String scene, String person});
 
-  dynamic get(String key, {StoreScope scope=StoreScope.personOnScene});
+  dynamic get(String key, {String scene, String person});
 
-  Future<bool> remove(String key,
-      {StoreScope scope=StoreScope.personOnScene});
+  Future<bool> remove(String key, {String scene, String person});
 
   Future<bool> clear();
 
@@ -36,18 +33,9 @@ mixin ISharedPreferences {
 
   Future<void> reload();
 
-  Set<String> getKeys({StoreScope scope=StoreScope.personOnScene});
+  Set<String> getKeys({String scene, String person});
 }
-enum StoreScope{
-  ///所有场景和用户下共享
-  global,
-  ///当前场景和场景下所有用户共享
-  scene,
-  ///仅当前场景下的当前用户可见
-  personOnScene,
-  ///当前用户的存储在所有场景下共享
-  personShareScene,
-}
+
 class DefaultSharedPreferences implements ISharedPreferences {
   SharedPreferences _sharedPreferences;
   IServiceProvider _site;
@@ -59,126 +47,89 @@ class DefaultSharedPreferences implements ISharedPreferences {
     return this;
   }
 
-//当多用户切换时以/框架/用户号/当前登录账号/作为key持久化前缀，如: /gbera/00200202002/cj/，用于持久账号私有信息，而以/Shared/ 作为多用户的共享目录
-  String _getStoreKey(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-
-    IScene scene = _site.getService('@.scene.current');
-    var _principal = scene.principal;
-    var _key='';
-    switch(scope) {
-      case StoreScope.global:
-        _key='/$key';
-        break;
-      case StoreScope.scene:
-        _key='/${scene.name}/$key';
-        break;
-      case StoreScope.personOnScene:
-        _key='/${scene.name}/${_principal.person}/$key';
-        break;
-      case StoreScope.personShareScene:
-        _key='/${scene.name}/$key';
-        break;
-    }
+  String _getStoreKey(String key, {String scene, String person}) {
+   String _key='/';
+   if(!StringUtil.isEmpty(scene)) {
+     _key='$_key/$scene';
+   }
+   if(!StringUtil.isEmpty(person)) {
+     _key='$_key/$person';
+   }
+   if(_key.endsWith('/')) {
+     _key='$_key$key';
+   }else{
+     _key='$_key/$key';
+   }
     return _key;
   }
 
   @override
   Future<bool> setStringList(String key, List<String> value,
-      {StoreScope scope=StoreScope.personOnScene}) {
+      {String scene, String person}) {
     return _sharedPreferences.setStringList(
-        _getStoreKey(key,
-           scope: scope),
-        value);
+        _getStoreKey(key, scene: scene,person: person), value);
   }
 
   @override
-  Future<bool> setInt(String key, int value,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.setInt(
-        _getStoreKey(key,
-            scope: scope),
-        value);
+  Future<bool> setInt(String key, int value, {String scene, String person}) {
+    return _sharedPreferences.setInt(_getStoreKey(key, scene: scene,person: person), value);
   }
 
   @override
   Future<bool> setDouble(String key, double value,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.setDouble(
-        _getStoreKey(key,
-            scope: scope),
-        value);
+      {String scene, String person}) {
+    return _sharedPreferences.setDouble(_getStoreKey(key, scene: scene,person: person), value);
   }
 
   @override
-  Future<bool> setBool(String key, bool value,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.setBool(
-        _getStoreKey(key,
-            scope: scope),
-        value);
+  Future<bool> setBool(String key, bool value, {String scene, String person}) {
+    return _sharedPreferences.setBool(_getStoreKey(key, scene: scene,person: person), value);
   }
 
   @override
   Future<bool> setString(String key, String value,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.setString(
-        _getStoreKey(key,
-            scope: scope),
-        value);
+      {String scene, String person}) {
+    return _sharedPreferences.setString(_getStoreKey(key, scene: scene,person: person), value);
   }
 
   @override
-  List<String> getStringList(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.getStringList(_getStoreKey(key,
-        scope: scope));
+  List<String> getStringList(String key, {String scene, String person}) {
+    return _sharedPreferences.getStringList(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  int getInt(String key, {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.getInt(_getStoreKey(key,
-        scope: scope));
+  int getInt(String key, {String scene, String person}) {
+    return _sharedPreferences.getInt(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  double getDouble(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.getDouble(_getStoreKey(key,
-        scope: scope));
+  double getDouble(String key, {String scene, String person}) {
+    return _sharedPreferences.getDouble(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  bool getBool(String key, {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.getBool(_getStoreKey(key,
-        scope: scope));
+  bool getBool(String key, {String scene, String person}) {
+    return _sharedPreferences.getBool(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  bool containsKey(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.containsKey(_getStoreKey(key,
-        scope: scope));
+  bool containsKey(String key, {String scene, String person}) {
+    return _sharedPreferences.containsKey(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  String getString(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.getString(_getStoreKey(key,
-        scope: scope));
+  String getString(String key, {String scene, String person}) {
+    return _sharedPreferences.getString(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  dynamic get(String key, {StoreScope scope=StoreScope.personOnScene}) {
-    _sharedPreferences.get(_getStoreKey(key,
-        scope: scope));
+  dynamic get(String key, {String scene, String person}) {
+    _sharedPreferences.get(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
-  Future<bool> remove(String key,
-      {StoreScope scope=StoreScope.personOnScene}) {
-    return _sharedPreferences.remove(_getStoreKey(key,
-        scope: scope));
+  Future<bool> remove(String key, {String scene, String person}) {
+    return _sharedPreferences.remove(_getStoreKey(key, scene: scene,person: person));
   }
 
   @override
@@ -197,9 +148,8 @@ class DefaultSharedPreferences implements ISharedPreferences {
   }
 
   @override
-  Set<String> getKeys({StoreScope scope=StoreScope.personOnScene}) {
-    String prefix = _getStoreKey(null,
-        scope: scope);
+  Set<String> getKeys({String scene, String person}) {
+    String prefix = _getStoreKey(null, scene: scene,person: person);
     Set<String> keys = _sharedPreferences.getKeys();
     Set<String> set = Set();
     for (String k in keys) {

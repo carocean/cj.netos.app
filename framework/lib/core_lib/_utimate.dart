@@ -36,13 +36,19 @@ mixin PersonUtil {
     return '${person.accountName}@${person.appid}.${person.tenantid}';
   }
 }
+
+typedef BuildServices = Future<Map<String, dynamic>> Function(
+    IServiceProvider site);
+
 mixin IServiceProvider {
   getService(String name);
 }
-mixin IServiceSite implements IServiceProvider {
-  getService(String name);
-  void addService(String name,dynamic service);
-}
-mixin IDisposable{
+mixin IDisposable {
   void dispose();
+}
+
+typedef OnReadyCallback = Future<void> Function();
+
+mixin IServiceBuilder {
+  OnReadyCallback builder(IServiceProvider site);
 }

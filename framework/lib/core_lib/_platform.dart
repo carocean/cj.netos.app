@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:framework/core_lib/_utimate.dart';
 
 import '_app_surface.dart';
@@ -15,6 +18,15 @@ void platformRun(AppCreator creator) async {
     return;
   }
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isAndroid) {
+    SystemUiOverlayStyle systemUiOverlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.dark,
+    );
+    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+  }
 
   if (creator.onloading != null) {
     creator.onloading();
@@ -53,7 +65,6 @@ class __PlatformAppState extends State<_PlatformApp> {
     _appNavigatorObserver = null;
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return NotificationListener(
@@ -85,7 +96,7 @@ class __PlatformAppState extends State<_PlatformApp> {
       },
       child: MaterialApp(
         title: _appSurface.title,
-        builder: _appSurface.builder,
+        builder: _appSurface.appDecorator,
         routes: _appSurface.routes,
         initialRoute: _appSurface.initialRoute,
         onGenerateRoute: _appSurface.onGenerateRoute,

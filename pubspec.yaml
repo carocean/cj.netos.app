@@ -105,3 +105,51 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+
+  assets:
+    - lib/portals/gbera/images/gbera.png
+    - lib/portals/gbera/images/gbera_bk.png
+    - lib/portals/gbera/images/entrypoint_bk.jpg
+    - lib/portals/gbera/images/penquan.png
+    - lib/portals/gbera/images/yuanbao.png
+    - lib/portals/gbera/images/avatar.png
+    - lib/portals/gbera/data/user_constract
+    - lib/portals/gbera/data/portlets.json
+    - lib/portals/gbera/data/portlet_defaults.json
+    - lib/portals/gbera/wallpapers/wallpapper.yaml
+    - lib/portals/gbera/wallpapers/1.jpeg
+    - lib/portals/gbera/wallpapers/2.jpeg
+    - lib/portals/gbera/wallpapers/3.jpeg
+    - lib/portals/gbera/wallpapers/4.jpeg
+    - lib/portals/gbera/wallpapers/5.jpeg
+    - lib/portals/gbera/wallpapers/6.png
+    - lib/portals/gbera/data/depth.json
+    - lib/portals/gbera/data/kline.json
+    - model/persons.json
+    - model/insite_messages.json
+  fonts:
+    - family: geo_discovery
+      fonts:
+        - asset: lib/portals/gbera/fonts/geo_discovery.ttf
+    - family: geo_navigation
+      fonts:
+        - asset: lib/portals/gbera/fonts/geo_navigation.ttf
+    - family: geo_locations
+      fonts:
+        - asset: lib/portals/gbera/fonts/geo_locations.ttf
+    - family: market
+      fonts:
+        - asset: lib/portals/gbera/fonts/market.ttf
+    - family: market_shishang
+      fonts:
+        - asset: lib/portals/gbera/fonts/market_shishang.ttf
+    - family: netflow
+      fonts:
+        - asset: lib/portals/gbera/fonts/netflow.ttf
+    - family: ellipse
+      fonts:
+        - asset: lib/portals/gbera/fonts/ellipse.ttf
+    - family: chats
+      fonts:
+        - asset: lib/portals/gbera/fonts/chats.ttf

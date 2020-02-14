@@ -8,8 +8,8 @@ import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_theme.dart';
 
 import '_page.dart';
+import '_service_containers.dart';
 import '_utimate.dart';
-import '_store.dart';
 
 mixin IScene implements IDisposable {
   static const DEFAULT_SCENE_NAME = '/';
@@ -30,7 +30,7 @@ mixin IScene implements IDisposable {
 
   Future<void> init({
     @required IServiceProvider site,
-    IStore store,
+    Map<String, dynamic> services,
     List<Page> pages,
     List<Desklet> desklets,
     String defaultTheme,
@@ -45,12 +45,10 @@ class DefaultScene implements IScene, IServiceProvider {
   String _defaultTheme;
   Map<String, Page> _pages = {};
   Map<String, Desklet> _desklets = {};
-  IStore store;
-  Map<String, ThemeStyle> _themeStyles = {};
+  Map<String, _ThemeEntitity> _themeStyles = {};
   IServiceProvider parentSite;
   var _principal;
-  DBServiceContainer _dbcontainer;
-
+  SceneServiceContainer _sceneServiceContainer;
 
   DefaultScene({
     @required this.name,
@@ -58,53 +56,50 @@ class DefaultScene implements IScene, IServiceProvider {
 
   @override
   getService(String name) {
-    if('@.principal'==name) {
+    if ('@.principal' == name) {
       if (_principal == null) {
         _principal = parentSite.getService('@.principal');
       }
       return _principal;
     }
-    if ('@.scene.current' == name) {
-      return this;
-    }
-    if(name.startsWith('@.page:')){
-      String path=name.substring('@.page:'.length,name.length);
+    if (name.startsWith('@.page:')) {
+      String path = name.substring('@.page:'.length, name.length);
       return _pages[path];
     }
-    if(name.startsWith('@.desklet:')){
-      String path=name.substring('@.desklet:'.length,name.length);
+    if (name.startsWith('@.desklet:')) {
+      String path = name.substring('@.desklet:'.length, name.length);
       return _desklets[path];
     }
-    if(name.startsWith('@.style:')){
-      String path=name.substring('@.style:'.length,name.length);
-      return _themeStyles[path];
+    if ('@.desklet.names' == name) {
+      return _desklets.keys;
     }
-    if(_dbcontainer.services.containsKey(name)) {
-      return _dbcontainer.services[name];
+    if ('@.theme.names' == name) {
+      return _themeStyles.keys;
     }
-    return parentSite.getService(name);
-  }
+    if (name.startsWith('@.theme:')) {
+      String path = name.substring('@.theme:'.length, name.length);
+      return _themeStyles[path]?.define;
+    }
+    if (name.startsWith('@.style:')) {
+      var themeEntity = _themeStyles[theme];
+      String path = name.substring('@.style:'.length, name.length);
+      return themeEntity?.styles[path];
+    }
 
-  Future _indexServices() async {
-    var db = await store.loadDatabase();
-    var services = store.services;
-     _dbcontainer = DBServiceContainer(services: services, site: this, db: db);
-    for (var key in services.keys) {
-      IDBService service = services[key];
-      service.init(_dbcontainer);
-    }
+    return parentSite.getService(name);
   }
 
   @override
   Future<void> init(
       {IServiceProvider site,
-      IStore store,
+      Map<String, dynamic> services,
       List<Page> pages,
       List<Desklet> desklets,
       String defaultTheme,
       List<ThemeStyle> themeStyles}) async {
     this.parentSite = site;
-    this.store = store;
+    _sceneServiceContainer = SceneServiceContainer(this);
+    _sceneServiceContainer.addServices(services);
 
     for (var page in pages) {
       if (_pages.containsKey(page.url)) {
@@ -118,14 +113,29 @@ class DefaultScene implements IScene, IServiceProvider {
       }
       _desklets[let.url] = let;
     }
-    for (var style in themeStyles) {
-      if (_themeStyles.containsKey(style.url)) {
-        throw FlutterErrorDetails(exception: Exception('已存在主题样式:${style.url}'));
+    for (var _theme_ in themeStyles) {
+      if (_themeStyles.containsKey(_theme_.url)) {
+        throw FlutterErrorDetails(exception: Exception('已存在主题:${_theme_.url}'));
       }
-      _themeStyles[style.url] = style;
+      var styles = _theme_.buildStyle(_sceneServiceContainer);
+      styles = styles ?? <Style>[];
+      var index = <String, Style>{};
+      for (var style in styles) {
+        if (index.containsKey(style.url)) {
+          throw FlutterErrorDetails(
+              exception: Exception('主题:${_theme_.url}中已存在样式${_theme_.url}'));
+        }
+        index[style.url] = style;
+      }
+      var theme = _ThemeEntitity(
+          themeUrl: _theme_.url,
+          styles: index,
+          buildTheme: _theme_.buildTheme,
+          define: _theme_);
+      _themeStyles[_theme_.url] = theme;
     }
     if (StringUtil.isEmpty(defaultTheme) && themeStyles.isNotEmpty) {
-      defaultTheme = themeStyles[0].url;
+      defaultTheme = themeStyles.first?.url;
     }
     _defaultTheme = defaultTheme;
 
@@ -133,8 +143,9 @@ class DefaultScene implements IScene, IServiceProvider {
     if (StringUtil.isEmpty(theme) && !StringUtil.isEmpty(defaultTheme)) {
       await _setTheme(themeStyles[0].url);
     }
+    _sceneServiceContainer.initServices(services);
+    await _sceneServiceContainer.readyServices();
 
-    await _indexServices();
     return null;
   }
 
@@ -145,9 +156,9 @@ class DefaultScene implements IScene, IServiceProvider {
       map[key] = (context) {
         var pageContext = PageContext(
             page: page,
-            scene: name,
-            theme: theme,
-            site: this,
+            sourceScene: name,
+            sourceTheme: theme,
+            site: _sceneServiceContainer,
             context: context);
         return page.buildPage(pageContext);
       };
@@ -176,13 +187,7 @@ class DefaultScene implements IScene, IServiceProvider {
   String get theme {
     ISharedPreferences sharedPreferences =
         parentSite.getService('@.sharedPreferences');
-    var scope;
-    if (principal == null) {
-      scope = StoreScope.scene;
-    } else {
-      scope = StoreScope.personOnScene;
-    }
-    String _theme = sharedPreferences.getString(_THEME_STORE_KEY, scope: scope);
+    String _theme = sharedPreferences.getString(_THEME_STORE_KEY, person: _principal?.person, scene: name);
     if (StringUtil.isEmpty(_theme)) {
       _theme = this._defaultTheme;
     }
@@ -199,15 +204,10 @@ class DefaultScene implements IScene, IServiceProvider {
   }
 
   _setTheme(String theme) async {
-    var scope;
-    if (principal == null) {
-      scope = StoreScope.scene;
-    } else {
-      scope = StoreScope.personOnScene;
-    }
     ISharedPreferences sharedPreferences =
         parentSite.getService('@.sharedPreferences');
-    await sharedPreferences.setString(_THEME_STORE_KEY, theme, scope: scope);
+    await sharedPreferences.setString(_THEME_STORE_KEY, theme,
+        person: _principal?.person, scene: name);
   }
 
   @override
@@ -215,21 +215,11 @@ class DefaultScene implements IScene, IServiceProvider {
   String get defaultTheme => _defaultTheme;
 }
 
-class DBServiceContainer implements IServiceProvider {
-  IServiceProvider site;
-  dynamic db;
-  Map<String, dynamic> services;
+class _ThemeEntitity {
+  String themeUrl;
+  Map<String, Style> styles = {};
+  BuildTheme buildTheme;
+  ThemeStyle define;
 
-  DBServiceContainer({this.services, this.site, this.db});
-
-  @override
-  getService(String name) {
-    if (services.containsKey(name)) {
-      return services[name];
-    }
-    if ('@.db' == name && db != null) {
-      return db;
-    }
-    return site.getService(name);
-  }
+  _ThemeEntitity({this.themeUrl, this.styles, this.buildTheme, this.define});
 }

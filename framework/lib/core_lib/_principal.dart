@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:framework/core_lib/_utimate.dart';
+
 mixin IPrincipal {
   String get person;
 
@@ -33,16 +35,18 @@ mixin IPrincipal {
 
   String get device;
 }
-
-mixin ILocalPrincipalManager {
+mixin ILocalPrincipalVisitor {
   //在IPrincipalService的构造中初始化
   IPrincipal get(String person);
 
   String current();
 }
+mixin ILocalPrincipal implements ILocalPrincipalVisitor {
+  void setVisitor(ILocalPrincipalVisitor visitor);
+}
 
 class UserPrincipal {
-  final ILocalPrincipalManager manager;
+  final ILocalPrincipal manager;
 
   UserPrincipal({
     this.manager,

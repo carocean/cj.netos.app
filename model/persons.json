@@ -1,0 +1,70 @@
+[
+  {
+    "official": "cj@gbera.netos",
+    "uid": "0019101312524102",
+    "accountid": "0019101312524176",
+    "accountName": "cj",
+    "appid": "gbera",
+    "tenantid": "netos",
+    "avatar": "http://47.105.165.186:7100/public/avatar/24f8e8d3f423d40b5b390691fbbfb5d7.jpg",
+    "nickName": "赵向彬",
+    "signature":"是龙你盘着，是虎你卧着，是狗你轻点跟我得瑟",
+    "channels": [
+
+    ]
+  },
+  {
+    "official": "david@gbera.netos",
+    "uid": "0020011912411634",
+    "accountid": "0020011912411621",
+    "accountName": "david",
+    "appid": "gbera",
+    "tenantid": "netos",
+    "avatar": "http://47.105.165.186:7100/public/avatar/30b6dc2e7040fd5ce9d7d6a86625507a.jpg",
+    "nickName": "David",
+    "signature":"我的爱即使再廉价，也轮不到为你打折",
+    "channels": [
+      {
+        "code": "91FA4506-7BDB-43D7-82D3-4DA78D9653E0",
+        "name": "Java编程",
+        "owner": "cj@gbera.netos",
+        "loopType": "closeLoop",
+        "leading": "http://47.105.165.186:7100/public/avatar/timg.jpeg"
+      },
+      {
+        "code": "0929122D-FB4A-4BC8-BF5E-510F254FCD15",
+        "name": "Flutter交流",
+        "owner": "tom@gbera.netos",
+        "loopType": "openLoop",
+        "leading": "http://47.105.165.186:7100/public/avatar/1b010adb79a5ed5f9f83cb18d6d07209.jpg"
+      }
+    ]
+  },
+  {
+    "official": "tom@gbera.netos",
+    "uid": "0019101308235520",
+    "accountid": "0019101308235587",
+    "accountName": "tom",
+    "appid": "gbera",
+    "tenantid": "netos",
+    "avatar": "http://47.105.165.186:7100/public/avatar/340633c71cfa5ba2e17887e551b02363.jpeg",
+    "nickName": "陈桂娟",
+    "signature": "我是很会考虑别人感受的人，所以一般说话都不会让人难堪，如果哪次我说话让你不舒服了，别多想，我就是故意的",
+    "channels": [
+      {
+        "code": "3FD24493-4BB4-43C6-A731-FF00375EDA9F",
+        "name": "中国投资协会",
+        "owner": "tom@gbera.netos",
+        "loopType": "openLoop",
+        "leading": "http://47.105.165.186:7100/public/avatar/04527423f1b29493f99014144361a586.jpg"
+      },
+      {
+        "code": "6EF3B666-A33F-46A9-BC6D-0537A12AFF4B",
+        "name": "汉服园",
+        "owner": "tom@gbera.netos",
+        "loopType": "closeLoop",
+        "leading": "http://47.105.165.186:7100/public/avatar/28ab4dbc08306fde51923becef0bd721.jpg"
+      }
+    ]
+  }
+]

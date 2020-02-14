@@ -9,7 +9,6 @@ class AppNavigatorObserver extends NavigatorObserver {
   Function() onswitchSceneOrTheme;
   final _histories = <_PageMemento>[];
   _PageMemento _previous = null;
-  _PageMemento _first=null;
   @override
   void didPush(Route<dynamic> route, Route<dynamic> previousRoute) {
     if (_previous != null) {
@@ -20,9 +19,7 @@ class AppNavigatorObserver extends NavigatorObserver {
       pageUrl: route.settings.name,
       theme: appSurface.current.theme,
     );
-    if(previousRoute?.settings?.name==null) {
-      _first=_previous;
-    }
+//    print('--------$_previous');
     super.didPush(route, previousRoute);
   }
 
@@ -30,11 +27,10 @@ class AppNavigatorObserver extends NavigatorObserver {
   void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
     var memento = _histories.last;
     _histories.removeLast();
-    if(_histories.isEmpty) {
-      _previous=_first;
-    }
-//    print(
-//        '---$memento----${appSurface.current.name}......${appSurface.current.theme}');
+//    print('~~~~~~~$memento');
+    ///当前移除的变成前进的先前，这类似于redo和todo，与push互为备忘
+    _previous=memento;
+
     bool hasSwitch = false;
     if (memento.sceneName != appSurface.current.theme) {
       appSurface.switchScene(memento.sceneName, memento.pageUrl);

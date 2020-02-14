@@ -18,11 +18,11 @@ class PageContext {
   final Page page;
   final IServiceProvider site;
   final BuildContext context;
-  final String scene;
-  final String theme;
+  final String sourceScene;
+  final String sourceTheme;
 
   const PageContext(
-      {this.page, this.scene, this.theme, this.site, this.context});
+      {this.page, this.sourceScene, this.sourceTheme, this.site, this.context});
 
   UserPrincipal get principal => site.getService('@.principal');
 
@@ -39,7 +39,7 @@ class PageContext {
 
   ///当前场景，可能是框架id，也可能是系统场景名
   String currentScene() {
-    return site.getService("@.scene.current")?.title;
+    return site.getService("@.scene.current")?.name;
   }
 
   ///当前主题url，为相对于框架的地址
@@ -94,8 +94,8 @@ class PageContext {
       page: page,
       site: site,
       context: context,
-      theme: currentTheme(),
-      scene: currentScene(),
+      sourceTheme: currentTheme(),
+      sourceScene: currentScene(),
     );
     Widget widget = page.buildPage(pageContext2);
     return widget;
@@ -315,7 +315,6 @@ class PageContext {
   Future<T> forward<T extends Object>(
     String pageUrl, {
     Map<String, Object> arguments,
-
     ///如果为空在当前切景下跳转，如果要跳转的地址是其它框架的，则为框架id，输入/表示跳到系统场景
     String scene,
 
@@ -338,16 +337,13 @@ class PageContext {
       return _forward(pagePath,
           arguments: arguments, clearHistoryByPagePath: clearHistoryByPagePath);
     }
-    if (onFinishedSwitchScene == null) {
-      throw FlutterError('切换场景必须实现该回调方法以跳转');
-    }
     SwitchSceneNotification(
         scene: scene,
         pageUrl: pagePath,
-        onfinished: () {
+        onfinished: ()async {
           _forward(pagePath,
-                  arguments: arguments,
-                  clearHistoryByPagePath: clearHistoryByPagePath)
+              arguments: arguments,
+              clearHistoryByPagePath: clearHistoryByPagePath)
               .then((result) {
             if (onFinishedSwitchScene != null) {
               onFinishedSwitchScene(result);
@@ -361,6 +357,9 @@ class PageContext {
     Map<String, Object> arguments,
     String clearHistoryByPagePath,
   }) {
+    if (arguments == null) {
+      arguments = Map();
+    }
     if (!StringUtil.isEmpty(clearHistoryByPagePath)) {
       return Navigator.of(context).pushNamedAndRemoveUntil(
         pagePath,

@@ -11,4 +11,5 @@ export 'core_lib/_principal.dart';
 export 'core_lib/_desklet.dart';
 export 'core_lib/_theme.dart';
 export 'core_lib/_system.dart';
-export 'core_lib/_store.dart';
+export 'core_lib/_exceptions.dart';
+export 'core_lib/_app_keypair.dart';

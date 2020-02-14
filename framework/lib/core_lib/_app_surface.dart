@@ -1,26 +1,30 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_desklet.dart';
 import 'package:framework/core_lib/_scene.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_theme.dart';
-
+import 'package:device_info/device_info.dart';
 import '_app_keypair.dart';
 import '_page.dart';
 import '_portal.dart';
 import '_principal.dart';
+import '_service_containers.dart';
 import '_system.dart';
 import '_utimate.dart';
 
 typedef BuildRoute = ModalRoute Function(
     RouteSettings settings, Page page, IServiceProvider site);
-typedef AppBuilder = Widget Function(BuildContext, Widget);
+typedef AppDecorator = Widget Function(BuildContext, Widget);
 typedef OnGenerateRoute = Route<dynamic> Function(RouteSettings);
 typedef OnGenerateTitle = String Function(BuildContext);
 
 mixin IAppSurface {
   IScene get current => null;
 
-  AppBuilder get builder => null;
+  AppDecorator get appDecorator => null;
 
   Map<String, Widget Function(BuildContext)> get routes => null;
 
@@ -48,22 +52,26 @@ class AppCreator {
   final String entrypoint;
   final BuildSystem buildSystem;
   final BuildPortals buildPortals;
+  final BuildServices buildServices;
   final Function() onloading;
   final Function() onloaded;
   final Map<String, dynamic> props;
   final AppKeyPair appKeyPair;
-  final ILocalPrincipalManager localPrincipalManager;
+  final ILocalPrincipal localPrincipal;
+  final AppDecorator appDecorator;
 
   AppCreator({
     this.title,
     this.entrypoint,
     this.buildSystem,
     this.buildPortals,
+    this.appDecorator,
     this.onloading,
     this.onloaded,
     this.props,
+    this.buildServices,
     this.appKeyPair,
-    this.localPrincipalManager,
+    this.localPrincipal,
   });
 }
 
@@ -72,15 +80,17 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   String _entrypoint;
   String _currentScene;
   Map<String, IScene> _scenes = {};
-  IServiceSite _systemServiceContainer;
-
+  ShareServiceContainer _shareServiceContainer;
+  AppDecorator _appDecorator;
   ISharedPreferences _sharedPreferences;
+  ExternalServiceContainer _extenalServiceProvider;
+  Map<String, dynamic> _props = {};
 
   IScene get current => _scenes[_currentScene];
 
   @override
-  AppBuilder get builder {
-    return null;
+  AppDecorator get appDecorator {
+    return _appDecorator;
   }
 
   @override
@@ -96,7 +106,9 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   }
 
   @override
-  OnGenerateTitle get onGenerateTitle {}
+  OnGenerateTitle get onGenerateTitle {
+    return null;
+  }
 
   @override
   OnGenerateRoute get onGenerateRoute {}
@@ -115,25 +127,71 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     if ('@.sharedPreferences' == name) {
       return _sharedPreferences;
     }
-    return null;
+    if (name.startsWith('@.prop.')) {
+      return _props[name];
+    }
+    return this._extenalServiceProvider?.getService(name);
+  }
+
+  _fillDevice(AppKeyPair appKeyPair) async {
+    var device = '';
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      var android = await deviceInfo.androidInfo;
+      device =
+          '${android.device}${android.type}${android.model}${android.product}';
+    } else if (Platform.isIOS) {
+      var ios = await deviceInfo.iosInfo;
+      device = '${ios.name}${ios.model}${ios.identifierForVendor}';
+    }
+    device = MD5Util.generateMd5(device);
+    appKeyPair.device = device;
   }
 
   @override
   Future<void> load([AppCreator creator]) async {
     _title = creator.title;
     _entrypoint = creator.entrypoint;
+    _appDecorator = creator.appDecorator;
+    if (creator.props != null) {
+      _props.addAll(creator.props);
+    }
 
-    _systemServiceContainer = _SystemServiceContainer(this);
+    BaseOptions options = BaseOptions(headers: {
+      'Content-Type': "text/html; charset=utf-8",
+    });
+    var _dio = Dio(options); //使用base配置可以通
+
+    _shareServiceContainer = ShareServiceContainer(this);
     _sharedPreferences = new DefaultSharedPreferences();
-    await _sharedPreferences.init(_systemServiceContainer);
+    await _sharedPreferences.init(_shareServiceContainer);
 
-    var principal = UserPrincipal(manager: creator.localPrincipalManager);
-    _systemServiceContainer.addService(
-        '@.principal.localmanager', creator.localPrincipalManager);
-    _systemServiceContainer.addService('@.principal', principal);
+    var principal = UserPrincipal(manager: creator.localPrincipal);
 
+    _fillDevice(creator.appKeyPair);
+    _shareServiceContainer.addServices(<String, dynamic>{
+      '@.principal.local': creator.localPrincipal,
+      '@.principal': principal,
+      '@.appKeyPair': creator.appKeyPair,
+      '@.http': _dio,
+    });
+
+    await _buildExternalServices(creator.buildServices);
     await _buildSystem(creator.buildSystem);
     await _buildPortals(creator.buildPortals);
+  }
+
+  Future<void> _buildExternalServices(BuildServices buildServices) async {
+    if (buildServices == null) {
+      return;
+    }
+    _extenalServiceProvider = ExternalServiceContainer(null);
+    var services = await buildServices(_shareServiceContainer);
+    if (services == null) {
+      services = <String, dynamic>{};
+    }
+    _extenalServiceProvider.addServices(services);
+    _extenalServiceProvider.initServices(services);
   }
 
   Future<void> _buildSystem(BuildSystem buildSystem) async {
@@ -148,17 +206,26 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
 
     _scenes[_currentScene] = scene;
 
-    var system = buildSystem(_systemServiceContainer);
-    var pages = system?.buildPages(_systemServiceContainer);
-    var systemStore = system?.buildStore(_systemServiceContainer);
-    var themeStyles = system?.buildThemes(_systemServiceContainer);
+    var system = buildSystem(_shareServiceContainer);
+    var pages = system?.buildPages(_shareServiceContainer);
+    var themeStyles = system?.buildThemes(_shareServiceContainer);
+    var shareServices = system.builderShareServices == null
+        ? <String, dynamic>{}
+        : await system.builderShareServices(_shareServiceContainer);
+    var sceneServices = await system.builderSceneServices == null
+        ? <String, dynamic>{}
+        : await system.builderSceneServices(_shareServiceContainer);
+
+    _shareServiceContainer.addServices(shareServices);
+    _shareServiceContainer.initServices(shareServices);
+    _shareServiceContainer.readyServices();
 
     await scene.init(
       defaultTheme: system.defaultTheme,
-      site: _systemServiceContainer,
+      site: _shareServiceContainer,
       desklets: <Desklet>[],
       pages: pages,
-      store: systemStore,
+      services: sceneServices == null ? <String, dynamic>{} : sceneServices,
       themeStyles: themeStyles,
     );
   }
@@ -167,35 +234,42 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     if (buildPortals == null) {
       return;
     }
-    List<BuildPortal> portals = buildPortals(_systemServiceContainer);
+    List<BuildPortal> portals = buildPortals(_shareServiceContainer);
     for (var buildPortal in portals) {
-      var portal = buildPortal(_systemServiceContainer);
+      var portal = buildPortal(_shareServiceContainer);
 
       IScene scene = DefaultScene(
         name: portal.id,
       );
       _scenes[portal.id] = scene;
 
-      var pages =
-          portal.buildPages == null ? <Page>[] : portal.buildPages(_systemServiceContainer);
+      var pages = portal.buildPages == null
+          ? <Page>[]
+          : portal.buildPages(_shareServiceContainer);
       var desklets = portal.buildDesklets == null
           ? <Desklet>[]
-          : portal.buildDesklets(_systemServiceContainer);
-      var portalStore =
-          portal.buildStore == null ? null : portal.buildStore(_systemServiceContainer);
+          : portal.buildDesklets(_shareServiceContainer);
       var themeStyles = portal.buildThemes == null
           ? <ThemeStyle>[]
-          : portal.buildThemes(_systemServiceContainer);
+          : portal.buildThemes(_shareServiceContainer);
+      var shareServices = portal.builderShareServices == null
+          ? <String, dynamic>{}
+          : await portal.builderShareServices(_shareServiceContainer);
+      var sceneServices = portal.builderSceneServices == null
+          ? <String, dynamic>{}
+          : await portal.builderSceneServices(_shareServiceContainer);
 
-      await portalStore?.init(_systemServiceContainer);
+      _shareServiceContainer.addServices(shareServices);
+      _shareServiceContainer.initServices(shareServices);
+      _shareServiceContainer.readyServices();
 
       await scene.init(
         defaultTheme: portal.defaultTheme,
-        site: _systemServiceContainer,
+        site: _shareServiceContainer,
         desklets: desklets,
         pages: pages,
-        store: portalStore,
         themeStyles: themeStyles,
+        services: sceneServices == null ? <String, dynamic>{} : sceneServices,
       );
     }
   }
@@ -213,28 +287,5 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   Future<void> switchTheme(String theme) async {
     IScene scene = current;
     await scene.switchTheme(theme);
-  }
-}
-
-class _SystemServiceContainer implements IServiceSite {
-  IServiceProvider parent;
-  Map<String, dynamic> services = {};
-
-  _SystemServiceContainer(this.parent);
-
-  @override
-  getService(String name) {
-    if (services.containsKey(name)) {
-      return services[name];
-    }
-    return parent?.getService(name);
-  }
-
-  @override
-  void addService(String name, service) {
-    if (services.containsKey(name)) {
-      throw new FlutterError('已存在服务:$name');
-    }
-    services[name] = service;
   }
 }

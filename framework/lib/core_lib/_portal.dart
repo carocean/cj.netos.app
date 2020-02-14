@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:framework/core_lib/_store.dart';
 
 import '_desklet.dart';
 import '_page.dart';
@@ -9,8 +8,6 @@ import '_utimate.dart';
 
 typedef BuildPortals = List<BuildPortal> Function(IServiceProvider site);
 typedef BuildPortal = Portal Function(IServiceProvider site);
-typedef BuildPortalStore = PortalStore Function(
-    IServiceProvider site);
 
 class Portal {
   const Portal({
@@ -21,10 +18,12 @@ class Portal {
     @required this.buildDesklets,
     @required this.buildPages,
     @required this.buildThemes,
-    @required this.buildStore,
+    @required this.builderSceneServices,
+    @required this.builderShareServices,
   });
 
-  final BuildPortalStore buildStore;
+  final BuildServices builderShareServices;
+  final BuildServices builderSceneServices;
   final BuildDesklets buildDesklets;
   final BuildThemes buildThemes;
   final BuildPages buildPages;

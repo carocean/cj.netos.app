@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../framework.dart';
 
 typedef BuildDesklet = Widget Function(
-    Desklet desklet, PageContext desktopContext);
+    Portlet portlet, Desklet desklet, PageContext desktopContext);
 
 typedef BuildDesklets = List<Desklet> Function(
      IServiceProvider site);
@@ -68,7 +68,7 @@ class Portlet {
       debugPrint('桌面栏目未定义:' + deskletUrl);
       return null;
     }
-    return desklet.buildDesklet(desklet, context);
+    return desklet.buildDesklet(this,desklet, context);
   }
 
   toMap() {
