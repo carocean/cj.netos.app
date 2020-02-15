@@ -26,7 +26,6 @@ class _EntryPointState extends State<EntryPoint> {
     if(!_localPrincipalManager.isEmpty()) {
       _localPrincipalManager.setCurrent(_localPrincipalManager.list()[0]);
     }
-    _future_refreshToken=_refreshToken();
   }
 
   @override
@@ -58,7 +57,10 @@ class _EntryPointState extends State<EntryPoint> {
       );
       return body;
     }
-
+    if(_future_refreshToken==null) {
+      _future_refreshToken=_refreshToken();
+      print('~~~~~~~~');
+    }
     //有刷新令牌自动登录
     return FutureBuilder(
       future: _future_refreshToken,
