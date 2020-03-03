@@ -49,7 +49,7 @@ class _TestServicesState extends State<TestServices> {
             endOrientation: EndOrientation.backend,
             listenMode: ListenMode.upstream)
         ?.send(Frame('get /a a/1.0'));
-    widget.context.closeNetwork('location-updater', leave: true);
+    widget.context.closeNetwork('location-updater');
     //下面是测试
     return Scaffold(
       appBar: AppBar(

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-
 import '_frame.dart';
 import '_utimate.dart';
 
@@ -9,7 +8,7 @@ typedef Onmessage = void Function(Frame frame);
 typedef Onopen = void Function();
 typedef Onclose = void Function();
 typedef Onerror = void Function(dynamic e);
-typedef Onreconnect = void Function();
+typedef Onreconnect = void Function(int tryTimes);
 
 mixin IConnection {
   String get host;
@@ -201,13 +200,14 @@ class Connection implements IConnection {
       print('连接成功。$url');
       return ws;
     }
-    var ws = await _delayedGet(delayed, currentTryTimes, reconnectTimes, url);
+    var ws = await _delayedGet(
+        delayed, currentTryTimes, reconnectTimes, url, onreconnect);
     print('连接成功。$url');
     return ws;
   }
 
   static Future<WebSocket> _delayedGet(Duration delayed, int currentTryTimes,
-      int reconnectTimes, String url) async {
+      int reconnectTimes, String url, Onreconnect onreconnect) async {
     try {
       return await WebSocket.connect(url);
     } catch (e) {
@@ -217,7 +217,11 @@ class Connection implements IConnection {
       ++currentTryTimes;
       return await Future.delayed(delayed, () async {
         print('连接失败，原因:$e。重连第$currentTryTimes次');
-        return await _delayedGet(delayed, currentTryTimes, reconnectTimes, url);
+        if (onreconnect != null) {
+          onreconnect(currentTryTimes);
+        }
+        return await _delayedGet(
+            delayed, currentTryTimes, reconnectTimes, url, onreconnect);
       });
     }
   }

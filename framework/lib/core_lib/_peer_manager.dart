@@ -116,47 +116,53 @@ class DefaultPeerManager implements IPeerManager {
     IEventQueue errorQueue = DefaultEventQueue();
     IEventQueue networkQueue = DefaultEventQueue();
     IEventQueue systemQueue = DefaultEventQueue();
+
+    if (appCreator.peerOnmessageCount != null) {
+      networkQueue.onQueueCount = (count) {
+        appCreator.peerOnmessageCount(count);
+      };
+    }
+
     await errorQueue.open(errorQueuePath);
     await networkQueue.open(networkQueuePath);
     await systemQueue.open(systemQueuePath);
     await pump.start(networkQueue, errorQueue, systemQueue);
+
+
 
     IPeer peer = await Peer.connect(
       nameServer.openports,
       pingInterval: Duration(seconds: 5),
       reconnectDelayed: Duration(seconds: 15),
       reconnectTimes: 10,
-      onreconnect: () {
-        if (appCreator.peerOnreconnect != null) appCreator.peerOnreconnect();
+      onreconnect: (trytimes) {
+        if (appCreator.peerOnreconnect != null)
+          appCreator.peerOnreconnect(trytimes);
       },
-      onopen: () {
+      onopen: () async {
         pump.addNetworkTask({});
         pump.addErrorTask({});
         pump.addNotifyTask({});
-        if (appCreator.peerOnopen != null) appCreator.peerOnopen();
+        if (appCreator.peerOnopen != null) {
+          appCreator.peerOnopen();
+        }
       },
       onclose: () {
         if (appCreator.peerOnclose != null) appCreator.peerOnclose();
       },
-      onerror: (f) {
-        Frame frame = f as Frame;
+      onerror: (frame) {
         errorQueue.add(frame);
-//        print('~~peer.onerror~~~$f');
         pump.addErrorTask({});
       },
-      onmessage: (f) {
-//        print('~~~peer.onmessage~~$f');
-        Frame frame = f as Frame;
+      onmessage: (frame) {
         systemQueue.add(frame);
         pump.addNotifyTask({});
       },
     );
     peer.authByAccessToken(accessToken);
-    var network = peer.listen(
-        appCreator.messageNetwork, EndOrientation.frontend, ListenMode.downstream);
-    network.onmessage((f) {
-//      print('~~network.onmessage~~~$f');
-      Frame frame = f as Frame;
+    var network = peer.listen(appCreator.messageNetwork,
+        EndOrientation.frontend, ListenMode.downstream);
+    network.onmessage((frame) async {
       networkQueue.add(frame);
       pump.addNetworkTask({});
     });

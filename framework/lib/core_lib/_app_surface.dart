@@ -26,6 +26,7 @@ typedef BuildRoute = ModalRoute Function(
 typedef AppDecorator = Widget Function(BuildContext, Widget);
 typedef OnGenerateRoute = Route<dynamic> Function(RouteSettings);
 typedef OnGenerateTitle = String Function(BuildContext);
+typedef OnMessageCount=void Function(int count);
 
 mixin IAppSurface {
   IScene get current => null;
@@ -73,23 +74,28 @@ class AppCreator {
 
   final String messageNetwork;
 
+  final
+
+  OnMessageCount peerOnmessageCount;
+
 
   AppCreator({
-    this.title,
-    this.messageNetwork='interactive-center',
-    this.entrypoint,
-    this.buildSystem,
-    this.buildPortals,
-    this.appDecorator,
-    this.onloading,
-    this.onloaded,
-    this.props,
-    this.buildServices,
-    this.appKeyPair,
-    this.localPrincipal,
-    this.peerOnreconnect,
-    this.peerOnclose,
-    this.peerOnopen,
+  this.title,
+  this.messageNetwork='interactive-center',
+  this.entrypoint,
+  this.buildSystem,
+  this.buildPortals,
+  this.appDecorator,
+  this.onloading,
+  this.onloaded,
+  this.props,
+  this.buildServices,
+  this.appKeyPair,
+  this.localPrincipal,
+  this.peerOnreconnect,
+  this.peerOnclose,
+  this.peerOnopen,
+  this.peerOnmessageCount,
   });
 }
 
@@ -184,7 +190,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     if (Platform.isAndroid) {
       var android = await deviceInfo.androidInfo;
       device =
-          '${android.device}${android.type}${android.model}${android.product}';
+      '${android.device}${android.type}${android.model}${android.product}';
     } else if (Platform.isIOS) {
       var ios = await deviceInfo.iosInfo;
       device = '${ios.name}${ios.model}${ios.identifierForVendor}';
@@ -216,7 +222,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     _fillDevice(creator.appKeyPair);
 
     ILogicNetworkContainer _logicNetworkContainer =
-        DefaultLogicNetworkContainer();
+    DefaultLogicNetworkContainer();
     IPeerManager _peerManager = DefaultPeerManager();
     IPump _pump = DefaultPump();
 

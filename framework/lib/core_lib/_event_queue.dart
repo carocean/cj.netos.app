@@ -2,14 +2,18 @@ import 'package:framework/core_lib/_frame.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:objectdb/objectdb.dart';
 
+typedef OnQueueCount=void Function(int count);
 
 class DefaultEventQueue implements IEventQueue {
   ObjectDB _db;
-
+  OnQueueCount _onQueueCount;
   @override
   Future<void> open(String path) async {
     final db = ObjectDB(path);
     _db = await db.open();
+    if(_onQueueCount!=null) {
+      _onQueueCount(await count());
+    }
   }
 
   @override
@@ -18,7 +22,7 @@ class DefaultEventQueue implements IEventQueue {
   }
 
   @override
-  Future<void> add(Frame frame) {
+  Future<void> add(Frame frame) async{
     Map doc = frame.toMap();
     var person = frame.head('to-person');
     if (!StringUtil.isEmpty(person)) {
@@ -26,7 +30,10 @@ class DefaultEventQueue implements IEventQueue {
       var appid = person.substring(pos + 1);
       doc['appid'] = appid;
     }
-    _db.insert(doc);
+    await _db.insert(doc);
+    if(_onQueueCount!=null) {
+      _onQueueCount(await count());
+  }
   }
 
   @override
@@ -51,6 +58,9 @@ class DefaultEventQueue implements IEventQueue {
       'headers.url': '${frame.head('url')}',
     };
     await _db.remove(query);
+    if(_onQueueCount!=null) {
+      _onQueueCount(await count());
+    }
   }
 
   @override
@@ -64,6 +74,9 @@ class DefaultEventQueue implements IEventQueue {
       'path': '$path'
     };
     await _db.remove(query);
+    if(_onQueueCount!=null) {
+      _onQueueCount(await count());
+    }
   }
 
   @override
@@ -76,10 +89,23 @@ class DefaultEventQueue implements IEventQueue {
     }
     return retlist;
   }
+
+  @override
+  Future<int> count() async{
+    var query = {};
+    List<Map<dynamic, dynamic>> list = await _db.find(query);
+    return list.length;
+  }
+
+  @override
+  set onQueueCount(OnQueueCount onQueueCount) {
+    _onQueueCount=onQueueCount;
+  }
 }
 
 
 mixin IEventQueue {
+  set onQueueCount(OnQueueCount onQueueCount);
   Future<void> open(String path);
 
   Future<void> close();
@@ -93,4 +119,7 @@ mixin IEventQueue {
   Future<void> removeWhere(Frame frame);
 
   Future<List<Frame>> findAll() {}
+
+  Future<int>  count() {}
+
 }

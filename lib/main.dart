@@ -1,8 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
 
 import 'system/local/dao/database.dart';
 import 'system/system.dart';
+
+final _peerStatus = _PeerStatus(
+  online: false,
+  unreadCount: 0,
+  reconnectTrytimes: 0,
+);
 
 void main() => platformRun(
       AppCreator(
@@ -42,21 +49,142 @@ void main() => platformRun(
           buildPortals: buildPortals,
           localPrincipal: DefaultLocalPrincipal(),
           messageNetwork: 'interactive-center',
+          peerOnmessageCount: (count) {
+            _peerStatus.unreadCount = count;
+            _peerStatus.online = true;
+            if (_peerStatus.refresh != null) {
+              _peerStatus.refresh();
+            }
+          },
           peerOnopen: () {
-            print('peerOnopen');
+            _peerStatus.online = true;
+            if (_peerStatus.refresh != null) {
+              _peerStatus.refresh();
+            }
           },
           peerOnclose: () {
-            print('peerOnclose');
+            _peerStatus.online = false;
+            if (_peerStatus.refresh != null) {
+              _peerStatus.refresh();
+            }
           },
-          peerOnreconnect: () {
-            print('peerOnreconnect');
+          peerOnreconnect: (trytimes) {
+            _peerStatus.online = false;
+            _peerStatus.reconnectTrytimes = trytimes;
+            if (_peerStatus.refresh != null) {
+              _peerStatus.refresh();
+            }
           },
 
           ///以下可装饰窗口区，比如在peer连接状态改变时提醒用户
-          appDecorator: (ctx, win) {
-            return win;
+          appDecorator: (ctx, viewport) {
+            return Window(
+              viewport: viewport,
+            );
           }),
     );
+
+class Window extends StatelessWidget {
+  Widget viewport;
+
+  Window({this.viewport});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        this.viewport,
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: StatusBar(),
+        ),
+      ],
+    );
+  }
+}
+
+class StatusBar extends StatefulWidget {
+  @override
+  _StatusBarState createState() => _StatusBarState();
+}
+
+class _StatusBarState extends State<StatusBar> {
+  @override
+  void initState() {
+    super.initState();
+    _peerStatus.refresh = () {
+      setState(() {});
+    };
+  }
+
+  @override
+  void dispose() {
+    _peerStatus.refresh = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 78,
+        top: 5,
+      ),
+      alignment: Alignment.topLeft,
+      child: Row(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              right: 2,
+            ),
+            child: Image.asset(
+              'lib/portals/gbera/images/gbera.png',
+              width: 16,
+              height: 16,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                '${_peerStatus.unreadCount}',
+                style: TextStyle(
+                  fontSize: 7,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                '${_peerStatus.online ? '在线' : (_peerStatus.reconnectTrytimes > 0 ? '重试${_peerStatus.reconnectTrytimes}次' : '离线')}',
+                style: TextStyle(
+                  fontSize: 6,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PeerStatus {
+  bool online = false;
+  int unreadCount = 0;
+
+  int reconnectTrytimes;
+  Function() refresh;
+
+  _PeerStatus({
+    this.online,
+    this.unreadCount,
+    this.reconnectTrytimes,
+    this.refresh,
+  });
+}
 
 class DefaultLocalPrincipal implements ILocalPrincipal {
   ILocalPrincipalVisitor _visitor;

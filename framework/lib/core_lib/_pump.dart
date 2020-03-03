@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:framework/core_lib/_connection.dart';
 import 'package:framework/core_lib/_event_queue.dart';
 import 'package:framework/core_lib/_frame.dart';
@@ -59,22 +60,6 @@ class DefaultPump implements IPump {
     _startNetwork(networkQueue);
     _startError(errorQueue);
     _startNofity(nofityQueue);
-//    Stream.periodic(
-//        Duration(
-//          seconds: 15, //每隔15秒发一次任务
-//        ), (count) {
-//      return {};
-//    }).listen((task) async {
-////      if (await _streamControllerNotify.stream.isEmpty) {
-//        addNotifyTask(task);
-////      }
-////      if (await _streamControllerError.stream.isEmpty) {
-//        addErrorTask(task);
-////      }
-////      if (await _streamControllerNetwork.stream.isEmpty) {
-//        addNetworkTask(task);
-////      }
-//    });
   }
 
   void _startNofity(IEventQueue queue) {
@@ -123,6 +108,7 @@ class DefaultPump implements IPump {
     }
     _streamControllerNetwork = StreamController();
     _streamControllerNetwork.stream.listen((task) async {
+      //将来这些循环都得放在isolate里面执行，否则会卡
       for (var i = 0; i < _listenItemsNetwork.length; i++) {
         var item = _listenItemsNetwork[i];
         if (item == null) {
@@ -136,7 +122,6 @@ class DefaultPump implements IPump {
       }
     });
   }
-
   @override
   void listenNetwork(UserPrincipal principal, String url,String matchPath, onmessage) async {
     if (onmessage == null) {
