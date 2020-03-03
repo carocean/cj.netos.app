@@ -2,7 +2,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_connection.dart';
+import 'package:framework/core_lib/_network_container.dart';
 import 'package:framework/core_lib/_notifications.dart';
+import 'package:framework/core_lib/_peer.dart';
+import 'package:framework/core_lib/_pump.dart';
 import 'package:uuid/uuid.dart';
 
 import '_desklet.dart';
@@ -21,7 +25,7 @@ class PageContext {
   final String sourceScene;
   final String sourceTheme;
 
-  const PageContext(
+  PageContext(
       {this.page, this.sourceScene, this.sourceTheme, this.site, this.context});
 
   UserPrincipal get principal => site.getService('@.principal');
@@ -71,7 +75,6 @@ class PageContext {
   ///部件作为页面的界面元素被嵌入，因此不支持页面跳转动画，因为它在调用时不被作为路由页。
   Widget part(String pageUrl, BuildContext context,
       {Map<String, Object> arguments}) {
-
     String path = pageUrl;
     int pos = path.lastIndexOf('?');
     if (pos > 0) {
@@ -315,6 +318,7 @@ class PageContext {
   Future<T> forward<T extends Object>(
     String pageUrl, {
     Map<String, Object> arguments,
+
     ///如果为空在当前切景下跳转，如果要跳转的地址是其它框架的，则为框架id，输入/表示跳到系统场景
     String scene,
 
@@ -340,10 +344,10 @@ class PageContext {
     SwitchSceneNotification(
         scene: scene,
         pageUrl: pagePath,
-        onfinished: ()async {
+        onfinished: () async {
           _forward(pagePath,
-              arguments: arguments,
-              clearHistoryByPagePath: clearHistoryByPagePath)
+                  arguments: arguments,
+                  clearHistoryByPagePath: clearHistoryByPagePath)
               .then((result) {
             if (onFinishedSwitchScene != null) {
               onFinishedSwitchScene(result);
@@ -496,4 +500,48 @@ class PageContext {
     }
     return remoteFiles;
   }
+
+  void listenNetwork(Onmessage onmessage, {String matchPath}) {
+    IPump pump = site.getService('@.pump');
+    pump.listenNetwork(principal, page.url, matchPath, onmessage);
+  }
+
+  void unlistenNetwork() {
+    IPump pump = site.getService('@.pump');
+    pump.unlistenNetwork(principal, page.url);
+  }
+
+  void listenError(Onerror onerror) {
+    IPump pump = site.getService('@.pump');
+    pump.listenError(principal, page.url, onerror);
+  }
+
+  void listenNotify(Onmessage onmessage) {
+    IPump pump = site.getService('@.pump');
+    pump.listenNotify(principal, page.url, onmessage);
+  }
+
+  void unlistenError() {
+    IPump pump = site.getService('@.pump');
+    pump.unlistenError(principal, page.url);
+  }
+
+  void unlistenNotify() {
+    IPump pump = site.getService('@.pump');
+    pump.unlistenNotify(principal, page.url);
+  }
+
+  ILogicNetwork openNetwork(String networkName,
+      {ListenMode listenMode, EndOrientation endOrientation}) {
+    ILogicNetworkContainer container =
+        site.getService('@.logic.network.container');
+    return container.openNetwork(networkName,listenMode:listenMode,endOrientation:endOrientation);
+  }
+
+  void closeNetwork(String networkName,{bool leave}) {
+    ILogicNetworkContainer container =
+    site.getService('@.logic.network.container');
+    container.closeNetwork(networkName,leave:leave);
+  }
+
 }

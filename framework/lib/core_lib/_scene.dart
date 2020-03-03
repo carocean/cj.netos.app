@@ -1,7 +1,9 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_connection.dart';
 import 'package:framework/core_lib/_desklet.dart';
+import 'package:framework/core_lib/_frame.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
@@ -37,11 +39,9 @@ mixin IScene implements IDisposable {
     List<ThemeStyle> themeStyles,
   });
 
-  bool containsPage(String path) {
-  }
+  bool containsPage(String path) {}
 
   Page getPage(String path) {}
-
 
 }
 
@@ -60,14 +60,17 @@ class DefaultScene implements IScene, IServiceProvider {
   DefaultScene({
     @required this.name,
   });
+
   @override
   bool containsPage(String path) {
     return _pages.containsKey(path);
   }
+
   @override
   Page getPage(String path) {
     return _pages[path];
   }
+
   @override
   getService(String name) {
     if ('@.principal' == name) {
@@ -167,7 +170,7 @@ class DefaultScene implements IScene, IServiceProvider {
     var map = <String, Widget Function(BuildContext)>{};
     for (var key in _pages.keys) {
       var page = _pages[key];
-      if(page.buildPage==null) {
+      if (page.buildPage == null) {
         continue;
       }
       map[key] = (context) {
@@ -177,7 +180,8 @@ class DefaultScene implements IScene, IServiceProvider {
             sourceTheme: theme,
             site: _sceneServiceContainer,
             context: context);
-        return page.buildPage(pageContext);
+        var p = page.buildPage(pageContext);
+        return p;
       };
     }
     return map;
@@ -204,7 +208,8 @@ class DefaultScene implements IScene, IServiceProvider {
   String get theme {
     ISharedPreferences sharedPreferences =
         parentSite.getService('@.sharedPreferences');
-    String _theme = sharedPreferences.getString(_THEME_STORE_KEY, person: _principal?.person, scene: name);
+    String _theme = sharedPreferences.getString(_THEME_STORE_KEY,
+        person: _principal?.person, scene: name);
     if (StringUtil.isEmpty(_theme)) {
       _theme = this._defaultTheme;
     }

@@ -262,6 +262,10 @@ class DefaultLocalPrincipalManager
   @override
   void setCurrent(String person) {
     _current = person;
+    IPeerManager peerManager=_site.getService('@.peer.manager');
+    if(peerManager!=null) {
+      peerManager.start(_site);
+    }
   }
 
   Future<void> _flushOne(Principal p) async {

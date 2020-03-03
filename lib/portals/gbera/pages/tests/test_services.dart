@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_frame.dart';
+import 'package:framework/core_lib/_peer.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 
@@ -21,10 +23,33 @@ class _TestServicesState extends State<TestServices> {
       this._isTest = isTest;
     }
     super.initState();
+    widget.context.listenError((f) {
+      print('--777----$f');
+    });
+    widget.context.listenNotify((f) {
+      print('--888----$f');
+    });
+    widget.context.listenNetwork((f) {
+      print('--9999----$f');
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.context.unlistenNetwork();
+    widget.context.unlistenError();
+    widget.context.unlistenNotify();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    widget.context
+        .openNetwork('location-updater',
+            endOrientation: EndOrientation.backend,
+            listenMode: ListenMode.upstream)
+        ?.send(Frame('get /a a/1.0'));
+    widget.context.closeNetwork('location-updater', leave: true);
     //下面是测试
     return Scaffold(
       appBar: AppBar(
@@ -38,13 +63,13 @@ class _TestServicesState extends State<TestServices> {
               items: <Widget>[
                 CardItem(
                   title: '初始化公众数据',
-                  onItemTap: (){
+                  onItemTap: () {
                     widget.context.forward('/test/services/gbera/persons');
                   },
                 ),
                 CardItem(
                   title: '摸拟消息入站',
-                  onItemTap: (){
+                  onItemTap: () {
                     widget.context.forward('/test/services/insite/messages');
                   },
                 ),

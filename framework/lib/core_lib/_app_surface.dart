@@ -1,15 +1,20 @@
 import 'dart:io';
 
+import 'package:device_info/device_info.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_connection.dart';
 import 'package:framework/core_lib/_desklet.dart';
+import 'package:framework/core_lib/_network_container.dart';
+import 'package:framework/core_lib/_pump.dart';
 import 'package:framework/core_lib/_scene.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_theme.dart';
-import 'package:device_info/device_info.dart';
+
 import '_app_keypair.dart';
 import '_exceptions.dart';
 import '_page.dart';
+import '_peer_manager.dart';
 import '_portal.dart';
 import '_principal.dart';
 import '_service_containers.dart';
@@ -62,9 +67,16 @@ class AppCreator {
   final AppKeyPair appKeyPair;
   final ILocalPrincipal localPrincipal;
   final AppDecorator appDecorator;
+  final Onreconnect peerOnreconnect;
+  final Onopen peerOnopen;
+  final Onclose peerOnclose;
+
+  final String messageNetwork;
+
 
   AppCreator({
     this.title,
+    this.messageNetwork='interactive-center',
     this.entrypoint,
     this.buildSystem,
     this.buildPortals,
@@ -75,6 +87,9 @@ class AppCreator {
     this.buildServices,
     this.appKeyPair,
     this.localPrincipal,
+    this.peerOnreconnect,
+    this.peerOnclose,
+    this.peerOnopen,
   });
 }
 
@@ -199,11 +214,21 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     var principal = UserPrincipal(manager: creator.localPrincipal);
 
     _fillDevice(creator.appKeyPair);
+
+    ILogicNetworkContainer _logicNetworkContainer =
+        DefaultLogicNetworkContainer();
+    IPeerManager _peerManager = DefaultPeerManager();
+    IPump _pump = DefaultPump();
+
     _shareServiceContainer.addServices(<String, dynamic>{
       '@.principal.local': creator.localPrincipal,
       '@.principal': principal,
       '@.appKeyPair': creator.appKeyPair,
       '@.http': _dio,
+      '@.peer.manager': _peerManager,
+      '@.pump': _pump,
+      '@.logic.network.container': _logicNetworkContainer,
+      '@.app.creator': creator,
     });
 
     await _buildExternalServices(creator.buildServices);

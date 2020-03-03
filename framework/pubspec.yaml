@@ -1,7 +1,7 @@
 name: framework
 description: 平台框架
 version: 0.0.1
-author:
+author: cj
 homepage:
 
 environment:
@@ -13,6 +13,8 @@ dependencies:
   dio: ^3.0.8
   uuid: ^2.0.4
   shared_preferences: ^0.5.6
+  sprintf: ^4.0.0
+  objectdb: ^1.0.7+1
 dev_dependencies:
   flutter_test:
     sdk: flutter
