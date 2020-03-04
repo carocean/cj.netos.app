@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -160,7 +161,13 @@ class _SettingsPersonsState extends State<SettingsPersons> {
         var arguments = <String, Object>{};
         switch (value) {
           case '/netflow/manager/search_person':
-            widget.context.forward(value, arguments: null);
+//            widget.context.forward(value, arguments: null);
+            showSearch(
+              context: context,
+              delegate: PersonSearchDelegate(widget.context),
+            ).then((result){
+              print('----$result');
+            });
             break;
           case '/netflow/manager/scan_person':
             String cameraScanResult = await scanner.scan();
@@ -341,10 +348,12 @@ class _PersonsViewState extends State<PersonsView> {
             },
           ),
           FlatButton(
-            child: const Text('确定',
+            child: const Text(
+              '确定',
               style: TextStyle(
                 color: Colors.black87,
-              ),),
+              ),
+            ),
             onPressed: () {
               Navigator.pop(context, 'yes');
             },

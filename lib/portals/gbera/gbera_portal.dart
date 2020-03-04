@@ -400,16 +400,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
-          title: '搜索用户',
-          subtitle: '',
-          desc: '用于添加用户',
-          icon: FontAwesomeIcons.search,
-          url: '/netflow/manager/search_person',
-          buildPage: (PageContext pageContext) => SearchPerson(
-            context: pageContext,
-          ),
-        ),
+
         Page(
           title: '搜索管道',
           subtitle: '',

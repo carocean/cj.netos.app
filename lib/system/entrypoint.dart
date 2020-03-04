@@ -51,7 +51,7 @@ class _EntryPointState extends State<EntryPoint> {
     var localPrincipal =
         _localPrincipalManager.get(_localPrincipalManager.current()); //以此作为登录用户
     //如果刷新令牌为空则必须登录
-    if (localPrincipal.refreshToken == null) {
+    if (localPrincipal?.refreshToken == null) {
       body = LoginPage(
         context: widget.context,
       );
