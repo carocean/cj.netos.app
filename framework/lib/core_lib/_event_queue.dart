@@ -1,17 +1,20 @@
 import 'package:framework/core_lib/_frame.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:objectdb/objectdb.dart';
+import 'package:uuid/uuid.dart';
 
-typedef OnQueueCount=void Function(int count);
+typedef OnQueueCount = void Function(int count);
 
 class DefaultEventQueue implements IEventQueue {
   ObjectDB _db;
   OnQueueCount _onQueueCount;
+
   @override
-  Future<void> open(String path) async {
+  Future<void> open(String path, [OnQueueCount onQueueCount]) async {
+    _onQueueCount = onQueueCount;
     final db = ObjectDB(path);
     _db = await db.open();
-    if(_onQueueCount!=null) {
+    if (_onQueueCount != null) {
       _onQueueCount(await count());
     }
   }
@@ -22,104 +25,62 @@ class DefaultEventQueue implements IEventQueue {
   }
 
   @override
-  Future<void> add(Frame frame) async{
-    Map doc = frame.toMap();
-    var person = frame.head('to-person');
-    if (!StringUtil.isEmpty(person)) {
-      int pos = person.lastIndexOf('@');
-      var appid = person.substring(pos + 1);
-      doc['appid'] = appid;
-    }
-    await _db.insert(doc);
-    if(_onQueueCount!=null) {
+  Future<void> add(Map frameMap) async {
+    var url = frameMap['headers']['url'];
+    frameMap['path'] = getPath(url);
+    await _db.insert(frameMap);
+    if (_onQueueCount != null) {
       _onQueueCount(await count());
-  }
+    }
   }
 
   @override
-  Future<List<Frame>> find(String person, String path) async {
+  Future<List<Map>> find(String person, String path) async {
     while (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
     var query = {'headers.to-person': '$person', 'path': '$path'};
     List<Map<dynamic, dynamic>> list = await _db.find(query);
-    List<Frame> retlist = [];
-    for (var obj in list) {
-      retlist.add(Frame.build(obj));
-    }
-    return retlist;
+    return list;
   }
 
   @override
-  Future<void> removeWhere(Frame frame) async {
-    var query = {
-      'headers.command': '${frame.head('command')}',
-      'headers.protocol': '${frame.head('protocol')}',
-      'headers.url': '${frame.head('url')}',
-    };
-    await _db.remove(query);
-    if(_onQueueCount!=null) {
+  Future<void> remove(Map<dynamic, dynamic> frameMap) async {
+    var query = {'_id': '${frameMap['_id']}'};
+    var i = await _db.remove(query);
+    if (_onQueueCount != null) {
       _onQueueCount(await count());
     }
   }
 
   @override
-  Future<void> remove(Frame frame) async {
-    var path = frame.path;
-    while (path.endsWith('/')) {
-      path = path.substring(0, path.length - 1);
-    }
-    var query = {
-      'headers.to-person': '${frame.head('to-person')}',
-      'path': '$path'
-    };
-    await _db.remove(query);
-    if(_onQueueCount!=null) {
-      _onQueueCount(await count());
-    }
-  }
-
-  @override
-  Future<List<Frame>> findAll() async {
+  Future<List<Map<dynamic, dynamic>>> findAll() async {
     var query = {};
     List<Map<dynamic, dynamic>> list = await _db.find(query);
-    List<Frame> retlist = [];
-    for (var obj in list) {
-      retlist.add(Frame.build(obj));
-    }
-    return retlist;
+    return list;
   }
 
   @override
-  Future<int> count() async{
+  Future<int> count() async {
     var query = {};
     List<Map<dynamic, dynamic>> list = await _db.find(query);
     return list.length;
   }
-
-  @override
-  set onQueueCount(OnQueueCount onQueueCount) {
-    _onQueueCount=onQueueCount;
-  }
 }
 
-
 mixin IEventQueue {
-  set onQueueCount(OnQueueCount onQueueCount);
-  Future<void> open(String path);
+  Future<void> open(String path, [OnQueueCount onQueueCount]);
 
   Future<void> close();
 
-  Future<void> add(Frame frame) {}
+  Future<int> count() {}
 
-  Future<List<Frame>> find(String person, String path) {}
+  Future<void> add(Map frameMap);
 
-  Future<void> remove(Frame frame) {}
+  Future<List<Map<dynamic, dynamic>>> find(
+      String person, String path);
 
-  Future<void> removeWhere(Frame frame);
+  Future<List<Map<dynamic, dynamic>>> findAll() {}
 
-  Future<List<Frame>> findAll() {}
-
-  Future<int>  count() {}
-
+  Future<void> remove(Map<dynamic, dynamic> frameMap) {}
 }

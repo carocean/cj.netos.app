@@ -80,11 +80,11 @@ class Frame {
   }
 
   Frame.build(Map obj) {
-    _headers = obj['headers'].cast<String,String>();
+    _headers = obj['headers'].cast<String, String>();
     if (_headers == null) {
       _headers = <String, String>{};
     }
-    _parameters = obj['parameters'].cast<String,String>();
+    _parameters = obj['parameters'].cast<String, String>();
     if (_parameters == null) {
       _parameters = <String, String>{};
     }
@@ -164,7 +164,7 @@ class Frame {
     while (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
-    map['path']=path;
+    map['path'] = path;
     return map;
   }
 
@@ -198,6 +198,11 @@ class Frame {
       b.add(data);
     }
     return b.toBytes();
+  }
+
+  String toText() {
+    List<int> bytes = toBytes();
+    return utf8.decode(bytes);
   }
 
   String get url {

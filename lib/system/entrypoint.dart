@@ -59,7 +59,7 @@ class _EntryPointState extends State<EntryPoint> {
     }
     if(_future_refreshToken==null) {
       _future_refreshToken=_refreshToken();
-      print('~~~~~~~~');
+//      print('~~~~~~~~');
     }
     //有刷新令牌自动登录
     return FutureBuilder(

@@ -9,6 +9,7 @@ typedef Onopen = void Function();
 typedef Onclose = void Function();
 typedef Onerror = void Function(dynamic e);
 typedef Onreconnect = void Function(int tryTimes);
+typedef Online=void Function();
 
 mixin IConnection {
   String get host;

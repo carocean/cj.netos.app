@@ -111,6 +111,7 @@ flutter:
   assets:
     - lib/portals/gbera/images/gbera.png
     - lib/portals/gbera/images/gbera_bk.png
+    - lib/portals/gbera/images/gbera_op.png
     - lib/portals/gbera/images/entrypoint_bk.jpg
     - lib/portals/gbera/images/penquan.png
     - lib/portals/gbera/images/yuanbao.png

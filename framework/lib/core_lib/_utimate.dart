@@ -52,3 +52,16 @@ typedef OnReadyCallback = Future<void> Function();
 mixin IServiceBuilder {
   OnReadyCallback builder(IServiceProvider site);
 }
+String getPath(String url) {
+  var path = '';
+  int pos = url.indexOf("?");
+  if (pos < 0) {
+    path = url;
+  } else {
+    path = url.substring(0, pos);
+  }
+  while (path.endsWith('/')) {
+    path = path.substring(0, path.length - 1);
+  }
+  return path;
+}

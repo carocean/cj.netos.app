@@ -6,7 +6,7 @@ import 'system/local/dao/database.dart';
 import 'system/system.dart';
 
 final _peerStatus = _PeerStatus(
-  online: false,
+  state: _State.closed,
   unreadCount: 0,
   reconnectTrytimes: 0,
 );
@@ -51,25 +51,31 @@ void main() => platformRun(
           messageNetwork: 'interactive-center',
           peerOnmessageCount: (count) {
             _peerStatus.unreadCount = count;
-            _peerStatus.online = true;
+            _peerStatus.state = _State.online;
             if (_peerStatus.refresh != null) {
               _peerStatus.refresh();
             }
           },
           peerOnopen: () {
-            _peerStatus.online = true;
+            _peerStatus.state = _State.opened;
             if (_peerStatus.refresh != null) {
               _peerStatus.refresh();
             }
           },
           peerOnclose: () {
-            _peerStatus.online = false;
+            _peerStatus.state = _State.closed;
+            if (_peerStatus.refresh != null) {
+              _peerStatus.refresh();
+            }
+          },
+          peerOnline: () {
+            _peerStatus.state = _State.online;
             if (_peerStatus.refresh != null) {
               _peerStatus.refresh();
             }
           },
           peerOnreconnect: (trytimes) {
-            _peerStatus.online = false;
+            _peerStatus.state = _State.reconnecting;
             _peerStatus.reconnectTrytimes = trytimes;
             if (_peerStatus.refresh != null) {
               _peerStatus.refresh();
@@ -127,6 +133,21 @@ class _StatusBarState extends State<StatusBar> {
 
   @override
   Widget build(BuildContext context) {
+    var stateText = '';
+    switch (_peerStatus.state) {
+      case _State.opened:
+        stateText = '离线';
+        break;
+      case _State.online:
+        stateText = '在线';
+        break;
+      case _State.closed:
+        stateText = '未连接';
+        break;
+      case _State.reconnecting:
+        stateText = '重试${_peerStatus.reconnectTrytimes}次';
+        break;
+    }
     return Container(
       padding: EdgeInsets.only(
         left: 78,
@@ -140,7 +161,7 @@ class _StatusBarState extends State<StatusBar> {
               right: 2,
             ),
             child: Image.asset(
-              'lib/portals/gbera/images/gbera.png',
+              'lib/portals/gbera/images/gbera_op.png',
               width: 16,
               height: 16,
               fit: BoxFit.cover,
@@ -154,13 +175,15 @@ class _StatusBarState extends State<StatusBar> {
                 style: TextStyle(
                   fontSize: 7,
                   color: Colors.black54,
+                  decoration: TextDecoration.none,
                 ),
               ),
               Text(
-                '${_peerStatus.online ? '在线' : (_peerStatus.reconnectTrytimes > 0 ? '重试${_peerStatus.reconnectTrytimes}次' : '离线')}',
+                stateText,
                 style: TextStyle(
                   fontSize: 6,
                   color: Colors.black54,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ],
@@ -171,15 +194,22 @@ class _StatusBarState extends State<StatusBar> {
   }
 }
 
+enum _State {
+  opened,
+  online,
+  closed,
+  reconnecting,
+}
+
 class _PeerStatus {
-  bool online = false;
+  _State state;
   int unreadCount = 0;
 
   int reconnectTrytimes;
   Function() refresh;
 
   _PeerStatus({
-    this.online,
+    this.state,
     this.unreadCount,
     this.reconnectTrytimes,
     this.refresh,

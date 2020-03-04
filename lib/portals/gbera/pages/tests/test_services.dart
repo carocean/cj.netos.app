@@ -30,7 +30,9 @@ class _TestServicesState extends State<TestServices> {
       print('--888----$f');
     });
     widget.context.listenNetwork((f) {
-      print('--9999----$f');
+      print('--9999-begin---$f');
+      print(f.toText());
+      print('--9999-end---');
     });
   }
 
