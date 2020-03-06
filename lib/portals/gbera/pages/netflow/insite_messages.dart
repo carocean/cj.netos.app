@@ -159,7 +159,6 @@ class _MessagesRegionState extends State<_MessagesRegion> {
         money: ((msg.wy ?? 0) * 0.00012837277272).toStringAsFixed(2),
         time: timeText,
         picCount: 0,
-        loopType: channel.loopType,
         onTap: () {
           showModalBottomSheet(
               context: context,
@@ -289,9 +288,6 @@ class _SwipeableListState extends State<SwipeableList> {
                                     ? TextSpan(
                                   text: '',
                                   children: [
-                                    TextSpan(
-                                        text:
-                                        '  ${v.loopType=='openLoop' ? '开环管道:' : '闭环管道:'}'),
                                     TextSpan(
                                       text: '${v.channel}',
                                       style: TextStyle(

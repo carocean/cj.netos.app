@@ -91,7 +91,6 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                         och['code'],
                         och['name'],
                         och['owner'],
-                        och['loopType'],
                         leading,
                         och['site'],
                         DateTime.now().millisecondsSinceEpoch,

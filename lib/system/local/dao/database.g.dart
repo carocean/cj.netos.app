@@ -120,7 +120,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `code` TEXT, `name` TEXT, `owner` TEXT, `loopType` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `code` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -441,7 +441,7 @@ class _$IPersonDAO extends IPersonDAO {
   @override
   Future<Person> getPerson(String official, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM Person WHERE official = ? and sandbox=?',
+        'SELECT * FROM Person WHERE official = ? and sandbox=? LIMIT 1',
         arguments: <dynamic>[official, sandbox],
         mapper: _personMapper);
   }
@@ -668,7 +668,6 @@ class _$IChannelDAO extends IChannelDAO {
                   'code': item.code,
                   'name': item.name,
                   'owner': item.owner,
-                  'loopType': item.loopType,
                   'leading': item.leading,
                   'site': item.site,
                   'ctime': item.ctime,
@@ -686,7 +685,6 @@ class _$IChannelDAO extends IChannelDAO {
       row['code'] as String,
       row['name'] as String,
       row['owner'] as String,
-      row['loopType'] as String,
       row['leading'] as String,
       row['site'] as String,
       row['ctime'] as int,

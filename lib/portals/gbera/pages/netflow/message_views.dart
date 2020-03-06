@@ -4,7 +4,6 @@ class MessageView {
   final String content;
   final String money;
   final int picCount;
-  final String loopType;
   final String time;
   final String channel;
   final Function() onTap;
@@ -14,7 +13,6 @@ class MessageView {
     this.content,
     this.money,
     this.picCount,
-    this.loopType,
     this.time,
     this.channel,
     this.onTap,

@@ -233,10 +233,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                         context: widget.context,
                         title: model.displayRoomTitle,
                         leading: model.chatRoom.leading == null
-                            ? Image.network(
-                                'http://47.105.165.186:7100/public/avatar/341d5e0f2d4fbd21ff5a2acafcf44cdb.jpg',
-                                fit: BoxFit.fill,
-                              )
+                            ? Icon(Icons.chat,color: Colors.grey[500],)
                             : Image.file(
                                 File(model.chatRoom.leading),
                                 fit: BoxFit.fill,
@@ -761,53 +758,6 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
         ),
       ],
       child: item,
-    );
-  }
-
-  Future<String> _showConfirmationDialog(BuildContext context) {
-    return showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text.rich(
-          TextSpan(
-            text: '是否删除该管道？',
-            children: [
-              TextSpan(text: '\r\n'),
-              TextSpan(
-                text: '删除管道同时会删除管道内数据！',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: const Text(
-              '取消',
-              style: TextStyle(
-                color: Colors.black87,
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context, 'no');
-            },
-          ),
-          FlatButton(
-            child: const Text(
-              '确定',
-              style: TextStyle(
-                color: Colors.black87,
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context, 'yes');
-            },
-          ),
-        ],
-      ),
     );
   }
 }

@@ -346,28 +346,58 @@ class _MessageCard extends StatefulWidget {
 
 class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
-  Future<Person> _future_getPerson;
-  Future<List<Media>> _future_getMedias;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
+  Person _person;
 
   @override
   void initState() {
-    _future_getPerson = _getPerson();
-    _future_getMedias = _getMedias();
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
+    _getPerson().then((person) {
+      _person = person;
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    _future_getPerson = null;
-    _future_getMedias = null;
     _interactiveRegionRefreshAdapter = null;
     super.dispose();
   }
 
+  Future<Person> _getPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var person = '';
+    if (!StringUtil.isEmpty(widget.message.upstreamPerson)) {
+      person = widget.message.upstreamPerson;
+    }
+    if (StringUtil.isEmpty(person)) {
+      person = widget.message.creator;
+    }
+    if (StringUtil.isEmpty(person)) {
+      return null;
+    }
+    return await personService.getPerson(person);
+  }
+
+  Future<List<Media>> _getMedias() async {
+    IChannelMediaService channelMediaService =
+        widget.context.site.getService('/channel/messages/medias');
+    return await channelMediaService.getMedias(widget.message.id);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_person == null) {
+      return Center(
+        child: SizedBox(
+          height: 30,
+          width: 30,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Card(
       shape: Border(),
       elevation: 0,
@@ -392,8 +422,11 @@ class __MessageCardState extends State<_MessageCard> {
                 padding: EdgeInsets.only(top: 5, right: 5),
                 child: ClipOval(
                   child: Image(
-                    image: NetworkImage(
-                        'https://sjbz-fd.zol-img.com.cn/t_s208x312c5/g5/M00/01/06/ChMkJ1w3FnmIE9dUAADdYQl3C5IAAuTxAKv7x8AAN15869.jpg'),
+                    image: FileImage(
+                      File(
+                        _person?.avatar,
+                      ),
+                    ),
                     height: 35,
                     width: 35,
                     fit: BoxFit.fill,
@@ -416,7 +449,7 @@ class __MessageCardState extends State<_MessageCard> {
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Text(
-                          '${widget.message.creator}',
+                          '${_person?.nickName}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[700],
@@ -522,7 +555,7 @@ class __MessageCardState extends State<_MessageCard> {
                     children: <Widget>[
                       Container(
                         child: FutureBuilder<Person>(
-                            future: _future_getPerson,
+                            future: _getPerson(),
                             builder: (ctx, snapshot) {
                               if (snapshot.connectionState !=
                                   ConnectionState.done) {
@@ -538,6 +571,14 @@ class __MessageCardState extends State<_MessageCard> {
                                   height: 0,
                                 );
                               }
+                              var person = snapshot.data;
+                              if (person == null) {
+                                return Container(
+                                  width: 0,
+                                  height: 0,
+                                );
+                              }
+
                               return Text.rich(
                                 TextSpan(
                                   text: '${TimelineUtil.format(
@@ -556,11 +597,11 @@ class __MessageCardState extends State<_MessageCard> {
                                     TextSpan(text: '\r\n'),
                                     TextSpan(
                                       text:
-                                          '${widget.context.principal?.uid == snapshot.data.uid ? '创建自 ' : '来自 '}',
+                                          '${widget.context.principal?.person == snapshot.data.official ? '创建自 ' : '来自 '}',
                                       children: [
                                         TextSpan(
                                           text:
-                                              '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountName}',
+                                              '${widget.context.principal?.person == snapshot.data.official ? '我' : snapshot.data.nickName}',
                                           style: TextStyle(
                                             color: Colors.blueGrey,
                                             fontWeight: FontWeight.w600,
@@ -621,28 +662,6 @@ class __MessageCardState extends State<_MessageCard> {
         ),
       ),
     );
-  }
-
-  Future<Person> _getPerson() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var person = '';
-    if (!StringUtil.isEmpty(widget.message.upstreamPerson)) {
-      person = widget.message.upstreamPerson;
-    }
-    if (StringUtil.isEmpty(person)) {
-      person = widget.message.creator;
-    }
-    if (StringUtil.isEmpty(person)) {
-      return null;
-    }
-    return await personService.getPerson(person);
-  }
-
-  Future<List<Media>> _getMedias() async {
-    IChannelMediaService channelMediaService =
-        widget.context.site.getService('/channel/messages/medias');
-    return await channelMediaService.getMedias(widget.message.id);
   }
 }
 
@@ -782,8 +801,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     return {
       'isLiked': isLiked,
       'canComment': true,
-      'canDelete':
-          widget.message.creator == widget.context.principal.person,
+      'canDelete': widget.message.creator == widget.context.principal.person,
     };
   }
 
@@ -803,8 +821,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       widget.context.principal.avatarOnRemote,
       widget.message.id,
       DateTime.now().millisecondsSinceEpoch,
-      widget.context.principal.nickName ??
-          widget.context.principal.accountCode,
+      widget.context.principal.nickName ?? widget.context.principal.accountCode,
       widget.message.onChannel,
       widget.context.principal.person,
     );
@@ -1074,8 +1091,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   ..onTap = () async {
                     IPersonService personService =
                         widget.context.site.getService('/gbera/persons');
-                    var person =
-                        await personService.getPersonFullName(comment.person);
+                    var person = await personService.getPerson(comment.person);
                     widget.context.forward("/site/personal",
                         arguments: {'person': person});
                   },
@@ -1178,7 +1194,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPersonFullName(like.person);
+                                          .getPerson(like.person);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

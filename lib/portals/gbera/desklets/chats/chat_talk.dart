@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
@@ -11,6 +12,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:objectdb/objectdb.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatTalk extends StatefulWidget {
@@ -32,11 +34,12 @@ class _ChatTalkState extends State<ChatTalk> {
   List<P2PMessage> _p2pMessages;
   int _limit = 12, _offset = 0;
   String _displayRoomTitle;
+
   @override
   void initState() {
     _p2pMessages = [];
     _chatRoom = widget.context.parameters['chatRoom'];
-    _displayRoomTitle=widget.context.parameters['displayRoomTitle'];
+    _displayRoomTitle = widget.context.parameters['displayRoomTitle'];
     _onRefresh().then((v) {
       setState(() {
         _goEnd();
@@ -47,7 +50,7 @@ class _ChatTalkState extends State<ChatTalk> {
     _scrollController = ScrollController();
   }
 
-  void _goEnd([int milliseconds=300]) {
+  void _goEnd([int milliseconds = 300]) {
     Timer(
         Duration(
           milliseconds: milliseconds,
@@ -75,7 +78,7 @@ class _ChatTalkState extends State<ChatTalk> {
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
     List<P2PMessage> messages =
-        await messageService.pageMessage(_chatRoom.code,_limit, _offset);
+        await messageService.pageMessage(_chatRoom.code, _limit, _offset);
     if (messages.isEmpty) {
       _controller.finishRefresh(success: true, noMore: true);
       return;
@@ -154,7 +157,8 @@ class _ChatTalkState extends State<ChatTalk> {
         actions: <Widget>[
           IconButton(
             onPressed: () {
-              widget.context.forward('/portlet/chat/room/settings',arguments: {'chatRoom':_chatRoom});
+              widget.context.forward('/portlet/chat/room/settings',
+                  arguments: {'chatRoom': _chatRoom});
             },
             icon: Icon(
               Icons.more_vert,
@@ -186,6 +190,7 @@ class _ChatTalkState extends State<ChatTalk> {
                   if (msg.sender == widget.context.principal.person) {
                     item = _SendMessageItem(
                       p2pMessage: msg,
+                      context: widget.context,
                     );
                   } else {
                     item = _ReceiveMessageItem(
@@ -512,8 +517,8 @@ class __ChatSenderState extends State<_ChatSender> {
                         child: VoiceFloatingButton(
                           context: widget.context,
                           iconSize: 18,
-                          onStopRecord: (a, b,FlutterPluginRecord c, d) {
-                            if(d!='send') {
+                          onStopRecord: (a, b, FlutterPluginRecord c, d) {
+                            if (d != 'send') {
                               return;
                             }
                             if (widget.onCommand != null) {
@@ -690,14 +695,49 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 
 class _SendMessageItem extends StatefulWidget {
   P2PMessage p2pMessage;
+  PageContext context;
 
-  _SendMessageItem({this.p2pMessage});
+  _SendMessageItem({this.p2pMessage, this.context});
 
   @override
   __SendMessageItemState createState() => __SendMessageItemState();
 }
 
 class __SendMessageItemState extends State<_SendMessageItem> {
+  Person _sender;
+
+  @override
+  void initState() {
+    _loadSender().then((p) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  Future<void> _loadSender() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    _sender = await personService.getPerson(widget.p2pMessage.sender);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_SendMessageItem oldWidget) {
+    if (oldWidget.p2pMessage == widget.p2pMessage) {
+      super.didUpdateWidget(oldWidget);
+      return;
+    }
+    _loadSender().then((p) {
+      setState(() {});
+    });
+    super.didUpdateWidget(oldWidget);
+  }
+
   @override
   Widget build(BuildContext context) {
     var display;
@@ -717,8 +757,8 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         );
         break;
       case 'audio':
-        var json=widget.p2pMessage.content;
-        Map<String,dynamic> map=jsonDecode(json);
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
         display = MyAudioWidget(
           audioFile: map['path'],
           timeLength: map['timelength'],
@@ -773,10 +813,15 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                 borderRadius: BorderRadius.all(
                   Radius.circular(5),
                 ),
-                child: Image.network(
-                  'http://47.105.165.186:7100/public/avatar/06aa9aeb1ece0f4bc63a664ddef0404a.jpg',
-                  fit: BoxFit.cover,
-                ),
+                child: _sender == null
+                    ? Container(
+                        height: 0,
+                        width: 0,
+                      )
+                    : Image.file(
+                        File(_sender.avatar),
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
           ),

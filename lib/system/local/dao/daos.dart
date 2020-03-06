@@ -18,7 +18,7 @@ abstract class IPersonDAO {
       'SELECT *  FROM Person where sandbox=:sandbox LIMIT :pageSize OFFSET  :currPage')
   Future<List<Person>> pagePerson(String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM Person WHERE official = :official and sandbox=:sandbox')
+  @Query('SELECT * FROM Person WHERE official = :official and sandbox=:sandbox LIMIT 1')
   Future<Person> getPerson(String official, String sandbox);
 
   @Query('SELECT * FROM Person where sandbox=:sandbox')
@@ -33,7 +33,7 @@ abstract class IPersonDAO {
       int persons_limit, int persons_offset);
 
   @Query(
-      "SELECT *  FROM Person where sandbox=:sandbox and official IN (:officials)")
+      'SELECT *  FROM Person where sandbox=:sandbox and official IN (:officials)')
   Future<List<Person>> listPersonWith(String sandbox, List<String> officials);
 
   @Query(

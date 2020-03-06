@@ -213,7 +213,7 @@ class __SelectPersonState extends State<_SelectPerson> {
           ),
           paddingBottom: 10,
           paddingTop: 10,
-          title: '${widget.person.nickName ?? widget.person.accountName}',
+          title: '${widget.person.nickName}',
           tail: _getIcon(),
           onItemTap: () {
             _doSelect();
@@ -243,7 +243,10 @@ class __SelectPersonState extends State<_SelectPerson> {
               );
       case PinPersonsSettingsStrategy.all_except:
         return _is_seleted
-            ? Icon(Icons.clear)
+            ? Icon(
+                Icons.clear,
+                color: Colors.grey[500],
+              )
             : Container(
                 width: 0,
                 height: 0,
@@ -259,19 +262,18 @@ class __SelectPersonState extends State<_SelectPerson> {
     IChannelPinService pinService =
         widget.pageContext.site.getService('/channel/pin');
     var isSeleted = _is_seleted;
-    var personFullName =
-        '${widget.person.accountName}@${widget.person.appid}.${widget.person.tenantid}';
     switch (widget.selected_insite_persons_strategy) {
       case PinPersonsSettingsStrategy.only_select:
         if (isSeleted) {
           //从输出公众表中移除
-          await pinService.removeInputPerson(personFullName, widget.channel.code);
+          await pinService.removeInputPerson(
+              widget.person.official, widget.channel.code);
         } else {
           await pinService.addInputPerson(
             ChannelInputPerson(
               '${Uuid().v1()}',
               widget.channel.code,
-              personFullName,
+              widget.person.official,
               widget.pageContext.principal.person,
             ),
           );
@@ -283,12 +285,13 @@ class __SelectPersonState extends State<_SelectPerson> {
             ChannelInputPerson(
               '${Uuid().v1()}',
               widget.channel.code,
-              personFullName,
+              widget.person.official,
               widget.pageContext.principal.person,
             ),
           );
         } else {
-          await pinService.removeInputPerson(personFullName, widget.channel.code);
+          await pinService.removeInputPerson(
+              widget.person.official, widget.channel.code);
         }
         break;
     }

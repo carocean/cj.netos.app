@@ -54,7 +54,6 @@ class ChannelService implements IChannelService,IServiceBuilder {
             _GEO_CHANNEL_CODE,
             '地推',
             user.person,
-            'openLoop',
             null,
             null,
             DateTime.now().millisecondsSinceEpoch,

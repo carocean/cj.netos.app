@@ -28,6 +28,8 @@ void main() => platformRun(
                 'http://47.105.165.186/uc/register.service',
             '@.prop.ports.uc.person':
                 'http://47.105.165.186/uc/person/self.service',
+            '@.prop.ports.uc.app':
+            'http://47.105.165.186/uc/app/self.service',
             '@.prop.ports.uc.platform':
                 'http://47.105.165.186/uc/platform/self.service',
             '@.prop.ports.nameserver':

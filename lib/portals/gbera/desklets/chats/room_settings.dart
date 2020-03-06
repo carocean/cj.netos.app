@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
@@ -32,12 +34,19 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     super.dispose();
   }
 
-  Future<List<RoomMember>> _loadTop20Members() async {
+  Future<List<Person>> _loadTop20Members() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     List<RoomMember> members =
         await chatRoomService.top20Members(_chatRoom.code);
-    return members;
+    List<Person> persons = [];
+    for (RoomMember member in members) {
+      var person = await personService.getPerson(member.person);
+      persons.add(person);
+    }
+    return persons;
   }
 
   @override
@@ -62,7 +71,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                 bottom: 10,
               ),
               padding: EdgeInsets.all(10),
-              child: FutureBuilder<List<RoomMember>>(
+              child: FutureBuilder<List<Person>>(
                 future: _loadTop20Members(),
                 builder: (ctx, snapshot) {
                   if (snapshot.connectionState != ConnectionState.done) {
@@ -143,15 +152,15 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                               borderRadius: BorderRadius.all(
                                 Radius.circular(4),
                               ),
-                              child: Image.network(
-                                'http://47.105.165.186:7100/public/avatar/24f8e8d3f423d40b5b390691fbbfb5d7.jpg',
+                              child: Image.file(
+                                File(member.avatar),
                                 fit: BoxFit.cover,
                               ),
                             ),
                           ),
                         ),
                         Text(
-                          member.person,
+                          member.nickName,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.black54,

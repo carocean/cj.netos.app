@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
@@ -22,9 +24,7 @@ class SettingsPersons extends StatefulWidget {
 }
 
 class _SettingsPersonsState extends State<SettingsPersons> {
-  List<CardItem> personCardItems = [];
-  int limit = 20;
-  int offset = 0;
+  _Refresher __refresher = _Refresher();
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _SettingsPersonsState extends State<SettingsPersons> {
 
   @override
   void dispose() {
-    personCardItems.clear();
+    __refresher = null;
     super.dispose();
   }
 
@@ -91,23 +91,9 @@ class _SettingsPersonsState extends State<SettingsPersons> {
             ),
           ),
           Expanded(
-            child: FutureBuilder(
-              future: _onLoadPersons('up'),
-              builder: (ctx, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      backgroundColor: Colors.grey[300],
-                      valueColor:
-                          new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
-                    ),
-                  );
-                }
-                return PersonsView(
-                  personCardItems: personCardItems,
-                  onLoadPersons: _onLoadPersons,
-                );
-              },
+            child: PersonsView(
+              context: widget.context,
+              refresher: __refresher,
             ),
           ),
         ],
@@ -120,34 +106,6 @@ class _SettingsPersonsState extends State<SettingsPersons> {
         widget.context.site.getService('/gbera/persons');
     int count = await personService.count();
     return count;
-  }
-
-  Future<void> _onLoadPersons([String director = 'up']) async {
-    if (director == 'down') {
-      return;
-    }
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    List<Person> persons = await personService.pagePerson(limit, offset);
-    if (persons.length == 0) {
-      return;
-    }
-    offset += persons.length;
-    for (var person in persons) {
-      var item = CardItem(
-        title: person.accountName,
-        leading: Image.file(
-          File(person.avatar),
-          width: 40,
-          height: 40,
-        ),
-        onItemTap: () {
-          widget.context
-              .forward('/site/personal', arguments: {'person': person});
-        },
-      );
-      this.personCardItems.add(item);
-    }
   }
 
   _getPopupMenu() {
@@ -165,8 +123,8 @@ class _SettingsPersonsState extends State<SettingsPersons> {
             showSearch(
               context: context,
               delegate: PersonSearchDelegate(widget.context),
-            ).then((result){
-              print('----$result');
+            ).then((v) {
+              __refresher.fireRefresh();
             });
             break;
           case '/netflow/manager/scan_person':
@@ -234,29 +192,92 @@ class _SettingsPersonsState extends State<SettingsPersons> {
   }
 }
 
-class PersonsView extends StatefulWidget {
-  List<CardItem> personCardItems;
-  Future<void> Function(String director) onLoadPersons;
+class _Refresher {
+  Function() callback;
 
-  PersonsView({this.personCardItems, this.onLoadPersons});
+  void fireRefresh() {
+    if (callback != null) {
+      callback();
+    }
+  }
+}
+
+class PersonsView extends StatefulWidget {
+  PageContext context;
+  _Refresher refresher;
+
+  PersonsView({this.context, this.refresher});
 
   @override
   _PersonsViewState createState() => _PersonsViewState();
 }
 
 class _PersonsViewState extends State<PersonsView> {
+  int limit = 20;
+  int offset = 0;
+  EasyRefreshController _controller;
+  List<Person> _persons = [];
+
+  @override
+  void initState() {
+    widget.refresher.callback = () {
+      _refresh();
+    };
+    _controller = EasyRefreshController();
+    _onLoadPersons().then((v) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _persons.clear();
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    offset = 0;
+    _persons.clear();
+    _onLoadPersons().then((v) {
+      setState(() {});
+    });
+  }
+
+  Future<void> _onLoadPersons([String director = 'up']) async {
+    if (director == 'down') {
+      return;
+    }
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    List<Person> persons = await personService.pagePerson(limit, offset);
+    if (persons.length == 0) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
+    offset += persons.length;
+    _persons.addAll(persons);
+  }
+
+  _removePerson(Person p) async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    await personService.removePerson(p.official);
+    _persons.remove(p);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SwipeRefreshLayout(
-      onSwipeDown: () async {
-        await widget.onLoadPersons('down');
-      },
-      onSwipeUp: () async {
-        await widget.onLoadPersons('up');
+    return EasyRefresh(
+      controller: _controller,
+      onLoad: () async {
+        await _onLoadPersons('up');
         setState(() {});
       },
       child: ListView(
-        children: widget.personCardItems.map((item) {
+        children: _persons.map((item) {
           return Column(
             children: <Widget>[
               Container(
@@ -265,45 +286,38 @@ class _PersonsViewState extends State<PersonsView> {
                   right: 10,
                 ),
                 color: Colors.white,
-                child: Dismissible(
-                  key: Key('key_${Uuid().v1()}'),
-                  child: item,
-                  confirmDismiss: (DismissDirection direction) async {
-                    if (direction == DismissDirection.endToStart) {
-                      return await _showConfirmationDialog(context) == 'yes';
-                    }
-                    return false;
-                  },
-                  secondaryBackground: Container(
-                    alignment: Alignment.centerRight,
-                    child: Icon(
-                      Icons.delete_sweep,
-                      size: 16,
+                child: Slidable(
+                  actionPane: SlidableDrawerActionPane(),
+                  secondaryActions: <Widget>[
+                    IconSlideAction(
+                      caption: '删除',
+                      foregroundColor: Colors.grey[500],
+                      icon: Icons.delete,
+                      onTap: () {
+                        _removePerson(item);
+                      },
                     ),
+                  ],
+                  child: CardItem(
+                    title: item.nickName,
+                    subtitle: Text(
+                      item.official,
+                      style: TextStyle(
+                        fontSize: 12,
+                      ),
+                    ),
+                    leading: Image.file(
+                      File(item.avatar),
+                      width: 40,
+                      height: 40,
+                    ),
+                    onItemTap: () {
+                      widget.context.forward('/site/personal',
+                          arguments: {'person': item}).then((v) {
+                        _refresh();
+                      });
+                    },
                   ),
-                  background: Container(),
-                  onDismissed: (direction) {
-                    switch (direction) {
-                      case DismissDirection.endToStart:
-                        print('---------do deleted');
-                        break;
-                      case DismissDirection.vertical:
-                        // TODO: Handle this case.
-                        break;
-                      case DismissDirection.horizontal:
-                        // TODO: Handle this case.
-                        break;
-                      case DismissDirection.startToEnd:
-                        // TODO: Handle this case.
-                        break;
-                      case DismissDirection.up:
-                        // TODO: Handle this case.
-                        break;
-                      case DismissDirection.down:
-                        // TODO: Handle this case.
-                        break;
-                    }
-                  },
                 ),
               ),
               Container(

@@ -25,9 +25,10 @@ mixin IPersonService {
 
   Future<Person> getPersonByUID(String uid);
 
-  Future<Person> getPersonFullName(String person);
-
   Future<List<Person>> pagePersonLikeName(String query, int limit, int offset);
+
+  Future<void> removePerson(String person) {}
+
 }
 mixin IChannelService {
   ///地圈管道标识

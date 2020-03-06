@@ -359,19 +359,6 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                         color: Colors.white,
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10,
-                      ),
-                      child: Text(
-                        '${_channel?.loopType == 'openLoop' ? '开环管道' : '闭环管道'}',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

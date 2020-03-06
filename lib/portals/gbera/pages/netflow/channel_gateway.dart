@@ -128,6 +128,7 @@ class _ChannelGatewayState extends State<ChannelGateway> {
                         '/netflow/portal/channel',
                         arguments: {
                           'channel': _channel,
+                          'owner':widget.context.principal.person,
                         },
                       ).then((v) {
                         setState(() {});

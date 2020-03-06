@@ -27,12 +27,19 @@ class ChannelPortal extends StatefulWidget {
 
 class _ChannelPortalState extends State<ChannelPortal> {
   Channel _channel;
+  String _owner;
+  Person _ownerPerson;
 
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
+    _owner = widget.context.parameters['owner']; //管道动态的所有者
     _refreshController = EasyRefreshController();
-    _loadMessages();
+    () async {
+      await _loadPerson();
+      await _loadMessages();
+      setState(() {});
+    }();
     super.initState();
   }
 
@@ -51,17 +58,21 @@ class _ChannelPortalState extends State<ChannelPortal> {
   int _offset = 0;
   List<ChannelMessage> _messages = [];
 
+  Future<void> _loadPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    _ownerPerson = await personService.getPerson(_owner);
+  }
+
   Future<List<ChannelMessage>> _loadMessages() async {
     var onchannel = _channel?.code;
     IChannelMessageService messageService =
         widget.context.site.getService('/channel/messages');
-    var person = widget.context.principal.person;
     var messages =
-        await messageService.pageMessageBy(_limit, _offset, onchannel, person);
+        await messageService.pageMessageBy(_limit, _offset, onchannel, _owner);
     if (!messages.isEmpty) {
       _offset += messages.length;
       _messages.addAll(messages);
-      setState(() {});
     } else {
       _refreshController.finishLoad(success: true, noMore: true);
     }
@@ -71,11 +82,27 @@ class _ChannelPortalState extends State<ChannelPortal> {
 
   @override
   Widget build(BuildContext context) {
+    if (_ownerPerson == null) {
+      return Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 30,
+            height: 30,
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: EasyRefresh.custom(
         controller: _refreshController,
 //        onRefresh: _onRefresh,//注释掉则不支持下拉
-        onLoad: _loadMessages,
+        onLoad: () {
+          _loadMessages().then((v) {
+            setState(() {});
+          });
+          return;
+        },
 //        footer: BallPulseFooter(),
         slivers: <Widget>[
           SliverPersistentHeader(
@@ -91,7 +118,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
                 color: Colors.white,
               ),
               background: NetworkImage(
-                'http://47.105.165.186:7100/public/market/timg-5.jpeg',
+                'http://47.105.165.186:7100/public/market/timg-5.jpeg?accessToken=${widget.context.principal.accessToken}',
               ),
               onAppBarStateChange: (d, v) {
                 print('---$v');
@@ -173,27 +200,19 @@ class _ChannelPortalState extends State<ChannelPortal> {
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4.0),
-                        child: widget.context.principal.avatarOnRemote == null
-                            ? Image.asset(
-                                'lib/portals/gbera/images/avatar.png',
-                                height: 20,
-                                width: 20,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.network(
-                                '${widget.context.principal.avatarOnRemote}',
-                                height: 20,
-                                width: 20,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image.file(
+                          File(_ownerPerson.avatar),
+                          height: 20,
+                          width: 20,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
                   Container(
                     child: Text.rich(
                       TextSpan(
-                        text:
-                            '${widget.context.principal.nickName ?? widget.context.principal.accountCode}',
+                        text: '${widget.context.principal.nickName}',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           color: Colors.grey[800],
@@ -305,6 +324,11 @@ class __MessageCardState extends State<_MessageCard> {
     super.dispose();
   }
 
+  Future<Person> _findPerson(String person) async {
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    return await personService.getPerson(person);
+  }
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -721,8 +745,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     return {
       'isLiked': isLiked,
       'canComment': true,
-      'canDelete':
-          widget.message.creator == widget.context.principal.person,
+      'canDelete': widget.message.creator == widget.context.principal.person,
     };
   }
 
@@ -742,8 +765,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       widget.context.principal.avatarOnRemote,
       widget.message.id,
       DateTime.now().millisecondsSinceEpoch,
-      widget.context.principal.nickName ??
-          widget.context.principal.accountCode,
+      widget.context.principal.nickName ?? widget.context.principal.accountCode,
       widget.message.onChannel,
       widget.context.principal.person,
     );
@@ -1013,8 +1035,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   ..onTap = () async {
                     IPersonService personService =
                         widget.context.site.getService('/gbera/persons');
-                    var person =
-                        await personService.getPersonFullName(comment.person);
+                    var person = await personService.getPerson(comment.person);
                     widget.context.forward("/site/personal",
                         arguments: {'person': person});
                   },
@@ -1117,7 +1138,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPersonFullName(like.person);
+                                          .getPerson(like.person);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

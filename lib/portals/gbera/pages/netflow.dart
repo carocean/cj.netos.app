@@ -81,52 +81,10 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                   var arguments = <String, Object>{};
                   switch (value) {
                     case '/netflow/manager/create_channel':
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title: Text('选择管道类型'),
-                              children: <Widget>[
-                                DialogItem(
-                                  text: '开环管道',
-                                  icon: IconData(
-                                    0xe604,
-                                    fontFamily: 'netflow',
-                                  ),
-                                  color: Colors.grey[500],
-                                  subtext: '适用于无穷级网络。自行添加管道出入口的公众',
-                                  onPressed: () {
-                                    widget.context.backward(
-                                        result: <String, Object>{
-                                          'type': 'openLoop'
-                                        });
-                                  },
-                                ),
-                                DialogItem(
-                                  text: '闭环管道',
-                                  icon: IconData(
-                                    0xe62f,
-                                    fontFamily: 'netflow',
-                                  ),
-                                  color: Colors.grey[500],
-                                  subtext:
-                                      '适用于：点对点聊天、群聊。管道的入口公众全是出口公众，自行添加出口公众同时也会被添加到入口',
-                                  onPressed: () {
-                                    widget.context.backward(
-                                        result: <String, Object>{
-                                          'type': 'closeLoop'
-                                        });
-                                  },
-                                ),
-                              ],
-                            );
-                          }).then((v) {
-                        if (v == null) return;
-                        widget.context.forward(value, arguments: v).then((v) {
-                          if (_refreshChannels != null) {
-                            _refreshChannels();
-                          }
-                        });
+                      widget.context.forward(value,).then((v) {
+                        if (_refreshChannels != null) {
+                          _refreshChannels();
+                        }
                       });
                       break;
                     case '/netflow/manager/scan_channel':
@@ -532,7 +490,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 //          ),
           unreadMsgCount: 0,
           who: ': ',
-          loopType: ch.loopType,
           openAvatar: () {
             //如果不是自己的管道则不能改图标
             if (widget.context.principal.person != ch.owner) {
@@ -595,7 +552,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         money: ((msg.wy ?? 0) * 0.00012837277272).toStringAsFixed(2),
         time: timeText,
         picCount: 0,
-        loopType: channel.loopType,
         onTap: () {
           showModalBottomSheet(
               context: context,
@@ -725,9 +681,6 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                       text: '',
                                       children: [
                                         TextSpan(
-                                            text:
-                                                '  ${v.loopType == 'openLoop' ? '开环管道:' : '闭环管道:'}'),
-                                        TextSpan(
                                           text: '${v.channel}',
                                           style: TextStyle(
                                             color: Colors.blueGrey,
@@ -783,7 +736,6 @@ class _ChannelItem extends StatelessWidget {
   String subtitle;
   String time;
   bool showNewest;
-  String loopType;
   int unreadMsgCount;
   var openAvatar;
   var openChannel;
@@ -796,7 +748,6 @@ class _ChannelItem extends StatelessWidget {
     this.title,
     this.who,
     this.subtitle,
-    this.loopType,
     this.unreadMsgCount,
     this.time,
     this.showNewest,
@@ -884,18 +835,6 @@ class _ChannelItem extends StatelessWidget {
                               '',
                             ),
                             child: null,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: -3,
-                          right: -3,
-                          child: Icon(
-                            IconData(
-                              this.loopType == 'closeLoop' ? 0xe62f : 0xe604,
-                              fontFamily: 'netflow',
-                            ),
-                            size: 10,
-                            color: Colors.grey[500],
                           ),
                         ),
                       ],

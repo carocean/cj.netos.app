@@ -64,13 +64,12 @@ class Channel {
   final String code;
   final String name;
   final String owner;
-  final String loopType;
   final String leading;
   final String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
   final String sandbox;
 
-  Channel(this.id, this.code, this.name, this.owner, this.loopType,
+  Channel(this.id, this.code, this.name, this.owner,
       this.leading, this.site, this.ctime, this.sandbox);
 }
 

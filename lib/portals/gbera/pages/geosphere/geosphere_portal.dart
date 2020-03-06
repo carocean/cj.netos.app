@@ -948,7 +948,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                     IPersonService personService =
                         widget.context.site.getService('/gbera/persons');
                     var person =
-                        await personService.getPersonFullName(comment.person);
+                        await personService.getPerson(comment.person);
                     widget.context.forward("/site/personal",
                         arguments: {'person': person});
                   },
@@ -1051,7 +1051,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPersonFullName(like.person);
+                                          .getPerson(like.person);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

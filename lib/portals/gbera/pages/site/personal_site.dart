@@ -66,11 +66,9 @@ class _PersonalSiteState extends State<PersonalSite> {
       await _test();
     }
 
-    String official =
-        '${_person.accountName}@${_person.appid}.${_person.tenantid}';
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _myChannels = await channelService.getChannelsOfPerson(official);
+    _myChannels = await channelService.getChannelsOfPerson(_person.official);
 
     setState(() {});
   }
@@ -84,6 +82,13 @@ class _PersonalSiteState extends State<PersonalSite> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     _person = await personService.getPersonByUID('0020011912411634');
+  }
+
+  _removePerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    await personService.removePerson(_person.official);
+    widget.context.backward();
   }
 
   @override
@@ -123,7 +128,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                           onPressed: () {
                             Navigator.pop(
                               ctx,
-                              {'action': 'go_more'},
+                              'go_more',
                             );
                           },
                         ),
@@ -138,7 +143,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                           onPressed: () {
                             Navigator.pop(
                               ctx,
-                              {'action': 'go_rights'},
+                              'go_rights',
                             );
                           },
                         ),
@@ -153,7 +158,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                           onPressed: () {
                             Navigator.pop(
                               ctx,
-                              {'action': 'go_message'},
+                              'go_message',
                             );
                           },
                         ),
@@ -168,7 +173,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                           onPressed: () {
                             Navigator.pop(
                               ctx,
-                              {'action': 'delete'},
+                              'delete',
                             );
                           },
                         ),
@@ -184,7 +189,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                         onPressed: () {
                           Navigator.pop(
                             ctx,
-                            {'action': 'cancel'},
+                            'cancel',
                           );
                         },
                       ),
@@ -199,6 +204,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                   case 'go_rights':
                     break;
                   case 'delete':
+                    _removePerson();
                     break;
                   case 'cancel':
                     break;

@@ -77,7 +77,6 @@ class _CreateChannelState extends State<CreateChannel> {
                 '${Uuid().v1()}',
                 channelName,
                 user.person,
-                widget.context.parameters['type'],
                 null,
                 null,
                 DateTime.now().millisecondsSinceEpoch,
@@ -109,26 +108,7 @@ class _CreateChannelState extends State<CreateChannel> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Container(
-                alignment: Alignment.topLeft,
-                child: Text.rich(
-                  TextSpan(
-                    text: '类型: ',
-                    style: TextStyle(
-                      color: Colors.grey,
-                    ),
-                    children: [
-                      TextSpan(
-                        text:
-                            '${widget.context.parameters['type'] == 'closeLoop' ? '闭环管道' : '开环管道'}',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+
               TextField(
                 autofocus: true,
                 controller: _channel_name_value,
