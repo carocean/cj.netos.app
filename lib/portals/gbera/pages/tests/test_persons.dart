@@ -86,9 +86,10 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                       if(!StringUtil.isEmpty(leading)){
                         leading=await Downloads.downloadChannelAvatar(dio: dio,avatarUrl: leading);
                       }
+                      var channelid=MD5Util.generateMd5('${Uuid().v1()}');
                       Channel ch = Channel(
-                        Uuid().v1(),
-                        och['code'],
+                        channelid,
+                        och['origin'],
                         och['name'],
                         och['owner'],
                         leading,

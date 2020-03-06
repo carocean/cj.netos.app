@@ -65,7 +65,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
   }
 
   Future<List<ChannelMessage>> _loadMessages() async {
-    var onchannel = _channel?.code;
+    var onchannel = _channel?.id;
     IChannelMessageService messageService =
         widget.context.site.getService('/channel/messages');
     var messages =

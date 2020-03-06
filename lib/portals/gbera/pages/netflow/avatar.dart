@@ -108,7 +108,7 @@ class _AvatarState extends State<Avatar> {
                         widget.context.site.getService('/netflow/channels');
                     Channel channel = widget.context.parameters['channel'];
                     await channelService.updateLeading(
-                        _crop_image.path, channel?.code);
+                        _crop_image.path, channel?.id);
                     setState(() {
                       widget.context.backward();
                     });

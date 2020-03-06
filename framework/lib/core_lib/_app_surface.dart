@@ -17,6 +17,7 @@ import '_page.dart';
 import '_peer_manager.dart';
 import '_portal.dart';
 import '_principal.dart';
+import '_remote_ports.dart';
 import '_service_containers.dart';
 import '_system.dart';
 import '_utimate.dart';
@@ -233,6 +234,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       '@.pump': _pump,
       '@.logic.network.container': _logicNetworkContainer,
       '@.app.creator': creator,
+      '@.remote.ports': DefaultRemotePorts(_shareServiceContainer,_dio),
     });
 
     await _buildExternalServices(creator.buildServices);

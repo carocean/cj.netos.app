@@ -2,7 +2,6 @@ import 'package:floor/floor.dart';
 
 import '../entities.dart';
 
-
 @dao
 abstract class IPersonDAO {
   @insert
@@ -18,7 +17,8 @@ abstract class IPersonDAO {
       'SELECT *  FROM Person where sandbox=:sandbox LIMIT :pageSize OFFSET  :currPage')
   Future<List<Person>> pagePerson(String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM Person WHERE official = :official and sandbox=:sandbox LIMIT 1')
+  @Query(
+      'SELECT * FROM Person WHERE official = :official and sandbox=:sandbox LIMIT 1')
   Future<Person> getPerson(String official, String sandbox);
 
   @Query('SELECT * FROM Person where sandbox=:sandbox')
@@ -61,15 +61,20 @@ abstract class IChannelDAO {
   @insert
   Future<void> addChannel(Channel channel);
 
-  @Query('delete FROM Channel WHERE sandbox=:sandbox and code = :code')
-  Future<void> removeChannel(String sandbox, String code);
+  @Query('delete FROM Channel WHERE sandbox=:sandbox and id = :id')
+  Future<void> removeChannel(String sandbox, String id);
 
   @Query(
       'SELECT *  FROM Channel where sandbox=:sandbox LIMIT :pageSize OFFSET  :currPage')
   Future<List<Channel>> pageChannel(String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and code = :code')
-  Future<Channel> getChannel(String sandbox, String code);
+  @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and id = :id')
+  Future<Channel> getChannel(String sandbox, String id);
+
+  @Query(
+      'SELECT * FROM Channel WHERE sandbox=:sandbox and owner=:owner and origin = :origin')
+  Future<Channel> getChannelByOrigin(
+      String sandbox, String owner, String origin);
 
   @Query('SELECT * FROM Channel where sandbox=:sandbox ORDER BY ctime DESC')
   Future<List<Channel>> getAllChannel(String sandbox);
@@ -89,12 +94,11 @@ abstract class IChannelDAO {
       String sandbox, String channelName, String owner);
 
   @Query(
-      'UPDATE Channel SET leading = :path WHERE sandbox=:sandbox and code = :code')
-  Future<void> updateLeading(String path, String sandbox, String code);
+      'UPDATE Channel SET leading = :path WHERE sandbox=:sandbox and id = :id')
+  Future<void> updateLeading(String path, String sandbox, String id);
 
-  @Query(
-      'UPDATE Channel SET name = :name WHERE code = :code and sandbox=:sandbox')
-  Future<void> updateName(String name, String code, String sandbox);
+  @Query('UPDATE Channel SET name = :name WHERE id = :id and sandbox=:sandbox')
+  Future<void> updateName(String name, String id, String sandbox);
 }
 
 @dao

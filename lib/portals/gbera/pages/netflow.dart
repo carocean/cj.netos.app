@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
@@ -81,7 +82,11 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                   var arguments = <String, Object>{};
                   switch (value) {
                     case '/netflow/manager/create_channel':
-                      widget.context.forward(value,).then((v) {
+                      widget.context
+                          .forward(
+                        value,
+                      )
+                          .then((v) {
                         if (_refreshChannels != null) {
                           _refreshChannels();
                         }
@@ -478,7 +483,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       items.add(
         _ChannelItem(
           context: widget.context,
-          code: ch.code,
+          channelid: ch.id,
           title: ch.name,
           subtitle: '',
           showNewest: false,
@@ -521,7 +526,15 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
               }
             });
           },
-          isSystemChannel: channelService.isSystemChannel(ch.code),
+          isSystemChannel: channelService.isSystemChannel(ch.origin),
+          refreshChannels: (channelid) {
+            for (var i = 0; i < items.length; i++) {
+              if (items[i].channelid == channelid) {
+                items.removeAt(i);
+              }
+            }
+            setState(() {});
+          },
         ),
       );
     }
@@ -729,7 +742,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
 
 class _ChannelItem extends StatelessWidget {
   PageContext context;
-  String code;
+  String channelid;
   String leading;
   String title;
   String who;
@@ -740,10 +753,11 @@ class _ChannelItem extends StatelessWidget {
   var openAvatar;
   var openChannel;
   bool isSystemChannel;
+  Function(String channelid) refreshChannels;
 
   _ChannelItem({
     this.context,
-    this.code,
+    this.channelid,
     this.leading,
     this.title,
     this.who,
@@ -754,6 +768,7 @@ class _ChannelItem extends StatelessWidget {
     this.openAvatar,
     this.openChannel,
     this.isSystemChannel,
+    this.refreshChannels,
   });
 
   @override
@@ -848,62 +863,67 @@ class _ChannelItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                    Row(
-                    mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Text.rich(
-                          TextSpan(
-                            text: this.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text.rich(
+                              TextSpan(
+                                text: this.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (showNewest)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 5,
+                            ),
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.start,
+                              spacing: 5,
+                              runSpacing: 3,
+                              children: <Widget>[
+                                Text.rich(
+                                  TextSpan(
+                                    text:
+                                        '[${this.unreadMsgCount != 0 ? this.unreadMsgCount : ''}条]',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: ' ',
+                                      ),
+                                      TextSpan(
+                                        text: '${this.subtitle}',
+                                        style: TextStyle(
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${this.time}',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                        if (showNewest)
-                          Padding(padding: EdgeInsets.only(top: 5,),child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            alignment: WrapAlignment.start,
-                            spacing: 5,
-                            runSpacing: 3,
-                            children: <Widget>[
-                              Text.rich(
-                                TextSpan(
-                                  text:
-                                  '[${this.unreadMsgCount != 0 ? this.unreadMsgCount : ''}条]',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: ' ',
-                                    ),
-                                    TextSpan(
-                                      text: '${this.subtitle}',
-                                      style: TextStyle(
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                '${this.time}',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),),
                       ],
                     ),
                   ),
@@ -919,144 +939,34 @@ class _ChannelItem extends StatelessWidget {
       ),
     );
     if (this.isSystemChannel) {
-      return Dismissible(
-        key: Key('key_${Uuid().v1()}'),
-        child: item,
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (DismissDirection direction) async {
-          if (direction == DismissDirection.endToStart) {
-            return await showDialog<String>(
-                  context: context,
-                  builder: (BuildContext context) => AlertDialog(
-                    content: Text('不能删除系统管道！'),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text(
-                          '取消',
-                          style: TextStyle(
-                            color: Colors.black87,
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context, 'cancel');
-                        },
-                      )
-                    ],
-                  ),
-                ) !=
-                'cancel';
-          }
-          return false;
-        },
-        secondaryBackground: Container(
-          alignment: Alignment.centerRight,
-          margin: EdgeInsets.only(
-            right: 10,
-          ),
-          child: Icon(
-            Icons.delete_sweep,
-            size: 16,
-          ),
-        ),
-        background: Container(),
-        onDismissed: (direction) {
-          if (direction != DismissDirection.endToStart) {
-            return;
-          }
-        },
-      );
-    }
-    return Dismissible(
-      key: Key('key_${Uuid().v1()}'),
-      child: item,
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (DismissDirection direction) async {
-        if (direction == DismissDirection.endToStart) {
-          return await _showConfirmationDialog(context) == 'yes';
-        }
-        return false;
-      },
-      secondaryBackground: Container(
-        alignment: Alignment.centerRight,
-        margin: EdgeInsets.only(
-          right: 10,
-        ),
-        child: Icon(
-          Icons.delete_sweep,
-          size: 16,
-        ),
-      ),
-      background: Container(),
-      onDismissed: (direction) {
-        switch (direction) {
-          case DismissDirection.endToStart:
-            print('---------do deleted');
-            _deleteChannel(this.code);
-            break;
-          case DismissDirection.vertical:
-            // TODO: Handle this case.
-            break;
-          case DismissDirection.horizontal:
-            // TODO: Handle this case.
-            break;
-          case DismissDirection.startToEnd:
-            // TODO: Handle this case.
-            break;
-          case DismissDirection.up:
-            // TODO: Handle this case.
-            break;
-          case DismissDirection.down:
-            // TODO: Handle this case.
-            break;
-        }
-      },
-    );
-  }
-
-  Future<String> _showConfirmationDialog(BuildContext context) {
-    return showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text.rich(
-          TextSpan(
-            text: '是否删除该管道？',
-            children: [
-              TextSpan(text: '\r\n'),
-              TextSpan(
-                text: '删除管道同时会删除管道内数据！',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: const Text(
-              '取消',
-              style: TextStyle(
-                color: Colors.black87,
-              ),
+      return Slidable(
+        actionPane: SlidableDrawerActionPane(),
+        secondaryActions: <Widget>[
+          Text(
+            '不能删除系统管道',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
             ),
-            onPressed: () {
-              Navigator.pop(context, 'no');
-            },
-          ),
-          FlatButton(
-            child: const Text(
-              '确定',
-              style: TextStyle(
-                color: Colors.black87,
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context, 'yes');
-            },
           ),
         ],
-      ),
+        child: item,
+      );
+    }
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      secondaryActions: <Widget>[
+        IconSlideAction(
+          caption: '删除',
+          foregroundColor: Colors.grey[500],
+          icon: Icons.delete,
+          onTap: () async {
+            await _deleteChannel(this.channelid);
+            this.refreshChannels(this.channelid);
+          },
+        ),
+      ],
+      child: item,
     );
   }
 

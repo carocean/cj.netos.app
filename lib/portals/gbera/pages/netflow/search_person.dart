@@ -183,7 +183,7 @@ class _SearchResultListState extends State<SearchResultList> {
   Future<List<_PersonInfo>> _findPersons() async {
     var url = widget.context.site.getService('@.prop.ports.uc.person');
     List<_PersonInfo> _persons = [];
-    await widget.context.ports(
+    await widget.context.portsCB(
       'get $url netos/1.0',
       restCommand: 'searchPersons',
       headers: {

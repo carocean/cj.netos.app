@@ -37,9 +37,9 @@ mixin IChannelService {
 
   Future<void> initSystemChannel(UserPrincipal user);
 
-  bool isSystemChannel(code);
+  bool isSystemChannel(channelid);
 
-  String getSystemChannel(String code);
+  String getSystemChannel(String channelid);
 
   Iterable<String> listSystemChannel();
 
@@ -47,23 +47,23 @@ mixin IChannelService {
 
   Future<void> emptyOfPerson(String personid);
 
-  Future<bool> existsChannel(code);
+  Future<bool> existsChannel(channelid);
 
   Future<void> addChannel(Channel channel);
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
-  Future<Channel> getChannel(String code);
+  Future<Channel> getChannel(String channelid);
 
   Future<bool> existsName(String channelName, String owner);
 
   Future<List<Channel>> getAllChannel();
 
-  Future<void> updateLeading(String path, String code);
+  Future<void> updateLeading(String path, String channelid);
 
-  Future<void> remove(String code);
+  Future<void> remove(String channelid);
 
-  Future<void> updateName(String code, String name);
+  Future<void> updateName(String channelid, String name);
 }
 mixin IInsiteMessageService {
   Future<void> empty();

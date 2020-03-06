@@ -7,6 +7,7 @@ import 'package:framework/core_lib/_network_container.dart';
 import 'package:framework/core_lib/_notifications.dart';
 import 'package:framework/core_lib/_peer.dart';
 import 'package:framework/core_lib/_pump.dart';
+import 'package:framework/core_lib/_remote_ports.dart';
 import 'package:uuid/uuid.dart';
 
 import '_desklet.dart';
@@ -35,6 +36,8 @@ class PageContext {
 
   ///真实传入的地址，特别是在part页中见到的地址实际上是其主页地址，而page才是part页
   String get url => ModalRoute.of(context).settings.name;
+
+  IRemotePorts get ports => site.getService('@.remote.ports');
 
   ///存储器
   ISharedPreferences sharedPreferences() {
@@ -136,7 +139,7 @@ class PageContext {
     }
   }
 
-  Future<void> ports(
+  Future<void> portsCB(
     ///请求头，格式，如：get http://localhost:8080/uc/p1.service?name=cj&age=33 http/1.1
     String headline, {
 
@@ -547,13 +550,13 @@ class PageContext {
       {ListenMode listenMode, EndOrientation endOrientation}) {
     ILogicNetworkContainer container =
         site.getService('@.logic.network.container');
-    return container.openNetwork(networkName,listenMode:listenMode,endOrientation:endOrientation);
+    return container.openNetwork(networkName,
+        listenMode: listenMode, endOrientation: endOrientation);
   }
 
-  void closeNetwork(String networkName,{bool leave}) {
+  void closeNetwork(String networkName, {bool leave}) {
     ILogicNetworkContainer container =
-    site.getService('@.logic.network.container');
-    container.closeNetwork(networkName,leave:leave);
+        site.getService('@.logic.network.container');
+    container.closeNetwork(networkName, leave: leave);
   }
-
 }

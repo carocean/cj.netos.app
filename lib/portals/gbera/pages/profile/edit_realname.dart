@@ -33,7 +33,7 @@ class _EditRealNameState extends State<EditRealName> {
     setState(() {});
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: 'updatePersonRealName',
       headers: {

@@ -36,7 +36,7 @@ class _AccountsState extends State<Accounts> {
   _load() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: 'getAppInfo',
       headers: {
@@ -127,7 +127,7 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
   Future<void> _load() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: 'listMyAccount',
       headers: {
@@ -408,7 +408,7 @@ class __OtherAppCardState extends State<_OtherAppCard> {
   _load() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: 'listAppInfo',
       headers: {

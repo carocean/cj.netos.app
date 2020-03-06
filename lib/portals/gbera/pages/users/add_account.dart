@@ -78,7 +78,7 @@ class _AddAccountState extends State<AddAccount> {
         params['email'] = accountCode;
         break;
     }
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: restcmd,
       headers: {

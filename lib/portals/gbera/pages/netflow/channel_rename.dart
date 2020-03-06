@@ -32,7 +32,7 @@ class _RenameChannelState extends State<RenameChannel> {
 
   Future<void> _renameChannel() async {
     IChannelService channelService=widget.context.site.getService('/netflow/channels');
-    await channelService.updateName(_channel.code,_controller.text);
+    await channelService.updateName(_channel.id,_controller.text);
   }
 
   @override

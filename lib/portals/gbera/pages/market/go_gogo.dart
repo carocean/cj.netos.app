@@ -589,7 +589,7 @@ class Category {
 
   @override
   bool operator ==(other) {
-    return id == other?.code;
+    return id == other?.origin;
   }
 
   @override

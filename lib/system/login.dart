@@ -861,7 +861,7 @@ class PasswordLoginAction {
     appKeyPair = await appKeyPair.getAppKeyPair(_appid, this.context.site);
     var nonce = MD5Util.generateMd5(
         '${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
-    await context.ports(
+    await context.portsCB(
       'get ${context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'auth',
       headers: {
@@ -976,7 +976,7 @@ class __VerifyCodeButtonState extends State<_VerifyCodeButton> {
     setState(() {});
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
     var nonce = MD5Util.generateMd5(Uuid().v1());
-    await widget.context.ports(
+    await widget.context.portsCB(
       'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'sendVerifyCode',
       headers: {

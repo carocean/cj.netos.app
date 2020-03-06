@@ -124,6 +124,7 @@ import 'pages/system/gbera_settings.dart';
 import 'pages/users/account_viewer.dart';
 import 'pages/wallet/ReceivablesRecord.dart';
 import 'pages/wallet/receivables_details.dart';
+import 'store/remotes/channels.dart';
 import 'styles/green-styles.dart';
 import 'styles/grey-styles.dart';
 
@@ -146,6 +147,7 @@ class GberaPortal {
           '/channel/messages/comments': ChannelCommentService(),
           '/chat/rooms': ChatRoomService(),
           '/chat/p2p/messages': P2PMessageService(),
+          '/remote/channels': ChannelRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -400,7 +402,6 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-
         Page(
           title: '搜索管道',
           subtitle: '',

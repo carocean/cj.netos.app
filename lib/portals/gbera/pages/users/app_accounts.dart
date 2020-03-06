@@ -60,7 +60,7 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
   Future<void> _load() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.ports(
+    await widget.context.portsCB(
       headline,
       restCommand: 'listMyAccount',
       headers: {

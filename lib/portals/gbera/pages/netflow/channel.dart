@@ -57,7 +57,7 @@ class _ChannelPageState extends State<ChannelPage> {
   _reloadChannel() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _channel = await channelService.getChannel(_channel.code);
+    _channel = await channelService.getChannel(_channel.id);
     setState(() {});
   }
 
@@ -71,7 +71,7 @@ class _ChannelPageState extends State<ChannelPage> {
   }
 
   Future<List<ChannelMessage>> _onload() async {
-    var onchannel = widget.context.parameters['channel']?.code;
+    var onchannel = widget.context.parameters['channel']?.id;
     IChannelMessageService messageService =
         widget.context.site.getService('/channel/messages');
     var messages = await messageService.pageMessage(limit, offset, onchannel);

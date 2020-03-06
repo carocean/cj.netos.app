@@ -60,8 +60,8 @@ class MicroApp {
 @entity
 class Channel {
   @primaryKey
-  final String id;
-  final String code;
+  String id;
+  final String origin;
   final String name;
   final String owner;
   final String leading;
@@ -69,8 +69,8 @@ class Channel {
   int ctime = DateTime.now().millisecondsSinceEpoch;
   final String sandbox;
 
-  Channel(this.id, this.code, this.name, this.owner,
-      this.leading, this.site, this.ctime, this.sandbox);
+  Channel(this.id, this.origin, this.name, this.owner, this.leading, this.site,
+      this.ctime, this.sandbox);
 }
 
 @entity
@@ -381,22 +381,22 @@ class P2PMessage {
 @entity
 class Principal implements IPrincipal {
   @primaryKey
-   String person;
-   String uid;
-   String accountCode;
-   String nickName;
-   String appid;
-   String portal;
-   String roles;
-   String accessToken;
-   String refreshToken;
-   String ravatar;
-   String lavatar;
-   String signature;
-   int ltime;
-   int pubtime;
-   int expiretime;
-   String device;
+  String person;
+  String uid;
+  String accountCode;
+  String nickName;
+  String appid;
+  String portal;
+  String roles;
+  String accessToken;
+  String refreshToken;
+  String ravatar;
+  String lavatar;
+  String signature;
+  int ltime;
+  int pubtime;
+  int expiretime;
+  String device;
 
   Principal(
       this.person,

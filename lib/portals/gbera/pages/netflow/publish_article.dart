@@ -81,7 +81,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                   null,
                   null,
                   null,
-                  _channel.code,
+                  _channel.id,
                   user.person,
                   DateTime.now().millisecondsSinceEpoch,
                   content,
@@ -110,7 +110,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                     null,
                     msgid,
                     null,
-                    _channel.code,
+                    _channel.id,
                     widget.context.principal.person,
                   ),
                 );

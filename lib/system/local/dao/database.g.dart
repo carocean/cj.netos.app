@@ -120,7 +120,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `code` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -665,7 +665,7 @@ class _$IChannelDAO extends IChannelDAO {
             'Channel',
             (Channel item) => <String, dynamic>{
                   'id': item.id,
-                  'code': item.code,
+                  'origin': item.origin,
                   'name': item.name,
                   'owner': item.owner,
                   'leading': item.leading,
@@ -682,7 +682,7 @@ class _$IChannelDAO extends IChannelDAO {
 
   static final _channelMapper = (Map<String, dynamic> row) => Channel(
       row['id'] as String,
-      row['code'] as String,
+      row['origin'] as String,
       row['name'] as String,
       row['owner'] as String,
       row['leading'] as String,
@@ -693,10 +693,10 @@ class _$IChannelDAO extends IChannelDAO {
   final InsertionAdapter<Channel> _channelInsertionAdapter;
 
   @override
-  Future<void> removeChannel(String sandbox, String code) async {
+  Future<void> removeChannel(String sandbox, String id) async {
     await _queryAdapter.queryNoReturn(
-        'delete FROM Channel WHERE sandbox=? and code = ?',
-        arguments: <dynamic>[sandbox, code]);
+        'delete FROM Channel WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[sandbox, id]);
   }
 
   @override
@@ -709,10 +709,19 @@ class _$IChannelDAO extends IChannelDAO {
   }
 
   @override
-  Future<Channel> getChannel(String sandbox, String code) async {
+  Future<Channel> getChannel(String sandbox, String id) async {
     return _queryAdapter.query(
-        'SELECT * FROM Channel WHERE sandbox=? and code = ?',
-        arguments: <dynamic>[sandbox, code],
+        'SELECT * FROM Channel WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[sandbox, id],
+        mapper: _channelMapper);
+  }
+
+  @override
+  Future<Channel> getChannelByOrigin(
+      String sandbox, String owner, String origin) async {
+    return _queryAdapter.query(
+        'SELECT * FROM Channel WHERE sandbox=? and owner=? and origin = ?',
+        arguments: <dynamic>[sandbox, owner, origin],
         mapper: _channelMapper);
   }
 
@@ -756,17 +765,17 @@ class _$IChannelDAO extends IChannelDAO {
   }
 
   @override
-  Future<void> updateLeading(String path, String sandbox, String code) async {
+  Future<void> updateLeading(String path, String sandbox, String id) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE Channel SET leading = ? WHERE sandbox=? and code = ?',
-        arguments: <dynamic>[path, sandbox, code]);
+        'UPDATE Channel SET leading = ? WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[path, sandbox, id]);
   }
 
   @override
-  Future<void> updateName(String name, String code, String sandbox) async {
+  Future<void> updateName(String name, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE Channel SET name = ? WHERE code = ? and sandbox=?',
-        arguments: <dynamic>[name, code, sandbox]);
+        'UPDATE Channel SET name = ? WHERE id = ? and sandbox=?',
+        arguments: <dynamic>[name, id, sandbox]);
   }
 
   @override
