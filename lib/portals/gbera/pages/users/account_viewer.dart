@@ -21,7 +21,7 @@ class _AccountViewerState extends State<AccountViewer> {
     setState(() {});
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'removePerson',
       headers: {

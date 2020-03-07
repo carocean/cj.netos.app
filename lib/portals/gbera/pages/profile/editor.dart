@@ -38,7 +38,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
   Future<void> _loadPersonInfo() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'getPersonInfo',
       headers: {
@@ -60,7 +60,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
     _avatarFile = localAvatar;
     setState(() {});
     var remoteAvatar = '';
-    var map = await widget.context.upload(
+    var map = await widget.context.ports.upload(
         '/app',
         <String>[
           localAvatar,
@@ -73,7 +73,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
     remoteAvatar = map[localAvatar];
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'updatePersonAvatar',
       headers: {
@@ -98,7 +98,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
   Future<void> _updateSex(sex) async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'updatePersonSex',
       headers: {

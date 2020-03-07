@@ -44,7 +44,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     });
     var channels = <Channel>[];
     for (var obj in list) {
-      var channelid=MD5Util.generateMd5('${Uuid().v1()}');
+      var channelid = MD5Util.generateMd5('${Uuid().v1()}');
       channels.add(Channel(
         channelid,
         obj['origin'],
@@ -64,5 +64,86 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     await remotePorts.portGET(_networkPortsUrl, 'removeChannel', parameters: {
       'channel': channel,
     });
+  }
+
+  @override
+  Future<void> updateLeading(String channelid, String remotePath) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'updateChannelLeading',
+      parameters: {'channel': channelid, 'leading': remotePath},
+    );
+  }
+
+  @override
+  Future<void> addInputPerson(String person, String channel) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'addInputPerson',
+      parameters: {
+        'channel': channel,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<void> addOutputPerson(String person, String channel) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'addOutputPerson',
+      parameters: {
+        'channel': channel,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<void> removeInputPerson(String person, String channel) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'removeInputPerson',
+      parameters: {
+        'channel': channel,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<void> removeOutputPerson(String person, String channel) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'removeOutputPerson',
+      parameters: {
+        'channel': channel,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateOutGeoSelector(String channel, String outGeoSelector) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'updateOutGeoSelector',
+      parameters: {
+        'channel': channel,
+        'outGeoSelector': outGeoSelector,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateOutPersonSelector(String channel, outPersonSelector) async {
+    await remotePorts.portGET(
+      _networkPortsUrl,
+      'updateOutPersonSelector',
+      parameters: {
+        'channel': channel,
+        'outPersonSelector': outPersonSelector,
+      },
+    );
   }
 }

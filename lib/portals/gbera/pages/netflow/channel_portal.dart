@@ -118,7 +118,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
                 color: Colors.white,
               ),
               background: NetworkImage(
-                'http://47.105.165.186:7100/public/market/timg-5.jpeg?accessToken=${widget.context.principal.accessToken}',
+                'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
               ),
               onAppBarStateChange: (d, v) {
                 print('---$v');

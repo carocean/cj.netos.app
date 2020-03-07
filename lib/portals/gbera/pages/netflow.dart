@@ -11,13 +11,12 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
-import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
 
 import '../parts/headers.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
-
 import 'netflow/channel.dart';
 import 'netflow/message_views.dart';
 
@@ -485,6 +484,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
           context: widget.context,
           channelid: ch.id,
           title: ch.name,
+          owner: ch.owner,
           subtitle: '',
           showNewest: false,
           leading: ch.leading,
@@ -495,27 +495,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 //          ),
           unreadMsgCount: 0,
           who: ': ',
-          openAvatar: () {
-            //如果不是自己的管道则不能改图标
-            if (widget.context.principal.person != ch.owner) {
-              Scaffold.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('不可修改图标！原因：不是您创建的管道'),
-                ),
-              );
-              return;
-            }
-            widget.context.forward(
-              '/netflow/channel/avatar',
-              arguments: <String, Object>{
-                'channel': ch,
-              },
-            ).then((v) {
-              if (_refreshChannels != null) {
-                _refreshChannels();
-              }
-            });
-          },
           openChannel: () {
             widget.context.forward(
               '/netflow/channel',
@@ -740,17 +719,17 @@ class _MessagesRegionState extends State<_MessagesRegion> {
   }
 }
 
-class _ChannelItem extends StatelessWidget {
+class _ChannelItem extends StatefulWidget {
   PageContext context;
   String channelid;
   String leading;
   String title;
+  String owner;
   String who;
   String subtitle;
   String time;
   bool showNewest;
   int unreadMsgCount;
-  var openAvatar;
   var openChannel;
   bool isSystemChannel;
   Function(String channelid) refreshChannels;
@@ -760,21 +739,50 @@ class _ChannelItem extends StatelessWidget {
     this.channelid,
     this.leading,
     this.title,
+    this.owner,
     this.who,
     this.subtitle,
     this.unreadMsgCount,
     this.time,
     this.showNewest,
-    this.openAvatar,
     this.openChannel,
     this.isSystemChannel,
     this.refreshChannels,
   });
 
   @override
+  __ChannelItemState createState() => __ChannelItemState();
+}
+
+class __ChannelItemState extends State<_ChannelItem> {
+  double _percentage = 0.0;
+
+  Future<void> _updateLeading() async {
+    if (_percentage > 0) {
+      _percentage = 0.0;
+      setState(() {});
+    }
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    var map = await widget.context.ports.upload(
+        '/app',
+        <String>[
+          widget.leading,
+        ],
+        accessToken: widget.context.principal.accessToken,
+        onSendProgress: (i, j) {
+      _percentage = ((i * 1.0 / j));
+      setState(() {});
+    });
+    var remotePath = map[widget.leading];
+    await channelService.updateLeading(
+        widget.leading, remotePath, widget.channelid);
+  }
+
+  @override
   Widget build(BuildContext context) {
     Widget imgSrc = null;
-    if (StringUtil.isEmpty(leading)) {
+    if (StringUtil.isEmpty(widget.leading)) {
       imgSrc = Icon(
         IconData(
           0xe606,
@@ -783,16 +791,16 @@ class _ChannelItem extends StatelessWidget {
         size: 32,
         color: Colors.grey[500],
       );
-    } else if (leading.startsWith('/')) {
+    } else if (widget.leading.startsWith('/')) {
       //本地存储
       imgSrc = Image.file(
-        File(leading),
+        File(widget.leading),
         width: 40,
         height: 40,
       );
     } else {
       imgSrc = Image.network(
-        this.leading,
+        widget.leading,
         width: 40,
         height: 40,
       );
@@ -812,7 +820,7 @@ class _ChannelItem extends StatelessWidget {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: this.showNewest
+              crossAxisAlignment: widget.showNewest
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -824,7 +832,28 @@ class _ChannelItem extends StatelessWidget {
                   ),
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: this.openAvatar,
+                    onTap: () {
+                      //如果不是自己的管道则不能改图标
+                      if (widget.context.principal.person != widget.owner) {
+                        Scaffold.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('不可修改图标！原因：不是您创建的管道'),
+                          ),
+                        );
+                        return;
+                      }
+                      widget.context
+                          .forward(
+                        '/widgets/avatar',
+                      )
+                          .then((path) {
+                        if (StringUtil.isEmpty(path)) {
+                          return;
+                        }
+                        widget.leading = path;
+                        _updateLeading();
+                      });
+                    },
                     child: Stack(
                       overflow: Overflow.visible,
                       children: <Widget>[
@@ -845,13 +874,26 @@ class _ChannelItem extends StatelessWidget {
                               top: 3,
                             ),
                             elevation: 0,
-                            showBadge: this.unreadMsgCount != 0,
+                            showBadge: widget.unreadMsgCount != 0,
                             badgeContent: Text(
                               '',
                             ),
                             child: null,
                           ),
                         ),
+                        _percentage > 0 && _percentage < 1.0
+                            ? Positioned(
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                child: LinearProgressIndicator(
+                                  value: _percentage,
+                                ),
+                              )
+                            : Container(
+                                width: 0,
+                                height: 0,
+                              ),
                       ],
                     ),
                   ),
@@ -859,7 +901,7 @@ class _ChannelItem extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: openChannel,
+                    onTap: widget.openChannel,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -870,7 +912,7 @@ class _ChannelItem extends StatelessWidget {
                           children: <Widget>[
                             Text.rich(
                               TextSpan(
-                                text: this.title,
+                                text: widget.title,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
@@ -879,51 +921,55 @@ class _ChannelItem extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (showNewest)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 5,
-                            ),
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              alignment: WrapAlignment.start,
-                              spacing: 5,
-                              runSpacing: 3,
-                              children: <Widget>[
-                                Text.rich(
-                                  TextSpan(
-                                    text:
-                                        '[${this.unreadMsgCount != 0 ? this.unreadMsgCount : ''}条]',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                    children: [
+                        !widget.showNewest
+                            ? Container(
+                                width: 0,
+                                height: 0,
+                              )
+                            : Padding(
+                                padding: EdgeInsets.only(
+                                  top: 5,
+                                ),
+                                child: Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  alignment: WrapAlignment.start,
+                                  spacing: 5,
+                                  runSpacing: 3,
+                                  children: <Widget>[
+                                    Text.rich(
                                       TextSpan(
-                                        text: ' ',
-                                      ),
-                                      TextSpan(
-                                        text: '${this.subtitle}',
+                                        text:
+                                            '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]',
                                         style: TextStyle(
-                                          color: Colors.black54,
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
                                         ),
+                                        children: [
+                                          TextSpan(
+                                            text: ' ',
+                                          ),
+                                          TextSpan(
+                                            text: '${widget.subtitle}',
+                                            style: TextStyle(
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '${widget.time}',
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  '${this.time}',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
                       ],
                     ),
                   ),
@@ -938,7 +984,7 @@ class _ChannelItem extends StatelessWidget {
         ],
       ),
     );
-    if (this.isSystemChannel) {
+    if (widget.isSystemChannel) {
       return Slidable(
         actionPane: SlidableDrawerActionPane(),
         secondaryActions: <Widget>[
@@ -961,8 +1007,8 @@ class _ChannelItem extends StatelessWidget {
           foregroundColor: Colors.grey[500],
           icon: Icons.delete,
           onTap: () async {
-            await _deleteChannel(this.channelid);
-            this.refreshChannels(this.channelid);
+            await _deleteChannel(widget.channelid);
+            widget.refreshChannels(widget.channelid);
           },
         ),
       ],
@@ -972,7 +1018,7 @@ class _ChannelItem extends StatelessWidget {
 
   _deleteChannel(String channelid) async {
     IChannelService channelService =
-        this.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     await channelService.remove(channelid);
   }
 }

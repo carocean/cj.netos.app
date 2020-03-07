@@ -34,7 +34,7 @@ class _EditNickNameState extends State<EditNickName> {
     setState(() {});
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'updatePersonNickName',
       headers: {

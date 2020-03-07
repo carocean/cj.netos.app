@@ -59,7 +59,7 @@ mixin IChannelService {
 
   Future<List<Channel>> getAllChannel();
 
-  Future<void> updateLeading(String path, String channelid);
+  Future<void> updateLeading(String localPath,String remotePath, String channelid);
 
   Future<void> remove(String channelid);
 

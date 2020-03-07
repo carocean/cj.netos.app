@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/portals/gbera/store/pics/downloads.dart';
+import 'package:netos_app/system/remote/persons.dart';
 import 'package:uuid/uuid.dart';
 import 'dao/daos.dart';
 import 'dao/database.dart';
@@ -20,12 +21,13 @@ class PersonService implements IPersonService, IServiceBuilder {
   String get _personUrl => site.getService('@.prop.ports.uc.person');
 
   UserPrincipal get principal => site.getService('@.principal');
-
+  IPersonRemote personRemote;
   @override
   OnReadyCallback builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     personDAO = db.upstreamPersonDAO;
+    personRemote = site.getService('/remote/persons');
     return null;
   }
 
@@ -97,6 +99,7 @@ class PersonService implements IPersonService, IServiceBuilder {
   @override
   Future<void> removePerson(String person) async {
     await this.personDAO.removePerson(person, this.principal.person);
+    await personRemote.removePerson(person);
   }
 
   @override
@@ -140,6 +143,7 @@ class PersonService implements IPersonService, IServiceBuilder {
   @override
   Future<void> addPerson(Person person) async {
     await personDAO.addPerson(person);
+    await personRemote.addPerson(person);
   }
 
   @override

@@ -33,7 +33,6 @@ import 'package:netos_app/portals/gbera/pages/netflow/activies_gateway_settings.
 import 'package:netos_app/portals/gbera/pages/netflow/activies_microapps.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/activies_sites.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_buywy.dart';
-import 'package:netos_app/portals/gbera/pages/netflow/avatar.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_gateway.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_popularize.dart';
@@ -345,15 +344,6 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/channel/article/buywy',
           buildPage: (PageContext pageContext) => BuyWYArticle(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '标记管道',
-          subtitle: '',
-          icon: GalleryIcons.shrine,
-          url: '/netflow/channel/avatar',
-          buildPage: (PageContext pageContext) => Avatar(
             context: pageContext,
           ),
         ),

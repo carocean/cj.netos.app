@@ -4,6 +4,7 @@ import 'package:netos_app/system/local/dao/database.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../system/local/entities.dart';
+import '../remotes.dart';
 import '../services.dart';
 
 class ChannelPinService implements IChannelPinService,IServiceBuilder {
@@ -11,7 +12,7 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
   IChannelInputPersonDAO inputPersonDAO;
   IChannelOutputPersonDAO outputPersonDAO;
   IServiceProvider site;
-
+  IChannelRemote channelRemote;
   UserPrincipal get principal => site.getService('@.principal');
   @override
   OnReadyCallback builder(IServiceProvider site) {
@@ -20,90 +21,97 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
     channelPinDAO = db.channelPinDAO;
     inputPersonDAO = db.channelInputPersonDAO;
     outputPersonDAO = db.channelOutputPersonDAO;
+    channelRemote = site.getService('/remote/channels');
   }
 
   @override
-  Future<Function> removePin(String channelcode) async {
-    await channelPinDAO.remove(channelcode, principal?.person);
+  Future<Function> removePin(String channelid) async {
+    await channelPinDAO.remove(channelid, principal?.person);
   }
 
   @override
   Future<List<ChannelOutputPerson>> pageOutputPerson(
-      String channelcode, int limit, int offset) async {
+      String channelid, int limit, int offset) async {
     return await this
         .outputPersonDAO
-        .pageOutputPerson(channelcode, principal?.person, limit, offset);
+        .pageOutputPerson(channelid, principal?.person, limit, offset);
   }
 
   @override
-  Future<List<ChannelOutputPerson>> listOutputPerson(String channelcode) async {
+  Future<List<ChannelOutputPerson>> listOutputPerson(String channelid) async {
     return await this
         .outputPersonDAO
-        .listOutputPerson(channelcode, principal?.person);
+        .listOutputPerson(channelid, principal?.person);
   }
 
   @override
-  Future<List<ChannelInputPerson>> listInputPerson(String channelcode) async {
+  Future<List<ChannelInputPerson>> listInputPerson(String channelid) async {
     return await this
         .inputPersonDAO
-        .listInputPerson(channelcode, principal?.person);
+        .listInputPerson(channelid, principal?.person);
   }
 
   @override
-  Future<Function> removeOutputPerson(String person, String channelcode) async {
+  Future<Function> removeOutputPerson(String person, String channelid) async {
     await this
         .outputPersonDAO
-        .removeOutputPerson(person, channelcode, principal?.person);
+        .removeOutputPerson(person, channelid, principal?.person);
+    await channelRemote.removeOutputPerson(person,channelid);
   }
 
   @override
-  Future<Function> emptyOutputPersons(String channelcode) async {
+  Future<Function> emptyOutputPersons(String channelid) async {
     await this
         .outputPersonDAO
-        .emptyOutputPersons(channelcode, principal?.person);
+        .emptyOutputPersons(channelid, principal?.person);
   }
 
   @override
   Future<Function> addOutputPerson(ChannelOutputPerson person) async {
     await this.outputPersonDAO.addOutputPerson(person);
+    await channelRemote.addOutputPerson(person.person,person.channel);
   }
 
   @override
   Future<List<ChannelInputPerson>> pageInputPerson(
-      String channelcode, int limit, int offset) async {
+      String channelid, int limit, int offset) async {
     return await this
         .inputPersonDAO
-        .pageInputPerson(channelcode, principal?.person, limit, offset);
+        .pageInputPerson(channelid, principal?.person, limit, offset);
   }
 
   @override
-  Future<Function> removeInputPerson(String person, String channelcode) async {
+  Future<Function> removeInputPerson(String person, String channelid) async {
     await this
         .inputPersonDAO
-        .removeInputPerson(person, channelcode, principal?.person);
+        .removeInputPerson(person, channelid, principal?.person);
+    await channelRemote.removeInputPerson(person,channelid);
   }
 
   @override
   Future<Function> addInputPerson(ChannelInputPerson person) async {
     await this.inputPersonDAO.addInputPerson(person);
+    await channelRemote.addInputPerson(person.person,person.channel);
   }
 
   @override
   Future<Function> setOutputWechatHaoYouSelector(
-      String channelcode, bool isSet) async {}
+      String channelid, bool isSet) async {}
 
   @override
   Future<Function> setOutputWechatCircleSelector(
-      String channelcode, bool isSet) async {}
+      String channelid, bool isSet) async {}
 
   @override
-  Future<Function> setOutputGeoSelector(String channelcode, bool isSet) async {
+  Future<Function> setOutputGeoSelector(String channelid, bool isSet) async {
+    String v=isSet ? 'true' : 'false';
     await this.channelPinDAO.setOutputGeoSelector(
-        isSet ? 'true' : 'false', channelcode, principal?.person);
+        v, channelid, principal?.person);
+    await channelRemote.updateOutGeoSelector(channelid,v);
   }
 
   @override
-  Future<Function> setOutputPersonSelector(String channelcode,
+  Future<Function> setOutputPersonSelector(String channelid,
       PinPersonsSettingsStrategy outsitePersonsSettingStrategy) async {
     var selector;
     switch (outsitePersonsSettingStrategy) {
@@ -116,13 +124,14 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
     }
     await this
         .channelPinDAO
-        .setOutputPersonSelector(selector, channelcode, principal?.person);
+        .setOutputPersonSelector(selector, channelid, principal?.person);
+    await channelRemote.updateOutPersonSelector(channelid,selector);
   }
 
   @override
-  Future<bool> getOutputGeoSelector(String channelcode) async {
+  Future<bool> getOutputGeoSelector(String channelid) async {
     ChannelPin pin =
-        await channelPinDAO.getChannelPin(channelcode, principal?.person);
+        await channelPinDAO.getChannelPin(channelid, principal?.person);
     if (pin == null) {
       return false;
     }
@@ -138,9 +147,9 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
 
   @override
   Future<PinPersonsSettingsStrategy> getOutputPersonSelector(
-      String channelcode) async {
+      String channelid) async {
     ChannelPin pin =
-        await channelPinDAO.getChannelPin(channelcode, principal?.person);
+        await channelPinDAO.getChannelPin(channelid, principal?.person);
     if (pin == null) {
       return PinPersonsSettingsStrategy.all_except;
     }
@@ -158,21 +167,21 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
 
   @override
   Future<PinPersonsSettingsStrategy> getInputPersonSelector(
-      String channelcode) async {
+      String channelid) async {
     // 输入用户选择策略永远是从指定管道的输入端的所有用户中排除
     return PinPersonsSettingsStrategy.all_except;
   }
 
   @override
-  Future<Function> initChannelPin(String channelcode) async {
+  Future<Function> initChannelPin(String channelid) async {
     var pin = await this
         .channelPinDAO
-        .getChannelPin(channelcode, principal?.person);
+        .getChannelPin(channelid, principal?.person);
     if (pin == null) {
       await this.channelPinDAO.addChannelPin(
             ChannelPin(
               '${Uuid().v1()}',
-              channelcode,
+              channelid,
               'all_except',
               'all_except',
               null,

@@ -183,7 +183,7 @@ class _SearchResultListState extends State<SearchResultList> {
   Future<List<_PersonInfo>> _findPersons() async {
     var url = widget.context.site.getService('@.prop.ports.uc.person');
     List<_PersonInfo> _persons = [];
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       'get $url netos/1.0',
       restCommand: 'searchPersons',
       headers: {
@@ -291,6 +291,7 @@ class _PersonCardState extends State<_PersonCard> {
   _PersonInfo _person;
   var _hitsGz = false;
   var _hitsQx = false;
+
   @override
   void initState() {
     _person = widget.person;
@@ -325,6 +326,9 @@ class _PersonCardState extends State<_PersonCard> {
             right: 15,
             bottom: 10,
             top: 10,
+          ),
+          constraints: BoxConstraints(
+            minHeight: 150,
           ),
           child: Row(
             children: <Widget>[
@@ -418,7 +422,6 @@ class _PersonCardState extends State<_PersonCard> {
                   }
                   var isAdded = snapshot.data;
                   if (isAdded != null && isAdded) {
-
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: _hitsQx
@@ -429,7 +432,7 @@ class _PersonCardState extends State<_PersonCard> {
                               _removePerson();
                             },
                       child: Text(
-                        _hitsQx?'取消中...':'不再关注',
+                        _hitsQx ? '取消中...' : '不再关注',
                         style: TextStyle(
                           color: _hitsQx ? Colors.grey[400] : Colors.blueGrey,
                           fontWeight: FontWeight.w500,
@@ -449,7 +452,7 @@ class _PersonCardState extends State<_PersonCard> {
                             _savePerson();
                           },
                     child: Text(
-                      _hitsGz?'关注中...':'关注',
+                      _hitsGz ? '关注中...' : '关注',
                       style: TextStyle(
                         color: _hitsGz ? Colors.grey[400] : Colors.blueGrey,
                         fontWeight: FontWeight.w500,
@@ -495,8 +498,8 @@ class _PersonCardState extends State<_PersonCard> {
         PinyinHelper.getPinyin(_person.nickName),
         widget.context.principal.person);
     await personService.addPerson(person);
-    _hitsGz=false;
-    _hitsQx=false;
+    _hitsGz = false;
+    _hitsQx = false;
     setState(() {});
   }
 
@@ -504,8 +507,8 @@ class _PersonCardState extends State<_PersonCard> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     await personService.removePerson(_person.person);
-    _hitsGz=false;
-    _hitsQx=false;
+    _hitsGz = false;
+    _hitsQx = false;
     setState(() {});
   }
 }

@@ -77,8 +77,9 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<void> updateLeading(String path, String channelid) async {
-    await this.channelDAO.updateLeading(path, principal?.person, channelid);
+  Future<void> updateLeading(String localPath,String remotePath, String channelid) async {
+    await this.channelDAO.updateLeading(localPath, principal?.person, channelid);
+    await this.channelRemote.updateLeading(channelid,remotePath);
   }
 
   @override

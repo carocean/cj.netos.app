@@ -15,5 +15,19 @@ mixin IChannelRemote {
 
   Future<void> removeChannel(String channel);
 
-  Future<List<Channel>>pageChannel({int limit = 20, int offset = 0});
+  Future<List<Channel>> pageChannel({int limit = 20, int offset = 0});
+
+  Future<void> updateLeading(String channelid, String remotePath) {}
+
+  Future<void> removeOutputPerson(String person, String channelid) {}
+
+  Future<void> removeInputPerson(String person, String channelid) {}
+
+  Future<void> addInputPerson(String person, String channel) {}
+
+  Future<void> updateOutGeoSelector(String channelid, String v) {}
+
+  Future<void> updateOutPersonSelector(String channelid, selector) {}
+
+  Future<void> addOutputPerson(String person, String channel) {}
 }

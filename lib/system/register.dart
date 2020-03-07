@@ -43,7 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
     var nonce = MD5Util.generateMd5(Uuid().v1()).toUpperCase();
     String sign = appKeyPair.appSign(nonce);
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       'post ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'auth',
       headers: {
@@ -96,7 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
     var defaultApp = widget.context.site.getService('@.prop.entrypoint.app');
     appKeyPair = await appKeyPair.getAppKeyPair(defaultApp, widget.context.site);
     var nonce = MD5Util.generateMd5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       'post ${widget.context.site.getService('@.prop.ports.uc.register')} http/1.1',
       restCommand: 'registerByIphone',
       headers: {
@@ -112,7 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'avatar': _avatarRemoteFile,
       },
       onerror: ({e, stack}) {
-        widget.context.deleteRemoteFile(_avatarRemoteFile);
+        widget.context.ports.deleteRemoteFile(_avatarRemoteFile);
         print('-----$e');
         _buttonEnabled = true;
         _registerLabel = '注册';
@@ -423,7 +423,7 @@ class __AvatarRegionState extends State<_AvatarRegion> {
 
   Future<String> _doUploadAvatar(String avatarFile) async {
     var dir = '/avatars';
-    var map = await widget.context.upload(dir, <String>[avatarFile],
+    var map = await widget.context.ports.upload(dir, <String>[avatarFile],
         accessToken: widget.anonymousAccessToken, onSendProgress: (i, j) {
       _per = '${((i * 1.0 / j) * 100.00).toStringAsFixed(0)}%';
       setState(() {});

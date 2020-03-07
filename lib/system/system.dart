@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/system/remote/persons.dart';
 
 import 'entrypoint.dart';
 import 'local/local_principals.dart';
@@ -20,6 +21,7 @@ System buildSystem(IServiceProvider site) {
         "/principals": PrincipalService(),
         "/local/principals":DefaultLocalPrincipalManager(),
         "/gbera/persons": PersonService(),
+        '/remote/persons':PersonRemote(),
       };
     },
     buildThemes: buildThemes,

@@ -33,7 +33,7 @@ class _ProfileMoreState extends State<ProfileMore> {
   Future<void> _loadGroups() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.platform')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'listDomainGroup',
       headers: {
@@ -124,7 +124,7 @@ class __GroupWidgetState extends State<_GroupWidget> {
   Future<void> _loadValues() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'listDomainValueOfGroup',
       headers: {
@@ -156,7 +156,7 @@ class __GroupWidgetState extends State<_GroupWidget> {
   Future<void> _loadFields() async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.platform')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'listDomainField',
       headers: {
@@ -266,7 +266,7 @@ class __FieldItemState extends State<_FieldItem> {
   Future<void> _setFieldValue(v) async {
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
-    await widget.context.portsCB(
+    await widget.context.ports.callback(
       headline,
       restCommand: 'setDomainValue',
       headers: {

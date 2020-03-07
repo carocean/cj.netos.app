@@ -64,7 +64,7 @@ class Channel {
   final String origin;
   final String name;
   final String owner;
-  final String leading;
+   String leading;
   final String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
   final String sandbox;
