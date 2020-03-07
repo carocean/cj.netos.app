@@ -112,7 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'avatar': _avatarRemoteFile,
       },
       onerror: ({e, stack}) {
-        widget.context.ports.deleteRemoteFile(_avatarRemoteFile);
+        widget.context.ports.deleteFile(_avatarRemoteFile);
         print('-----$e');
         _buttonEnabled = true;
         _registerLabel = '注册';

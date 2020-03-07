@@ -26,9 +26,13 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
 
   TextEditingController _contentController;
+  Channel _channel;
+  var _type;
 
   @override
   void initState() {
+    _channel = widget.context.parameters['channel'];
+    _type = widget.context.parameters['type'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
     super.initState();
@@ -40,10 +44,69 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     super.dispose();
   }
 
+  _publish() async {
+    UserPrincipal user = widget.context.principal;
+    var content = _contentController.text;
+
+    ///纹银价格从app的更新管理中心或消息中心获取
+    double wy = 38388.38827772;
+    var images = shower_key.currentState.files;
+    var location = null;
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    IChannelMediaService channelMediaService =
+        widget.context.site.getService('/channel/messages/medias');
+    var msgid = '${Uuid().v1()}';
+    await channelMessageService.addMessage(
+      ChannelMessage(
+        msgid,
+        null,
+        null,
+        null,
+        _channel.id,
+        user.person,
+        DateTime.now().millisecondsSinceEpoch,
+        content,
+        wy,
+        location,
+        widget.context.principal.person,
+      ),
+    );
+    for (MediaFile file in images) {
+      var type = 'image';
+      switch (file.type) {
+        case MediaFileType.image:
+          break;
+        case MediaFileType.video:
+          type = 'video';
+          break;
+        case MediaFileType.audio:
+          type = 'audio';
+          break;
+      }
+      await channelMediaService.addMedia(
+        Media(
+          '${Uuid().v1()}',
+          type,
+          '${file.src.path}',
+          null,
+          msgid,
+          null,
+          _channel.id,
+          widget.context.principal.person,
+        ),
+      );
+    }
+
+    var refreshMessages = widget.context.parameters['refreshMessages'];
+    if (refreshMessages != null) {
+      await refreshMessages();
+    }
+    widget.context.backward();
+  }
+
   @override
   Widget build(BuildContext context) {
-    Channel _channel = widget.context.parameters['channel'];
-    var type = widget.context.parameters['type'];
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -62,65 +125,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         ),
         actions: <Widget>[
           FlatButton(
-            onPressed: () async {
-              UserPrincipal user = widget.context.principal;
-              var content = _contentController.text;
-
-              ///纹银价格从app的更新管理中心或消息中心获取
-              double wy = 38388.38827772;
-              var images = shower_key.currentState.files;
-              var location = null;
-              IChannelMessageService channelMessageService =
-                  widget.context.site.getService('/channel/messages');
-              IChannelMediaService channelMediaService =
-                  widget.context.site.getService('/channel/messages/medias');
-              var msgid = '${Uuid().v1()}';
-              await channelMessageService.addMessage(
-                ChannelMessage(
-                  msgid,
-                  null,
-                  null,
-                  null,
-                  _channel.id,
-                  user.person,
-                  DateTime.now().millisecondsSinceEpoch,
-                  content,
-                  wy,
-                  location,
-                  widget.context.principal.person,
-                ),
-              );
-              for (MediaFile file in images) {
-                var type = 'image';
-                switch (file.type) {
-                  case MediaFileType.image:
-                    break;
-                  case MediaFileType.video:
-                    type = 'video';
-                    break;
-                  case MediaFileType.audio:
-                    type = 'audio';
-                    break;
-                }
-                await channelMediaService.addMedia(
-                  Media(
-                    '${Uuid().v1()}',
-                    type,
-                    '${file.src.path}',
-                    null,
-                    msgid,
-                    null,
-                    _channel.id,
-                    widget.context.principal.person,
-                  ),
-                );
-              }
-              var refreshMessages =
-                  widget.context.parameters['refreshMessages'];
-              if (refreshMessages != null) {
-                await refreshMessages();
-              }
-              widget.context.backward();
+            onPressed: () {
+              _publish();
             },
             child: Text(
               '发表',

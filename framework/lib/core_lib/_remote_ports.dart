@@ -53,7 +53,7 @@ mixin IRemotePorts {
       void Function(int, int) onReceiveProgress,
       void Function(int, int) onSendProgress});
 
-  Future<void> download(
+  Future<void>  download(
     String url,
     String localFile, {
     void Function(int, int) onReceiveProgress,
@@ -65,7 +65,7 @@ mixin IRemotePorts {
     Options options,
   });
 
-  Future<void> deleteRemoteFile(
+  Future<void> deleteFile(
     String file,
   );
 }
@@ -175,7 +175,6 @@ class DefaultRemotePorts implements IRemotePorts {
     if (localFiles == null || localFiles.isEmpty) {
       return null;
     }
-    Dio dio = _site.getService('@.http');
 
     var files = <MultipartFile>[];
     var remoteFiles = <String, String>{};
@@ -204,7 +203,7 @@ class DefaultRemotePorts implements IRemotePorts {
     });
     var token =
         StringUtil.isEmpty(accessToken) ? principal.accessToken : accessToken;
-    var response = await dio.post(
+    var response = await _dio.post(
       _site.getService('@.prop.fs.uploader'),
       data: data,
       options: Options(
@@ -239,8 +238,7 @@ class DefaultRemotePorts implements IRemotePorts {
     dynamic data,
     Options options,
   }) async {
-    Dio dio = _site.getService('@.http');
-    await dio.download(
+   return await _dio.download(
       url,
       localFile,
       onReceiveProgress: onReceiveProgress,
@@ -253,11 +251,10 @@ class DefaultRemotePorts implements IRemotePorts {
     );
   }
 
-  Future<void> deleteRemoteFile(
+  Future<void> deleteFile(
     String file,
   ) async {
-    Dio dio = _site.getService('@.http');
-    var response = await dio.get(
+    var response = await _dio.get(
       _site.getService('@.prop.fs.delfile'),
       options: Options(
           //上传的accessToken在header中，为了兼容在参数里也放
