@@ -45,18 +45,30 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
       'signature': person.signature,
       'avatar': response[person.avatar],
     };
-    await remotePorts.portPOST(
+//    await remotePorts.portPOST(
+//      _networkPortsUrl,
+//      'addPerson',
+//      data: {'person': jsonEncode(obj)},
+//    );
+    remotePorts.portTask.addPortPOSTTask(
       _networkPortsUrl,
       'addPerson',
-      data: {'person': jsonEncode(obj)},
+      data: {
+        'person': jsonEncode(obj),
+      },
     );
-    return null;
   }
 
   @override
   Future<void> removePerson(String person) async {
-    await remotePorts.portGET(
-      _networkPortsUrl,
+//    await remotePorts.portGET(
+//      _networkPortsUrl,
+//      'removePerson',
+//      parameters: {
+//        'person': person,
+//      },
+//    );
+  remotePorts.portTask.addPortGETTask( _networkPortsUrl,
       'removePerson',
       parameters: {
         'person': person,

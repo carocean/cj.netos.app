@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_port_tasks.dart';
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:uuid/uuid.dart';
@@ -12,6 +13,8 @@ typedef OnReceiveProgress = void Function(int, int);
 typedef OnSendProgress = void Function(int, int);
 mixin IRemotePorts {
   UserPrincipal get principal;
+
+  IPortTaskManager get portTask;
 
   Future<dynamic> portGET(
     portsUrl,
@@ -53,7 +56,7 @@ mixin IRemotePorts {
       void Function(int, int) onReceiveProgress,
       void Function(int, int) onSendProgress});
 
-  Future<void>  download(
+  Future<void> download(
     String url,
     String localFile, {
     void Function(int, int) onReceiveProgress,
@@ -73,13 +76,19 @@ mixin IRemotePorts {
 class DefaultRemotePorts implements IRemotePorts {
   Dio _dio;
   IServiceProvider _site;
+  IPortTaskManager _portTaskManager;
 
   @override
   UserPrincipal get principal => _site.getService('@.principal');
 
+  @override
+  IPortTaskManager get portTask => _portTaskManager;
+
   DefaultRemotePorts(IServiceProvider site, Dio dio) {
     _dio = dio;
     _site = site;
+    _portTaskManager = DefaultPortTaskManager();
+    _portTaskManager.start(site);
   }
 
   @override
@@ -238,7 +247,7 @@ class DefaultRemotePorts implements IRemotePorts {
     dynamic data,
     Options options,
   }) async {
-   return await _dio.download(
+    return await _dio.download(
       url,
       localFile,
       onReceiveProgress: onReceiveProgress,
