@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:lpinyin/lpinyin.dart';
-import 'package:netos_app/portals/gbera/store/pics/downloads.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -488,7 +488,7 @@ class _PersonCardState extends State<_PersonCard> {
         _person.accountCode,
         _person.appid,
         _person.tenantid,
-        await Downloads.downloadPersonAvatar(
+        await downloadPersonAvatar(
             dio: dio,
             avatarUrl:
                 '${_person.avatar}?accessToken=${widget.context.principal.accessToken}'),

@@ -10,8 +10,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_app_keypair.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/local/entities.dart';
-import 'package:netos_app/portals/gbera/store/pics/downloads.dart';
 import 'package:netos_app/system/local/local_principals.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
@@ -904,7 +904,7 @@ class PasswordLoginAction {
       roles.add(r);
     }
     Dio dio = context.site.getService('@.http');
-    String localAvatarFile = await Downloads.downloadPersonAvatar(
+    String localAvatarFile = await downloadPersonAvatar(
         dio: dio,
         avatarUrl: '${subject['avatar']}?accessToken=${token['accessToken']}');
     manager.add(

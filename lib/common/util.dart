@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
-
+import 'package:framework/framework.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 //屏自适应
 class Adapt {
@@ -78,4 +82,88 @@ String formatNum(num, {point: 2}) {
   } else {
     return "0.0";
   }
+}
+
+Future<String> downloadPersonAvatar({Dio dio, String avatarUrl}) async {
+  var home = await getApplicationDocumentsDirectory();
+  var dir = Directory('${home.path}/pictures/share/persons');
+  if (!dir.existsSync()) {
+    dir.createSync(recursive: true);
+  }
+  var avatarPath = '${dir.path}/${Uuid().v1()}';
+  await dio.download(avatarUrl, avatarPath);
+  return avatarPath;
+}
+
+Future<String> downloadChannelAvatar({Dio dio, String avatarUrl}) async {
+  var home = await getApplicationDocumentsDirectory();
+  var dir = Directory('${home.path}/pictures/share/channels');
+  if (!dir.existsSync()) {
+    dir.createSync(recursive: true);
+  }
+  var avatarPath = '${dir.path}/${Uuid().v1()}';
+  await dio.download(avatarUrl, avatarPath);
+  return avatarPath;
+}
+
+Future<Map<String, String>> uploadFile(String fsReaderUrl, String fsWriterUrl,
+    String remoteDir, List<String> localFiles,
+    {String accessToken,
+    void Function(int, int) onReceiveProgress,
+    void Function(int, int) onSendProgress}) async {
+  if (localFiles == null || localFiles.isEmpty) {
+    return null;
+  }
+
+  var files = <MultipartFile>[];
+  var remoteFiles = <String, String>{};
+  for (var i = 0; i < localFiles.length; i++) {
+    var f = localFiles[i];
+    int pos = f.lastIndexOf('.');
+    var ext = '';
+    var prev = '';
+    if (pos > -1) {
+      ext = f.substring(pos + 1, f.length);
+      prev = f.substring(0, pos);
+    } else {
+      prev = f;
+    }
+    prev = prev.substring(prev.lastIndexOf('/') + 1, prev.length);
+    String fn = "${Uuid().v1()}_$prev.$ext";
+    remoteFiles[f] = '${fsReaderUrl}$remoteDir/$fn';
+    print(remoteFiles[f]);
+    files.add(await MultipartFile.fromFile(
+      f,
+      filename: fn,
+    ));
+  }
+  FormData data = FormData.fromMap({
+    'files': files,
+  });
+  BaseOptions options = BaseOptions(headers: {
+    'Content-Type': "text/html; charset=utf-8",
+  });
+  var _dio = Dio(options); //使用base配置可以通
+  var response = await _dio.post(
+    fsWriterUrl,
+    data: data,
+    options: Options(
+      //上传的accessToken在header中，为了兼容在参数里也放
+      headers: {
+        "Cookie": 'accessToken=$accessToken',
+      },
+    ),
+    queryParameters: {
+      'accessToken': accessToken,
+      'dir': remoteDir,
+    },
+    onReceiveProgress: onReceiveProgress,
+    onSendProgress: onSendProgress,
+  );
+  if (response.statusCode > 400) {
+    _dio.close();
+    throw FlutterError('上传失败：${response.statusCode} ${response.statusMessage}');
+  }
+  _dio.close();
+  return remoteFiles;
 }

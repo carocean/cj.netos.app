@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
+import 'package:netos_app/system/task_bar.dart';
 
 import 'system/local/dao/database.dart';
 import 'system/system.dart';
@@ -40,6 +41,7 @@ void main() => platformRun(
             '@.prop.fs.uploader':
                 'http://47.105.165.186:7110/upload/uploader.service',
             '@.prop.fs.reader': 'http://47.105.165.186:7100',
+            '@.prop.ports.network.channel': 'http://47.105.165.186/document/network/channel.service',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
@@ -87,33 +89,44 @@ void main() => platformRun(
           },
 
           ///以下可装饰窗口区，比如在peer连接状态改变时提醒用户
-          appDecorator: (ctx, viewport) {
+          appDecorator: (ctx, viewport,site) {
+
             return Window(
               viewport: viewport,
+              site:site,
             );
           }),
     );
 
 class Window extends StatelessWidget {
   Widget viewport;
-
-  Window({this.viewport});
+  IServiceProvider site;
+  Window({this.viewport,this.site});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.loose,
       children: <Widget>[
         this.viewport,
         Positioned(
-          top: 0,
-          left: 0,
+          top: 5,
+          left: 78,
           right: 0,
           child: StatusBar(),
+        ),
+        Positioned(
+          top: 22,
+          left: 78,
+          height: 1,
+          width: 30,
+          child: TaskBar(site),
         ),
       ],
     );
   }
 }
+
 
 class StatusBar extends StatefulWidget {
   @override
@@ -153,10 +166,6 @@ class _StatusBarState extends State<StatusBar> {
         break;
     }
     return Container(
-      padding: EdgeInsets.only(
-        left: 78,
-        top: 5,
-      ),
       alignment: Alignment.topLeft,
       child: Row(
         children: <Widget>[

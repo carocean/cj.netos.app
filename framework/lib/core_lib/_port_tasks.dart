@@ -288,7 +288,7 @@ class DefaultPortTaskManager implements IPortTaskManager {
             _addDeleteFileTask(args, _dio, task);
             break;
         }
-        _db.remove(taskObj);
+        await _db.remove({'_id': taskObj['_id']});
       }
     });
     notifyReceivePort.listen((data) {
@@ -406,6 +406,13 @@ void _addDeleteFileTask(
     _EntrypointArgument args, Dio dio, _PortTask task) async {
   var status = '200';
   var message = 'ok';
+  var frame = Frame('delete ${task.callbackUrl} port/1.0');
+  frame.setHead('sub-command', 'begin');
+  frame.setHead('path', task.url);
+  frame.setHead('status', status);
+  frame.setHead('message', message);
+  args.messagePort.send(frame.toMap());
+
   var response;
   try {
     response = await dio.get(
@@ -414,8 +421,8 @@ void _addDeleteFileTask(
       queryParameters: {'path': task.url, 'type': 'f'},
     );
   } catch (e) {
-    status = '${response.statusCode}';
-    message = '${response.statusMessage}';
+    status = '500';
+    message = '$e';
     var frame = Frame('delete ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
     frame.setParameter('path', task.url);
@@ -429,15 +436,15 @@ void _addDeleteFileTask(
     message = '${response.statusMessage}';
     var frame = Frame('delete ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
-    frame.setParameter('path', task.url);
+    frame.setHead('path', task.url);
     frame.setHead('status', status);
     frame.setHead('message', message);
     args.messagePort.send(frame.toMap());
     return;
   }
-  var frame = Frame('delete ${task.callbackUrl} port/1.0');
+  frame = Frame('delete ${task.callbackUrl} port/1.0');
   frame.setHead('sub-command', 'done');
-  frame.setParameter('path', task.url);
+  frame.setHead('path', task.url);
   frame.setHead('status', status);
   frame.setHead('message', message);
   args.messagePort.send(frame.toMap());
@@ -474,7 +481,13 @@ void _addUploadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   FormData data = FormData.fromMap({
     'files': files,
   });
-  var token = StringUtil.isEmpty(task.accessToken);
+  Frame frame = Frame('upload ${task.callbackUrl ?? '/'} port/1.0');
+  frame.setHead('sub-command', 'begin');
+  frame.setHead('status', status);
+  frame.setHead('message', message);
+  frame.addContent(jsonEncode(remoteFiles));
+  args.messagePort.send(frame.toMap());
+
   var response;
   try {
     response = await dio.post(
@@ -483,39 +496,40 @@ void _addUploadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       options: Options(
         //上传的accessToken在header中，为了兼容在参数里也放
         headers: {
-          "Cookie": 'accessToken=$token',
+          "Cookie": 'accessToken=${task.accessToken}',
         },
       ),
       queryParameters: {
-        'accessToken': token,
+        'accessToken': task.accessToken,
         'dir': task.remoteDir,
       },
       onReceiveProgress: (i, j) {
-        var frame = Frame('download ${task.callbackUrl} port/1.0');
+        var frame = Frame('upload ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'receiveProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
       },
       onSendProgress: (i, j) {
-        var frame = Frame('download ${task.callbackUrl} port/1.0');
+        var frame = Frame('upload ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'sendProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
       },
     );
   } catch (e) {
-    status = '${response.statusCode}';
-    message = '${response.statusMessage}';
-    Frame frame = Frame('uploadFiles ${task.callbackUrl ?? '/'} port/1.0');
+    status = '500';
+    message = '$e';
+    Frame frame = Frame('upload ${task.callbackUrl ?? '/'} port/1.0');
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
+    frame.addContent(jsonEncode(remoteFiles));
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -523,23 +537,32 @@ void _addUploadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   if (response.statusCode > 400) {
     status = '${response.statusCode}';
     message = '${response.statusMessage}';
-    Frame frame = Frame('uploadFiles ${task.callbackUrl ?? '/'} port/1.0');
+    Frame frame = Frame('upload ${task.callbackUrl ?? '/'} port/1.0');
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
+    frame.addContent(jsonEncode(remoteFiles));
     args.messagePort.send(frame.toMap());
     return;
   }
-  Frame frame = Frame('uploadFiles ${task.callbackUrl ?? '/'} port/1.0');
+  frame = Frame('upload ${task.callbackUrl ?? '/'} port/1.0');
   frame.setHead('sub-command', 'done');
   frame.setHead('status', status);
   frame.setHead('message', message);
+  frame.addContent(jsonEncode(remoteFiles));
   args.messagePort.send(frame.toMap());
 }
 
 void _addDownloadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   var status = '200';
   var message = 'ok';
+  var frame = Frame('download ${task.callbackUrl} port/1.0');
+  frame.setHead('sub-command', 'begin');
+  frame.setHead('localFile', task.localFile);
+  frame.setHead('remoteUrl', task.url);
+  frame.setHead('status', status);
+  frame.setHead('message', message);
+  args.messagePort.send(frame.toMap());
   var response;
   try {
     response = await dio.download(
@@ -548,10 +571,10 @@ void _addDownloadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       onReceiveProgress: (i, j) {
         var frame = Frame('download ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'receiveProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
-        frame.setParameter('localFile', task.localFile);
-        frame.setParameter('remoteUrl', task.url);
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
+        frame.setHead('localFile', task.localFile);
+        frame.setHead('remoteUrl', task.url);
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
@@ -562,12 +585,12 @@ void _addDownloadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       lengthHeader: task.lengthHeader,
     );
   } catch (e) {
-    status = '${response.statusCode}';
-    message = '${response.statusMessage}';
+    status = '500';
+    message = '$e';
     var frame = Frame('download ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
-    frame.setParameter('localFile', task.localFile);
-    frame.setParameter('remoteUrl', task.url);
+    frame.setHead('localFile', task.localFile);
+    frame.setHead('remoteUrl', task.url);
     frame.setHead('status', status);
     frame.setHead('message', message);
     args.messagePort.send(frame.toMap());
@@ -578,17 +601,17 @@ void _addDownloadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     message = '${response.statusMessage}';
     var frame = Frame('download ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
-    frame.setParameter('localFile', task.localFile);
-    frame.setParameter('remoteUrl', task.url);
+    frame.setHead('localFile', task.localFile);
+    frame.setHead('remoteUrl', task.url);
     frame.setHead('status', status);
     frame.setHead('message', message);
     args.messagePort.send(frame.toMap());
     return;
   }
-  var frame = Frame('download ${task.callbackUrl} port/1.0');
+  frame = Frame('download ${task.callbackUrl} port/1.0');
   frame.setHead('sub-command', 'done');
-  frame.setParameter('localFile', task.localFile);
-  frame.setParameter('remoteUrl', task.url);
+  frame.setHead('localFile', task.localFile);
+  frame.setHead('remoteUrl', task.url);
   frame.setHead('status', status);
   frame.setHead('message', message);
   args.messagePort.send(frame.toMap());
@@ -605,6 +628,15 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   }
   task.headers[task.tokenName] = task.accessToken;
   task.headers['Rest-Command'] = task.restCommand;
+
+  var frame = Frame('portPost ${task.callbackUrl} port/1.0');
+  frame.setHead('sub-command', 'begin');
+  frame.setHead('restCommand', task.restCommand);
+  frame.setHead('origin', task.url);
+  frame.setHead('status', status);
+  frame.setHead('message', message);
+  args.messagePort.send(frame.toMap());
+
   var response;
   try {
     response = await dio.post(
@@ -616,10 +648,10 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       onReceiveProgress: (i, j) {
         var frame = Frame('portPost ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'receiveProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
-        frame.setParameter('restCommand', task.restCommand);
-        frame.setParameter('origin', task.url);
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
+        frame.setHead('restCommand', task.restCommand);
+        frame.setHead('origin', task.url);
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
@@ -627,10 +659,10 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       onSendProgress: (i, j) {
         var frame = Frame('portPost ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'sendProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
-        frame.setParameter('restCommand', task.restCommand);
-        frame.setParameter('origin', task.url);
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
+        frame.setHead('restCommand', task.restCommand);
+        frame.setHead('origin', task.url);
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
@@ -638,14 +670,14 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       data: task.data,
     );
   } catch (e) {
-    status = '${response.statusCode}';
-    message = '${response.statusMessage}';
+    status = '500';
+    message = '$e';
     var frame = Frame('portPost ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('restCommand', task.restCommand);
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
+    frame.setHead('origin', task.url);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -654,10 +686,10 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     message = '${response.statusMessage}';
     var frame = Frame('portPost ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('restCommand', task.restCommand);
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
+    frame.setHead('origin', task.url);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -670,8 +702,8 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('restCommand', task.restCommand);
-    frame.setParameter('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -683,15 +715,15 @@ void _addPortPOSTTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     frame.setHead('sub-command', 'done');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('restCommand', task.restCommand);
-    frame.setParameter('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
     args.messagePort.send(frame.toMap());
     return null;
   }
-  var frame = Frame('portPost ${task.callbackUrl} port/1.0');
+  frame = Frame('portPost ${task.callbackUrl} port/1.0');
   frame.setHead('sub-command', 'done');
-  frame.setParameter('restCommand', task.restCommand);
-  frame.setParameter('origin', task.url);
+  frame.setHead('restCommand', task.restCommand);
+  frame.setHead('origin', task.url);
   frame.addContent(dataText);
   frame.setHead('status', status);
   frame.setHead('message', message);
@@ -709,6 +741,13 @@ void _addPortGETTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   }
   task.headers[task.tokenName] = task.accessToken;
   task.headers['Rest-Command'] = task.restCommand;
+  var frame = Frame('portGet ${task.callbackUrl} port/1.0');
+  frame.setHead('sub-command', 'begin');
+  frame.setHead('status', status);
+  frame.setHead('message', message);
+  frame.setHead('origin', task.url);
+  frame.setHead('restCommand', task.restCommand);
+  args.messagePort.send(frame.toMap());
   var response;
   try {
     response = await dio.get(
@@ -720,24 +759,24 @@ void _addPortGETTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
       onReceiveProgress: (i, j) {
         var frame = Frame('portGet ${task.callbackUrl} port/1.0');
         frame.setHead('sub-command', 'receiveProgress');
-        frame.setParameter('count', '$i');
-        frame.setParameter('total', '$j');
-        frame.setParameter('restCommand', task.restCommand);
-        frame.setParameter('origin', task.url);
+        frame.setHead('count', '$i');
+        frame.setHead('total', '$j');
+        frame.setHead('restCommand', task.restCommand);
+        frame.setHead('origin', task.url);
         frame.setHead('status', status);
         frame.setHead('message', message);
         args.messagePort.send(frame.toMap());
       },
     );
   } catch (e) {
-    status = '${response.statusCode}';
-    message = '${response.statusMessage}';
+    status = '500';
+    message = '$e';
     var frame = Frame('portGet ${task.callbackUrl} port/1.0');
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -748,8 +787,8 @@ void _addPortGETTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -762,8 +801,8 @@ void _addPortGETTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     frame.setHead('sub-command', 'error');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
     args.messagePort.send(frame.toMap());
     return;
   }
@@ -773,17 +812,17 @@ void _addPortGETTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
     frame.setHead('sub-command', 'done');
     frame.setHead('status', status);
     frame.setHead('message', message);
-    frame.setParameter('origin', task.url);
-    frame.setParameter('restCommand', task.restCommand);
+    frame.setHead('origin', task.url);
+    frame.setHead('restCommand', task.restCommand);
     args.messagePort.send(frame.toMap());
     return null;
   }
-  var frame = Frame('portGet ${task.callbackUrl} port/1.0');
+  frame = Frame('portGet ${task.callbackUrl} port/1.0');
   frame.setHead('sub-command', 'done');
   frame.setHead('status', status);
   frame.setHead('message', message);
-  frame.setParameter('origin', task.url);
-  frame.setParameter('restCommand', task.restCommand);
+  frame.setHead('origin', task.url);
+  frame.setHead('restCommand', task.restCommand);
   frame.addContent(dataText);
   args.messagePort.send(frame.toMap());
 }

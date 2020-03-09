@@ -24,7 +24,7 @@ import '_utimate.dart';
 
 typedef BuildRoute = ModalRoute Function(
     RouteSettings settings, Page page, IServiceProvider site);
-typedef AppDecorator = Widget Function(BuildContext, Widget);
+typedef AppDecorator = Widget Function(BuildContext, Widget,IServiceProvider site);
 typedef OnGenerateRoute = Route<dynamic> Function(RouteSettings);
 typedef OnGenerateTitle = String Function(BuildContext);
 typedef OnMessageCount = void Function(int count);
@@ -32,7 +32,7 @@ typedef OnMessageCount = void Function(int count);
 mixin IAppSurface {
   IScene get current => null;
 
-  AppDecorator get appDecorator => null;
+  TransitionBuilder get appDecorator => null;
 
   Map<String, Widget Function(BuildContext)> get routes => null;
 
@@ -104,7 +104,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   String _currentScene;
   Map<String, IScene> _scenes = {};
   ShareServiceContainer _shareServiceContainer;
-  AppDecorator _appDecorator;
+  TransitionBuilder _appDecorator;
   ISharedPreferences _sharedPreferences;
   ExternalServiceContainer _extenalServiceProvider;
   Map<String, dynamic> _props = {};
@@ -112,7 +112,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   IScene get current => _scenes[_currentScene];
 
   @override
-  AppDecorator get appDecorator {
+  TransitionBuilder get appDecorator {
     return _appDecorator;
   }
 
@@ -202,7 +202,6 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   Future<void> load([AppCreator creator]) async {
     _title = creator.title;
     _entrypoint = creator.entrypoint;
-    _appDecorator = creator.appDecorator;
     if (creator.props != null) {
       _props.addAll(creator.props);
     }
@@ -216,6 +215,11 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     _sharedPreferences = new DefaultSharedPreferences();
     await _sharedPreferences.init(_shareServiceContainer);
 
+    if(creator.appDecorator!=null) {
+      _appDecorator = (ctx,widget){
+        return creator.appDecorator(ctx,widget,_shareServiceContainer);
+      };
+    }
     var principal = UserPrincipal(manager: creator.localPrincipal);
 
     _fillDevice(creator.appKeyPair);
@@ -240,6 +244,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     await _buildExternalServices(creator.buildServices);
     await _buildSystem(creator.buildSystem);
     await _buildPortals(creator.buildPortals);
+
   }
 
   Future<void> _buildExternalServices(BuildServices buildServices) async {

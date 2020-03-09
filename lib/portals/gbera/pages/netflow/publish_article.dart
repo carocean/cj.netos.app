@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -35,6 +38,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     _type = widget.context.parameters['type'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
+
     super.initState();
   }
 
@@ -72,6 +76,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         widget.context.principal.person,
       ),
     );
+    var _medias = [];
     for (MediaFile file in images) {
       var type = 'image';
       switch (file.type) {
@@ -96,13 +101,40 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
           widget.context.principal.person,
         ),
       );
+      widget.context.ports.portTask.addUploadTask('/app', [file.src.path],
+          callbackUrl:
+              '/network/channel/doc?type=$type&localFile=${file.src.path}&docid=$msgid&channel=${_channel.id}&creator=${user.person}');
     }
+
+    var doc = {
+      'id': msgid,
+      'channel': _channel.id,
+      'creator': user.person,
+      'content': content,
+      'Location': location,
+      'wy': 10.00,
+      'medias': _medias,
+    };
+    var portsUrl =
+        widget.context.site.getService('@.prop.ports.network.channel');
+    widget.context.ports.portTask.addPortPOSTTask(
+      portsUrl,
+      'publishDocument',
+      callbackUrl: '/network/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
+      data: {'document': jsonEncode(doc)},
+    );
 
     var refreshMessages = widget.context.parameters['refreshMessages'];
     if (refreshMessages != null) {
       await refreshMessages();
     }
+
     widget.context.backward();
+  }
+
+  Future<String> _uploadMedia(String src) async {
+    var map = await widget.context.ports.upload('/app', [src]);
+    return map[src];
   }
 
   @override

@@ -1,14 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
-import 'package:netos_app/system/local/entities.dart';
-import 'package:netos_app/portals/gbera/store/pics/downloads.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
 class TestUpstreamPersonService extends StatefulWidget {
@@ -54,7 +52,7 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                     if (await personService.existsPerson(obj['official'])) {
                       continue;
                     }
-                    var avatar = await Downloads.downloadPersonAvatar(dio: dio,avatarUrl: obj['avatar']);
+                    var avatar = await downloadPersonAvatar(dio: dio,avatarUrl: obj['avatar']);
                     Person person = Person(
                       Uuid().v1(),
                       obj['official'],
@@ -84,7 +82,7 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                       }
                       String leading=och['leading'];
                       if(!StringUtil.isEmpty(leading)){
-                        leading=await Downloads.downloadChannelAvatar(dio: dio,avatarUrl: leading);
+                        leading=await downloadChannelAvatar(dio: dio,avatarUrl: leading);
                       }
                       var channelid=MD5Util.generateMd5('${Uuid().v1()}');
                       Channel ch = Channel(

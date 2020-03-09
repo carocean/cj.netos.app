@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
-import 'package:netos_app/portals/gbera/store/pics/downloads.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/remote/persons.dart';
 import 'package:uuid/uuid.dart';
 import 'dao/daos.dart';
@@ -70,7 +70,7 @@ class PersonService implements IPersonService, IServiceBuilder {
     }
     var dataText = content['dataText'];
     var obj = jsonDecode(dataText);
-    var lavatar = await Downloads.downloadPersonAvatar(
+    var lavatar = await downloadPersonAvatar(
         dio: _dio, avatarUrl: '${obj['avatar']}?accessToken=${principal.accessToken}');
     var pos=official.lastIndexOf('.');
     String tenantid=official.substring(pos+1);
