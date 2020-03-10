@@ -76,8 +76,6 @@ mixin IInsiteMessageService {
 
   Future<List<InsiteMessage>> getAllMessage();
 
-  Future<List<InsiteMessage>> pageMessageByChannelVisualable(
-      int limit, int offset, String loopType);
 }
 
 mixin IChannelMessageService {

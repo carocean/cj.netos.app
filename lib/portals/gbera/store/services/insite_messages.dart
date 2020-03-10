@@ -28,13 +28,6 @@ class InsiteMessageService implements IInsiteMessageService ,IServiceBuilder{
   }
 
   @override
-  Future<List<InsiteMessage>> pageMessageByChannelVisualable(
-      int limit, int offset, String loopType) async {
-    return await insiteMessageDAO.pageMessageByChannelLoopType(loopType,principal?.person,
-        limit, offset);
-  }
-
-  @override
   Future<List<InsiteMessage>> pageMessage(int pageSize, int currPage) async {
     return await insiteMessageDAO.pageMessage(principal?.person,pageSize, currPage);
   }

@@ -1,5 +1,6 @@
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -17,34 +18,6 @@ class InsiteMessagePage extends StatefulWidget {
 
 class _InsiteMessagePageState extends State<InsiteMessagePage>
     with SingleTickerProviderStateMixin {
-  TabController _controller;
-  List<MessageTabView> _allMessageTabViews;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _allMessageTabViews = <MessageTabView>[
-      MessageTabView(
-        text: '开环',
-        loopType: 'openLoop',
-      ),
-      MessageTabView(
-        text: '闭环',
-        loopType: 'closeLoop',
-      ),
-    ];
-    _controller =
-        TabController(vsync: this, length: _allMessageTabViews.length);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _allMessageTabViews.clear();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,38 +34,19 @@ class _InsiteMessagePageState extends State<InsiteMessagePage>
           ),
         ],
         elevation: 0.0,
-        bottom: TabBar(
-          controller: _controller,
-          isScrollable: true,
-          labelColor: Colors.black,
-          labelStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          tabs: _allMessageTabViews.map<Tab>((MessageTabView page) {
-            return Tab(
-              text: page.text,
-            );
-          }).toList(),
-        ),
       ),
-      body: TabBarView(
-        controller: _controller,
-        children: _allMessageTabViews.map<Widget>((MessageTabView tabView) {
-          return SafeArea(
-            top: false,
-            bottom: false,
-            child: Container(
-              padding: const EdgeInsets.only(
-                top: 10,
-              ),
-              child: _MessagesRegion(
-                context: widget.pageContext,
-                tabView: tabView,
-              ),
-            ),
-          );
-        }).toList(),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Container(
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: _MessagesRegion(
+            context: widget.pageContext,
+          ),
+        ),
       ),
     );
   }
@@ -111,52 +65,52 @@ class _MessagesRegion extends StatefulWidget {
 class _MessagesRegionState extends State<_MessagesRegion> {
   var limit = 20;
   var offset = 0;
+  var index = 0;
   var messageViews = <MessageView>[];
+  EasyRefreshController _controller;
+
   @override
-  void dispose() {
-    super.dispose();
-  }
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _onLoadMessages(),
-      builder: (ctx, snapshot) {
-        return SwipeableList(
-          onLoadMessages: _onLoadMessages,
-          messageViews: messageViews,
-        );
-      },
-    );
+  void initState() {
+    _controller = EasyRefreshController();
+    _onLoadMessages().then((v) {
+      setState(() {});
+    });
+    super.initState();
   }
 
-  Future<void> _onLoadMessages([String director = 'up']) async {
-    if(director=='down'){
-      return;
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    messageViews.clear();
+    super.dispose();
+  }
+
+  Future<void> _onLoadMessages() async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    var messages = await messageService.pageMessageByChannelVisualable(limit, offset,widget.tabView.loopType);
-    if (messages.length == 0) {
+    var messages = await messageService.pageMessage(limit, offset);
+    if (messages.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
       return;
     }
     offset += messages.length;
     for (var msg in messages) {
       var person = await personService.getPerson(msg.creator);
       var timeText = TimelineUtil.formatByDateTime(
-              DateTime.fromMillisecondsSinceEpoch(msg.ctime),
+              DateTime.fromMillisecondsSinceEpoch(msg.atime),
               locale: 'zh',
               dayFormat: DayFormat.Simple)
           .toString();
       var channel = await channelService.getChannel(msg.onChannel);
       var view = MessageView(
-        who: person.accountName,
+        who: person.nickName,
         channel: channel?.name,
         content: msg.digests,
-        money: ((msg.wy ?? 0) * 0.00012837277272).toStringAsFixed(2),
+        money: (msg.wy ?? 0).toStringAsFixed(2),
         time: timeText,
         picCount: 0,
         onTap: () {
@@ -175,33 +129,12 @@ class _MessagesRegionState extends State<_MessagesRegion> {
       messageViews.add(view);
     }
   }
-}
-
-class SwipeableList extends StatefulWidget {
-  Future<void> Function(String director) onLoadMessages;
-  List<MessageView> messageViews;
-
-  SwipeableList({this.onLoadMessages, this.messageViews});
-
-  @override
-  _SwipeableListState createState() => _SwipeableListState();
-}
-
-class _SwipeableListState extends State<SwipeableList> {
-  var index = 0;
 
   @override
   Widget build(BuildContext context) {
-    var messageViews = widget.messageViews;
-    return SwipeRefreshLayout(
-      onSwipeDown: () async {
-        await widget.onLoadMessages('down');
-        setState(() {});
-      },
-      onSwipeUp: () async {
-        await widget.onLoadMessages('up');
-        setState(() {});
-      },
+    return EasyRefresh(
+      controller: _controller,
+      onLoad: _onLoadMessages,
       child: ListView(
         children: <Widget>[
           Container(
@@ -233,7 +166,9 @@ class _SwipeableListState extends State<SwipeableList> {
                                 TextSpan(
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.black,
+                                    color: Colors.black87,
+                                    height: 1.35,
+                                    fontSize: 18,
                                   ),
                                   text: '${v.content}',
                                 ),
@@ -262,17 +197,17 @@ class _SwipeableListState extends State<SwipeableList> {
                                     : TextSpan(text: ''),
                                 !StringUtil.isEmpty(v.money)
                                     ? TextSpan(
-                                  text: '  洇金:¥',
-                                  children: [
-                                    TextSpan(
-                                      text: '${v.money}',
-                                      style: TextStyle(
-                                        color: Colors.blueGrey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                )
+                                        text: '  洇金:¥',
+                                        children: [
+                                          TextSpan(
+                                            text: '${v.money}',
+                                            style: TextStyle(
+                                              color: Colors.blueGrey,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     : TextSpan(text: ''),
                                 TextSpan(
                                   text: '  来自:',
@@ -286,17 +221,17 @@ class _SwipeableListState extends State<SwipeableList> {
                                 ),
                                 !StringUtil.isEmpty(v.channel)
                                     ? TextSpan(
-                                  text: '',
-                                  children: [
-                                    TextSpan(
-                                      text: '${v.channel}',
-                                      style: TextStyle(
-                                        color: Colors.blueGrey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                )
+                                        text: '',
+                                        children: [
+                                          TextSpan(
+                                            text: '  ${v.channel}',
+                                            style: TextStyle(
+                                              color: Colors.blueGrey,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     : TextSpan(text: ''),
                                 v.picCount > 0
                                     ? TextSpan(text: '  图片${v.picCount}个')

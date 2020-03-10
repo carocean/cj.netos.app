@@ -848,17 +848,8 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   Future<List<InsiteMessage>> pageMessage(
       String sandbox, int pageSize, int currPage) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM InsiteMessage where sandbox=? ORDER BY atime DESC LIMIT ? OFFSET ?',
+        'SELECT * FROM InsiteMessage where sandbox=? ORDER BY atime DESC , ctime ASC LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, pageSize, currPage],
-        mapper: _insiteMessageMapper);
-  }
-
-  @override
-  Future<List<InsiteMessage>> pageMessageByChannelLoopType(
-      String loopType, String sandbox, int limit, int offset) async {
-    return _queryAdapter.queryList(
-        'SELECT msg.* FROM InsiteMessage msg,Channel ch WHERE msg.onChannel=ch.code AND ch.loopType=? and msg.sandbox=? LIMIT ? OFFSET ?',
-        arguments: <dynamic>[loopType, sandbox, limit, offset],
         mapper: _insiteMessageMapper);
   }
 

@@ -42,6 +42,7 @@ void main() => platformRun(
                 'http://47.105.165.186:7110/upload/uploader.service',
             '@.prop.fs.reader': 'http://47.105.165.186:7100',
             '@.prop.ports.network.channel': 'http://47.105.165.186/document/network/channel.service',
+            '@.prop.ports.flow.channel':'http://47.105.165.186/flow/channel.service',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

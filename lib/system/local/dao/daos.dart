@@ -110,14 +110,9 @@ abstract class IInsiteMessageDAO {
   Future<void> removeMessage(String id, String sandbox);
 
   @Query(
-      'SELECT *  FROM InsiteMessage where sandbox=:sandbox ORDER BY atime DESC LIMIT :pageSize OFFSET :currPage')
+      'SELECT *  FROM InsiteMessage where sandbox=:sandbox ORDER BY atime DESC , ctime ASC LIMIT :pageSize OFFSET :currPage')
   Future<List<InsiteMessage>> pageMessage(
       String sandbox, int pageSize, int currPage);
-
-  @Query(
-      'SELECT msg.*  FROM InsiteMessage msg,Channel ch  WHERE msg.onChannel=ch.code AND ch.loopType=:loopType and msg.sandbox=:sandbox LIMIT :pageSize OFFSET :currPage')
-  Future<List<InsiteMessage>> pageMessageByChannelLoopType(
-      String loopType, String sandbox, int limit, int offset);
 
   @Query('SELECT * FROM InsiteMessage WHERE id = :id and sandbox=:sandbox')
   Future<InsiteMessage> getMessage(String id, String sandbox);

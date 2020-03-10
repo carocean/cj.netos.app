@@ -60,7 +60,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         widget.context.site.getService('/channel/messages');
     IChannelMediaService channelMediaService =
         widget.context.site.getService('/channel/messages/medias');
-    var msgid = '${Uuid().v1()}';
+    var msgid = MD5Util.generateMd5('${Uuid().v1()}');
     await channelMessageService.addMessage(
       ChannelMessage(
         msgid,
@@ -120,8 +120,22 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     widget.context.ports.portTask.addPortPOSTTask(
       portsUrl,
       'publishDocument',
-      callbackUrl: '/network/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
+      callbackUrl:
+          '/network/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
       data: {'document': jsonEncode(doc)},
+    );
+    var flowChannelPortsUrl =
+        widget.context.site.getService('@.prop.ports.flow.channel');
+    widget.context.ports.portTask.addPortPOSTTask(
+      flowChannelPortsUrl,
+      'pushChannelDocument',
+      callbackUrl:
+          '/flow/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
+      parameters: {
+        'channel': _channel.id,
+        'docid': msgid,
+        'interval': 100,
+      },
     );
 
     var refreshMessages = widget.context.parameters['refreshMessages'];
@@ -130,11 +144,6 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     }
 
     widget.context.backward();
-  }
-
-  Future<String> _uploadMedia(String src) async {
-    var map = await widget.context.ports.upload('/app', [src]);
-    return map[src];
   }
 
   @override

@@ -123,7 +123,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       break;
                   }
                 },
-                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                itemBuilder: (context) =>
+                <PopupMenuEntry<String>>[
                   PopupMenuItem(
                     value: '/netflow/manager/create_channel',
                     child: Row(
@@ -214,7 +215,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                             right: 10,
                           ),
                           child: Icon(
-                            widget.context.findPage('/test/services')?.icon,
+                            widget.context
+                                .findPage('/test/services')
+                                ?.icon,
                             color: Colors.grey[500],
                             size: 15,
                           ),
@@ -422,7 +425,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   Future<List<_ChannelItem>> _loadChannels() async {
     IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
+    widget.context.site.getService('/netflow/channels');
     List<Channel> list = await channelService.getAllChannel();
     if (list.isEmpty) {
       await channelService.initSystemChannel(widget.context.principal);
@@ -483,6 +486,7 @@ class _InsiteMessagesRegion extends StatefulWidget {
 
 class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   var index = 0;
+  int _msgListMaxLength = 4;
   Queue<InsiteMessage> _messages = Queue();
   StreamSubscription _streamSubscription;
 
@@ -491,16 +495,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (!widget.context.isListening(matchPath: '/netflow/channel')) {
       widget.context.listenNetwork((frame) {
         _arrivedMessage(frame).then((message) {
-          _messages.removeLast();
+          if (_messages.length >= _msgListMaxLength) {
+            _messages.removeLast();
+          }
           _messages.addFirst(message);
           setState(() {});
         });
       }, matchPath: '/netflow/channel');
     }
     _streamSubscription = Stream.periodic(
-            Duration(
-              seconds: 5,
-            ),
+        Duration(
+          seconds: 5,
+        ),
             (v) {})
         .listen((v) {
       setState(() {});
@@ -524,7 +530,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   Future<InsiteMessage> _arrivedMessage(Frame frame) async {
     IInsiteMessageService messageService =
-        widget.context.site.getService('/insite/messages');
+    widget.context.site.getService('/insite/messages');
     var docMap = jsonDecode(frame.contentText);
 //    print(docMap);
     var message = InsiteMessage(
@@ -536,7 +542,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         docMap['channel'],
         docMap['creator'],
         docMap['ctime'],
-        DateTime.now().millisecondsSinceEpoch,
+        DateTime
+            .now()
+            .millisecondsSinceEpoch,
         null,
         null,
         'arrived',
@@ -550,8 +558,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   Future<List<InsiteMessage>> _loadMessages() async {
     IInsiteMessageService messageService =
-        widget.context.site.getService('/insite/messages');
-    return await messageService.pageMessage(4, 0);
+    widget.context.site.getService('/insite/messages');
+    return await messageService.pageMessage(_msgListMaxLength, 0);
   }
 
   @override
@@ -602,14 +610,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
                 if (index >= _messages.length) {
                   index = 0;
                 }
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: null,
-                  child: _InsiteMessageItem(
-                    context: widget.context,
-                    message: message,
-                    notBottom: notBottom,
-                  ),
+                return _InsiteMessageItem(
+                  context: widget.context,
+                  message: message,
+                  notBottom: notBottom,
                 );
               }).toList(),
             ),
@@ -637,7 +641,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
 
   @override
   void initState() {
-    () async {
+        () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
       setState(() {});
@@ -656,7 +660,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
   void didUpdateWidget(_InsiteMessageItem oldWidget) {
     oldWidget.message = widget.message;
     oldWidget.notBottom = widget.notBottom;
-    () async {
+        () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
       setState(() {});
@@ -666,119 +670,135 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
 
   Future<Person> _loadPerson() async {
     IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
+    widget.context.site.getService('/gbera/persons');
     return await personService.getPerson(widget.message.upstreamPerson);
   }
 
   Future<Channel> _loadChannel() async {
     IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
+    widget.context.site.getService('/netflow/channels');
     return await channelService.getChannel(widget.message.onChannel);
   }
 
   @override
   Widget build(BuildContext context) {
     var atime = TimelineUtil.formatByDateTime(
-            DateTime.fromMillisecondsSinceEpoch(widget.message.atime),
-            locale: 'zh',
-            dayFormat: DayFormat.Simple)
+        DateTime.fromMillisecondsSinceEpoch(widget.message.atime),
+        locale: 'zh',
+        dayFormat: DayFormat.Simple)
         .toString();
-    return Column(
-      children: <Widget>[
-        Container(
-          alignment: Alignment.centerLeft,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[900],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return widget.context
+                  .part('/site/insite/approvals', context, arguments: {
+                'message': widget.message,
+                'channel': _channel,
+                'person': _person,
+              });
+            }).then((result) {
+          print('-----$result');
+        });
+      },
+      child: Column(
+        children: <Widget>[
+          Container(
+            alignment: Alignment.centerLeft,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[900],
+                    ),
+                    text: '${widget.message.digests ?? ''}',
                   ),
-                  text: '${widget.message.digests ?? ''}',
-                ),
-              ],
+                ],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            padding: EdgeInsets.only(
+              left: 10,
+              right: 10,
+            ),
           ),
-          padding: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-        ),
-        Container(
-          alignment: Alignment.centerRight,
-          padding: EdgeInsets.only(
-            right: 10,
-            left: 10,
-            top: 6,
-          ),
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: '${atime ?? ''}'),
-                TextSpan(
-                  text: '  洇金:¥',
-                  children: [
-                    TextSpan(
-                      text: ((widget.message.wy ?? 0) * 0.00012837277272)
-                          .toStringAsFixed(2),
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontWeight: FontWeight.w500,
+          Container(
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(
+              right: 10,
+              left: 10,
+              top: 6,
+            ),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: '${atime ?? ''}'),
+                  TextSpan(
+                    text: '  洇金:¥',
+                    children: [
+                      TextSpan(
+                        text: (widget.message.wy ?? 0).toStringAsFixed(2),
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                TextSpan(
-                  text: '  来自:',
-                ),
-                TextSpan(
-                  text: '${_person != null ? _person.nickName : ''}',
-                  style: TextStyle(
-                    color: Colors.blueGrey,
-                    fontWeight: FontWeight.w600,
+                    ],
                   ),
-                ),
-                TextSpan(
-                  text: '',
-                  children: [
-                    TextSpan(
-                      text: '${_channel == null ? '' : _channel.name}',
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  TextSpan(
+                    text: '  来自:',
+                  ),
+                  TextSpan(
+                    text: '${_person != null ? _person.nickName : ''}',
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
+                  ),
+                  TextSpan(
+                    text: '',
+                    children: [
+                      TextSpan(
+                        text: '  ${_channel == null ? '' : _channel.name}',
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
 //                v.picCount > 0
 //                    ? TextSpan(text: '  图片${v.picCount}个')
 //                    : TextSpan(text: ''),
-              ],
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 10,
+                ],
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 10,
+                ),
               ),
             ),
           ),
-        ),
-        widget.notBottom
-            ? Container(
-                child: Divider(
-                  height: 1,
-                ),
-                padding: EdgeInsets.only(
-                  top: 5,
-                  bottom: 5,
-                ),
-              )
-            : Container(
-                width: 0,
-                height: 0,
-              ),
-      ],
+          widget.notBottom
+              ? Container(
+            child: Divider(
+              height: 1,
+            ),
+            padding: EdgeInsets.only(
+              top: 5,
+              bottom: 5,
+            ),
+          )
+              : Container(
+            width: 0,
+            height: 0,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -827,7 +847,7 @@ class __ChannelItemState extends State<_ChannelItem> {
       setState(() {});
     }
     IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
+    widget.context.site.getService('/netflow/channels');
     var map = await widget.context.ports.upload(
         '/app',
         <String>[
@@ -835,9 +855,9 @@ class __ChannelItemState extends State<_ChannelItem> {
         ],
         accessToken: widget.context.principal.accessToken,
         onSendProgress: (i, j) {
-      _percentage = ((i * 1.0 / j));
-      setState(() {});
-    });
+          _percentage = ((i * 1.0 / j));
+          setState(() {});
+        });
     var remotePath = map[widget.leading];
     await channelService.updateLeading(
         widget.leading, remotePath, widget.channelid);
@@ -947,17 +967,17 @@ class __ChannelItemState extends State<_ChannelItem> {
                         ),
                         _percentage > 0 && _percentage < 1.0
                             ? Positioned(
-                                left: 0,
-                                bottom: 0,
-                                right: 0,
-                                child: LinearProgressIndicator(
-                                  value: _percentage,
-                                ),
-                              )
+                          left: 0,
+                          bottom: 0,
+                          right: 0,
+                          child: LinearProgressIndicator(
+                            value: _percentage,
+                          ),
+                        )
                             : Container(
-                                width: 0,
-                                height: 0,
-                              ),
+                          width: 0,
+                          height: 0,
+                        ),
                       ],
                     ),
                   ),
@@ -987,53 +1007,54 @@ class __ChannelItemState extends State<_ChannelItem> {
                         ),
                         !widget.showNewest
                             ? Container(
-                                width: 0,
-                                height: 0,
-                              )
+                          width: 0,
+                          height: 0,
+                        )
                             : Padding(
-                                padding: EdgeInsets.only(
-                                  top: 5,
-                                ),
-                                child: Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  alignment: WrapAlignment.start,
-                                  spacing: 5,
-                                  runSpacing: 3,
-                                  children: <Widget>[
-                                    Text.rich(
-                                      TextSpan(
-                                        text:
-                                            '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                        children: [
-                                          TextSpan(
-                                            text: ' ',
-                                          ),
-                                          TextSpan(
-                                            text: '${widget.subtitle}',
-                                            style: TextStyle(
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                          padding: EdgeInsets.only(
+                            top: 5,
+                          ),
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            alignment: WrapAlignment.start,
+                            spacing: 5,
+                            runSpacing: 3,
+                            children: <Widget>[
+                              Text.rich(
+                                TextSpan(
+                                  text:
+                                  '[${widget.unreadMsgCount != 0 ? widget
+                                      .unreadMsgCount : ''}条]',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: ' ',
                                     ),
-                                    Text(
-                                      '${widget.time}',
+                                    TextSpan(
+                                      text: '${widget.subtitle}',
                                       style: TextStyle(
-                                        color: Colors.grey[500],
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 11,
+                                        color: Colors.black54,
                                       ),
                                     ),
                                   ],
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              Text(
+                                '${widget.time}',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1082,7 +1103,7 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   _deleteChannel(String channelid) async {
     IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
+    widget.context.site.getService('/netflow/channels');
     await channelService.remove(channelid);
   }
 }
