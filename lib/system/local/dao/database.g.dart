@@ -122,7 +122,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -793,6 +793,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
             'InsiteMessage',
             (InsiteMessage item) => <String, dynamic>{
                   'id': item.id,
+                  'docid': item.docid,
                   'upstreamPerson': item.upstreamPerson,
                   'sourceSite': item.sourceSite,
                   'sourceApp': item.sourceApp,
@@ -818,6 +819,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   static final _insiteMessageMapper = (Map<String, dynamic> row) =>
       InsiteMessage(
           row['id'] as String,
+          row['docid'] as String,
           row['upstreamPerson'] as String,
           row['sourceSite'] as String,
           row['sourceApp'] as String,
@@ -846,7 +848,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   Future<List<InsiteMessage>> pageMessage(
       String sandbox, int pageSize, int currPage) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM InsiteMessage where sandbox=? LIMIT ? OFFSET ?',
+        'SELECT * FROM InsiteMessage where sandbox=? ORDER BY atime DESC LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, pageSize, currPage],
         mapper: _insiteMessageMapper);
   }

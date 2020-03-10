@@ -110,7 +110,7 @@ abstract class IInsiteMessageDAO {
   Future<void> removeMessage(String id, String sandbox);
 
   @Query(
-      'SELECT *  FROM InsiteMessage where sandbox=:sandbox LIMIT :pageSize OFFSET :currPage')
+      'SELECT *  FROM InsiteMessage where sandbox=:sandbox ORDER BY atime DESC LIMIT :pageSize OFFSET :currPage')
   Future<List<InsiteMessage>> pageMessage(
       String sandbox, int pageSize, int currPage);
 

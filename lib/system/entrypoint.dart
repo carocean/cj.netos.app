@@ -93,6 +93,13 @@ class _EntryPointState extends State<EntryPoint> {
         widget.context.forward("/scaffold/withbottombar",
             clearHistoryByPagePath: '/',scene: 'gbera',);
       });
+//      Future.delayed(
+//          Duration(
+//            milliseconds: 300,
+//          ), () {
+//        widget.context.forward("/scaffold/withbottombar",
+//            clearHistoryByPagePath: '/',scene: 'gbera',);
+//      });
     });
   }
 }

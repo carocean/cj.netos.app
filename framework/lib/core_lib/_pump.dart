@@ -60,6 +60,8 @@ mixin IPumpWell {
   void addTask(task);
 
   void addFrame(Frame frame) {}
+
+  bool isListening(UserPrincipal principal, String path) {}
 }
 
 class DefaultPumpWell implements IPumpWell {
@@ -114,6 +116,11 @@ class DefaultPumpWell implements IPumpWell {
   }
 
   @override
+  bool isListening(UserPrincipal principal, String path) {
+    return _listenItems.containsKey('${principal.person}:/$path');
+  }
+
+  @override
   void listen(UserPrincipal principal, String url, onmessage) {
     if (onmessage == null) {
       return;
@@ -122,8 +129,8 @@ class DefaultPumpWell implements IPumpWell {
 
     var path = getPath(url);
     _listenItems['${principal.person}:/$path'] = onmessage;
-    _outputListenItemChange.send(_ListenItem(
-        person: principal.person, path: path, action: 'listen'));
+    _outputListenItemChange.send(
+        _ListenItem(person: principal.person, path: path, action: 'listen'));
     //有侦听则通知拉取一次
     _outputTask.send({});
   }
@@ -131,8 +138,8 @@ class DefaultPumpWell implements IPumpWell {
   @override
   void unlisten(UserPrincipal principal, String url) {
     var path = getPath(url);
-    _outputListenItemChange.send(_ListenItem(
-        person: principal.person, path: path, action: 'unlisten'));
+    _outputListenItemChange.send(
+        _ListenItem(person: principal.person, path: path, action: 'unlisten'));
     String itemKey = '${principal.person}:/$path';
     _listenItems.remove(itemKey);
   }

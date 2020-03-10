@@ -37,7 +37,7 @@ class DefaultPeerManager implements IPeerManager {
     return queuePath;
   }
 
-  Future<List<_NameServer>> _getNameservers(
+  Future<List<dynamic>> _getNameservers(
       ShareServiceContainer site, String accessToken) async {
     Dio dio = site.getService('@.http');
     var path = site.getService('@.prop.ports.nameserver');
@@ -60,16 +60,7 @@ class DefaultPeerManager implements IPeerManager {
       throw new FlutterError('${map['status']} ${map['message']}');
     }
     var json = map['dataText'];
-    List items = jsonDecode(json);
-    List<_NameServer> names = [];
-    items.forEach((v) {
-      _NameServer name = new _NameServer(
-        nodeName: v['nodeName'],
-        openports: v['openports'],
-      );
-      names.add(name);
-    });
-    return names;
+    return jsonDecode(json);
   }
 
   @override
@@ -77,7 +68,7 @@ class DefaultPeerManager implements IPeerManager {
     UserPrincipal principal = site.getService('@.principal');
     String accessToken = principal.accessToken;
 
-    List<_NameServer> nameservers = await _getNameservers(site, accessToken);
+    List<dynamic> nameservers = await _getNameservers(site, accessToken);
     if (nameservers.isEmpty) {
       throw new FlutterError('未发现网络节点服务!');
     }
@@ -118,7 +109,7 @@ class DefaultPeerManager implements IPeerManager {
     networkQueuePath,
     systemQueuePath,
     String accessToken,
-    _NameServer nameServer,
+    String nameServer,
     IPump pump,
     ILogicNetworkContainer logicNetworkContainer,
     AppCreator appCreator,
@@ -127,7 +118,7 @@ class DefaultPeerManager implements IPeerManager {
         appCreator.peerOnmessageCount);
 
     IPeer peer = await Peer.connect(
-      nameServer.openports,
+      nameServer,
       pingInterval: Duration(seconds: 5),
       reconnectDelayed: Duration(seconds: 15),
       reconnectTimes: 10,
@@ -167,11 +158,4 @@ class DefaultPeerManager implements IPeerManager {
     logicNetworkContainer.peer = peer;
     logicNetworkContainer.addNetwork(network);
   }
-}
-
-class _NameServer {
-  String nodeName;
-  String openports;
-
-  _NameServer({this.nodeName, this.openports});
 }

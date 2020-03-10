@@ -250,6 +250,16 @@ class PageContext {
     return !name.startsWith(url);
   }
 
+  bool isListening({String matchPath}){
+    String path;
+    if (!StringUtil.isEmpty(matchPath)) {
+      path = matchPath;
+    } else {
+      path = getPath(page.url);
+    }
+    IPump pump = site.getService('@.pump');
+    return pump.networkPumpWell.isListening(principal, path);
+  }
 
   void listenNetwork(Onmessage onmessage, {String matchPath}) {
     String path;

@@ -49,6 +49,7 @@ class _TestInsiteMessagesState extends State<TestInsiteMessages> {
                     }
                     InsiteMessage message = InsiteMessage(
                       obj['id'],
+                      obj['docid'],
                       obj['upstreamPerson'],
                       obj['sourceSite'],
                       obj['sourceApp'],

@@ -77,6 +77,7 @@ class Channel {
 class InsiteMessage {
   @primaryKey
   final String id;
+  final String docid;
   final String upstreamPerson;
   final String sourceSite;
   final String sourceApp;
@@ -94,6 +95,7 @@ class InsiteMessage {
 
   InsiteMessage(
     this.id,
+    this.docid,
     this.upstreamPerson,
     this.sourceSite,
     this.sourceApp,

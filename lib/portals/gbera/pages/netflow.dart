@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
@@ -30,9 +33,8 @@ class Netflow extends StatefulWidget {
 }
 
 class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
-  var _backgroud_transparent = true;
   bool use_wallpapper = false;
-  Future<List<MessageView>> _future_getMessages;
+
   Future<List<_ChannelItem>> _future_loadChannels;
 
   @override
@@ -42,14 +44,13 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
-    _future_getMessages = _getMessages();
     _future_loadChannels = _loadChannels();
+
     super.initState();
   }
 
   @override
   void dispose() {
-    _future_getMessages = null;
     _future_loadChannels = null;
     super.dispose();
   }
@@ -57,7 +58,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     use_wallpapper = widget.context.parameters['use_wallpapper'];
 
     return CustomScrollView(
@@ -359,57 +359,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
           ),
         ),
         SliverToBoxAdapter(
-          child: Container(
-            child: FutureBuilder<List<MessageView>>(
-              future: _future_getMessages,
-              builder: (ctx, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-//                    value: 0.3,
-                        backgroundColor: Colors.grey[300],
-                        valueColor:
-                            new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
-                      ),
-                    ),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      snapshot.error?.toString(),
-                    ),
-                  );
-                }
-                var msgviews = snapshot.data;
-
-                return msgviews.length > 0
-                    ? _MessagesRegion(context: widget.context, views: msgviews)
-                    : Container(
-                        height: 40,
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(
-                          left: 10,
-                          right: 10,
-                          top: 5,
-                          bottom: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        child: Text(
-                          '无消息',
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-              },
-            ),
+          child: _InsiteMessagesRegion(
+            context: widget.context,
           ),
         ),
         SliverToBoxAdapter(
@@ -519,67 +470,114 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     }
     return items;
   }
-
-  Future<List<MessageView>> _getMessages() async {
-    IInsiteMessageService messageService =
-        widget.context.site.getService('/insite/messages');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    var messages = await messageService.pageMessage(4, 0);
-    var msgviews = <MessageView>[];
-    for (var msg in messages) {
-      var person = await personService.getPerson(msg.creator);
-      var timeText = TimelineUtil.formatByDateTime(
-              DateTime.fromMillisecondsSinceEpoch(msg.ctime),
-              locale: 'zh',
-              dayFormat: DayFormat.Simple)
-          .toString();
-      var channel = await channelService.getChannel(msg.onChannel);
-      var act = MessageView(
-        who: person.accountName,
-        channel: channel?.name,
-        content: msg.digests,
-        money: ((msg.wy ?? 0) * 0.00012837277272).toStringAsFixed(2),
-        time: timeText,
-        picCount: 0,
-        onTap: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                return widget.context
-                    .part('/site/insite/approvals', context, arguments: {
-                  'message': msg,
-                  'channel': channel,
-                  'person': person,
-                });
-              }).then((result) {
-            print('-----$result');
-          });
-        },
-      );
-      msgviews.add(act);
-    }
-    return msgviews;
-  }
 }
 
-class _MessagesRegion extends StatefulWidget {
-  List<MessageView> views = [];
+class _InsiteMessagesRegion extends StatefulWidget {
   PageContext context;
 
-  _MessagesRegion({this.views, this.context});
+  _InsiteMessagesRegion({this.context});
 
   @override
-  _MessagesRegionState createState() => _MessagesRegionState();
+  _InsiteMessagesRegionState createState() => _InsiteMessagesRegionState();
 }
 
-class _MessagesRegionState extends State<_MessagesRegion> {
+class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   var index = 0;
+  Queue<InsiteMessage> _messages = Queue();
+  StreamSubscription _streamSubscription;
+
+  @override
+  void initState() {
+    if (!widget.context.isListening(matchPath: '/netflow/channel')) {
+      widget.context.listenNetwork((frame) {
+        _arrivedMessage(frame).then((message) {
+          _messages.removeLast();
+          _messages.addFirst(message);
+          setState(() {});
+        });
+      }, matchPath: '/netflow/channel');
+    }
+    _streamSubscription = Stream.periodic(
+            Duration(
+              seconds: 5,
+            ),
+            (v) {})
+        .listen((v) {
+      setState(() {});
+    });
+    _loadMessages().then((messages) {
+      for (var msg in messages) {
+        _messages.addFirst(msg);
+      }
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription.cancel();
+    widget.context.unlistenNetwork(matchPath: '/netflow/channel');
+    _messages.clear();
+    super.dispose();
+  }
+
+  Future<InsiteMessage> _arrivedMessage(Frame frame) async {
+    IInsiteMessageService messageService =
+        widget.context.site.getService('/insite/messages');
+    var docMap = jsonDecode(frame.contentText);
+//    print(docMap);
+    var message = InsiteMessage(
+        Uuid().v1(),
+        docMap['id'],
+        frame.head('sender'),
+        null,
+        null,
+        docMap['channel'],
+        docMap['creator'],
+        docMap['ctime'],
+        DateTime.now().millisecondsSinceEpoch,
+        null,
+        null,
+        'arrived',
+        docMap['content'],
+        docMap['wy'],
+        null,
+        widget.context.principal.person);
+    await messageService.addMessage(message);
+    return message;
+  }
+
+  Future<List<InsiteMessage>> _loadMessages() async {
+    IInsiteMessageService messageService =
+        widget.context.site.getService('/insite/messages');
+    return await messageService.pageMessage(4, 0);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_messages.isEmpty) {
+      return Container(
+        height: 40,
+        alignment: Alignment.center,
+        margin: EdgeInsets.only(
+          left: 10,
+          right: 10,
+          top: 5,
+          bottom: 5,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Text(
+          '无消息',
+          style: TextStyle(
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
     return Column(
       children: <Widget>[
         Container(
@@ -598,122 +596,188 @@ class _MessagesRegionState extends State<_MessagesRegion> {
               bottom: 10,
             ),
             child: Column(
-              children: widget.views.map((v) {
+              children: _messages.map((message) {
                 index++;
-                bool notBottom = index < widget.views.length;
-                if (index >= widget.views.length) {
+                bool notBottom = index < _messages.length;
+                if (index >= _messages.length) {
                   index = 0;
                 }
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: v.onTap,
-                  child: Column(
-                    children: <Widget>[
-                      Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[900],
-                                ),
-                                text: '${v.content}',
-                              ),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        padding: EdgeInsets.only(
-                          left: 10,
-                          right: 10,
-                        ),
-                      ),
-                      Container(
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.only(
-                          right: 10,
-                          left: 10,
-                          top: 6,
-                        ),
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              !StringUtil.isEmpty(v.time)
-                                  ? TextSpan(text: '${v.time}')
-                                  : TextSpan(text: ''),
-                              !StringUtil.isEmpty(v.money)
-                                  ? TextSpan(
-                                      text: '  洇金:¥',
-                                      children: [
-                                        TextSpan(
-                                          text: '${v.money}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : TextSpan(text: ''),
-                              TextSpan(
-                                text: '  来自:',
-                              ),
-                              TextSpan(
-                                text: '  ${v.who}',
-                                style: TextStyle(
-                                  color: Colors.blueGrey,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              !StringUtil.isEmpty(v.channel)
-                                  ? TextSpan(
-                                      text: '',
-                                      children: [
-                                        TextSpan(
-                                          text: '${v.channel}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : TextSpan(text: ''),
-                              v.picCount > 0
-                                  ? TextSpan(text: '  图片${v.picCount}个')
-                                  : TextSpan(text: ''),
-                            ],
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                      notBottom
-                          ? Container(
-                              child: Divider(
-                                height: 1,
-                              ),
-                              padding: EdgeInsets.only(
-                                top: 5,
-                                bottom: 5,
-                              ),
-                            )
-                          : Container(
-                              width: 0,
-                              height: 0,
-                            ),
-                    ],
+                  onTap: null,
+                  child: _InsiteMessageItem(
+                    context: widget.context,
+                    message: message,
+                    notBottom: notBottom,
                   ),
                 );
               }).toList(),
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _InsiteMessageItem extends StatefulWidget {
+  InsiteMessage message;
+  bool notBottom;
+  PageContext context;
+
+  _InsiteMessageItem({this.context, this.message, this.notBottom});
+
+  @override
+  __InsiteMessageItemState createState() => __InsiteMessageItemState();
+}
+
+class __InsiteMessageItemState extends State<_InsiteMessageItem> {
+  Channel _channel;
+  Person _person;
+
+  @override
+  void initState() {
+    () async {
+      _person = await _loadPerson();
+      _channel = await _loadChannel();
+      setState(() {});
+    }();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _channel = null;
+    _person = null;
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_InsiteMessageItem oldWidget) {
+    oldWidget.message = widget.message;
+    oldWidget.notBottom = widget.notBottom;
+    () async {
+      _person = await _loadPerson();
+      _channel = await _loadChannel();
+      setState(() {});
+    }();
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<Person> _loadPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    return await personService.getPerson(widget.message.upstreamPerson);
+  }
+
+  Future<Channel> _loadChannel() async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    return await channelService.getChannel(widget.message.onChannel);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var atime = TimelineUtil.formatByDateTime(
+            DateTime.fromMillisecondsSinceEpoch(widget.message.atime),
+            locale: 'zh',
+            dayFormat: DayFormat.Simple)
+        .toString();
+    return Column(
+      children: <Widget>[
+        Container(
+          alignment: Alignment.centerLeft,
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[900],
+                  ),
+                  text: '${widget.message.digests ?? ''}',
+                ),
+              ],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(
+            right: 10,
+            left: 10,
+            top: 6,
+          ),
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: '${atime ?? ''}'),
+                TextSpan(
+                  text: '  洇金:¥',
+                  children: [
+                    TextSpan(
+                      text: ((widget.message.wy ?? 0) * 0.00012837277272)
+                          .toStringAsFixed(2),
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                TextSpan(
+                  text: '  来自:',
+                ),
+                TextSpan(
+                  text: '${_person != null ? _person.nickName : ''}',
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text: '',
+                  children: [
+                    TextSpan(
+                      text: '${_channel == null ? '' : _channel.name}',
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+//                v.picCount > 0
+//                    ? TextSpan(text: '  图片${v.picCount}个')
+//                    : TextSpan(text: ''),
+              ],
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 10,
+              ),
+            ),
+          ),
+        ),
+        widget.notBottom
+            ? Container(
+                child: Divider(
+                  height: 1,
+                ),
+                padding: EdgeInsets.only(
+                  top: 5,
+                  bottom: 5,
+                ),
+              )
+            : Container(
+                width: 0,
+                height: 0,
+              ),
       ],
     );
   }
