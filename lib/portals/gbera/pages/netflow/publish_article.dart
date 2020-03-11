@@ -124,19 +124,6 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
           '/network/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
       data: {'document': jsonEncode(doc)},
     );
-    var flowChannelPortsUrl =
-        widget.context.site.getService('@.prop.ports.flow.channel');
-    widget.context.ports.portTask.addPortPOSTTask(
-      flowChannelPortsUrl,
-      'pushChannelDocument',
-      callbackUrl:
-          '/flow/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
-      parameters: {
-        'channel': _channel.id,
-        'docid': msgid,
-        'interval': 100,
-      },
-    );
 
     var refreshMessages = widget.context.parameters['refreshMessages'];
     if (refreshMessages != null) {

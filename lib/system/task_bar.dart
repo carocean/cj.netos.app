@@ -59,7 +59,17 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-
+              var flowChannelPortsUrl =
+              widget.site.getService('@.prop.ports.flow.channel');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushChannelDocument',
+                parameters: {
+                  'channel': frame.parameter('channel'),
+                  'docid': frame.parameter('docid'),
+                  'interval': 100,
+                },
+              );
               break;
           }
           break;

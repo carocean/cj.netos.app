@@ -420,6 +420,17 @@ class _PersonCardState extends State<_PersonCard> {
                       width: 0,
                     );
                   }
+                  if (_person.person == widget.context.principal.person) {
+                    return Container(
+                      child: Text(
+                        '我',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
                   var isAdded = snapshot.data;
                   if (isAdded != null && isAdded) {
                     return GestureDetector(

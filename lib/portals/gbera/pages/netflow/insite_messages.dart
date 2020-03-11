@@ -166,9 +166,8 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                 TextSpan(
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
                                     height: 1.35,
-                                    fontSize: 18,
+                                    fontSize: 16,
                                   ),
                                   text: '${v.content}',
                                 ),
