@@ -71,10 +71,8 @@ abstract class IChannelDAO {
   @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and id = :id')
   Future<Channel> getChannel(String sandbox, String id);
 
-  @Query(
-      'SELECT * FROM Channel WHERE sandbox=:sandbox and owner=:owner and origin = :origin')
-  Future<Channel> getChannelByOrigin(
-      String sandbox, String owner, String origin);
+  @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and origin = :origin')
+  Future<Channel> getChannelByOrigin(String sandbox, String origin);
 
   @Query('SELECT * FROM Channel where sandbox=:sandbox ORDER BY ctime DESC')
   Future<List<Channel>> getAllChannel(String sandbox);

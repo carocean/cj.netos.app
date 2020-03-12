@@ -37,22 +37,21 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<Channel> getChannelOfPerson(String channel, String person) async {
+  Future<Channel> findChannelOfPerson(String channel, String person) async {
     Map<String, dynamic> map = await remotePorts
         .portGET(_networkPortsUrl, 'getPersonChannel', parameters: {
       'channel': channel,
       'person': person,
     });
-    var leadingurl = map['leading'];
-    var dio = site.getService('@.http');
-    var localFile =
-        await downloadChannelAvatar(dio: dio, avatarUrl: leadingurl);
+    if (map == null) {
+      return null;
+    }
     return Channel(
       map['channel'],
       map['origin'],
       map['title'],
       map['creator'],
-      localFile,
+      map['leading'],
       map['site'],
       map['ctime'],
       principal.person,

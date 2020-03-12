@@ -120,7 +120,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -717,11 +717,10 @@ class _$IChannelDAO extends IChannelDAO {
   }
 
   @override
-  Future<Channel> getChannelByOrigin(
-      String sandbox, String owner, String origin) async {
+  Future<Channel> getChannelByOrigin(String sandbox, String origin) async {
     return _queryAdapter.query(
-        'SELECT * FROM Channel WHERE sandbox=? and owner=? and origin = ?',
-        arguments: <dynamic>[sandbox, owner, origin],
+        'SELECT * FROM Channel WHERE sandbox=? and origin = ?',
+        arguments: <dynamic>[sandbox, origin],
         mapper: _channelMapper);
   }
 

@@ -53,7 +53,7 @@ mixin IChannelService {
 
   Future<Channel> getChannel(String channelid);
 
-  Future<Channel> getChannelOfPerson(String channel, String person) {}
+  Future<Channel> findChannelOfPerson(String channel, String person) {}
 
   Future<bool> existsName(String channelName, String owner);
 
@@ -65,6 +65,8 @@ mixin IChannelService {
   Future<void> remove(String channelid);
 
   Future<void> updateName(String channelid, String name);
+
+  Future<bool> existsOrigin(String origin) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();

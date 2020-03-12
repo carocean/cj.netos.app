@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:uuid/uuid.dart';
 
 class InsiteApprovals extends StatefulWidget {
   PageContext context;
@@ -21,12 +24,18 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   InsiteMessage _message;
   Channel _channel;
   Person _person;
+  bool _check_rejectAllMessages = false;
+  bool _check_rejectChannelMessages = false;
+  bool _isExistsOrigin = false;
 
   @override
   void initState() {
     _message = widget.context.page.parameters['message'];
     _channel = widget.context.page.parameters['channel'];
     _person = widget.context.page.parameters['person'];
+    _existsOrigin().then((v) {
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -36,6 +45,28 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     _channel = null;
     _person = null;
     super.dispose();
+  }
+
+  Future<void> _existsOrigin() async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    _isExistsOrigin = await channelService.existsOrigin(_channel.origin);
+  }
+
+  Future<void> _addChannel() async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    if (!StringUtil.isEmpty(_channel.leading)) {
+      var dio = widget.context.site.getService('@.http');
+      var localLeadingFile = await downloadChannelAvatar(
+          dio: dio,
+          avatarUrl:
+              '${_channel.leading}?accessToken=${widget.context.principal.accessToken}');
+      _channel.leading = localLeadingFile;
+    }
+    var channelid = MD5Util.generateMd5('${Uuid().v1()}');
+    _channel.id = channelid;
+    await channelService.addChannel(_channel);
   }
 
   @override
@@ -74,7 +105,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               child: GestureDetector(
                 onTap: () {
                   widget.context.backward();
-                  widget.context.forward('/site/personal');
+                  widget.context.forward('/site/personal',
+                      arguments: {'person': _person});
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -178,31 +210,63 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        CardItem(
-                          paddingTop: 10,
-                          paddingBottom: 10,
-                          title: '拒收他的消息',
-                          titleColor: Colors.grey,
-                          titleSize: 12,
-                          tail: Icon(
-                            Icons.check,
-                            color: Colors.red,
-                            size: 14,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            this._check_rejectChannelMessages =
+                                !_check_rejectChannelMessages;
+                            setState(() {});
+                          },
+                          child: CardItem(
+                            paddingTop: 10,
+                            paddingBottom: 10,
+                            title: '仅拒收该管道消息',
+                            titleColor: Colors.grey,
+                            titleSize: 12,
+                            tail: !_check_rejectChannelMessages
+                                ? Icon(
+                                    Icons.remove,
+                                    color: Colors.grey[400],
+                                    size: 12,
+                                  )
+                                : Icon(
+                                    Icons.check,
+                                    color: Colors.red,
+                                    size: 14,
+                                  ),
                           ),
                         ),
                         Divider(
                           height: 1,
                         ),
-                        CardItem(
-                          paddingTop: 10,
-                          paddingBottom: 10,
-                          title: '拒发消息给他',
-                          titleColor: Colors.grey,
-                          titleSize: 12,
-                          tail: Icon(
-                            Icons.check,
-                            color: Colors.red,
-                            size: 14,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            this._check_rejectAllMessages =
+                                !_check_rejectAllMessages;
+                            if (_check_rejectAllMessages) {
+                              this._check_rejectChannelMessages = true;
+                            }
+
+                            setState(() {});
+                          },
+                          child: CardItem(
+                            paddingTop: 10,
+                            paddingBottom: 10,
+                            title: '拒收他的所有消息',
+                            titleColor: Colors.grey,
+                            titleSize: 12,
+                            tail: !_check_rejectAllMessages
+                                ? Icon(
+                                    Icons.remove,
+                                    color: Colors.grey[400],
+                                    size: 12,
+                                  )
+                                : Icon(
+                                    Icons.check,
+                                    color: Colors.red,
+                                    size: 14,
+                                  ),
                           ),
                         ),
                       ],
@@ -220,7 +284,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                       right: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blueGrey,
+                      color:
+                          _isExistsOrigin ? Colors.grey[400] : Colors.blueGrey,
                       borderRadius: BorderRadius.all(
                         Radius.circular(10),
                       ),
@@ -234,16 +299,21 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                       ],
                     ),
                     child: FlatButton(
-                      onPressed: () {
-                        print('加入管道');
-                      },
+                      onPressed: _isExistsOrigin
+                          ? null
+                          : () {
+                              _addChannel().then((v) {
+                                widget.context
+                                    .backward(result: {'refresh': true});
+                              });
+                            },
                       padding: EdgeInsets.only(
                         left: 50,
                         right: 50,
                       ),
                       child: Text.rich(
                         TextSpan(
-                          text: '加入管道',
+                          text: _isExistsOrigin?'已加入': '加入管道',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -320,10 +390,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                           ? AssetImage(
                               'lib/portals/gbera/images/netflow.png',
                             )
-                          : FileImage(
-                              File(
-                                _channel?.leading,
-                              ),
+                          : NetworkImage(
+                              '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
                             ),
                       fit: BoxFit.cover,
                     ),

@@ -57,9 +57,8 @@ class MicroApp {
   MicroApp(this.id, this.site, this.leading, this.sandbox);
 }
 
-@entity
+@Entity(primaryKeys: ['id', 'sandbox'])
 class Channel {
-  @primaryKey
   String id;
   final String origin;
   final String name;

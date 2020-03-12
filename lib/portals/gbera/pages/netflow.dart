@@ -45,7 +45,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     _future_loadChannels = _loadChannels();
-
     super.initState();
   }
 
@@ -359,8 +358,17 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
           ),
         ),
         SliverToBoxAdapter(
-          child: _InsiteMessagesRegion(
-            context: widget.context,
+          child: NotificationListener(
+            onNotification: (e) {
+              if (e is ChannelsRefresher) {
+                _future_loadChannels = _loadChannels();
+                setState(() {});
+              }
+              return true;
+            },
+            child: _InsiteMessagesRegion(
+              context: widget.context,
+            ),
           ),
         ),
         SliverToBoxAdapter(
@@ -492,6 +500,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (!widget.context.isListening(matchPath: '/netflow/channel')) {
       widget.context.listenNetwork((frame) {
         _arrivedMessage(frame).then((message) {
+          if (message == null) {
+            return;
+          }
           if (_messages.length >= _msgListMaxLength) {
             _messages.removeLast();
           }
@@ -528,7 +539,11 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   Future<InsiteMessage> _arrivedMessage(Frame frame) async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
-    var docMap = jsonDecode(frame.contentText);
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      return null;
+    }
+    var docMap = jsonDecode(text);
 //    print(docMap);
     var message = InsiteMessage(
       Uuid().v1(),
@@ -674,7 +689,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
     var message = widget.message;
-    return await channelService.getChannelOfPerson(
+    return await channelService.findChannelOfPerson(
         message.upstreamChannel, widget.message.upstreamPerson);
   }
 
@@ -698,7 +713,9 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                 'person': _person,
               });
             }).then((result) {
-          print('-----$result');
+          if (result != null && result['refresh']) {
+            ChannelsRefresher().dispatch(context);
+          }
         });
       },
       child: Column(
@@ -800,6 +817,8 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     );
   }
 }
+
+class ChannelsRefresher extends Notification {}
 
 class _ChannelItem extends StatefulWidget {
   PageContext context;

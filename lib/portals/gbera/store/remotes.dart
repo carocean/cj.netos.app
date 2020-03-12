@@ -31,5 +31,5 @@ mixin IChannelRemote {
 
   Future<void> addOutputPerson(String person, String channel) {}
 
-  Future<Channel> getChannelOfPerson(String channel, String person) {}
+  Future<Channel> findChannelOfPerson(String channel, String person) {}
 }

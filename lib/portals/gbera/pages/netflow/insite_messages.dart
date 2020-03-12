@@ -184,7 +184,9 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                   'channel': channel,
                   'person': person,
                 });
-              });
+              }).then((refresh){
+
+          });
         },
       );
       messageViews.add(view);

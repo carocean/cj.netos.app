@@ -52,7 +52,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
   Future<void> initSystemChannel(UserPrincipal user) async {
     var _GEO_CHANNEL_ORIGIN = _SYSTEM_CHANNELS['geo_channel'];
     if (await channelDAO.getChannelByOrigin(
-            user?.person, user?.person, _GEO_CHANNEL_ORIGIN) ==
+            user?.person, _GEO_CHANNEL_ORIGIN) ==
         null) {
       var channelid = MD5Util.generateMd5('${Uuid().v1()}');
       var channel = Channel(channelid, _GEO_CHANNEL_ORIGIN, '地推', user.person,
@@ -134,10 +134,10 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<Channel> getChannelOfPerson(String channelid, String person) async {
+  Future<Channel> findChannelOfPerson(String channelid, String person) async {
     Channel channel = await getChannel(channelid);
     if (channel == null) {
-      channel = await this.channelRemote.getChannelOfPerson(channelid, person);
+      channel = await this.channelRemote.findChannelOfPerson(channelid, person);
     }
     return channel;
   }
@@ -154,6 +154,16 @@ class ChannelService implements IChannelService, IServiceBuilder {
   Future<bool> existsChannel(channelid) async {
     var ch = await this.channelDAO.getChannel(principal?.person, channelid);
     return ch == null ? false : true;
+  }
+
+  @override
+  Future<bool> existsOrigin(String origin) async {
+    return await this
+                .channelDAO
+                .getChannelByOrigin(principal?.person, origin) ==
+            null
+        ? false
+        : true;
   }
 
   @override
