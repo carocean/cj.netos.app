@@ -34,6 +34,7 @@ class _AccountLoginState extends State<AccountLogin> {
 
   Future<void> _doLogin(account) async {
     _buttonLabel = '登录中...';
+    _buttonEnable=false;
     setState(() {});
     PasswordLoginAction(
       user: account['accountCode'],

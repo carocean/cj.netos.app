@@ -18,9 +18,9 @@ class MessageView {
     this.onTap,
   });
 }
-class MessageTabView {
-  const MessageTabView({this.text, this.loopType});
+class ActivityTabView {
+  const ActivityTabView({this.text, this.id});
 
   final String text;
-  final String loopType;
+  final String id;
 }

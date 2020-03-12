@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -33,6 +34,29 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       'outPersonSelector': outPersonSelector,
       'outGeoSelector': '$outGeoSelector',
     });
+  }
+
+  @override
+  Future<Channel> getChannelOfPerson(String channel, String person) async {
+    Map<String, dynamic> map = await remotePorts
+        .portGET(_networkPortsUrl, 'getPersonChannel', parameters: {
+      'channel': channel,
+      'person': person,
+    });
+    var leadingurl = map['leading'];
+    var dio = site.getService('@.http');
+    var localFile =
+        await downloadChannelAvatar(dio: dio, avatarUrl: leadingurl);
+    return Channel(
+      map['channel'],
+      map['origin'],
+      map['title'],
+      map['creator'],
+      localFile,
+      map['site'],
+      map['ctime'],
+      principal.person,
+    );
   }
 
   @override
@@ -124,7 +148,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> updateOutGeoSelector(String channel, String outGeoSelector) async {
+  Future<void> updateOutGeoSelector(
+      String channel, String outGeoSelector) async {
     await remotePorts.portGET(
       _networkPortsUrl,
       'updateOutGeoSelector',
@@ -136,7 +161,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> updateOutPersonSelector(String channel, outPersonSelector) async {
+  Future<void> updateOutPersonSelector(
+      String channel, outPersonSelector) async {
     await remotePorts.portGET(
       _networkPortsUrl,
       'updateOutPersonSelector',

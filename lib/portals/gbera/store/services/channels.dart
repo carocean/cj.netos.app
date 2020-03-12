@@ -55,8 +55,8 @@ class ChannelService implements IChannelService, IServiceBuilder {
             user?.person, user?.person, _GEO_CHANNEL_ORIGIN) ==
         null) {
       var channelid = MD5Util.generateMd5('${Uuid().v1()}');
-      var channel = Channel(channelid, _GEO_CHANNEL_ORIGIN, '地推', user.person, null, null,
-          DateTime.now().millisecondsSinceEpoch, user?.person);
+      var channel = Channel(channelid, _GEO_CHANNEL_ORIGIN, '地推', user.person,
+          null, null, DateTime.now().millisecondsSinceEpoch, user?.person);
       await channelDAO.addChannel(channel);
       await pinService.initChannelPin(channelid);
       await pinService.setOutputGeoSelector(channelid, true);
@@ -77,9 +77,12 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<void> updateLeading(String localPath,String remotePath, String channelid) async {
-    await this.channelDAO.updateLeading(localPath, principal?.person, channelid);
-    await this.channelRemote.updateLeading(channelid,remotePath);
+  Future<void> updateLeading(
+      String localPath, String remotePath, String channelid) async {
+    await this
+        .channelDAO
+        .updateLeading(localPath, principal?.person, channelid);
+    await this.channelRemote.updateLeading(channelid, remotePath);
   }
 
   @override
@@ -101,8 +104,8 @@ class ChannelService implements IChannelService, IServiceBuilder {
 
   @override
   Future<void> addChannel(Channel channel) async {
-    if(StringUtil.isEmpty(channel.id)) {
-      channel.id= MD5Util.generateMd5('${Uuid().v1()}');
+    if (StringUtil.isEmpty(channel.id)) {
+      channel.id = MD5Util.generateMd5('${Uuid().v1()}');
     }
 
     await this.channelDAO.addChannel(channel);
@@ -128,6 +131,15 @@ class ChannelService implements IChannelService, IServiceBuilder {
   @override
   Future<Channel> getChannel(String channelid) async {
     return await this.channelDAO.getChannel(principal?.person, channelid);
+  }
+
+  @override
+  Future<Channel> getChannelOfPerson(String channelid, String person) async {
+    Channel channel = await getChannel(channelid);
+    if (channel == null) {
+      channel = await this.channelRemote.getChannelOfPerson(channelid, person);
+    }
+    return channel;
   }
 
   @override

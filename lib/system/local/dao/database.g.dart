@@ -122,7 +122,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -795,9 +795,9 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
                   'id': item.id,
                   'docid': item.docid,
                   'upstreamPerson': item.upstreamPerson,
+                  'upstreamChannel': item.upstreamChannel,
                   'sourceSite': item.sourceSite,
                   'sourceApp': item.sourceApp,
-                  'onChannel': item.onChannel,
                   'creator': item.creator,
                   'ctime': item.ctime,
                   'atime': item.atime,
@@ -821,9 +821,9 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
           row['id'] as String,
           row['docid'] as String,
           row['upstreamPerson'] as String,
+          row['upstreamChannel'] as String,
           row['sourceSite'] as String,
           row['sourceApp'] as String,
-          row['onChannel'] as String,
           row['creator'] as String,
           row['ctime'] as int,
           row['atime'] as int,
@@ -850,6 +850,24 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
     return _queryAdapter.queryList(
         'SELECT * FROM InsiteMessage where sandbox=? ORDER BY atime DESC , ctime ASC LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, pageSize, currPage],
+        mapper: _insiteMessageMapper);
+  }
+
+  @override
+  Future<List<InsiteMessage>> pageMessageNotMine(
+      String sandbox, String creator, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InsiteMessage where sandbox=? AND creator!=? ORDER BY atime DESC , ctime ASC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, creator, limit, offset],
+        mapper: _insiteMessageMapper);
+  }
+
+  @override
+  Future<List<InsiteMessage>> pageMessageIsMine(
+      String sandbox, String creator, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InsiteMessage where sandbox=? AND creator=? ORDER BY atime DESC , ctime ASC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, creator, limit, offset],
         mapper: _insiteMessageMapper);
   }
 

@@ -1,4 +1,3 @@
-
 import 'package:framework/framework.dart';
 
 import '../../../system/local/entities.dart';
@@ -28,7 +27,6 @@ mixin IPersonService {
   Future<List<Person>> pagePersonLikeName(String query, int limit, int offset);
 
   Future<void> removePerson(String person) {}
-
 }
 mixin IChannelService {
   ///地圈管道标识
@@ -55,11 +53,14 @@ mixin IChannelService {
 
   Future<Channel> getChannel(String channelid);
 
+  Future<Channel> getChannelOfPerson(String channel, String person) {}
+
   Future<bool> existsName(String channelName, String owner);
 
   Future<List<Channel>> getAllChannel();
 
-  Future<void> updateLeading(String localPath,String remotePath, String channelid);
+  Future<void> updateLeading(
+      String localPath, String remotePath, String channelid);
 
   Future<void> remove(String channelid);
 
@@ -76,6 +77,8 @@ mixin IInsiteMessageService {
 
   Future<List<InsiteMessage>> getAllMessage();
 
+  Future<List<InsiteMessage>> pageMessageWhere(
+      String selectedTableViewId, int limit, int offset) {}
 }
 
 mixin IChannelMessageService {
@@ -217,7 +220,8 @@ mixin IPrincipalService {
 
   Future<void> remove(String person);
 
-  Future<void> updateToken(String refreshToken,String accessToken, String person);
+  Future<void> updateToken(
+      String refreshToken, String accessToken, String person);
 
   Future<Principal> get(String person);
 
@@ -228,5 +232,4 @@ mixin IPrincipalService {
   Future<void> updateNickName(String person, nickName) {}
 
   Future<void> updateSignature(String person, String signature) {}
-
 }

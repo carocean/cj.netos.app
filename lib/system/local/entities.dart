@@ -64,7 +64,7 @@ class Channel {
   final String origin;
   final String name;
   final String owner;
-   String leading;
+  String leading;
   final String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
   final String sandbox;
@@ -79,9 +79,9 @@ class InsiteMessage {
   final String id;
   final String docid;
   final String upstreamPerson;
+  final String upstreamChannel;
   final String sourceSite;
   final String sourceApp;
-  final String onChannel;
   final String creator;
   final int ctime;
   final int atime;
@@ -97,9 +97,9 @@ class InsiteMessage {
     this.id,
     this.docid,
     this.upstreamPerson,
+    this.upstreamChannel,
     this.sourceSite,
     this.sourceApp,
-    this.onChannel,
     this.creator,
     this.ctime,
     this.atime,

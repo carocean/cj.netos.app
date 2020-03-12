@@ -114,6 +114,7 @@ flutter:
     - lib/portals/gbera/images/gbera_bk.png
     - lib/portals/gbera/images/gbera_op.png
     - lib/portals/gbera/images/entrypoint_bk.jpg
+    - lib/portals/gbera/images/netflow.png
     - lib/portals/gbera/images/penquan.png
     - lib/portals/gbera/images/yuanbao.png
     - lib/portals/gbera/images/avatar.png
@@ -150,6 +151,9 @@ flutter:
     - family: netflow
       fonts:
         - asset: lib/portals/gbera/fonts/netflow.ttf
+    - family: netflow2
+      fonts:
+        - asset: lib/portals/gbera/fonts/netflow_2.ttf
     - family: ellipse
       fonts:
         - asset: lib/portals/gbera/fonts/ellipse.ttf

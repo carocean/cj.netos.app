@@ -18,6 +18,32 @@ class InsiteMessagePage extends StatefulWidget {
 
 class _InsiteMessagePageState extends State<InsiteMessagePage>
     with SingleTickerProviderStateMixin {
+  TabController _controller;
+  List<ActivityTabView> _tabViews;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabViews = <ActivityTabView>[
+      ActivityTabView(
+        text: '收件箱',
+        id: 'inbox',
+      ),
+      ActivityTabView(
+        text: '发件箱',
+        id: 'outbox',
+      ),
+    ];
+    _controller = TabController(vsync: this, length: _tabViews.length);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _tabViews.clear();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,19 +60,39 @@ class _InsiteMessagePageState extends State<InsiteMessagePage>
           ),
         ],
         elevation: 0.0,
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: Container(
-          padding: const EdgeInsets.only(
-            left: 10,
-            right: 10,
+        bottom: TabBar(
+          controller: _controller,
+          isScrollable: true,
+          labelColor: Colors.black,
+          labelStyle: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
-          child: _MessagesRegion(
-            context: widget.pageContext,
-          ),
+          tabs: _tabViews.map<Tab>((ActivityTabView view) {
+            return Tab(
+              text: view.text,
+            );
+          }).toList(),
         ),
+      ),
+      body: TabBarView(
+        controller: _controller,
+        children: _tabViews.map<Widget>((ActivityTabView tabView) {
+          return SafeArea(
+            top: false,
+            bottom: false,
+            child: Container(
+              padding: const EdgeInsets.only(
+                left: 10,
+                right: 10,
+              ),
+              child: _MessagesRegion(
+                context: widget.pageContext,
+                tabView: tabView,
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -54,7 +100,7 @@ class _InsiteMessagePageState extends State<InsiteMessagePage>
 
 class _MessagesRegion extends StatefulWidget {
   PageContext context;
-  MessageTabView tabView;
+  ActivityTabView tabView;
 
   _MessagesRegion({this.tabView, this.context});
 
@@ -85,6 +131,19 @@ class _MessagesRegionState extends State<_MessagesRegion> {
     super.dispose();
   }
 
+//
+//  @override
+//  void didUpdateWidget(_MessagesRegion oldWidget) {
+//    if (oldWidget.selectedTableViewId != widget.selectedTableViewId) {
+////      offset = 0;
+////      messageViews.clear();
+//      oldWidget.selectedTableViewId = widget.selectedTableViewId;
+//      oldWidget.tabView=widget.tabView;
+////      setState(() {});
+//    }
+//    super.didUpdateWidget(oldWidget);
+//  }
+
   Future<void> _onLoadMessages() async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
@@ -92,7 +151,9 @@ class _MessagesRegionState extends State<_MessagesRegion> {
         widget.context.site.getService('/gbera/persons');
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    var messages = await messageService.pageMessage(limit, offset);
+    print(widget.tabView.id);
+    var messages =
+        await messageService.pageMessageWhere(widget.tabView.id, limit, offset);
     if (messages.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       return;
@@ -105,7 +166,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
               locale: 'zh',
               dayFormat: DayFormat.Simple)
           .toString();
-      var channel = await channelService.getChannel(msg.onChannel);
+      var channel = await channelService.getChannel(msg.upstreamChannel);
       var view = MessageView(
         who: person.nickName,
         channel: channel?.name,

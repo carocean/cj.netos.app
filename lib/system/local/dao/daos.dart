@@ -114,6 +114,16 @@ abstract class IInsiteMessageDAO {
   Future<List<InsiteMessage>> pageMessage(
       String sandbox, int pageSize, int currPage);
 
+  @Query(
+      'SELECT *  FROM InsiteMessage where sandbox=:sandbox  AND creator!=:creator ORDER BY atime DESC , ctime ASC LIMIT :pageSize OFFSET :currPage')
+  Future<List<InsiteMessage>> pageMessageNotMine(
+      String sandbox, String creator, int limit, int offset) {}
+
+  @Query(
+      'SELECT *  FROM InsiteMessage where sandbox=:sandbox AND creator=:creator ORDER BY atime DESC , ctime ASC LIMIT :pageSize OFFSET :currPage')
+  Future<List<InsiteMessage>> pageMessageIsMine(
+      String sandbox, String creator, int limit, int offset) {}
+
   @Query('SELECT * FROM InsiteMessage WHERE id = :id and sandbox=:sandbox')
   Future<InsiteMessage> getMessage(String id, String sandbox);
 

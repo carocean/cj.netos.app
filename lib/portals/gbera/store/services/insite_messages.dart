@@ -5,11 +5,12 @@ import 'package:netos_app/system/local/dao/database.dart';
 import '../../../../system/local/entities.dart';
 import '../services.dart';
 
-class InsiteMessageService implements IInsiteMessageService ,IServiceBuilder{
+class InsiteMessageService implements IInsiteMessageService, IServiceBuilder {
   IInsiteMessageDAO insiteMessageDAO;
   IServiceProvider site;
 
-  UserPrincipal get principal=>site.getService('@.principal');
+  UserPrincipal get principal => site.getService('@.principal');
+
   @override
   OnReadyCallback builder(IServiceProvider site) {
     this.site = site;
@@ -29,7 +30,23 @@ class InsiteMessageService implements IInsiteMessageService ,IServiceBuilder{
 
   @override
   Future<List<InsiteMessage>> pageMessage(int pageSize, int currPage) async {
-    return await insiteMessageDAO.pageMessage(principal?.person,pageSize, currPage);
+    return await insiteMessageDAO.pageMessage(
+        principal?.person, pageSize, currPage);
+  }
+
+  @override
+  Future<List<InsiteMessage>> pageMessageWhere(
+      String where, int limit, int offset) async {
+    switch (where) {
+      case 'inbox':
+        return await insiteMessageDAO.pageMessageNotMine(
+            principal?.person, principal?.person, limit, offset);
+      case 'outbox':
+        return await insiteMessageDAO.pageMessageIsMine(
+            principal?.person, principal?.person, limit, offset);
+      default:
+        return <InsiteMessage>[];
+    }
   }
 
   @override
@@ -39,7 +56,7 @@ class InsiteMessageService implements IInsiteMessageService ,IServiceBuilder{
 
   @override
   Future<bool> existsMessage(id) async {
-    var msg = await insiteMessageDAO.getMessage(id,principal?.person);
+    var msg = await insiteMessageDAO.getMessage(id, principal?.person);
     return msg == null ? false : true;
   }
 }

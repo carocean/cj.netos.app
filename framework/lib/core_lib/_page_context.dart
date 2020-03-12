@@ -258,7 +258,7 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    return pump.networkPumpWell.isListening(principal, path);
+    return pump.networkPumpWell?.isListening(principal, path);
   }
 
   void listenNetwork(Onmessage onmessage, {String matchPath}) {
@@ -269,7 +269,7 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    pump.networkPumpWell.listen(principal, path, onmessage);
+    pump.networkPumpWell?.listen(principal, path, onmessage);
   }
 
   void unlistenNetwork({String matchPath}) {
@@ -280,27 +280,27 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    pump.networkPumpWell.unlisten(principal, path);
+    pump.networkPumpWell?.unlisten(principal, path);
   }
 
   void listenError(Onerror onerror) {
     IPump pump = site.getService('@.pump');
-    pump.errorPumpWell.listen(principal, page.url, onerror);
+    pump.errorPumpWell?.listen(principal, page.url, onerror);
   }
 
   void listenNotify(Onmessage onmessage) {
     IPump pump = site.getService('@.pump');
-    pump.nofityPumpWell.listen(principal, page.url, onmessage);
+    pump.nofityPumpWell?.listen(principal, page.url, onmessage);
   }
 
   void unlistenError() {
     IPump pump = site.getService('@.pump');
-    pump.errorPumpWell.unlisten(principal, page.url);
+    pump.errorPumpWell?.unlisten(principal, page.url);
   }
 
   void unlistenNotify() {
     IPump pump = site.getService('@.pump');
-    pump.nofityPumpWell.unlisten(principal, page.url);
+    pump.nofityPumpWell?.unlisten(principal, page.url);
   }
 
   ILogicNetwork openNetwork(String networkName,

@@ -129,7 +129,7 @@ class DefaultPumpWell implements IPumpWell {
 
     var path = getPath(url);
     _listenItems['${principal.person}:/$path'] = onmessage;
-    _outputListenItemChange.send(
+    _outputListenItemChange?.send(
         _ListenItem(person: principal.person, path: path, action: 'listen'));
     //有侦听则通知拉取一次
     _outputTask.send({});
@@ -138,10 +138,10 @@ class DefaultPumpWell implements IPumpWell {
   @override
   void unlisten(UserPrincipal principal, String url) {
     var path = getPath(url);
-    _outputListenItemChange.send(
+    _outputListenItemChange?.send(
         _ListenItem(person: principal.person, path: path, action: 'unlisten'));
     String itemKey = '${principal.person}:/$path';
-    _listenItems.remove(itemKey);
+    _listenItems?.remove(itemKey);
   }
 
   static _entryPoint(message) async {

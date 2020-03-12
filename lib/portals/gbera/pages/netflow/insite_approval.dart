@@ -72,7 +72,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               ),
               padding: EdgeInsets.all(10),
               child: GestureDetector(
-                onTap: (){
+                onTap: () {
                   widget.context.backward();
                   widget.context.forward('/site/personal');
                 },
@@ -316,11 +316,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                     ),
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: FileImage(
-                        File(
-                          _channel?.leading,
-                        ),
-                      ),
+                      image: _channel?.leading == null
+                          ? AssetImage(
+                              'lib/portals/gbera/images/netflow.png',
+                            )
+                          : FileImage(
+                              File(
+                                _channel?.leading,
+                              ),
+                            ),
                       fit: BoxFit.cover,
                     ),
                     boxShadow: [
@@ -337,8 +341,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                   print('xxxx');
                   widget.context.backward();
 //                  widget.context.forward('/channel/viewer');
-                  widget.context.forward('/netflow/portal/channel',arguments: {'channel':_channel}).then((v){
-                  });
+                  widget.context.forward('/netflow/portal/channel',
+                      arguments: {'channel': _channel}).then((v) {});
                 },
               ),
               Container(
