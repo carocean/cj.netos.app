@@ -232,12 +232,12 @@ class DefaultPumpWell implements IPumpWell {
 
   @override
   void addTask(task) {
-    _outputTask.send(task);
+    _outputTask?.send(task);
   }
 
   @override
   void addFrame(Frame frame) {
-    _outputMessage.send(frame.toMap());
+    _outputMessage?.send(frame.toMap());
     addTask({});
   }
 }

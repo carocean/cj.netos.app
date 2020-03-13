@@ -15,7 +15,7 @@ class FriendService implements IFriendService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     friendDAO = db.friendDAO;
@@ -52,8 +52,8 @@ class FriendService implements IFriendService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeFriendById(String id) async {
-    await friendDAO.removeFriendById(id, principal.person);
+  Future<Function> removeFriendByOfficial(String official) async {
+    await friendDAO.removeFriendByOfficial(official, principal.person);
   }
 }
 
@@ -66,7 +66,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     chatRoomDAO = db.chatRoomDAO;
@@ -132,7 +132,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     p2pMessageDAO = db.p2pMessageDAO;

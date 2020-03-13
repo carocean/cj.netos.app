@@ -160,6 +160,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
     }
     offset += messages.length;
     for (var msg in messages) {
+        print('---insite messages-----');
       var person = await personService.getPerson(msg.creator);
       var timeText = TimelineUtil.formatByDateTime(
               DateTime.fromMillisecondsSinceEpoch(msg.atime),

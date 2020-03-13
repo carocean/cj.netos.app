@@ -19,7 +19,7 @@ mixin IPlatformLocalPrincipalManager implements ILocalPrincipalVisitor {
 
   String current();
 
-  void setCurrent(String person) {}
+  Future<void> setCurrent(String person) {}
 
   bool isEmpty();
 
@@ -27,7 +27,7 @@ mixin IPlatformLocalPrincipalManager implements ILocalPrincipalVisitor {
   Future<void> doRefreshToken([error, susseed]);
 
   //刷入信息到本地
-  void add(
+  Future<void> add(
     final String person, {
     final String uid,
     final String accountCode,
@@ -66,7 +66,7 @@ class DefaultLocalPrincipalManager
   UserPrincipal get principal => _site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+  builder(IServiceProvider site) async {
     _site = site;
     AppDatabase db = site.getService('@.db');
     _principalService = site.getService('/principals');
@@ -74,9 +74,7 @@ class DefaultLocalPrincipalManager
     if (localPrincipal != null) {
       localPrincipal.setVisitor(this);
     }
-    return () async {
-      await load();
-    };
+    await load();
   }
 
   load() async {
@@ -198,7 +196,7 @@ class DefaultLocalPrincipalManager
   }
 
   @override
-  void add(String person,
+  Future<void> add(String person,
       {String uid,
       String accountCode,
       String nickName,
@@ -213,7 +211,7 @@ class DefaultLocalPrincipalManager
       int ltime,
       int pubtime,
       int expiretime,
-      String device}) {
+      String device}) async {
     var p = Principal(
         person,
         uid,
@@ -236,7 +234,7 @@ class DefaultLocalPrincipalManager
     if (!_indexed.contains(p.person)) {
       _indexed.add(p.person);
     }
-    _flushOne(p);
+    await _flushOne(p);
   }
 
   @override
@@ -260,19 +258,19 @@ class DefaultLocalPrincipalManager
   }
 
   @override
-  void setCurrent(String person) {
+  Future<void> setCurrent(String person) async {
     _current = person;
-    IPeerManager peerManager=_site.getService('@.peer.manager');
-    if(peerManager!=null) {
-      peerManager.start(_site);
+    IPeerManager peerManager = _site.getService('@.peer.manager');
+    if (peerManager != null) {
+      await peerManager.start(_site);
     }
   }
 
   Future<void> _flushOne(Principal p) async {
     Principal exists = await _principalService.get(p.person);
     if (exists != null) {
-      _principalService.remove(p.person);
+      await _principalService.remove(p.person);
     }
-    _principalService.add(p);
+    await _principalService.add(p);
   }
 }

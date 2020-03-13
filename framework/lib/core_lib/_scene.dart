@@ -42,7 +42,6 @@ mixin IScene implements IDisposable {
   bool containsPage(String path) {}
 
   Page getPage(String path) {}
-
 }
 
 class DefaultScene implements IScene, IServiceProvider {
@@ -54,7 +53,6 @@ class DefaultScene implements IScene, IServiceProvider {
   Map<String, Desklet> _desklets = {};
   Map<String, _ThemeEntitity> _themeStyles = {};
   IServiceProvider parentSite;
-  var _principal;
   SceneServiceContainer _sceneServiceContainer;
 
   DefaultScene({
@@ -73,12 +71,6 @@ class DefaultScene implements IScene, IServiceProvider {
 
   @override
   getService(String name) {
-    if ('@.principal' == name) {
-      if (_principal == null) {
-        _principal = parentSite.getService('@.principal');
-      }
-      return _principal;
-    }
     if (name.startsWith('@.page:')) {
       String path = name.substring('@.page:'.length, name.length);
       return _pages[path];
@@ -161,7 +153,6 @@ class DefaultScene implements IScene, IServiceProvider {
       await _setTheme(themeStyles[0].url);
     }
     _sceneServiceContainer.initServices(services);
-    await _sceneServiceContainer.readyServices();
 
     return null;
   }
@@ -209,7 +200,7 @@ class DefaultScene implements IScene, IServiceProvider {
     ISharedPreferences sharedPreferences =
         parentSite.getService('@.sharedPreferences');
     String _theme = sharedPreferences.getString(_THEME_STORE_KEY,
-        person: _principal?.person, scene: name);
+        person: principal?.person, scene: name);
     if (StringUtil.isEmpty(_theme)) {
       _theme = this._defaultTheme;
     }
@@ -229,7 +220,7 @@ class DefaultScene implements IScene, IServiceProvider {
     ISharedPreferences sharedPreferences =
         parentSite.getService('@.sharedPreferences');
     await sharedPreferences.setString(_THEME_STORE_KEY, theme,
-        person: _principal?.person, scene: name);
+        person: principal?.person, scene: name);
   }
 
   @override

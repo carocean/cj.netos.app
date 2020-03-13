@@ -37,9 +37,8 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
     var obj = {
       'official': person.official,
       'uid': '${person.uid}',
-      'accountName': person.accountName,
+      'accountName': person.accountCode,
       'appid': person.appid,
-      'tenantid': person.tenantid,
       'nickName': person.nickName,
       'pyname': person.pyname,
       'signature': person.signature,

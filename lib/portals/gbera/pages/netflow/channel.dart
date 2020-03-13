@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
@@ -10,6 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
+import 'package:netos_app/portals/gbera/pages/netflow.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -74,6 +76,7 @@ class _ChannelPageState extends State<ChannelPage> {
     var onchannel = widget.context.parameters['channel']?.id;
     IChannelMessageService messageService =
         widget.context.site.getService('/channel/messages');
+    await messageService.readAllArrivedMessage(onchannel);
     var messages = await messageService.pageMessage(limit, offset, onchannel);
     if (messages != null && !messages.isEmpty) {
       offset += messages.length;
@@ -90,7 +93,7 @@ class _ChannelPageState extends State<ChannelPage> {
   Widget build(BuildContext context) {
     var slivers = <Widget>[
       SliverToBoxAdapter(
-        child: _Header(
+        child: Header(
           context: widget.context,
           refresh: () {
             _reloadChannel();
@@ -275,18 +278,44 @@ class DialogItem extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class Header extends StatefulWidget {
   PageContext context;
   Function() refresh;
 
-  _Header({
+  Header({
     this.context,
     this.refresh,
   });
 
   @override
+  _HeaderState createState() => _HeaderState();
+}
+
+class _HeaderState extends State<Header> {
+  int _arrivedMessageCount = 0;
+  var _workingChannel;
+  @override
+  void initState() {
+     _workingChannel = widget.context.parameters['workingChannel'];
+    _workingChannel.onRefreshChannelState = () {
+      _arrivedMessageCount++;
+      setState(() {});
+    };
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    if(_workingChannel!=null) {
+      _workingChannel.onRefreshChannelState = null;
+    }
+    _arrivedMessageCount = 0;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var _channel = this.context.parameters['channel'];
+    var _channel = widget.context.parameters['channel'];
     return Container(
       alignment: Alignment.bottomLeft,
       padding: EdgeInsets.only(
@@ -298,15 +327,15 @@ class _Header extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              this.context.forward('/netflow/manager/channel_gateway',
+              widget.context.forward('/netflow/manager/channel_gateway',
                   arguments: <String, dynamic>{'channel': _channel}).then((v) {
-                if (this.refresh != null) {
-                  this.refresh();
+                if (widget.refresh != null) {
+                  widget.refresh();
                 }
               });
             },
@@ -315,12 +344,43 @@ class _Header extends StatelessWidget {
                 right: 5,
               ),
               child: Icon(
-                this.context.findPage('/netflow/manager/channel_gateway')?.icon,
+                widget.context
+                    .findPage('/netflow/manager/channel_gateway')
+                    ?.icon,
                 size: 18,
                 color: Colors.grey[600],
               ),
             ),
           ),
+          _arrivedMessageCount == 0
+              ? Container(
+                  width: 0,
+                  height: 0,
+                )
+              : GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _arrivedMessageCount = 0;
+                    if (widget.refresh != null) {
+                      widget.refresh();
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(
+                      left: 10,
+                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        text: '有$_arrivedMessageCount条新消息',
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
         ],
       ),
     );
@@ -1011,7 +1071,6 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   void initState() {
     if (widget.interactiveRegionRefreshAdapter != null) {
       widget.interactiveRegionRefreshAdapter.handler = (cause) {
-        print(cause);
         switch (cause) {
           case 'comment':
             _isShowCommentEditor = true;
@@ -1026,7 +1085,10 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   @override
   void dispose() {
     _isShowCommentEditor = false;
-    widget.interactiveRegionRefreshAdapter = null;
+    if (widget.interactiveRegionRefreshAdapter != null) {
+      widget.interactiveRegionRefreshAdapter.handler =null;
+      widget.interactiveRegionRefreshAdapter = null;
+    }
     super.dispose();
   }
 
@@ -1194,7 +1256,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPerson(like.person);
+                                          .getPerson(like.official);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

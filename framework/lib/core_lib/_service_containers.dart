@@ -5,7 +5,6 @@ import '_utimate.dart';
 class _ServiceContainer implements IServiceProvider {
   IServiceProvider parent;
   Map<String, dynamic> _services = {};
-  Map<OnReadyCallback, bool> _onReadeys = {}; //value表示是否已经ready过
   _ServiceContainer(this.parent);
 
   @override
@@ -16,27 +15,14 @@ class _ServiceContainer implements IServiceProvider {
     return parent?.getService(name);
   }
 
-  void initServices(Map<String, dynamic> services) {
+  Future<void> initServices(Map<String, dynamic> services) async{
     if (services == null) {
       return;
     }
     for (var key in services.keys) {
       var service = services[key];
       if (service is IServiceBuilder) {
-        var onReadyCallback = service.builder(this);
-        if (onReadyCallback != null) {
-          _onReadeys[onReadyCallback] = false;
-        }
-      }
-    }
-  }
-
-  Future<void> readyServices() async {
-    for (var ready in _onReadeys.keys) {
-      bool isReady = _onReadeys[ready];
-      if (!isReady) {
-        await ready();
-        _onReadeys[ready] = true;
+         await service.builder(this);
       }
     }
   }

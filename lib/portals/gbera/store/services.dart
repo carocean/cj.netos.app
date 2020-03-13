@@ -9,6 +9,8 @@ mixin IPersonService {
 
   Future<Person> getPerson(official);
 
+  Future<Person> fetchPerson(official, {bool isDownloadAvatar = false});
+
   Future<void> addPerson(Person person);
 
   Future<List<Person>> getAllPerson();
@@ -65,8 +67,6 @@ mixin IChannelService {
   Future<void> remove(String channelid);
 
   Future<void> updateName(String channelid, String name);
-
-  Future<bool> existsOrigin(String origin) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -101,6 +101,10 @@ mixin IChannelMessageService {
 
   Future<List<ChannelMessage>> pageMessageBy(
       int limit, int offset, String onchannel, String person);
+
+  Future<ChannelMessageDigest> getChannelMessageDigest(String channelid) {}
+
+  Future<void> readAllArrivedMessage(String channelid);
 }
 mixin IChannelMediaService {
   Future<void> addMedia(Media media);
@@ -188,7 +192,7 @@ mixin IFriendService {
   Future<List<Friend>> pageFriendLikeName(
       String name, List<String> officials, int limit, int offset) {}
 
-  Future<void> removeFriendById(String id) {}
+  Future<void> removeFriendByOfficial(String id) {}
 
   Future<Friend> getFriendByOfficial(String official) {}
 }

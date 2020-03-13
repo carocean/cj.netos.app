@@ -433,7 +433,7 @@ class __MessageCardState extends State<_MessageCard> {
                                       children: [
                                         TextSpan(
                                           text:
-                                              '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountName}',
+                                              '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountCode}',
                                           style: TextStyle(
                                             color: Colors.blueGrey,
                                             fontWeight: FontWeight.w600,
@@ -1051,7 +1051,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPerson(like.person);
+                                          .getPerson(like.official);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

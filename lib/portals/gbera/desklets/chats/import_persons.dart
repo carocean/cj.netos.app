@@ -52,14 +52,11 @@ class _ImportPersonsState extends State<ImportPersons> {
       }
       await friendService.addFriend(
         Friend(
-          Uuid().v1(),
           person.official,
           'person',
           person.uid,
-          person.accountid,
-          person.accountName,
+          person.accountCode,
           person.appid,
-          person.tenantid,
           person.avatar,
           person.rights,
           person.nickName,
@@ -263,7 +260,7 @@ class _PersonListState extends State<PersonList> {
                 child: Column(
                   children: <Widget>[
                     CardItem(
-                      title: person.nickName ?? person.accountName,
+                      title: person.nickName ?? person.accountCode,
                       paddingLeft: 15,
                       paddingRight: 15,
                       paddingBottom: 10,

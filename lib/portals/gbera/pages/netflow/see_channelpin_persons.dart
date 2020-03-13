@@ -68,7 +68,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
 
   @override
   Widget build(BuildContext context) {
-    var personName = '${_person.nickName ?? _person.accountName}';
+    var personName = '${_person.nickName ?? _person.accountCode}';
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -190,7 +190,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               title: personName,
               uid: '${_person.uid}',
               person:
-                  '${_person.accountName}@${_person.appid}.${_person.tenantid}',
+                 _person.official,
               signText: '${_person.signature ?? ''}',
             ),
           ),
@@ -230,7 +230,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                             text: _directionTips,
                           ),
                           TextSpan(
-                            text: '${_person.nickName ?? _person.accountName}>',
+                            text: '${_person.nickName ?? _person.accountCode}>',
                           ),
                         ],
                       ),
@@ -276,7 +276,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                               'pinType': 'downstream',
                               'channel': _channel,
                               'direction_tips':
-                                  '${_directionTips}>${_person.nickName ?? _person.accountName}>'
+                                  '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
                             }).then((obj) {});
                       },
                     ),
@@ -303,7 +303,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                               'pinType': 'downstream',
                               'channel': _channel,
                               'direction_tips':
-                              '${_directionTips}>${_person.nickName ?? _person.accountName}>'
+                              '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
                             }).then((obj) {});
                       },
                     ),
@@ -330,7 +330,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                               'pinType': 'downstream',
                               'channel': _channel,
                               'direction_tips':
-                              '${_directionTips}>${_person.nickName ?? _person.accountName}>'
+                              '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
                             }).then((obj) {});
                       },
                     ),

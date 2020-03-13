@@ -12,7 +12,7 @@ class PrincipalService implements IPrincipalService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     principalDAO = db.principalDAO;

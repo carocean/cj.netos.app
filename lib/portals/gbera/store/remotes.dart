@@ -3,8 +3,7 @@ import 'package:netos_app/system/local/entities.dart';
 
 mixin IChannelRemote {
   Future<void> createChannel(
-    String channel,
-    String origin, {
+    String channel, {
     @required String title,
     @required String leading,
 

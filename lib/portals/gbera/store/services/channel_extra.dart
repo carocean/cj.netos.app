@@ -14,7 +14,7 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site)  {
+   builder(IServiceProvider site)  {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelMediaDAO = db.channelMediaDAO;
@@ -77,7 +77,7 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
 
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelLikeDAO = db.channelLikeDAO;
@@ -126,7 +126,7 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelCommentDAO = db.channelCommentDAO;

@@ -54,13 +54,10 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                     }
                     var avatar = await downloadPersonAvatar(dio: dio,avatarUrl: obj['avatar']);
                     Person person = Person(
-                      Uuid().v1(),
                       obj['official'],
                       obj['uid'],
-                      obj['accountid'],
                       obj['accountName'],
                       obj['appid'],
-                      obj['tenantid'],
                       avatar,
                       obj['rights'],
                       obj['nickName'],
@@ -87,7 +84,6 @@ class _TestUpstreamPersonServiceState extends State<TestUpstreamPersonService> {
                       var channelid=MD5Util.generateMd5('${Uuid().v1()}');
                       Channel ch = Channel(
                         channelid,
-                        och['origin'],
                         och['name'],
                         och['owner'],
                         leading,

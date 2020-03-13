@@ -74,7 +74,7 @@ class _PersonalSiteState extends State<PersonalSite> {
   }
 
   String get personName {
-    return '${_person.nickName ?? _person.accountName}';
+    return '${_person.nickName ?? _person.accountCode}';
   }
 
   //用于测试，随时删除

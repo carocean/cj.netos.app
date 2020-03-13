@@ -33,7 +33,7 @@ mixin PersonUtil {
     if (!StringUtil.isEmpty(person.official)) {
       return person.official;
     }
-    return '${person.accountName}@${person.appid}.${person.tenantid}';
+    return '${person.accountCode}@${person.appid}.${person.tenantid}';
   }
 }
 
@@ -47,10 +47,9 @@ mixin IDisposable {
   void dispose();
 }
 
-typedef OnReadyCallback = Future<void> Function();
 
 mixin IServiceBuilder {
-  OnReadyCallback builder(IServiceProvider site);
+  Future<void> builder(IServiceProvider site);
 }
 String getPath(String url) {
   var path = '';

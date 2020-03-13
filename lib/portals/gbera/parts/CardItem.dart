@@ -8,6 +8,7 @@ class CardItem extends StatefulWidget {
   double titleSize;
   IconData tipsIconData;
   String tipsText;
+  double tipsSize;
   Widget tail;
   Widget leading;
   double paddingTop;
@@ -23,6 +24,7 @@ class CardItem extends StatefulWidget {
     this.titleSize,
     this.tipsText = '',
     this.tipsIconData,
+    this.tipsSize,
     this.tail,
     this.leading,
     this.paddingBottom,
@@ -94,7 +96,7 @@ class CardItemState extends State<CardItem> {
                               style: TextStyle(
                                 color: widget.titleColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                                fontSize: widget.titleSize??15,
                               ),
                             ),
                           ),
@@ -131,7 +133,7 @@ class CardItemState extends State<CardItem> {
                                     softWrap: true,
                                     style: TextStyle(
                                       color: Colors.grey[600],
-                                      fontSize: 12,
+                                      fontSize: widget.tipsSize??12,
                                     ),
                                     textDirection: TextDirection.rtl,
                                   ),

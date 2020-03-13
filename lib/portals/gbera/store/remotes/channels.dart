@@ -21,14 +21,13 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> createChannel(String channel, String origin,
+  Future<Function> createChannel(String channel,
       {@required String title,
       @required String leading,
       @required String outPersonSelector,
       @required bool outGeoSelector}) async {
     await remotePorts.portGET(_networkPortsUrl, 'createChannel', parameters: {
       'channel': channel,
-      'origin': origin,
       'title': title,
       'leading': leading,
       'outPersonSelector': outPersonSelector,
@@ -48,7 +47,6 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     }
     return Channel(
       map['channel'],
-      map['origin'],
       map['title'],
       map['creator'],
       map['leading'],
@@ -70,7 +68,6 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       var channelid = MD5Util.generateMd5('${Uuid().v1()}');
       channels.add(Channel(
         channelid,
-        obj['origin'],
         obj['title'],
         obj['owner'],
         obj['leading'],

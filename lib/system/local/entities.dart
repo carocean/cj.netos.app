@@ -1,16 +1,12 @@
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
 
-@entity
+@Entity(primaryKeys: ['official', 'sandbox'])
 class Person {
-  @primaryKey
-  final String id;
   final String official;
   final String uid;
-  final String accountid;
-  final String accountName;
+  final String accountCode;
   final String appid;
-  final String tenantid;
   final String avatar;
   final String rights;
   final String nickName;
@@ -18,20 +14,23 @@ class Person {
   final String pyname;
   final String sandbox;
 
-  Person(
-      this.id,
-      this.official,
-      this.uid,
-      this.accountid,
-      this.accountName,
-      this.appid,
-      this.tenantid,
-      this.avatar,
-      this.rights,
-      this.nickName,
-      this.signature,
-      this.pyname,
-      this.sandbox);
+  Person(this.official, this.uid, this.accountCode, this.appid, this.avatar,
+      this.rights, this.nickName, this.signature, this.pyname, this.sandbox);
+
+  toMap() {
+    return {
+      'official': official,
+      'uid': uid,
+      'accountCode': accountCode,
+      'appid': appid,
+      'avatar': avatar,
+      'rights': rights,
+      'nickName': nickName,
+      'signature': signature,
+      'pyname': pyname,
+      'sandbox': sandbox,
+    };
+  }
 }
 
 @entity
@@ -60,7 +59,6 @@ class MicroApp {
 @Entity(primaryKeys: ['id', 'sandbox'])
 class Channel {
   String id;
-  final String origin;
   final String name;
   final String owner;
   String leading;
@@ -68,8 +66,8 @@ class Channel {
   int ctime = DateTime.now().millisecondsSinceEpoch;
   final String sandbox;
 
-  Channel(this.id, this.origin, this.name, this.owner, this.leading, this.site,
-      this.ctime, this.sandbox);
+  Channel(this.id, this.name, this.owner, this.leading, this.site, this.ctime,
+      this.sandbox);
 }
 
 @entity
@@ -84,9 +82,6 @@ class InsiteMessage {
   final String creator;
   final int ctime;
   final int atime;
-  final int rtime;
-  final int dtime;
-  final String state;
   final String digests;
   final double wy;
   final String location;
@@ -102,14 +97,31 @@ class InsiteMessage {
     this.creator,
     this.ctime,
     this.atime,
-    this.rtime,
-    this.dtime,
-    this.state,
     this.digests,
     this.wy,
     this.location,
     this.sandbox,
   );
+
+  ChannelMessage copy() {
+    return ChannelMessage(
+      id,
+      upstreamPerson,
+      sourceSite,
+      sourceApp,
+      upstreamChannel,
+      creator,
+      ctime,
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      null,
+      digests,
+      wy,
+      location,
+      sandbox,
+    );
+  }
 }
 
 @entity
@@ -122,6 +134,10 @@ class ChannelMessage {
   final String onChannel;
   final String creator;
   final int ctime;
+   int atime;
+  int rtime;
+  int dtime;
+  String state;
   final String text;
   final double wy;
   final String location;
@@ -135,13 +151,23 @@ class ChannelMessage {
     this.onChannel,
     this.creator,
     this.ctime,
+    this.atime,
+    this.rtime,
+    this.dtime,
+    this.state,
     this.text,
     this.wy,
     this.location,
     this.sandbox,
   );
 }
+class ChannelMessageDigest{
+  String text;
 
+  int atime;
+  int count;
+  ChannelMessageDigest({this.text, this.atime,this.count});
+}
 @entity
 class LikePerson {
   @primaryKey
@@ -253,17 +279,13 @@ enum PinPersonsSettingsStrategy {
   all_except,
 }
 
-@entity
+@Entity(primaryKeys: ['official', 'sandbox'])
 class Friend {
-  @primaryKey
-  final String id;
   final String official;
   final String source;
   final String uid;
-  final String accountid;
   final String accountName;
   final String appid;
-  final String tenantid;
   final String avatar;
   final String rights;
   final String nickName;
@@ -272,14 +294,11 @@ class Friend {
   final String sandbox;
 
   Friend(
-      this.id,
       this.official,
       this.source,
       this.uid,
-      this.accountid,
       this.accountName,
       this.appid,
-      this.tenantid,
       this.avatar,
       this.rights,
       this.nickName,

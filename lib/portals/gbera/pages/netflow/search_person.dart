@@ -492,13 +492,10 @@ class _PersonCardState extends State<_PersonCard> {
     var dio = widget.context.site.getService('@.http');
 
     Person person = Person(
-        Uuid().v1(),
         _person.person,
         _person.uid,
-        _person.person,
         _person.accountCode,
         _person.appid,
-        _person.tenantid,
         await downloadPersonAvatar(
             dio: dio,
             avatarUrl:

@@ -15,7 +15,7 @@ class ChannelPinService implements IChannelPinService,IServiceBuilder {
   IChannelRemote channelRemote;
   UserPrincipal get principal => site.getService('@.principal');
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelPinDAO = db.channelPinDAO;

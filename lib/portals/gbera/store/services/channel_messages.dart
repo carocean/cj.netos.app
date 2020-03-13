@@ -8,17 +8,17 @@ import 'package:netos_app/system/local/dao/database.dart';
 import '../../../../system/local/entities.dart';
 import '../services.dart';
 
-class ChannelMessageService implements IChannelMessageService ,IServiceBuilder{
+class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   IChannelMessageDAO channelMessageDAO;
   IChannelMediaService mediaService;
   IChannelCommentService commentService;
   IChannelLikeService likeService;
   IServiceProvider site;
 
-  UserPrincipal get principal=>site.getService('@.principal');
+  UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelMessageDAO = db.channelMessageDAO;
@@ -27,17 +27,22 @@ class ChannelMessageService implements IChannelMessageService ,IServiceBuilder{
     likeService = site.getService('/channel/messages/likes');
   }
 
-
   @override
   Future<List<ChannelMessage>> pageMessageBy(
-      int limit, int offset, String onchannel, String person) async{
-    return await channelMessageDAO.pageMessageBy(onchannel,person,principal?.person,limit,offset,);
+      int limit, int offset, String onchannel, String person) async {
+    return await channelMessageDAO.pageMessageBy(
+      onchannel,
+      person,
+      principal?.person,
+      limit,
+      offset,
+    );
   }
 
   @transaction
   @override
   Future<Function> removeMessage(String id) async {
-    await channelMessageDAO.removeMessage(id,principal?.person);
+    await channelMessageDAO.removeMessage(id, principal?.person);
     List<Media> medias = await mediaService.getMedias(id);
     for (var m in medias) {
       mediaService.remove(m.id);
@@ -55,13 +60,12 @@ class ChannelMessageService implements IChannelMessageService ,IServiceBuilder{
   }
 
   @override
-  Future<Function> emptyBy(String channelcode) async{
+  Future<Function> emptyBy(String channelcode) async {
     //还要清除掉媒体文件
     await mediaService.removeBy(channelcode);
     await likeService.removeBy(channelcode);
     await commentService.removeBy(channelcode);
-    await channelMessageDAO.removeMessagesBy(channelcode,principal?.person);
-
+    await channelMessageDAO.removeMessagesBy(channelcode, principal?.person);
   }
 
   @override
@@ -70,7 +74,8 @@ class ChannelMessageService implements IChannelMessageService ,IServiceBuilder{
   @override
   Future<List<ChannelMessage>> pageMessage(
       int pageSize, int currPage, String onChannel) async {
-    return await channelMessageDAO.pageMessage(onChannel,principal?.person, pageSize, currPage);
+    return await channelMessageDAO.pageMessage(
+        onChannel, principal?.person, pageSize, currPage);
   }
 
   @override
@@ -84,4 +89,23 @@ class ChannelMessageService implements IChannelMessageService ,IServiceBuilder{
   @override
   Future<Function> empty() {}
 
+  @override
+  Future<void> readAllArrivedMessage(String channelid) async {
+    await channelMessageDAO.updateStateMessage('readed',channelid, principal.person,'arrived');
+  }
+
+  @override
+  Future<ChannelMessageDigest> getChannelMessageDigest(String channelid) async {
+    List<ChannelMessage> list =
+        await channelMessageDAO.listMessageByState(channelid, principal.person,'arrived');
+    if (list.isEmpty) {
+      return null;
+    }
+    ChannelMessage msg = list[0];
+    return ChannelMessageDigest(
+      text: msg.text,
+      atime: msg.atime,
+      count: list.length,
+    );
+  }
 }

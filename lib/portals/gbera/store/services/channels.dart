@@ -11,7 +11,7 @@ import '../services.dart';
 class ChannelService implements IChannelService, IServiceBuilder {
   ///固定管道
   final Map<String, String> _SYSTEM_CHANNELS = {
-    ///地推origin
+    ///地推id
     'geo_channel': MD5Util.generateMd5('4203EC25-1FC8-479D-A78F-74338FC7E769'),
   };
 
@@ -24,7 +24,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelDAO = db.channelDAO;
@@ -50,19 +50,17 @@ class ChannelService implements IChannelService, IServiceBuilder {
 
   @override
   Future<void> initSystemChannel(UserPrincipal user) async {
-    var _GEO_CHANNEL_ORIGIN = _SYSTEM_CHANNELS['geo_channel'];
-    if (await channelDAO.getChannelByOrigin(
-            user?.person, _GEO_CHANNEL_ORIGIN) ==
+    var _GEO_CHANNEL_ID = _SYSTEM_CHANNELS['geo_channel'];
+    if (await channelDAO.getChannel(
+            user?.person, _GEO_CHANNEL_ID) ==
         null) {
-      var channelid = MD5Util.generateMd5('${Uuid().v1()}');
-      var channel = Channel(channelid, _GEO_CHANNEL_ORIGIN, '地推', user.person,
+      var channel = Channel(_GEO_CHANNEL_ID, '地推', user.person,
           null, null, DateTime.now().millisecondsSinceEpoch, user?.person);
       await channelDAO.addChannel(channel);
-      await pinService.initChannelPin(channelid);
-      await pinService.setOutputGeoSelector(channelid, true);
+      await pinService.initChannelPin(_GEO_CHANNEL_ID);
+      await pinService.setOutputGeoSelector(_GEO_CHANNEL_ID, true);
       await channelRemote.createChannel(
         channel.id,
-        channel.origin,
         title: channel.name,
         leading: channel.leading,
         outPersonSelector: 'all_except',
@@ -112,7 +110,6 @@ class ChannelService implements IChannelService, IServiceBuilder {
     await pinService.initChannelPin(channel.id);
     await channelRemote.createChannel(
       channel.id,
-      channel.origin,
       title: channel.name,
       leading: channel.leading,
       outPersonSelector: 'all_except',
@@ -156,15 +153,6 @@ class ChannelService implements IChannelService, IServiceBuilder {
     return ch == null ? false : true;
   }
 
-  @override
-  Future<bool> existsOrigin(String origin) async {
-    return await this
-                .channelDAO
-                .getChannelByOrigin(principal?.person, origin) ==
-            null
-        ? false
-        : true;
-  }
 
   @override
   Future<void> emptyOfPerson(String personid) async {

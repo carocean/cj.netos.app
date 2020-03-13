@@ -10,12 +10,13 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_app_keypair.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/system/local/local_principals.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
-
 
 class LoginPage extends StatefulWidget {
   PageContext context;
@@ -204,7 +205,7 @@ class __PasswordPanelState extends State<_PasswordPanel> {
         context: widget.context,
         pwd: _passwordController.text,
         user: _accountController.text);
-    login.login(null,() {
+    login.login(null, () {
       _loginLabel = '登录';
       _buttonEnabled = true;
       setState(() {});
@@ -440,7 +441,7 @@ class __VerifyCodePanelState extends State<_VerifyCodePanel> {
         context: widget.context,
         pwd: _codeController.text,
         user: _phoneController.text)
-      ..login(null,() {
+      ..login(null, () {
         _loginLabel = '登录中...';
         _buttonEnabel = false;
         setState(() {});
@@ -830,7 +831,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
       pwd: _passwordController.text,
       user: principal.accountCode,
     );
-    login.login(principal.appid,() {
+    login.login(principal.appid, () {
       _loginLabel = '登录';
       _buttonEnabled = true;
       setState(() {});
@@ -845,7 +846,7 @@ class PasswordLoginAction {
 
   const PasswordLoginAction({this.user, this.pwd, this.context});
 
-  login(String appid,[callback]) async {
+  login(String appid, [callback]) async {
     int pos = user.lastIndexOf("@");
     var account = '';
     if (pos < 0) {
@@ -854,9 +855,9 @@ class PasswordLoginAction {
       account = user.substring(0, pos);
     }
     AppKeyPair appKeyPair = this.context.site.getService('@.appKeyPair');
-    var _appid=appid;
-    if(StringUtil.isEmpty(_appid)) {
-      _appid=this.context.site.getService('@.prop.entrypoint.app');
+    var _appid = appid;
+    if (StringUtil.isEmpty(_appid)) {
+      _appid = this.context.site.getService('@.prop.entrypoint.app');
     }
     appKeyPair = await appKeyPair.getAppKeyPair(_appid, this.context.site);
     var nonce = MD5Util.generateMd5(
@@ -907,7 +908,7 @@ class PasswordLoginAction {
     String localAvatarFile = await downloadPersonAvatar(
         dio: dio,
         avatarUrl: '${subject['avatar']}?accessToken=${token['accessToken']}');
-    manager.add(
+    await manager.add(
       subject['person'],
       ltime: DateTime.now().millisecondsSinceEpoch,
       expiretime: token['expireTime'],
@@ -923,10 +924,28 @@ class PasswordLoginAction {
       accountCode: subject['accountCode'],
       uid: subject['uid'],
       portal: map['portal'],
-      device: subject['device'],
+      device: token['device'],
     );
-    manager.setCurrent(subject['person']);
-    context.forward("/scaffold/withbottombar", clearHistoryByPagePath: '/',scene: 'gbera');
+    await manager.setCurrent(subject['person']);
+    IPersonService personService =
+        this.context.site.getService('/gbera/persons');
+    //下面调用的作用是：将登录号声明为公众的第一个用户缓冲起来
+    if (!(await personService.existsPerson(subject['person']))) {
+      await personService.addPerson(Person(
+        subject['person'],
+        subject['uid'],
+        subject['accountCode'],
+        subject['appid'],
+        localAvatarFile,
+        null,
+        subject['nickName'],
+        subject['signature'],
+        PinyinHelper.getPinyin(subject['nickName']),
+        subject['person'],
+      ));
+    }
+    context.forward("/scaffold/withbottombar",
+        clearHistoryByPagePath: '/', scene: 'gbera');
   }
 
   void forwardError(e) {

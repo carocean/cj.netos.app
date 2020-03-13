@@ -189,7 +189,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _loadPersons().then((persons) {
       setState(() {});
     });
-    widget.refresher.callback = () async{
+    widget.refresher.callback = () async {
       resetPersons();
       await _loadPersons();
       setState(() {});
@@ -257,9 +257,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     switch (_strategy) {
       case PinPersonsSettingsStrategy.only_select:
         pinService
-            .removeInputPerson(
-                '${person.accountName}@${person.appid}.${person.tenantid}',
-                _channel.id)
+            .removeInputPerson(person.official, _channel.id)
             .whenComplete(() {
           _persons.remove(person);
           setState(() {});
@@ -353,7 +351,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                         ),
                       ],
                       child: CardItem(
-                        title: '${p.nickName ?? p.accountName}',
+                        title: '${p.nickName ?? p.accountCode}',
                         leading: Image.file(
                           File(p.avatar),
                           width: 40,

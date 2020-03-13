@@ -37,9 +37,9 @@ abstract class IPersonDAO {
   Future<List<Person>> listPersonWith(String sandbox, List<String> officials);
 
   @Query(
-      'SELECT * FROM Person WHERE sandbox=:sandbox and accountName = :accountName and appid=:appid and tenantid=:tenantid LIMIT 1 OFFSET 0')
+      'SELECT * FROM Person WHERE sandbox=:sandbox and accountCode = :accountCode and appid=:appid and tenantid=:tenantid LIMIT 1 OFFSET 0')
   Future<Person> findPerson(
-      String sandbox, String accountName, String appid, String tenantid);
+      String sandbox, String accountCode, String appid, String tenantid);
 
   @Query(
       'SELECT * FROM Person WHERE sandbox =:sandbox and uid = :uid LIMIT 1 OFFSET 0')
@@ -51,8 +51,8 @@ abstract class IPersonDAO {
       String sandbox, int limit, int offset);
 
   @Query(
-      'SELECT *  FROM Person where sandbox=:sandbox and (accountName LIKE :accountName OR nickName LIKE :nickName OR pyname LIKE :pyname) and official NOT IN (select official from Friend) LIMIT :limit OFFSET  :offset')
-  Future<List<Person>> pagePersonLikeName(String sandbox, String accountName,
+      'SELECT *  FROM Person where sandbox=:sandbox and (accountCode LIKE :accountCode OR nickName LIKE :nickName OR pyname LIKE :pyname) and official NOT IN (select official from Friend) LIMIT :limit OFFSET  :offset')
+  Future<List<Person>> pagePersonLikeName(String sandbox, String accountCode,
       String nickName, String pyname, int limit, int offset);
 }
 
@@ -70,9 +70,6 @@ abstract class IChannelDAO {
 
   @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and id = :id')
   Future<Channel> getChannel(String sandbox, String id);
-
-  @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and origin = :origin')
-  Future<Channel> getChannelByOrigin(String sandbox, String origin);
 
   @Query('SELECT * FROM Channel where sandbox=:sandbox ORDER BY ctime DESC')
   Future<List<Channel>> getAllChannel(String sandbox);
@@ -197,6 +194,15 @@ abstract class IChannelMessageDAO {
     int limit,
     int offset,
   );
+
+  @Query(
+      'SELECT msg.*  FROM ChannelMessage msg  WHERE msg.onChannel=:channelid and msg.sandbox=:sandbox and msg.state=:state ORDER BY ctime DESC')
+  Future<List<ChannelMessage>> listMessageByState(
+      String channelid, String sandbox,String state) {}
+//
+  @Query(
+      'UPDATE ChannelMessage SET state =:updateToState  WHERE onChannel=:channelid and sandbox=:sandbox and state=:whereState')
+  Future<void> updateStateMessage(String updateToState,String channelid, String sandbox,String whereState);
 
   @Query('SELECT * FROM ChannelMessage WHERE id = :id and sandbox=:sandbox')
   Future<ChannelMessage> getMessage(String id, String sandbox);
@@ -398,10 +404,10 @@ abstract class IFriendDAO {
   Future<void> addFriend(Friend friend) {}
 
   @Query(
-      'SELECT *  FROM Friend where sandbox=:sandbox and (accountName LIKE :accountName OR nickName LIKE :nickName OR pyname LIKE :pyname) and official  NOT IN (:officials) LIMIT :limit OFFSET  :offset')
+      'SELECT *  FROM Friend where sandbox=:sandbox and (accountCode LIKE :accountCode OR nickName LIKE :nickName OR pyname LIKE :pyname) and official  NOT IN (:officials) LIMIT :limit OFFSET  :offset')
   Future<List<Friend>> pageFriendLikeName(
       String person,
-      String accountName,
+      String accountCode,
       String nickName,
       String pyname,
       List<String> officials,
@@ -412,8 +418,8 @@ abstract class IFriendDAO {
       'SELECT *  FROM Friend where sandbox=:sandbox LIMIT :limit OFFSET  :offset')
   Future<List<Friend>> pageFriend(String sandbox, int limit, int offset) {}
 
-  @Query('delete FROM Friend WHERE id = :id AND sandbox=:sandbox')
-  Future<void> removeFriendById(String id, String sandbox) {}
+  @Query('delete FROM Friend WHERE official = :official AND sandbox=:sandbox')
+  Future<void> removeFriendByOfficial(String official, String sandbox) {}
 
   @Query(
       'SELECT *  FROM Friend where sandbox=:sandbox and official=:official LIMIT 1 OFFSET  0')

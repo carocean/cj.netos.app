@@ -353,7 +353,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                     ),
                   ],
                   child: CardItem(
-                    title: '${p.nickName ?? p.accountName}',
+                    title: '${p.nickName ?? p.accountCode}',
                     leading: Image.file(
                       File(p.avatar),
                       width: 40,

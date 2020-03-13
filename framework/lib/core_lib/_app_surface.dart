@@ -24,7 +24,8 @@ import '_utimate.dart';
 
 typedef BuildRoute = ModalRoute Function(
     RouteSettings settings, Page page, IServiceProvider site);
-typedef AppDecorator = Widget Function(BuildContext, Widget,IServiceProvider site);
+typedef AppDecorator = Widget Function(
+    BuildContext, Widget, IServiceProvider site);
 typedef OnGenerateRoute = Route<dynamic> Function(RouteSettings);
 typedef OnGenerateTitle = String Function(BuildContext);
 typedef OnMessageCount = void Function(int count);
@@ -215,9 +216,9 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     _sharedPreferences = new DefaultSharedPreferences();
     await _sharedPreferences.init(_shareServiceContainer);
 
-    if(creator.appDecorator!=null) {
-      _appDecorator = (ctx,widget){
-        return creator.appDecorator(ctx,widget,_shareServiceContainer);
+    if (creator.appDecorator != null) {
+      _appDecorator = (ctx, widget) {
+        return creator.appDecorator(ctx, widget, _shareServiceContainer);
       };
     }
     var principal = UserPrincipal(manager: creator.localPrincipal);
@@ -238,13 +239,12 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       '@.pump': _pump,
       '@.logic.network.container': _logicNetworkContainer,
       '@.app.creator': creator,
-      '@.remote.ports': DefaultRemotePorts(_shareServiceContainer,_dio),
+      '@.remote.ports': DefaultRemotePorts(_shareServiceContainer, _dio),
     });
 
     await _buildExternalServices(creator.buildServices);
     await _buildSystem(creator.buildSystem);
     await _buildPortals(creator.buildPortals);
-
   }
 
   Future<void> _buildExternalServices(BuildServices buildServices) async {
@@ -257,7 +257,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       services = <String, dynamic>{};
     }
     _extenalServiceProvider.addServices(services);
-    _extenalServiceProvider.initServices(services);
+    await _extenalServiceProvider.initServices(services);
   }
 
   Future<void> _buildSystem(BuildSystem buildSystem) async {
@@ -283,8 +283,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
         : await system.builderSceneServices(_shareServiceContainer);
 
     _shareServiceContainer.addServices(shareServices);
-    _shareServiceContainer.initServices(shareServices);
-    _shareServiceContainer.readyServices();
+    await _shareServiceContainer.initServices(shareServices);
 
     await scene.init(
       defaultTheme: system.defaultTheme,
@@ -326,8 +325,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
           : await portal.builderSceneServices(_shareServiceContainer);
 
       _shareServiceContainer.addServices(shareServices);
-      _shareServiceContainer.initServices(shareServices);
-      _shareServiceContainer.readyServices();
+      await _shareServiceContainer.initServices(shareServices);
 
       await scene.init(
         defaultTheme: portal.defaultTheme,

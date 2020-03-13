@@ -181,7 +181,7 @@ class _FriendListState extends State<FriendList> {
   Future<void> _removeFriend(Friend friend) async {
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");
-    friendService.removeFriendById(friend.id);
+    friendService.removeFriendByOfficial(friend.official);
     return null;
   }
 

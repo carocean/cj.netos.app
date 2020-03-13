@@ -26,14 +26,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   Person _person;
   bool _check_rejectAllMessages = false;
   bool _check_rejectChannelMessages = false;
-  bool _isExistsOrigin = false;
+  bool _check_receive_to_channel = false;
+  bool _check_join_person = false;
 
   @override
   void initState() {
     _message = widget.context.page.parameters['message'];
     _channel = widget.context.page.parameters['channel'];
     _person = widget.context.page.parameters['person'];
-    _existsOrigin().then((v) {
+    _existsChannel().then((v) {
       setState(() {});
     });
     super.initState();
@@ -47,10 +48,11 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     super.dispose();
   }
 
-  Future<void> _existsOrigin() async {
+  Future<void> _existsChannel() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _isExistsOrigin = await channelService.existsOrigin(_channel.origin);
+    _check_receive_to_channel =
+        await channelService.existsChannel(_channel.id);
   }
 
   Future<void> _addChannel() async {
@@ -114,11 +116,17 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                   children: <Widget>[
                     Padding(
                       padding: EdgeInsets.only(right: 10),
-                      child: Image.file(
-                        File(_person.avatar),
-                        width: 40,
-                        height: 40,
-                      ),
+                      child: _person.avatar.startsWith('/')
+                          ? Image.file(
+                              File(_person.avatar),
+                              width: 40,
+                              height: 40,
+                            )
+                          : Image.network(
+                              _person.avatar,
+                              width: 40,
+                              height: 40,
+                            ),
                     ),
                     Expanded(
                       child: Column(
@@ -131,7 +139,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                               bottom: 2,
                             ),
                             child: Text(
-                              '${_person.nickName ?? _person.accountName}',
+                              '${_person.nickName ?? _person.accountCode}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -204,8 +212,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
 //                    color: Colors.white,
                     alignment: Alignment.center,
                     padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
+                      left: 10,
+                      right: 10,
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -215,13 +223,16 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                           onTap: () {
                             this._check_rejectChannelMessages =
                                 !_check_rejectChannelMessages;
+                            if (_check_rejectChannelMessages) {
+                              this._check_receive_to_channel = false;
+                            }
                             setState(() {});
                           },
                           child: CardItem(
                             paddingTop: 10,
                             paddingBottom: 10,
                             title: '仅拒收该管道消息',
-                            titleColor: Colors.grey,
+                            titleColor: Colors.black87,
                             titleSize: 12,
                             tail: !_check_rejectChannelMessages
                                 ? Icon(
@@ -246,15 +257,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                 !_check_rejectAllMessages;
                             if (_check_rejectAllMessages) {
                               this._check_rejectChannelMessages = true;
+                              this._check_receive_to_channel = false;
                             }
-
                             setState(() {});
                           },
                           child: CardItem(
                             paddingTop: 10,
                             paddingBottom: 10,
                             title: '拒收他的所有消息',
-                            titleColor: Colors.grey,
+                            titleColor: Colors.black87,
                             titleSize: 12,
                             tail: !_check_rejectAllMessages
                                 ? Icon(
@@ -269,67 +280,75 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                   ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    margin: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          _isExistsOrigin ? Colors.grey[400] : Colors.blueGrey,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          spreadRadius: 5,
-                          offset: Offset.zero,
-                          blurRadius: 3,
-                          color: Colors.grey[200],
+                        Divider(
+                          height: 1,
                         ),
-                      ],
-                    ),
-                    child: FlatButton(
-                      onPressed: _isExistsOrigin
-                          ? null
-                          : () {
-                              _addChannel().then((v) {
-                                widget.context
-                                    .backward(result: {'refresh': true});
-                              });
-                            },
-                      padding: EdgeInsets.only(
-                        left: 50,
-                        right: 50,
-                      ),
-                      child: Text.rich(
-                        TextSpan(
-                          text: _isExistsOrigin?'已加入': '加入管道',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            this._check_receive_to_channel =
+                                !_check_receive_to_channel;
+                            _check_rejectAllMessages = false;
+                            _check_rejectChannelMessages = false;
+
+                            setState(() {});
+                          },
+                          child: CardItem(
+                            paddingTop: 10,
+                            paddingBottom: 10,
+                            title: '加入管道',
+                            tipsText: '您可获得: ¥2.21',
+                            tipsSize: 10,
+                            titleColor: Colors.black87,
+                            titleSize: 12,
+                            tail: !_check_receive_to_channel
+                                ? Icon(
+                                    Icons.remove,
+                                    color: Colors.grey[400],
+                                    size: 12,
+                                  )
+                                : Icon(
+                                    Icons.check,
+                                    color: Colors.red,
+                                    size: 14,
+                                  ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    child: Text(
-                      '您可获得: ¥2.21',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                        Divider(
+                          height: 1,
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            this._check_join_person = !_check_join_person;
+                            if (_check_rejectAllMessages) {
+                              this._check_rejectAllMessages = false;
+                            }
+                            if (_check_rejectChannelMessages) {
+                              _check_rejectChannelMessages = false;
+                            }
+                            setState(() {});
+                          },
+                          child: CardItem(
+                            paddingTop: 10,
+                            paddingBottom: 10,
+                            title: '加入公众',
+                            titleColor: Colors.black87,
+                            titleSize: 12,
+                            tail: !_check_join_person
+                                ? Icon(
+                                    Icons.remove,
+                                    color: Colors.grey[400],
+                                    size: 12,
+                                  )
+                                : Icon(
+                                    Icons.check,
+                                    color: Colors.red,
+                                    size: 14,
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -390,9 +409,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                           ? AssetImage(
                               'lib/portals/gbera/images/netflow.png',
                             )
-                          : NetworkImage(
-                              '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
-                            ),
+                          : _channel?.leading.startsWith('/')
+                              ? FileImage(
+                                  File(
+                                    _channel?.leading,
+                                  ),
+                                )
+                              : NetworkImage(
+                                  '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
+                                ),
                       fit: BoxFit.cover,
                     ),
                     boxShadow: [

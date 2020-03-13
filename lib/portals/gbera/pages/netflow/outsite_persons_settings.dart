@@ -269,7 +269,7 @@ class __SelectPersonState extends State<_SelectPerson> {
           ),
           paddingBottom: 10,
           paddingTop: 10,
-          title: '${widget.person.nickName ?? widget.person.accountName}',
+          title: '${widget.person.nickName ?? widget.person.accountCode}',
           tail: _getIcon(),
           onItemTap: () {
             _doSelect();

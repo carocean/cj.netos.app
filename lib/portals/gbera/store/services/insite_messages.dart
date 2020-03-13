@@ -12,7 +12,7 @@ class InsiteMessageService implements IInsiteMessageService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     insiteMessageDAO = db.insiteMessageDAO;

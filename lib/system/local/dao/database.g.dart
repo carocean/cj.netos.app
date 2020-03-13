@@ -114,17 +114,17 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Person` (`id` TEXT, `official` TEXT, `uid` TEXT, `accountid` TEXT, `accountName` TEXT, `appid` TEXT, `tenantid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Person` (`official` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroSite` (`id` TEXT, `name` TEXT, `leading` TEXT, `desc` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `origin` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -138,7 +138,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Friend` (`id` TEXT, `official` TEXT, `source` TEXT, `uid` TEXT, `accountid` TEXT, `accountName` TEXT, `appid` TEXT, `tenantid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountName` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `code` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -378,13 +378,10 @@ class _$IPersonDAO extends IPersonDAO {
             database,
             'Person',
             (Person item) => <String, dynamic>{
-                  'id': item.id,
                   'official': item.official,
                   'uid': item.uid,
-                  'accountid': item.accountid,
-                  'accountName': item.accountName,
+                  'accountCode': item.accountCode,
                   'appid': item.appid,
-                  'tenantid': item.tenantid,
                   'avatar': item.avatar,
                   'rights': item.rights,
                   'nickName': item.nickName,
@@ -400,13 +397,10 @@ class _$IPersonDAO extends IPersonDAO {
   final QueryAdapter _queryAdapter;
 
   static final _personMapper = (Map<String, dynamic> row) => Person(
-      row['id'] as String,
       row['official'] as String,
       row['uid'] as String,
-      row['accountid'] as String,
-      row['accountName'] as String,
+      row['accountCode'] as String,
       row['appid'] as String,
-      row['tenantid'] as String,
       row['avatar'] as String,
       row['rights'] as String,
       row['nickName'] as String,
@@ -480,10 +474,10 @@ class _$IPersonDAO extends IPersonDAO {
 
   @override
   Future<Person> findPerson(
-      String sandbox, String accountName, String appid, String tenantid) async {
+      String sandbox, String accountCode, String appid, String tenantid) async {
     return _queryAdapter.query(
-        'SELECT * FROM Person WHERE sandbox=? and accountName = ? and appid=? and tenantid=? LIMIT 1 OFFSET 0',
-        arguments: <dynamic>[sandbox, accountName, appid, tenantid],
+        'SELECT * FROM Person WHERE sandbox=? and accountCode = ? and appid=? and tenantid=? LIMIT 1 OFFSET 0',
+        arguments: <dynamic>[sandbox, accountCode, appid, tenantid],
         mapper: _personMapper);
   }
 
@@ -505,13 +499,13 @@ class _$IPersonDAO extends IPersonDAO {
   }
 
   @override
-  Future<List<Person>> pagePersonLikeName(String sandbox, String accountName,
+  Future<List<Person>> pagePersonLikeName(String sandbox, String accountCode,
       String nickName, String pyname, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Person where sandbox=? and (accountName LIKE ? OR nickName LIKE ? OR pyname LIKE ?) and official NOT IN (select official from Friend) LIMIT ? OFFSET ?',
+        'SELECT * FROM Person where sandbox=? and (accountCode LIKE ? OR nickName LIKE ? OR pyname LIKE ?) and official NOT IN (select official from Friend) LIMIT ? OFFSET ?',
         arguments: <dynamic>[
           sandbox,
-          accountName,
+          accountCode,
           nickName,
           pyname,
           limit,
@@ -665,7 +659,6 @@ class _$IChannelDAO extends IChannelDAO {
             'Channel',
             (Channel item) => <String, dynamic>{
                   'id': item.id,
-                  'origin': item.origin,
                   'name': item.name,
                   'owner': item.owner,
                   'leading': item.leading,
@@ -682,7 +675,6 @@ class _$IChannelDAO extends IChannelDAO {
 
   static final _channelMapper = (Map<String, dynamic> row) => Channel(
       row['id'] as String,
-      row['origin'] as String,
       row['name'] as String,
       row['owner'] as String,
       row['leading'] as String,
@@ -713,14 +705,6 @@ class _$IChannelDAO extends IChannelDAO {
     return _queryAdapter.query(
         'SELECT * FROM Channel WHERE sandbox=? and id = ?',
         arguments: <dynamic>[sandbox, id],
-        mapper: _channelMapper);
-  }
-
-  @override
-  Future<Channel> getChannelByOrigin(String sandbox, String origin) async {
-    return _queryAdapter.query(
-        'SELECT * FROM Channel WHERE sandbox=? and origin = ?',
-        arguments: <dynamic>[sandbox, origin],
         mapper: _channelMapper);
   }
 
@@ -800,9 +784,6 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
                   'creator': item.creator,
                   'ctime': item.ctime,
                   'atime': item.atime,
-                  'rtime': item.rtime,
-                  'dtime': item.dtime,
-                  'state': item.state,
                   'digests': item.digests,
                   'wy': item.wy,
                   'location': item.location,
@@ -826,9 +807,6 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
           row['creator'] as String,
           row['ctime'] as int,
           row['atime'] as int,
-          row['rtime'] as int,
-          row['dtime'] as int,
-          row['state'] as String,
           row['digests'] as String,
           row['wy'] as double,
           row['location'] as String,
@@ -914,6 +892,10 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
                   'onChannel': item.onChannel,
                   'creator': item.creator,
                   'ctime': item.ctime,
+                  'atime': item.atime,
+                  'rtime': item.rtime,
+                  'dtime': item.dtime,
+                  'state': item.state,
                   'text': item.text,
                   'wy': item.wy,
                   'location': item.location,
@@ -935,6 +917,10 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
           row['onChannel'] as String,
           row['creator'] as String,
           row['ctime'] as int,
+          row['atime'] as int,
+          row['rtime'] as int,
+          row['dtime'] as int,
+          row['state'] as String,
           row['text'] as String,
           row['wy'] as double,
           row['location'] as String,
@@ -974,6 +960,23 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
         'SELECT msg.* FROM ChannelMessage msg WHERE msg.onChannel=? AND msg.creator=? and msg.sandbox=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
         arguments: <dynamic>[onchannel, person, sandbox, limit, offset],
         mapper: _channelMessageMapper);
+  }
+
+  @override
+  Future<List<ChannelMessage>> listMessageByState(
+      String channelid, String sandbox, String state) async {
+    return _queryAdapter.queryList(
+        'SELECT msg.* FROM ChannelMessage msg WHERE msg.onChannel=? and msg.sandbox=? and msg.state=? ORDER BY ctime DESC',
+        arguments: <dynamic>[channelid, sandbox, state],
+        mapper: _channelMessageMapper);
+  }
+
+  @override
+  Future<void> updateStateMessage(String updateToState, String channelid,
+      String sandbox, String whereState) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChannelMessage SET state =? WHERE onChannel=? and sandbox=? and state=?',
+        arguments: <dynamic>[updateToState, channelid, sandbox, whereState]);
   }
 
   @override
@@ -1527,14 +1530,11 @@ class _$IFriendDAO extends IFriendDAO {
             database,
             'Friend',
             (Friend item) => <String, dynamic>{
-                  'id': item.id,
                   'official': item.official,
                   'source': item.source,
                   'uid': item.uid,
-                  'accountid': item.accountid,
                   'accountName': item.accountName,
                   'appid': item.appid,
-                  'tenantid': item.tenantid,
                   'avatar': item.avatar,
                   'rights': item.rights,
                   'nickName': item.nickName,
@@ -1550,14 +1550,11 @@ class _$IFriendDAO extends IFriendDAO {
   final QueryAdapter _queryAdapter;
 
   static final _friendMapper = (Map<String, dynamic> row) => Friend(
-      row['id'] as String,
       row['official'] as String,
       row['source'] as String,
       row['uid'] as String,
-      row['accountid'] as String,
       row['accountName'] as String,
       row['appid'] as String,
-      row['tenantid'] as String,
       row['avatar'] as String,
       row['rights'] as String,
       row['nickName'] as String,
@@ -1578,7 +1575,7 @@ class _$IFriendDAO extends IFriendDAO {
   @override
   Future<List<Friend>> pageFriendLikeName(
       String person,
-      String accountName,
+      String accountCode,
       String nickName,
       String pyname,
       List<String> officials,
@@ -1586,10 +1583,10 @@ class _$IFriendDAO extends IFriendDAO {
       int offset) async {
     final valueList1 = officials.map((value) => "'$value'").join(', ');
     return _queryAdapter.queryList(
-        'SELECT * FROM Friend where sandbox=? and (accountName LIKE ? OR nickName LIKE ? OR pyname LIKE ?) and official NOT IN ($valueList1) LIMIT ? OFFSET ?',
+        'SELECT * FROM Friend where sandbox=? and (accountCode LIKE ? OR nickName LIKE ? OR pyname LIKE ?) and official NOT IN ($valueList1) LIMIT ? OFFSET ?',
         arguments: <dynamic>[
           person,
-          accountName,
+          accountCode,
           nickName,
           pyname,
           limit,
@@ -1607,10 +1604,10 @@ class _$IFriendDAO extends IFriendDAO {
   }
 
   @override
-  Future<void> removeFriendById(String id, String sandbox) async {
+  Future<void> removeFriendByOfficial(String official, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'delete FROM Friend WHERE id = ? AND sandbox=?',
-        arguments: <dynamic>[id, sandbox]);
+        'delete FROM Friend WHERE official = ? AND sandbox=?',
+        arguments: <dynamic>[official, sandbox]);
   }
 
   @override
@@ -1750,14 +1747,11 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
       row['sandbox'] as String);
 
   static final _friendMapper = (Map<String, dynamic> row) => Friend(
-      row['id'] as String,
       row['official'] as String,
       row['source'] as String,
       row['uid'] as String,
-      row['accountid'] as String,
       row['accountName'] as String,
       row['appid'] as String,
-      row['tenantid'] as String,
       row['avatar'] as String,
       row['rights'] as String,
       row['nickName'] as String,

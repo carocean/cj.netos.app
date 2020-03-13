@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/remote/persons.dart';
 import 'package:uuid/uuid.dart';
 import 'dao/daos.dart';
@@ -22,12 +23,15 @@ class PersonService implements IPersonService, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
   IPersonRemote personRemote;
+  IPersonCache personCache;
+
   @override
-  OnReadyCallback builder(IServiceProvider site) {
+   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     personDAO = db.upstreamPersonDAO;
     personRemote = site.getService('/remote/persons');
+    personCache = site.getService('/cache/persons');
     return null;
   }
 
@@ -39,15 +43,18 @@ class PersonService implements IPersonService, IServiceBuilder {
 
   @override
   Future<Person> getPerson(official) async {
-    var person = await this.personDAO.getPerson(official, principal?.person);
+    Person person = await this.personDAO.getPerson(official, principal?.person);
     if (person == null) {
-      person = await _fetchPerson(official);
-      await addPerson(person);
+      person = await personCache.get(official);
+      if (person == null) {
+        person = await fetchPerson(official);
+      }
     }
     return person;
   }
 
-  Future<Person> _fetchPerson(official) async {
+  @override
+  Future<Person> fetchPerson(official, {bool isDownloadAvatar = false}) async {
     var response = await _dio.get(
       _personUrl,
       options: Options(
@@ -70,18 +77,15 @@ class PersonService implements IPersonService, IServiceBuilder {
     }
     var dataText = content['dataText'];
     var obj = jsonDecode(dataText);
-    var lavatar = await downloadPersonAvatar(
-        dio: _dio, avatarUrl: '${obj['avatar']}?accessToken=${principal.accessToken}');
-    var pos=official.lastIndexOf('.');
-    String tenantid=official.substring(pos+1);
+    var lavatar = '${obj['avatar']}?accessToken=${principal.accessToken}';
+    if (isDownloadAvatar) {
+      lavatar = await downloadPersonAvatar(dio: _dio, avatarUrl: lavatar);
+    }
     return Person(
-      Uuid().v1(),
       obj['person'],
       obj['uid'],
-      obj['person'],
       obj['accountCode'],
       obj['appid'],
-      tenantid,
       lavatar,
       null,
       obj['nickName'],
