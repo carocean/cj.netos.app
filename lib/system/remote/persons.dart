@@ -9,6 +9,7 @@ mixin IPersonRemote {
   Future<void> addPerson(Person person) {}
 
   Future<void> removePerson(String person) {}
+
 }
 
 class PersonRemote implements IPersonRemote, IServiceBuilder {
@@ -75,4 +76,5 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
     );
     return null;
   }
+
 }

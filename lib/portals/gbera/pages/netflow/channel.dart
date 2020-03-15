@@ -294,9 +294,10 @@ class Header extends StatefulWidget {
 class _HeaderState extends State<Header> {
   int _arrivedMessageCount = 0;
   var _workingChannel;
+
   @override
   void initState() {
-     _workingChannel = widget.context.parameters['workingChannel'];
+    _workingChannel = widget.context.parameters['workingChannel'];
     _workingChannel.onRefreshChannelState = () {
       _arrivedMessageCount++;
       setState(() {});
@@ -306,7 +307,7 @@ class _HeaderState extends State<Header> {
 
   @override
   void dispose() {
-    if(_workingChannel!=null) {
+    if (_workingChannel != null) {
       _workingChannel.onRefreshChannelState = null;
     }
     _arrivedMessageCount = 0;
@@ -919,7 +920,80 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
           print('${snapshot.error}');
         }
         var rights = snapshot.data;
-
+        var actions = <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(
+                  right: 2,
+                ),
+                child: Icon(
+                  FontAwesomeIcons.thumbsUp,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                rights['isLiked'] ? '取消点赞' : '点赞',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(
+                  right: 2,
+                  top: 2,
+                ),
+                child: Icon(
+                  Icons.comment,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '评论',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ];
+        if (rights['canDelete']) {
+          actions.add(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 2,
+                    top: 1,
+                  ),
+                  child: Icon(
+                    Icons.remove,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '删除',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         return Padding(
           padding: EdgeInsets.only(
             top: 4,
@@ -933,81 +1007,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ),
               size: 22,
             ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.thumbsUp,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    rights['isLiked'] ? '取消点赞' : '点赞',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                      top: 2,
-                    ),
-                    child: Icon(
-                      Icons.comment,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    '评论',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              rights['canDelete']
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 2,
-                            top: 1,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                        Text(
-                          '删除',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      width: 0,
-                      height: 0,
-                    ),
-            ],
+            actions: actions,
             pressType: PressType.singleClick,
             onValueChanged: (index) {
               switch (index) {
@@ -1086,7 +1086,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   void dispose() {
     _isShowCommentEditor = false;
     if (widget.interactiveRegionRefreshAdapter != null) {
-      widget.interactiveRegionRefreshAdapter.handler =null;
+      widget.interactiveRegionRefreshAdapter.handler = null;
       widget.interactiveRegionRefreshAdapter = null;
     }
     super.dispose();

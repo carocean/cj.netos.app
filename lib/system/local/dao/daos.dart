@@ -54,6 +54,10 @@ abstract class IPersonDAO {
       'SELECT *  FROM Person where sandbox=:sandbox and (accountCode LIKE :accountCode OR nickName LIKE :nickName OR pyname LIKE :pyname) and official NOT IN (select official from Friend) LIMIT :limit OFFSET  :offset')
   Future<List<Person>> pagePersonLikeName(String sandbox, String accountCode,
       String nickName, String pyname, int limit, int offset);
+
+  @Query(
+      'UPDATE Person SET rights = :rights WHERE sandbox=:sandbox and official=:official')
+  Future<void> updateRights(String rights, String sandbox, String official) {}
 }
 
 @dao
@@ -110,6 +114,11 @@ abstract class IInsiteMessageDAO {
       String sandbox, int pageSize, int currPage);
 
   @Query(
+      'SELECT *  FROM InsiteMessage where upstreamChannel=:channelid and sandbox=:sandbox ORDER BY atime DESC , ctime ASC')
+  Future<List<InsiteMessage>> getMessageByChannel(
+      String channelid, String sandbox) {}
+
+  @Query(
       'SELECT *  FROM InsiteMessage where sandbox=:sandbox  AND creator!=:creator ORDER BY atime DESC , ctime ASC LIMIT :pageSize OFFSET :currPage')
   Future<List<InsiteMessage>> pageMessageNotMine(
       String sandbox, String creator, int limit, int offset) {}
@@ -127,6 +136,10 @@ abstract class IInsiteMessageDAO {
 
   @Query('delete FROM InsiteMessage where sandbox=:sandbox')
   Future<void> empty(String sandbox);
+
+  @Query(
+      'delete FROM InsiteMessage where sandbox=:sandbox and upstreamChannel=:upstreamChannel')
+  Future<void> emptyChannel(String sandbox, upstreamChannel) {}
 }
 
 @dao
@@ -198,11 +211,13 @@ abstract class IChannelMessageDAO {
   @Query(
       'SELECT msg.*  FROM ChannelMessage msg  WHERE msg.onChannel=:channelid and msg.sandbox=:sandbox and msg.state=:state ORDER BY ctime DESC')
   Future<List<ChannelMessage>> listMessageByState(
-      String channelid, String sandbox,String state) {}
+      String channelid, String sandbox, String state) {}
+
 //
   @Query(
       'UPDATE ChannelMessage SET state =:updateToState  WHERE onChannel=:channelid and sandbox=:sandbox and state=:whereState')
-  Future<void> updateStateMessage(String updateToState,String channelid, String sandbox,String whereState);
+  Future<void> updateStateMessage(String updateToState, String channelid,
+      String sandbox, String whereState);
 
   @Query('SELECT * FROM ChannelMessage WHERE id = :id and sandbox=:sandbox')
   Future<ChannelMessage> getMessage(String id, String sandbox);

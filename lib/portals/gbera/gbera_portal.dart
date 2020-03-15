@@ -41,6 +41,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel_qrcode.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_rename.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channels_of_user.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/create_channel.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/document_path.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_approval.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_messages.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_persons.dart';
@@ -67,6 +68,7 @@ import 'package:netos_app/portals/gbera/pages/site/friend_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/insite_request.dart';
 import 'package:netos_app/portals/gbera/pages/site/marchant_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/micro_app.dart';
+import 'package:netos_app/portals/gbera/pages/site/person_rights.dart';
 import 'package:netos_app/portals/gbera/pages/site/personal_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/site_channelsite.dart';
 import 'package:netos_app/portals/gbera/pages/system/about.dart';
@@ -524,6 +526,16 @@ class GberaPortal {
           ),
         ),
         Page(
+          title: '公众网流权限',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/site/personal/rights',
+          buildPage: (PageContext pageContext) => PersonRights(
+            context: pageContext,
+          ),
+        ),
+        Page(
           title: '朋友站点',
           subtitle: '',
           desc: '',
@@ -570,6 +582,16 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/netflow/activies/channels',
           buildPage: (PageContext pageContext) => ActivitiesChannels(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '文档传播路径',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/document/path',
+          buildPage: (PageContext pageContext) => DocumentPath(
             context: pageContext,
           ),
         ),

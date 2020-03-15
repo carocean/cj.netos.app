@@ -7,11 +7,11 @@ import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/remote/persons.dart';
-import 'package:uuid/uuid.dart';
+
+import '../../portals/gbera/store/services.dart';
 import 'dao/daos.dart';
 import 'dao/database.dart';
 import 'entities.dart';
-import '../../portals/gbera/store/services.dart';
 
 class PersonService implements IPersonService, IServiceBuilder {
   IPersonDAO personDAO;
@@ -26,7 +26,7 @@ class PersonService implements IPersonService, IServiceBuilder {
   IPersonCache personCache;
 
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     personDAO = db.upstreamPersonDAO;
@@ -42,15 +42,20 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
-  Future<Person> getPerson(official) async {
+  Future<Person> getPerson(official,{bool isDownloadAvatar = false}) async {
     Person person = await this.personDAO.getPerson(official, principal?.person);
     if (person == null) {
       person = await personCache.get(official);
       if (person == null) {
-        person = await fetchPerson(official);
+        person = await fetchPerson(official,isDownloadAvatar: isDownloadAvatar);
       }
     }
     return person;
+  }
+
+  @override
+  Future<Function> updateRights(String official, rights) async {
+    await personDAO.updateRights(rights, principal.person, official);
   }
 
   @override

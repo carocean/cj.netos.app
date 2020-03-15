@@ -24,6 +24,16 @@ class InsiteMessageService implements IInsiteMessageService, IServiceBuilder {
   }
 
   @override
+  Future<Function> emptyChannel(channel) async{
+    await insiteMessageDAO.emptyChannel(principal?.person,channel);
+  }
+
+  @override
+  Future<Function> remove(String msgid) async{
+    await insiteMessageDAO.removeMessage(msgid, principal.person);
+  }
+
+  @override
   Future<List<InsiteMessage>> getAllMessage() async {
     return await insiteMessageDAO.getAllMessage(principal?.person);
   }
@@ -47,6 +57,11 @@ class InsiteMessageService implements IInsiteMessageService, IServiceBuilder {
       default:
         return <InsiteMessage>[];
     }
+  }
+
+  @override
+  Future<List<InsiteMessage>> getMessageByChannel(String channelid) async{
+    return await insiteMessageDAO.getMessageByChannel(channelid,principal.person);
   }
 
   @override

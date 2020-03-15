@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 
@@ -41,7 +43,9 @@ class _PersonalSiteState extends State<PersonalSite> {
   bool showOnAppbar = false;
   var _controller;
   Person _person;
-  List<Channel> _myChannels = [];
+  List<Channel> _linkedChannels = [];
+  List<CachedChannel> _cachedChannels = [];
+  List<Channel> _otherChannels = [];
 
   @override
   void initState() {
@@ -55,33 +59,32 @@ class _PersonalSiteState extends State<PersonalSite> {
 
   @override
   void dispose() {
-    this._myChannels.clear();
+    this._linkedChannels.clear();
+    this._cachedChannels.clear();
+    this._otherChannels.clear();
     this.showOnAppbar = false;
     this._person = null;
     super.dispose();
   }
 
   _load() async {
-    if (_person == null) {
-      await _test();
-    }
-
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _myChannels = await channelService.getChannelsOfPerson(_person.official);
+    _linkedChannels =
+        await channelService.getChannelsOfPerson(_person.official);
+
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    _cachedChannels = await channelCache.listAll(_person.official);
+
+    _otherChannels =
+        await channelService.fetchChannelsOfPerson(_person.official);
 
     setState(() {});
   }
 
   String get personName {
     return '${_person.nickName ?? _person.accountCode}';
-  }
-
-  //用于测试，随时删除
-  Future<void> _test() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    _person = await personService.getPersonByUID('0020011912411634');
   }
 
   _removePerson() async {
@@ -202,6 +205,8 @@ class _PersonalSiteState extends State<PersonalSite> {
                     widget.context.forward('/site/personal/profile');
                     break;
                   case 'go_rights':
+                    widget.context.forward('/site/personal/rights',
+                        arguments: {'person': _person});
                     break;
                   case 'delete':
                     _removePerson();
@@ -253,7 +258,7 @@ class _PersonalSiteState extends State<PersonalSite> {
             ),
           ),
           SliverToBoxAdapter(
-            child: _Body(
+            child: _Card(
               channelItems: [
                 _ChannelItemInfo(
                   title: '兰州拉面馆',
@@ -312,31 +317,21 @@ class _PersonalSiteState extends State<PersonalSite> {
                 physics: NeverScrollableScrollPhysics(),
                 children: <Widget>[
                   Container(
-                    child: _Body(
-                      channelItems: [
-                        _ChannelItemInfo(
-                          title: '全部管道',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text.rich(
                           TextSpan(
-                            text: '已加管道',
+                            text: '已连接管道',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 14,
                             ),
                             children: [
                               TextSpan(
-                                text: _myChannels.isEmpty
+                                text: _linkedChannels.isEmpty
                                     ? '(无)'
-                                    : '(${_myChannels.length}个)',
+                                    : '(${_linkedChannels.length}个)',
                                 style: TextStyle(
                                   color: Colors.grey[400],
                                 ),
@@ -357,15 +352,130 @@ class _PersonalSiteState extends State<PersonalSite> {
                     padding: EdgeInsets.only(
                       left: 30,
                     ),
-                    child: _Body(
-                      channelItems: _myChannels.map((channel) {
+                    child: _Card(
+                      context: widget.context,
+                      channelItems: _linkedChannels.map((channel) {
                         return _ChannelItemInfo(
                           title: '${channel.name}',
                           leading: channel.leading,
                           onTap: () {
                             widget.context.forward('/netflow/portal/channel',
                                 arguments: <String, Object>{
-                                  'channel': channel
+                                  'channel': channel,
+                                  'owner':_person.official,
+                                });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text.rich(
+                          TextSpan(
+                            text: '已缓存管道',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: _cachedChannels.isEmpty
+                                    ? '(无)'
+                                    : '(${_cachedChannels.length}个)',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      top: 20,
+                      bottom: 20,
+                      right: 20,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 30,
+                    ),
+                    child: _Card(
+                      context: widget.context,
+                      channelItems: _cachedChannels.map((channel) {
+                        print(channel.rights);
+                        return _ChannelItemInfo(
+                          channel: channel.id,
+                          title: '${channel.name}',
+                          leading: channel.leading,
+                          canSwipe: true,
+                          rights: channel.rights,
+                          tips: channel.rights == 'denyInsite'
+                              ? '已拒收取该管道消息，左滑以开通'
+                              : '',
+                          onTap: () {
+                            widget.context.forward('/netflow/portal/channel',
+                                arguments: <String, Object>{
+                                  'channel': channel.toChannel(),
+                                  'owner':_person.official,
+                                });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text.rich(
+                          TextSpan(
+                            text: '其它管道',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: _otherChannels.isEmpty
+                                    ? '(无)'
+                                    : '(${_otherChannels.length}个)',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      top: 20,
+                      bottom: 20,
+                      right: 20,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 30,
+                    ),
+                    child: _Card(
+                      context: widget.context,
+                      channelItems: _otherChannels.map((channel) {
+                        return _ChannelItemInfo(
+                          title: '${channel.name}',
+                          leading: channel.leading,
+                          onTap: () {
+                            widget.context.forward('/netflow/portal/channel',
+                                arguments: <String, Object>{
+                                  'channel': channel,
+                                  'owner':_person.official,
                                 });
                           },
                         );
@@ -616,42 +726,146 @@ class __HeaderState extends State<_Header> {
 class _ChannelItemInfo {
   String leading;
   String title;
+  String tips;
   List images;
+  bool canSwipe;
+  String channel;
+  String rights;
   Function() onTap;
 
-  _ChannelItemInfo({this.title, this.leading, this.images, this.onTap}) {
+  _ChannelItemInfo(
+      {this.title,
+      this.tips,
+      this.channel,
+      this.rights,
+      this.canSwipe = false,
+      this.leading,
+      this.images,
+      this.onTap}) {
     if (this.images == null) {
       this.images = [];
     }
   }
 }
 
-class _Body extends StatefulWidget {
+class _Card extends StatefulWidget {
+  PageContext context;
   List<_ChannelItemInfo> channelItems;
 
-  _Body({this.channelItems});
+  _Card({this.channelItems, this.context});
 
   @override
-  __BodyState createState() => __BodyState();
+  _CardState createState() => _CardState();
 }
 
-class __BodyState extends State<_Body> {
+class _CardState extends State<_Card> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _allowInsite(channel) async {
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    await channelCache.updateRights(channel, '');
+  }
+
+  Future<void> _removeCacheChannel(channel) async {
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    await channelCache.remove(channel);
+  }
+
+  Future<void> _emptyCacheChannel(channel) async {
+    IInsiteMessageService insiteMessageService =
+        widget.context.site.getService('/insite/messages');
+    await insiteMessageService.emptyChannel(channel);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
       child: Column(
         children: widget.channelItems.map((value) {
+          var actions = <Widget>[
+            IconSlideAction(
+              caption: '删除',
+              foregroundColor: Colors.grey[600],
+              icon: Icons.delete,
+              closeOnTap: true,
+              onTap: () {
+                _removeCacheChannel(value.channel).then((v) {
+                  for (int i = 0; i < widget.channelItems.length; i++) {
+                    var item = widget.channelItems[i];
+                    if (item.channel == value.channel) {
+                      widget.channelItems.removeAt(i);
+                    }
+                  }
+                  setState(() {});
+                });
+              },
+            ),
+            IconSlideAction(
+              caption: '清空消息',
+              foregroundColor: Colors.grey[600],
+              icon: Icons.delete_sweep,
+              closeOnTap: true,
+              onTap: () {
+                _emptyCacheChannel(value.channel).then((v) {
+                  setState(() {});
+                });
+              },
+            ),
+          ];
+          if (value.rights == 'denyInsite') {
+            actions.add(
+              IconSlideAction(
+                caption: '不再拒收',
+                foregroundColor: Colors.red,
+                icon: Icons.check,
+                closeOnTap: true,
+                onTap: () {
+                  _allowInsite(value.channel).then((v) {
+                    value.rights = '';
+                    value.tips = '';
+                    setState(() {});
+                  });
+                },
+              ),
+            );
+          }
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: value.onTap,
             child: Column(
               children: <Widget>[
-                _ChannelItem(
-                  title: value.title,
-                  images: value.images,
-                  avatar: value.leading,
-                ),
+                value.canSwipe
+                    ? Slidable(
+                        child: _ChannelItem(
+                          title: value.title,
+                          tips: value.tips,
+                          images: value.images,
+                          avatar: value.leading,
+                          context: widget.context,
+                        ),
+                        actionPane: SlidableDrawerActionPane(),
+                        secondaryActions: actions,
+                      )
+                    : _ChannelItem(
+                        title: value.title,
+                        tips: value.tips,
+                        images: value.images,
+                        avatar: value.leading,
+                        context: widget.context,
+                      ),
                 Divider(
                   height: 1,
                   indent: 20,
@@ -666,11 +880,15 @@ class __BodyState extends State<_Body> {
 }
 
 class _ChannelItem extends StatefulWidget {
+  PageContext context;
   List images = [];
   String title;
+  String tips;
   String avatar;
 
   _ChannelItem({
+    this.context,
+    this.tips,
     this.title = '',
     this.images,
     this.avatar,
@@ -702,12 +920,26 @@ class __ChannelItemState extends State<_ChannelItem> {
                   padding: EdgeInsets.only(
                     right: 10,
                   ),
-                  child: Image.file(
-                    File(widget.avatar),
-                    fit: BoxFit.fitWidth,
-                    height: 30,
-                    width: 30,
-                  ),
+                  child: StringUtil.isEmpty(widget.avatar)
+                      ? Image.asset(
+                          'lib/portals/gbera/images/netflow.png',
+                          fit: BoxFit.cover,
+                          height: 30,
+                          width: 30,
+                        )
+                      : widget.avatar.startsWith('/')
+                          ? Image.file(
+                              File(widget.avatar),
+                              fit: BoxFit.fitWidth,
+                              height: 30,
+                              width: 30,
+                            )
+                          : Image.network(
+                              '${widget.avatar}?accessToken=${widget.context.principal.accessToken}',
+                              fit: BoxFit.fitWidth,
+                              height: 30,
+                              width: 30,
+                            ),
                 ),
           Container(
             padding: EdgeInsets.only(
@@ -727,21 +959,15 @@ class __ChannelItemState extends State<_ChannelItem> {
                 Expanded(
                   child: Wrap(
                     textDirection: TextDirection.rtl,
-                    children: widget.images.map((value) {
-                      return Padding(
-                        padding: EdgeInsets.all(4),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(3),
-                          ),
-                          child: Image.network(
-                            value,
-                            width: 40,
-                            height: 40,
-                          ),
+                    children: [
+                      Text(
+                        '${widget.tips ?? ''}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(

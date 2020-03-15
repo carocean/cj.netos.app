@@ -57,6 +57,60 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<Person>> pageOutputPersonOf(
+      String channel, String person, int limit, int offset) async {
+    List list = await remotePorts
+        .portGET(_networkPortsUrl, 'pageOutputPersonOf', parameters: {
+      'channel': channel,
+      'person': person,
+      'limit': limit,
+      'offset': offset,
+    });
+    var persons = <Person>[];
+    for (var obj in list) {
+      persons.add(
+        Person(
+          obj['person'],
+          obj['uid'],
+          obj['accountCode'],
+          obj['appid'],
+          obj['avatar'],
+          obj['rights'],
+          obj['nickName'],
+          obj['signature'],
+          obj['pyname'],
+          principal.person,
+        ),
+      );
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<Channel>> fetchChannelsOfPerson(String official) async {
+    List<dynamic> list = await remotePorts
+        .portGET(_networkPortsUrl, 'listPersonChannels', parameters: {
+      'person': official,
+    });
+    if (list == null) {
+      return null;
+    }
+    List<Channel> channels = [];
+    for (var map in list) {
+      channels.add(Channel(
+        map['channel'],
+        map['title'],
+        map['creator'],
+        map['leading'],
+        map['site'],
+        map['ctime'],
+        principal.person,
+      ));
+    }
+    return channels;
+  }
+
+  @override
   Future<List<Channel>> pageChannel({int limit = 20, int offset = 0}) async {
     var list =
         await remotePorts.portGET(_networkPortsUrl, 'pageChannel', parameters: {

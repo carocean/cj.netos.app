@@ -368,9 +368,10 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                             'direction_tips':
                                 '${widget.context.principal.nickName}>'
                           }).then((obj) {
-                        if (resetPersons != null) {
-                          resetPersons();
-                        }
+//                        if (resetPersons != null) {
+//                          resetPersons();
+//                        }
+                        setState(() {});
                       });
                     },
                   ),

@@ -31,4 +31,10 @@ mixin IChannelRemote {
   Future<void> addOutputPerson(String person, String channel) {}
 
   Future<Channel> findChannelOfPerson(String channel, String person) {}
+
+  Future<List<Channel>> fetchChannelsOfPerson(String official) {}
+
+  Future<List<Person>> pageOutputPersonOf( String channel, String person, int limit, int offset) {}
+
+
 }

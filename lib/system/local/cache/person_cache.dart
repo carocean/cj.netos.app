@@ -46,7 +46,7 @@ class PersonCache implements IPersonCache, IServiceBuilder {
       return null;
     }
     return Person(
-      obj['person'],
+      obj['official'],
       obj['uid'],
       obj['accountCode'],
       obj['appid'],

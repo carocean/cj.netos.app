@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 import 'package:uuid/uuid.dart';
@@ -20,17 +21,19 @@ class ChannelService implements IChannelService, IServiceBuilder {
   IChannelPinService pinService;
   IServiceProvider site;
   IChannelRemote channelRemote;
+  IChannelCache channelCache;
 
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelDAO = db.channelDAO;
     messageService = site.getService('/channel/messages');
     pinService = site.getService('/channel/pin');
     channelRemote = site.getService('/remote/channels');
+    channelCache = site.getService('/cache/channels');
   }
 
   @override
@@ -51,11 +54,9 @@ class ChannelService implements IChannelService, IServiceBuilder {
   @override
   Future<void> initSystemChannel(UserPrincipal user) async {
     var _GEO_CHANNEL_ID = _SYSTEM_CHANNELS['geo_channel'];
-    if (await channelDAO.getChannel(
-            user?.person, _GEO_CHANNEL_ID) ==
-        null) {
-      var channel = Channel(_GEO_CHANNEL_ID, '地推', user.person,
-          null, null, DateTime.now().millisecondsSinceEpoch, user?.person);
+    if (await channelDAO.getChannel(user?.person, _GEO_CHANNEL_ID) == null) {
+      var channel = Channel(_GEO_CHANNEL_ID, '地推', user.person, null, null,
+          DateTime.now().millisecondsSinceEpoch, user?.person);
       await channelDAO.addChannel(channel);
       await pinService.initChannelPin(_GEO_CHANNEL_ID);
       await pinService.setOutputGeoSelector(_GEO_CHANNEL_ID, true);
@@ -127,16 +128,47 @@ class ChannelService implements IChannelService, IServiceBuilder {
 
   @override
   Future<Channel> getChannel(String channelid) async {
-    return await this.channelDAO.getChannel(principal?.person, channelid);
+    var channel =
+        await this.channelDAO.getChannel(principal?.person, channelid);
+    if (channel == null) {
+      var cachedchannel = await channelCache.get(channelid);
+      if (cachedchannel != null) {
+        channel = cachedchannel.toChannel();
+      }
+    }
+    return channel;
   }
 
   @override
   Future<Channel> findChannelOfPerson(String channelid, String person) async {
     Channel channel = await getChannel(channelid);
     if (channel == null) {
-      channel = await this.channelRemote.findChannelOfPerson(channelid, person);
+      var cachedchannel = await channelCache.get(channelid);
+      if (cachedchannel != null) {
+        channel = cachedchannel.toChannel();
+      }
+      if (channel == null) {
+        channel = await this.fetchChannelOfPerson(channelid, person);
+      }
     }
     return channel;
+  }
+
+  @override
+  Future<Channel> fetchChannelOfPerson(String channelid, String person) async {
+    Channel channel =
+        await this.channelRemote.findChannelOfPerson(channelid, person);
+    return channel;
+  }
+
+  @override
+  Future<List<Person>> pageOutputPersonOf( String channel, String person, int limit, int offset)async {
+    return  await this.channelRemote.pageOutputPersonOf(channel, person,limit,offset);
+  }
+
+  @override
+  Future<List<Channel>> fetchChannelsOfPerson(String official) async {
+    return await this.channelRemote.fetchChannelsOfPerson(official);
   }
 
   @override
@@ -152,7 +184,6 @@ class ChannelService implements IChannelService, IServiceBuilder {
     var ch = await this.channelDAO.getChannel(principal?.person, channelid);
     return ch == null ? false : true;
   }
-
 
   @override
   Future<void> emptyOfPerson(String personid) async {

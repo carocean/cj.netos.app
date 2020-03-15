@@ -7,6 +7,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/remote/persons.dart';
 
 class SeeChannelPinPersons extends StatefulWidget {
   PageContext context;
@@ -43,6 +44,9 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
   String _pinType;
   Channel _channel;
   String _directionTips;
+  int _limit = 10;
+  int _offset = 0;
+  List<Person> _outPersons = [];
 
   @override
   void initState() {
@@ -53,18 +57,30 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
     _person = widget.context.parameters['person'];
     _pinType = widget.context.parameters['pinType'];
     _directionTips = widget.context.parameters['direction_tips'];
-    _load();
+    _load().then((v) {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _outPersons.clear();
     this.showOnAppbar = false;
     this._person = null;
     this._pinType = null;
     super.dispose();
   }
 
-  void _load() async {}
+  Future<void> _load() async {
+    var at=widget.context.principal.accessToken;
+    print(at);
+    print(_channel.id);
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    var persons = await channelService.pageOutputPersonOf(
+        _channel.id, _person.official, _limit, _offset);
+    _outPersons = persons;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +109,6 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                   builder: (ctx) {
                     return CupertinoActionSheet(
                       actions: <Widget>[
-
                         CupertinoActionSheetAction(
                           child: Text(
                             '更多他的资料',
@@ -139,7 +154,6 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                             );
                           },
                         ),
-
                       ],
                       cancelButton: FlatButton(
                         child: Text(
@@ -189,8 +203,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               imgSrc: _person.avatar,
               title: personName,
               uid: '${_person.uid}',
-              person:
-                 _person.official,
+              person: _person.official,
               signText: '${_person.signature ?? ''}',
             ),
           ),
@@ -256,85 +269,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                 child: ListView(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  children: <Widget>[
-                    CardItem(
-                      leading: Image.network(
-                        'http://47.105.165.186:7100/public/avatar/06aa9aeb1ece0f4bc63a664ddef0404a.jpg',
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.fitWidth,
-                      ),
-                      title: '万年一梦于',
-                      onItemTap: () {
-                        IPersonService personService =
-                            widget.context.site.getService('/gbera/persons');
-//                        personService.getPerson(id)//求当前项的person对象，传给see_persons
-                        widget.context.forward(
-                            '/netflow/channel/pin/see_persons',
-                            arguments: {
-                              'person': _person,
-                              'pinType': 'downstream',
-                              'channel': _channel,
-                              'direction_tips':
-                                  '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
-                            }).then((obj) {});
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 40,
-                    ),
-                    CardItem(
-                      leading: Image.network(
-                        'http://47.105.165.186:7100/public/avatar/341d5e0f2d4fbd21ff5a2acafcf44cdb.jpg',
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.fitWidth,
-                      ),
-                      title: '李小姐',
-                      onItemTap: () {
-                        IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-//                        personService.getPerson(id)//求当前项的person对象，传给see_persons
-                        widget.context.forward(
-                            '/netflow/channel/pin/see_persons',
-                            arguments: {
-                              'person': _person,
-                              'pinType': 'downstream',
-                              'channel': _channel,
-                              'direction_tips':
-                              '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
-                            }).then((obj) {});
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 40,
-                    ),
-                    CardItem(
-                      leading: Image.network(
-                        'http://47.105.165.186:7100/public/avatar/4b456c8abe0df947d351503b1219611c.jpg',
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.fitWidth,
-                      ),
-                      title: '虎妞',
-                      onItemTap: () {
-                        IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-//                        personService.getPerson(id)//求当前项的person对象，传给see_persons
-                        widget.context.forward(
-                            '/netflow/channel/pin/see_persons',
-                            arguments: {
-                              'person': _person,
-                              'pinType': 'downstream',
-                              'channel': _channel,
-                              'direction_tips':
-                              '${_directionTips}>${_person.nickName ?? _person.accountCode}>'
-                            }).then((obj) {});
-                      },
-                    ),
-                  ],
+                  children: _renderPersons(),
                 ),
               ),
             ),
@@ -342,6 +277,45 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
         ],
       ),
     );
+  }
+
+  _renderPersons() {
+    var divider = Divider(
+      height: 1,
+      indent: 40,
+    );
+    var items = <Widget>[];
+    for (int i = 0; i < _outPersons.length; i++) {
+      var p = _outPersons[i];
+      items.add(
+        CardItem(
+          leading: Image.network(
+            '${p.avatar}?accessToken=${widget.context.principal.accessToken}',
+            width: 40,
+            height: 40,
+            fit: BoxFit.fitWidth,
+          ),
+          title: '${p.nickName ?? ''}',
+          onItemTap: () {
+            IPersonService personService =
+                widget.context.site.getService('/gbera/persons');
+//                        personService.getPerson(id)//求当前项的person对象，传给see_persons
+            widget.context
+                .forward('/netflow/channel/pin/see_persons', arguments: {
+              'person': p,
+              'pinType': _pinType,
+              'channel': _channel,
+              'direction_tips':
+                  '${_directionTips}>${p.nickName ?? p.accountCode}>'
+            }).then((obj) {});
+          },
+        ),
+      );
+      if (i < _outPersons.length) {
+        items.add(divider);
+      }
+    }
+    return items;
   }
 }
 
@@ -414,24 +388,6 @@ class __HeaderState extends State<_Header> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 5,
-                      ),
-                      child: Text.rich(
-                        TextSpan(
-                          text: '用户号: ',
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: widget.uid,
-                            ),
-                          ],
                         ),
                       ),
                     ),

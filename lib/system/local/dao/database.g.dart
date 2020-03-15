@@ -515,6 +515,14 @@ class _$IPersonDAO extends IPersonDAO {
   }
 
   @override
+  Future<void> updateRights(
+      String rights, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET rights = ? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[rights, sandbox, official]);
+  }
+
+  @override
   Future<void> addPerson(Person person) async {
     await _personInsertionAdapter.insert(
         person, sqflite.ConflictAlgorithm.abort);
@@ -831,6 +839,15 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   }
 
   @override
+  Future<List<InsiteMessage>> getMessageByChannel(
+      String channelid, String sandbox) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InsiteMessage where upstreamChannel=? and sandbox=? ORDER BY atime DESC , ctime ASC',
+        arguments: <dynamic>[channelid, sandbox],
+        mapper: _insiteMessageMapper);
+  }
+
+  @override
   Future<List<InsiteMessage>> pageMessageNotMine(
       String sandbox, String creator, int limit, int offset) async {
     return _queryAdapter.queryList(
@@ -869,6 +886,13 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
     await _queryAdapter.queryNoReturn(
         'delete FROM InsiteMessage where sandbox=?',
         arguments: <dynamic>[sandbox]);
+  }
+
+  @override
+  Future<void> emptyChannel(String sandbox, dynamic upstreamChannel) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM InsiteMessage where sandbox=? and upstreamChannel=?',
+        arguments: <dynamic>[sandbox, upstreamChannel]);
   }
 
   @override

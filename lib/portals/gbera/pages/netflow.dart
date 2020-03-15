@@ -14,6 +14,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:objectdb/objectdb.dart';
@@ -22,6 +23,22 @@ import 'package:uuid/uuid.dart';
 
 class WorkingChannel {
   Function() onRefreshChannelState;
+}
+
+class _ChannelStateBar {
+  var channelid;
+  IChannelMessageService channelMessageService;
+  ChannelMessageDigest digest;
+  Function() refresh;
+
+  _ChannelStateBar({this.channelid, this.channelMessageService});
+
+  Future<void> relead() async {
+    digest = await channelMessageService.getChannelMessageDigest(channelid);
+    if (refresh != null) {
+      refresh();
+    }
+  }
 }
 
 class Netflow extends StatefulWidget {
@@ -37,7 +54,12 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
 
   Future<List<_ChannelItem>> _future_loadChannels;
+
+  //当前打开的正在工作的管道
   WorkingChannel _workingChannel;
+
+  //管道列表项的消息状态条
+  final _channelStateBars = <String, _ChannelStateBar>{};
 
   @override
   bool get wantKeepAlive {
@@ -53,6 +75,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    _channelStateBars.clear();
     _workingChannel = null;
     _future_loadChannels = null;
     super.dispose();
@@ -69,7 +92,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         widget.context.site.getService('/netflow/channels');
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
-
     List<Channel> list = await channelService.getAllChannel();
     if (list.isEmpty) {
       await channelService.initSystemChannel(widget.context.principal);
@@ -77,29 +99,20 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     }
     var items = List<_ChannelItem>();
     for (var ch in list) {
-      ChannelMessageDigest digest =
-          await channelMessageService.getChannelMessageDigest(ch.id);
+      var statebar = _ChannelStateBar(
+        channelid: ch.id,
+        channelMessageService: channelMessageService,
+      );
+      _channelStateBars[ch.id] = (statebar);
+      await statebar.relead();
       items.add(
         _ChannelItem(
           context: widget.context,
           channelid: ch.id,
           title: ch.name,
           owner: ch.owner,
-          subtitle: digest?.text,
-          showNewest: digest!=null,
           leading: ch.leading,
-          time: digest == null
-              ? null
-              : TimelineUtil.format(
-                  digest?.atime,
-                  dayFormat: DayFormat.Simple,
-                ),
-//          time: TimelineUtil.format(
-//            ch.atime,
-//            dayFormat: DayFormat.Simple,
-//          ),
-          unreadMsgCount: digest?.count,
-          who: ': ',
+          stateBar: statebar,
           openChannel: () {
             widget.context.forward(
               '/netflow/channel',
@@ -440,6 +453,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
             child: _InsiteMessagesRegion(
               context: widget.context,
               workingChannel: _workingChannel,
+              channelStateBars: _channelStateBars,
             ),
           ),
         ),
@@ -511,8 +525,10 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 class _InsiteMessagesRegion extends StatefulWidget {
   PageContext context;
   WorkingChannel workingChannel;
+  Map<String, _ChannelStateBar> channelStateBars;
 
-  _InsiteMessagesRegion({this.context, this.workingChannel});
+  _InsiteMessagesRegion(
+      {this.context, this.workingChannel, this.channelStateBars});
 
   @override
   _InsiteMessagesRegionState createState() => _InsiteMessagesRegionState();
@@ -532,9 +548,13 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
           if (message == null) {
             return;
           }
+          if (message.upstreamPerson == widget.context.principal.person) {
+            return;
+          }
           if (_messages.length >= _msgListMaxLength) {
             _messages.removeLast();
           }
+
           _messages.addFirst(message);
           setState(() {});
         });
@@ -568,6 +588,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       return null;
     }
     var docMap = jsonDecode(text);
+
 //    print(docMap);
     var message = InsiteMessage(
       Uuid().v1(),
@@ -584,10 +605,13 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       null,
       widget.context.principal.person,
     );
+
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    bool existsChannel =
+        await channelService.existsChannel(message.upstreamChannel);
     if (frame.head('sender') != widget.context.principal.person &&
-        await channelService.existsChannel(message.upstreamChannel)) {
-      IPersonService personService =
-          widget.context.site.getService('/gbera/persons');
+        existsChannel) {
       if (!(await personService.existsPerson(message.upstreamPerson))) {
         var person = await personService.fetchPerson(message.upstreamPerson,
             isDownloadAvatar: true);
@@ -607,8 +631,36 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       if (widget.workingChannel.onRefreshChannelState != null) {
         widget.workingChannel.onRefreshChannelState();
       }
+      if (widget.channelStateBars.containsKey(message.upstreamChannel)) {
+        widget.channelStateBars[message.upstreamChannel]?.relead();
+      }
       //返回null是不在打印消息到界面
       return null;
+    }
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    if (!existsChannel) {
+      //缓冲channel
+      var channel = await channelService.fetchChannelOfPerson(
+          message.upstreamChannel, message.upstreamPerson);
+      if (channel != null) {
+        await channelCache.cache(channel);
+      }
+    }
+    var person = await personService.getPerson(message.upstreamPerson);
+    var channel = await channelCache.get(message.upstreamChannel);
+    if (channel != null) {
+      if (channel.rights == 'denyInsite') {
+        print(
+            '已拒收<${person.nickName}>的管道<${channel.name}>的消息，消息被抛弃:${message.id}');
+        return null;
+      }
+    }
+    if (person != null) {
+      if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
+        print('已拒收公号<${person.official}>的所有消息，消息被抛弃:${message.id}');
+        return null;
+      }
     }
     await messageService.addMessage(message);
     return message;
@@ -668,10 +720,24 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
                 if (index >= _messages.length) {
                   index = 0;
                 }
-                return _InsiteMessageItem(
-                  context: widget.context,
-                  message: message,
-                  notBottom: notBottom,
+                return NotificationListener(
+                  onNotification: (e) {
+                    if (e is ChannelsRefresher) {
+                      _messages.clear();
+                      _loadMessages().then((messages) {
+                        for (var msg in messages) {
+                          _messages.addFirst(msg);
+                        }
+                        setState(() {});
+                      });
+                    }
+                    return false;
+                  },
+                  child: _InsiteMessageItem(
+                    context: widget.context,
+                    message: message,
+                    notBottom: notBottom,
+                  ),
                 );
               }).toList(),
             ),
@@ -760,7 +826,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                 'person': _person,
               });
             }).then((result) {
-          if (result != null && result['refresh'] ?? false) {
+          if (result != null && (result['refresh'] ?? false)) {
             ChannelsRefresher().dispatch(context);
           }
         });
@@ -873,13 +939,9 @@ class _ChannelItem extends StatefulWidget {
   String leading;
   String title;
   String owner;
-  String who;
-  String subtitle;
-  String time;
-  bool showNewest;
-  int unreadMsgCount;
   var openChannel;
   bool isSystemChannel;
+  _ChannelStateBar stateBar;
   Function(String channelid) refreshChannels;
 
   _ChannelItem({
@@ -888,14 +950,10 @@ class _ChannelItem extends StatefulWidget {
     this.leading,
     this.title,
     this.owner,
-    this.who,
-    this.subtitle,
-    this.unreadMsgCount,
-    this.time,
-    this.showNewest,
     this.openChannel,
     this.isSystemChannel,
     this.refreshChannels,
+    this.stateBar,
   });
 
   @override
@@ -904,6 +962,19 @@ class _ChannelItem extends StatefulWidget {
 
 class __ChannelItemState extends State<_ChannelItem> {
   double _percentage = 0.0;
+
+  @override
+  void initState() {
+    widget.stateBar.refresh = () {
+      setState(() {});
+    };
+    super.initState();
+  }
+
+  void dispose() {
+    widget.stateBar.refresh = null;
+    super.dispose();
+  }
 
   Future<void> _updateLeading() async {
     if (_percentage > 0) {
@@ -929,6 +1000,7 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   @override
   Widget build(BuildContext context) {
+    var digest = widget.stateBar.digest;
     Widget imgSrc = null;
     if (StringUtil.isEmpty(widget.leading)) {
       imgSrc = Icon(
@@ -968,7 +1040,7 @@ class __ChannelItemState extends State<_ChannelItem> {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: widget.showNewest
+              crossAxisAlignment: digest != null
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -1016,18 +1088,23 @@ class __ChannelItemState extends State<_ChannelItem> {
                         Positioned(
                           top: -10,
                           right: -3,
-                          child: Badge(
-                            position: BadgePosition.topRight(
-                              right: -3,
-                              top: 3,
-                            ),
-                            elevation: 0,
-                            showBadge: widget.unreadMsgCount != 0,
-                            badgeContent: Text(
-                              '',
-                            ),
-                            child: null,
-                          ),
+                          child: digest == null
+                              ? Container(
+                                  width: 0,
+                                  height: 0,
+                                )
+                              : Badge(
+                                  position: BadgePosition.topRight(
+                                    right: -3,
+                                    top: 3,
+                                  ),
+                                  elevation: 0,
+                                  showBadge: digest?.count != 0,
+                                  badgeContent: Text(
+                                    '',
+                                  ),
+                                  child: null,
+                                ),
                         ),
                         _percentage > 0 && _percentage < 1.0
                             ? Positioned(
@@ -1066,7 +1143,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                           ),
                         ],
                       ),
-                      !widget.showNewest
+                      digest == null
                           ? Container(
                               width: 0,
                               height: 0,
@@ -1084,7 +1161,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                   Text.rich(
                                     TextSpan(
                                       text:
-                                          '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]',
+                                          '[${digest?.count != 0 ? digest?.count : ''}条]',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -1094,7 +1171,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                           text: ' ',
                                         ),
                                         TextSpan(
-                                          text: '${widget.subtitle}',
+                                          text: '${digest?.text}',
                                           style: TextStyle(
                                             color: Colors.black54,
                                           ),
@@ -1105,7 +1182,11 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    '${widget.time}',
+                                    '${TimelineUtil.format(
+                                      digest?.atime,
+                                      locale: 'zh',
+                                      dayFormat: DayFormat.Simple,
+                                    )}',
                                     style: TextStyle(
                                       color: Colors.grey[500],
                                       fontWeight: FontWeight.normal,

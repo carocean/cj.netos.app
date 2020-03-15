@@ -7,7 +7,11 @@ mixin IPersonService {
 
   Future<bool> existsPerson(official);
 
-  Future<Person> getPerson(official);
+  Future<Person> getPerson(official,
+      {
+
+      ///如果不存在在远程获取时是否下载其头像到本地
+      bool isDownloadAvatar = false});
 
   Future<Person> fetchPerson(official, {bool isDownloadAvatar = false});
 
@@ -29,6 +33,8 @@ mixin IPersonService {
   Future<List<Person>> pagePersonLikeName(String query, int limit, int offset);
 
   Future<void> removePerson(String person) {}
+
+  Future<void> updateRights(String official, param1) {}
 }
 mixin IChannelService {
   ///地圈管道标识
@@ -57,6 +63,8 @@ mixin IChannelService {
 
   Future<Channel> findChannelOfPerson(String channel, String person) {}
 
+  Future<Channel> fetchChannelOfPerson(String channelid, String person);
+
   Future<bool> existsName(String channelName, String owner);
 
   Future<List<Channel>> getAllChannel();
@@ -67,6 +75,10 @@ mixin IChannelService {
   Future<void> remove(String channelid);
 
   Future<void> updateName(String channelid, String name);
+
+  Future<List<Channel>> fetchChannelsOfPerson(String official) {}
+
+  Future<List<Person>> pageOutputPersonOf( String channel, String person, int limit, int offset) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -80,7 +92,13 @@ mixin IInsiteMessageService {
   Future<List<InsiteMessage>> getAllMessage();
 
   Future<List<InsiteMessage>> pageMessageWhere(
-      String selectedTableViewId, int limit, int offset) {}
+      String where, int limit, int offset) {}
+
+  Future<List<InsiteMessage>> getMessageByChannel(String channelid) {}
+
+  Future<void> remove(String msgid) {}
+
+  Future<void> emptyChannel(channel) {}
 }
 
 mixin IChannelMessageService {

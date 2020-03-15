@@ -156,14 +156,21 @@ class _ChannelPortalState extends State<ChannelPortal> {
                                 width: 60,
                                 height: 60,
                               )
-                            : Image.file(
-                                File(
-                                  _channel?.leading,
-                                ),
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 60,
-                              ),
+                            : _channel.leading.startsWith('/')
+                                ? Image.file(
+                                    File(
+                                      _channel?.leading,
+                                    ),
+                                    fit: BoxFit.cover,
+                                    width: 60,
+                                    height: 60,
+                                  )
+                                : Image.network(
+                                    '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
+                                    fit: BoxFit.cover,
+                                    width: 60,
+                                    height: 60,
+                                  ),
                       ),
                       Text(
                         '${_channel?.name}',
@@ -212,7 +219,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
                   Container(
                     child: Text.rich(
                       TextSpan(
-                        text: '${widget.context.principal.nickName}',
+                        text: '${_ownerPerson.nickName}',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           color: Colors.grey[800],
@@ -326,9 +333,10 @@ class __MessageCardState extends State<_MessageCard> {
 
   Future<Person> _findPerson(String person) async {
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     return await personService.getPerson(person);
   }
+
   @override
   Widget build(BuildContext context) {
     return Card(

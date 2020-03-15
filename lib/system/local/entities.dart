@@ -8,7 +8,7 @@ class Person {
   final String accountCode;
   final String appid;
   final String avatar;
-  final String rights;
+   String rights;
   final String nickName;
   final String signature;
   final String pyname;
@@ -68,6 +68,44 @@ class Channel {
 
   Channel(this.id, this.name, this.owner, this.leading, this.site, this.ctime,
       this.sandbox);
+
+  toMap() {
+    return {
+      'id':id,
+      'name':name,
+      'owner':owner,
+      'leading':leading,
+      'site':site,
+      'ctime':ctime,
+      'sandbox':sandbox,
+    };
+  }
+
+}
+
+class CachedChannel {
+  String id;
+  final String name;
+  final String owner;
+  String leading;
+  final String site;
+  int ctime = DateTime.now().millisecondsSinceEpoch;
+  final String sandbox;
+  String rights;
+
+  CachedChannel(
+      {this.id,
+      this.name,
+      this.owner,
+      this.leading,
+      this.site,
+      this.ctime,
+      this.rights,
+      this.sandbox});
+
+  Channel toChannel() {
+    return Channel(id, name, owner, leading, site, ctime, sandbox);
+  }
 }
 
 @entity
@@ -134,7 +172,7 @@ class ChannelMessage {
   final String onChannel;
   final String creator;
   final int ctime;
-   int atime;
+  int atime;
   int rtime;
   int dtime;
   String state;
@@ -161,13 +199,16 @@ class ChannelMessage {
     this.sandbox,
   );
 }
-class ChannelMessageDigest{
+
+class ChannelMessageDigest {
   String text;
 
   int atime;
   int count;
-  ChannelMessageDigest({this.text, this.atime,this.count});
+
+  ChannelMessageDigest({this.text, this.atime, this.count});
 }
+
 @entity
 class LikePerson {
   @primaryKey

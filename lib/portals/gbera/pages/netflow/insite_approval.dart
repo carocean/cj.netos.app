@@ -8,6 +8,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,16 +28,45 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   bool _check_rejectAllMessages = false;
   bool _check_rejectChannelMessages = false;
   bool _check_receive_to_channel = false;
-  bool _check_join_person = false;
+  bool _disabled__check_receive_to_channel = false;
+  bool _disabled__check_rejectAllMessages = false;
+  bool _disabled__check_rejectChannelMessages = false;
 
   @override
   void initState() {
     _message = widget.context.page.parameters['message'];
     _channel = widget.context.page.parameters['channel'];
     _person = widget.context.page.parameters['person'];
+    switch (_person.rights) {
+      case 'denyUpstream':
+        _check_rejectAllMessages = true;
+        break;
+      case 'denyDownstream':
+        _check_rejectAllMessages = false;
+        break;
+      case 'denyBoth':
+        _check_rejectAllMessages = true;
+        break;
+      default:
+        _check_rejectAllMessages = false;
+        break;
+    }
     _existsChannel().then((v) {
       setState(() {});
     });
+    () async {
+      IChannelCache channelCache =
+          widget.context.site.getService('/cache/channels');
+      var ch = await channelCache.get(_channel.id);
+      switch (ch?.rights) {
+        case 'denyInsite':
+          _check_rejectChannelMessages = true;
+          break;
+        default:
+          _check_rejectChannelMessages = false;
+          break;
+      }
+    }();
     super.initState();
   }
 
@@ -48,16 +78,100 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     super.dispose();
   }
 
-  Future<void> _existsChannel() async {
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    _check_receive_to_channel =
-        await channelService.existsChannel(_channel.id);
+  Future<void> addPersonToLocal() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    if (await personService.existsPerson(_person.official)) {
+      return;
+    }
+    var person =
+        await personService.getPerson(_person.official, isDownloadAvatar: true);
+    await personService.addPerson(person);
   }
 
-  Future<void> _addChannel() async {
+  Future<bool> _existsChannel() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
+    _check_receive_to_channel = await channelService.existsChannel(_channel.id);
+    return _check_receive_to_channel;
+  }
+
+  Future<void> _rejectHisChannelMessage() async {
+    await addPersonToLocal();
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var ch = await channelCache.get(_channel.id);
+    if (ch == null) {
+      IChannelService channelService =
+          widget.context.site.getService('/netflow/channels');
+      await channelCache.cache(_channel);
+      ch = await channelCache.get(_channel.id);
+    }
+    switch (ch.rights) {
+      case 'denyInsite':
+        await channelCache.updateRights(ch.id, '');
+        _check_rejectChannelMessages = false;
+        if (_check_rejectAllMessages) {
+          await personService.updateRights(_person.official, '');
+          _person.rights = null;
+          _check_rejectAllMessages = false;
+        }
+        break;
+      default:
+        await channelCache.updateRights(ch.id, 'denyInsite');
+        _check_rejectChannelMessages = true;
+        break;
+    }
+  }
+
+  Future<void> _rejectHisAllMessage() async {
+    await addPersonToLocal();
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+    var person = await personService.getPerson(_person.official);
+    switch (person.rights) {
+      case 'denyUpstream':
+        await personService.updateRights(person.official, '');
+        _person.rights = null;
+        _check_rejectAllMessages = false;
+        break;
+      case 'denyDownstream':
+        await personService.updateRights(person.official, 'denyBoth');
+        _person.rights = 'denyBoth';
+        _check_rejectAllMessages = true;
+        break;
+      case 'denyBoth':
+        await personService.updateRights(person.official, 'denyDownstream');
+        _person.rights = 'denyDownstream';
+        _check_rejectAllMessages = false;
+        break;
+      default:
+        await personService.updateRights(person.official, 'denyUpstream');
+        _person.rights = 'denyUpstream';
+        _check_rejectAllMessages = true;
+        if (!_check_rejectChannelMessages) {
+          await channelCache.updateRights(_channel.id, 'denyInsite');
+          _check_rejectChannelMessages = true;
+        }
+        break;
+    }
+  }
+
+  Future<void> _addOrRemoveChannel() async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+
+    if (await _existsChannel()) {
+      //移除管道
+      await channelService.remove(_channel.id);
+      _check_receive_to_channel = false;
+      return;
+    }
+    //添加管道
     if (!StringUtil.isEmpty(_channel.leading)) {
       var dio = widget.context.site.getService('@.http');
       var localLeadingFile = await downloadChannelAvatar(
@@ -66,9 +180,31 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               '${_channel.leading}?accessToken=${widget.context.principal.accessToken}');
       _channel.leading = localLeadingFile;
     }
-    var channelid = MD5Util.generateMd5('${Uuid().v1()}');
-    _channel.id = channelid;
     await channelService.addChannel(_channel);
+    _check_receive_to_channel = true;
+    if (_check_rejectAllMessages) {
+      await _rejectHisAllMessage();
+    } else if (_check_rejectChannelMessages) {
+      await _rejectHisChannelMessage();
+    }
+    //将该管道的公共活动移动到管道内，并标为arrived状态
+    await _moveInsiteMessageToChannel();
+    await addPersonToLocal();
+  }
+
+  Future<void> _moveInsiteMessageToChannel() async {
+    IInsiteMessageService insiteMessageService =
+        widget.context.site.getService('/insite/messages');
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    List<InsiteMessage> messages =
+        await insiteMessageService.getMessageByChannel(_channel.id);
+    for (var msg in messages) {
+      await insiteMessageService.remove(msg.id);
+      ChannelMessage cm = msg.copy();
+      cm.state = 'arrived';
+      await channelMessageService.addMessage(cm);
+    }
   }
 
   @override
@@ -106,9 +242,11 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               padding: EdgeInsets.all(10),
               child: GestureDetector(
                 onTap: () {
-                  widget.context.backward();
-                  widget.context.forward('/site/personal',
-                      arguments: {'person': _person});
+                  widget.context.forward('/netflow/channel/document/path', arguments: {
+                    'person': _person,
+                    'channel': _channel,
+                    'message': _message,
+                  });
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -220,18 +358,22 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                       children: <Widget>[
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            this._check_rejectChannelMessages =
-                                !_check_rejectChannelMessages;
-                            if (_check_rejectChannelMessages) {
-                              this._check_receive_to_channel = false;
-                            }
-                            setState(() {});
-                          },
+                          onTap: _disabled__check_rejectChannelMessages
+                              ? null
+                              : () {
+                                  _disabled__check_rejectChannelMessages = true;
+                                  setState(() {});
+                                  _rejectHisChannelMessage().then((v) {
+                                    _disabled__check_rejectChannelMessages =
+                                        false;
+                                    setState(() {});
+                                  });
+                                },
                           child: CardItem(
                             paddingTop: 10,
                             paddingBottom: 10,
-                            title: '仅拒收该管道消息',
+                            title:
+                                '${_disabled__check_rejectChannelMessages ? '处理中...' : '仅拒收该管道消息'}',
                             titleColor: Colors.black87,
                             titleSize: 12,
                             tail: !_check_rejectChannelMessages
@@ -252,19 +394,21 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                         ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            this._check_rejectAllMessages =
-                                !_check_rejectAllMessages;
-                            if (_check_rejectAllMessages) {
-                              this._check_rejectChannelMessages = true;
-                              this._check_receive_to_channel = false;
-                            }
-                            setState(() {});
-                          },
+                          onTap: _disabled__check_rejectAllMessages
+                              ? null
+                              : () {
+                                  _disabled__check_rejectAllMessages = true;
+                                  setState(() {});
+                                  _rejectHisAllMessage().then((v) {
+                                    _disabled__check_rejectAllMessages = false;
+                                    setState(() {});
+                                  });
+                                },
                           child: CardItem(
                             paddingTop: 10,
                             paddingBottom: 10,
-                            title: '拒收他的所有消息',
+                            title:
+                                '${_disabled__check_rejectAllMessages ? '处理中...' : '拒收他的所有消息'}',
                             titleColor: Colors.black87,
                             titleSize: 12,
                             tail: !_check_rejectAllMessages
@@ -285,57 +429,28 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                         ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            this._check_receive_to_channel =
-                                !_check_receive_to_channel;
-                            _check_rejectAllMessages = false;
-                            _check_rejectChannelMessages = false;
-
-                            setState(() {});
-                          },
+                          onTap: _disabled__check_receive_to_channel
+                              ? null
+                              : () {
+                                  _disabled__check_receive_to_channel = true;
+                                  setState(() {});
+                                  _addOrRemoveChannel().then((v) {
+                                    _disabled__check_receive_to_channel = false;
+                                    setState(() {});
+                                    widget.context
+                                        .backward(result: {'refresh': true});
+                                  });
+                                },
                           child: CardItem(
                             paddingTop: 10,
                             paddingBottom: 10,
-                            title: '加入管道',
+                            title:
+                                '${_disabled__check_receive_to_channel ? '处理中...' : '将消息收取到管道'}',
                             tipsText: '您可获得: ¥2.21',
                             tipsSize: 10,
                             titleColor: Colors.black87,
                             titleSize: 12,
                             tail: !_check_receive_to_channel
-                                ? Icon(
-                                    Icons.remove,
-                                    color: Colors.grey[400],
-                                    size: 12,
-                                  )
-                                : Icon(
-                                    Icons.check,
-                                    color: Colors.red,
-                                    size: 14,
-                                  ),
-                          ),
-                        ),
-                        Divider(
-                          height: 1,
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            this._check_join_person = !_check_join_person;
-                            if (_check_rejectAllMessages) {
-                              this._check_rejectAllMessages = false;
-                            }
-                            if (_check_rejectChannelMessages) {
-                              _check_rejectChannelMessages = false;
-                            }
-                            setState(() {});
-                          },
-                          child: CardItem(
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            title: '加入公众',
-                            titleColor: Colors.black87,
-                            titleSize: 12,
-                            tail: !_check_join_person
                                 ? Icon(
                                     Icons.remove,
                                     color: Colors.grey[400],
