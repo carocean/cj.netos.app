@@ -585,6 +585,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
       return null;
     }
     var docMap = jsonDecode(text);

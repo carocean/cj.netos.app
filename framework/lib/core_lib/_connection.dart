@@ -89,6 +89,7 @@ class Connection implements IConnection {
     conn._webSocket.listen(
       (frameRaw) {
         if (onmessage != null) {
+//          print(utf8.decode(frameRaw));
           onmessage(Frame.load(frameRaw));
         }
       },
