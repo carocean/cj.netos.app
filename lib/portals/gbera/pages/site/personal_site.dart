@@ -10,6 +10,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:uuid/uuid.dart';
 
 class PersonalSite extends StatefulWidget {
   PageContext context;
@@ -43,9 +44,9 @@ class _PersonalSiteState extends State<PersonalSite> {
   bool showOnAppbar = false;
   var _controller;
   Person _person;
-  List<Channel> _linkedChannels = [];
-  List<CachedChannel> _cachedChannels = [];
-  List<Channel> _otherChannels = [];
+  List<_ChannelItemInfo> _linkedChannels = [];
+  List<_ChannelItemInfo> _cachedChannels = [];
+  List<_ChannelItemInfo> _otherChannels = [];
 
   @override
   void initState() {
@@ -70,16 +71,68 @@ class _PersonalSiteState extends State<PersonalSite> {
   _load() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _linkedChannels =
-        await channelService.getChannelsOfPerson(_person.official);
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
 
+    var linkedChannels =
+        await channelService.getChannelsOfPerson(_person.official);
+    for (Channel channel in linkedChannels) {
+      _linkedChannels.add(
+        _ChannelItemInfo(
+          title: '${channel.name}',
+          leading: channel.leading,
+          onTap: () {
+            widget.context
+                .forward('/netflow/portal/channel', arguments: <String, Object>{
+              'channel': channel,
+              'owner': _person.official,
+            });
+          },
+        ),
+      );
+    }
     IChannelCache channelCache =
         widget.context.site.getService('/cache/channels');
-    _cachedChannels = await channelCache.listAll(_person.official);
-
-    _otherChannels =
+    var cachedChannels = await channelCache.listAll(_person.official);
+    for (Channel channel in cachedChannels) {
+      var inperson =
+          await pinService.getInputPerson(_person.official, channel.id);
+      bool hasRights = inperson?.rights != 'deny';
+      _cachedChannels.add(
+        _ChannelItemInfo(
+          channel: channel.id,
+          title: '${channel.name}',
+          leading: channel.leading,
+          canSwipe: true,
+          rights: hasRights,
+          tips: !hasRights ? '已拒收取该管道消息，左滑以开通' : '',
+          onTap: () {
+            widget.context
+                .forward('/netflow/portal/channel', arguments: <String, Object>{
+              'channel': channel,
+              'owner': _person.official,
+            });
+          },
+        ),
+      );
+    }
+    var otherChannels =
         await channelService.fetchChannelsOfPerson(_person.official);
-
+    for (Channel channel in otherChannels) {
+      _otherChannels.add(
+        _ChannelItemInfo(
+          title: '${channel.name}',
+          leading: channel.leading,
+          onTap: () {
+            widget.context
+                .forward('/netflow/portal/channel', arguments: <String, Object>{
+              'channel': channel,
+              'owner': _person.official,
+            });
+          },
+        ),
+      );
+    }
     setState(() {});
   }
 
@@ -354,19 +407,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                     ),
                     child: _Card(
                       context: widget.context,
-                      channelItems: _linkedChannels.map((channel) {
-                        return _ChannelItemInfo(
-                          title: '${channel.name}',
-                          leading: channel.leading,
-                          onTap: () {
-                            widget.context.forward('/netflow/portal/channel',
-                                arguments: <String, Object>{
-                                  'channel': channel,
-                                  'owner':_person.official,
-                                });
-                          },
-                        );
-                      }).toList(),
+                      channelItems: _linkedChannels,
                     ),
                   ),
                   Container(
@@ -407,26 +448,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                     ),
                     child: _Card(
                       context: widget.context,
-                      channelItems: _cachedChannels.map((channel) {
-                        print(channel.rights);
-                        return _ChannelItemInfo(
-                          channel: channel.id,
-                          title: '${channel.name}',
-                          leading: channel.leading,
-                          canSwipe: true,
-                          rights: channel.rights,
-                          tips: channel.rights == 'denyInsite'
-                              ? '已拒收取该管道消息，左滑以开通'
-                              : '',
-                          onTap: () {
-                            widget.context.forward('/netflow/portal/channel',
-                                arguments: <String, Object>{
-                                  'channel': channel.toChannel(),
-                                  'owner':_person.official,
-                                });
-                          },
-                        );
-                      }).toList(),
+                      channelItems: _cachedChannels,
                     ),
                   ),
                   Container(
@@ -467,19 +489,7 @@ class _PersonalSiteState extends State<PersonalSite> {
                     ),
                     child: _Card(
                       context: widget.context,
-                      channelItems: _otherChannels.map((channel) {
-                        return _ChannelItemInfo(
-                          title: '${channel.name}',
-                          leading: channel.leading,
-                          onTap: () {
-                            widget.context.forward('/netflow/portal/channel',
-                                arguments: <String, Object>{
-                                  'channel': channel,
-                                  'owner':_person.official,
-                                });
-                          },
-                        );
-                      }).toList(),
+                      channelItems: _otherChannels,
                     ),
                   ),
                 ],
@@ -730,7 +740,7 @@ class _ChannelItemInfo {
   List images;
   bool canSwipe;
   String channel;
-  String rights;
+  bool rights;
   Function() onTap;
 
   _ChannelItemInfo(
@@ -772,9 +782,13 @@ class _CardState extends State<_Card> {
   }
 
   Future<void> _allowInsite(channel) async {
-    IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
-    await channelCache.updateRights(channel, '');
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    Person person = widget.context.parameters['person'];
+    var inperson = await pinService.getInputPerson(person.official, channel);
+    if (inperson.rights == 'deny') {
+      await pinService.updateInputPersonRights(person.official, channel, 'allow');
+    }
   }
 
   Future<void> _removeCacheChannel(channel) async {
@@ -825,7 +839,7 @@ class _CardState extends State<_Card> {
               },
             ),
           ];
-          if (value.rights == 'denyInsite') {
+          if (!(value.rights ?? false)) {
             actions.add(
               IconSlideAction(
                 caption: '不再拒收',
@@ -834,7 +848,7 @@ class _CardState extends State<_Card> {
                 closeOnTap: true,
                 onTap: () {
                   _allowInsite(value.channel).then((v) {
-                    value.rights = '';
+                    value.rights = true;
                     value.tips = '';
                     setState(() {});
                   });

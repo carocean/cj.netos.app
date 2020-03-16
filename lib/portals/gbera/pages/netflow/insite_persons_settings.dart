@@ -274,6 +274,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               '${Uuid().v1()}',
               widget.channel.id,
               widget.person.official,
+              'allow',
               widget.pageContext.principal.person,
             ),
           );
@@ -286,6 +287,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               '${Uuid().v1()}',
               widget.channel.id,
               widget.person.official,
+              'allow',
               widget.pageContext.principal.person,
             ),
           );

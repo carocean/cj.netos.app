@@ -81,7 +81,7 @@ class _InsitePersonsState extends State<InsitePersons> {
                         color: Colors.grey[500],
                       ),
                       children: [
-                        TextSpan(text: '${widget.context.principal.nickName}>'),
+                        TextSpan(text: '${widget.context.principal.nickName}'),
                       ],
                     ),
                   ),
@@ -159,6 +159,13 @@ class _Refresher {
   }
 }
 
+class _InputPersonInfo {
+  Person person;
+  String rights;
+
+  _InputPersonInfo({this.person, this.rights});
+}
+
 class _PersonListRegion extends StatefulWidget {
   PageContext context;
   _Refresher refresher;
@@ -179,7 +186,8 @@ class __PersonListRegionState extends State<_PersonListRegion> {
 
   int _limit = 20;
   int _offset = 0;
-  List<Person> _persons = [];
+  List<_InputPersonInfo> _persons = [];
+  String _directionTips;
 
   @override
   void initState() {
@@ -189,6 +197,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _loadPersons().then((persons) {
       setState(() {});
     });
+    _directionTips = '${widget.context.principal.nickName}';
     widget.refresher.callback = () async {
       resetPersons();
       await _loadPersons();
@@ -216,7 +225,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     setState(() {});
   }
 
-  Future<List<Person>> _loadPersons() async {
+  Future<List<_InputPersonInfo>> _loadPersons() async {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
     IChannelService channelService =
@@ -229,26 +238,36 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     List<Person> personObjs;
     switch (strategy) {
       case PinPersonsSettingsStrategy.only_select:
-        break;
-      case PinPersonsSettingsStrategy.all_except:
         var in_persons = await pinService.listInputPerson(_channel.id);
         var persons = <String>[];
         for (var op in in_persons) {
           persons.add(op.person);
         }
         personObjs =
-            await personService.pagePersonWithout(persons, _limit, _offset);
+            await personService.pagePersonWith(persons, _limit, _offset);
         if (!personObjs.isEmpty) {
           _offset += personObjs.length;
         } else {
           _controller.finishLoad(success: true, noMore: true);
         }
         break;
+      case PinPersonsSettingsStrategy.all_except:
+        throw FlutterError('不支持PinPersonsSettingsStrategy.all_except');
     }
     for (var p in personObjs) {
-      _persons.add(p);
+      var inperson = await pinService.getInputPerson(p.official, _channel.id);
+      _persons.add(_InputPersonInfo(person: p, rights: inperson?.rights));
     }
     return _persons;
+  }
+
+  Future<void> _allowInsite(person, channel) async {
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    var inperson = await pinService.getInputPerson(person, channel);
+    if (inperson.rights == 'deny') {
+      await pinService.updateInputPersonRights(person, channel, 'allow');
+    }
   }
 
   _removeFromPersonList(Person person) async {
@@ -270,6 +289,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             '${Uuid().v1()}',
             _channel.id,
             person.official,
+            'allow',
             widget.context.principal.person,
           ),
         )
@@ -323,12 +343,39 @@ class __PersonListRegionState extends State<_PersonListRegion> {
       );
     }
     switch (_strategy) {
-      case PinPersonsSettingsStrategy.all_except:
+      case PinPersonsSettingsStrategy.only_select:
         return EasyRefresh.custom(
           controller: _controller,
           onLoad: _onSwipeUp,
           shrinkWrap: true,
           slivers: _persons.map((p) {
+            var actions = <Widget>[
+              IconSlideAction(
+                caption: '删除',
+                foregroundColor: Colors.grey[500],
+                icon: Icons.delete,
+                onTap: () {
+                  _removeFromPersonList(p.person);
+                },
+              ),
+            ];
+            bool forbidden = false;
+            if (p.rights == 'deny') {
+              actions.add(
+                IconSlideAction(
+                  caption: '不在拒绝',
+                  foregroundColor: Colors.grey[500],
+                  icon: Icons.clear,
+                  onTap: () {
+                    _allowInsite(p.person.official, _channel.id).then((v) {
+                      p.rights='allow';
+                      setState(() {});
+                    });
+                  },
+                ),
+              );
+              forbidden = true;
+            }
             return SliverToBoxAdapter(
               child: Column(
                 children: <Widget>[
@@ -340,23 +387,15 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                     color: Colors.white,
                     child: Slidable(
                       actionPane: SlidableDrawerActionPane(),
-                      secondaryActions: <Widget>[
-                        IconSlideAction(
-                          caption: '排除',
-                          foregroundColor: Colors.grey[500],
-                          icon: Icons.delete,
-                          onTap: () {
-                            _removeFromPersonList(p);
-                          },
-                        ),
-                      ],
+                      secondaryActions: actions,
                       child: CardItem(
-                        title: '${p.nickName ?? p.accountCode}',
+                        title: '${p.person.nickName ?? p.person.accountCode}',
                         leading: Image.file(
-                          File(p.avatar),
+                          File(p.person.avatar),
                           width: 40,
                           height: 40,
                         ),
+                        tipsText: forbidden ? '已拒绝接收他的消息，左滑取消' : '',
                         onItemTap: () {
                           widget.context.forward(
                               '/netflow/channel/pin/see_persons',
@@ -364,12 +403,11 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                                 'person': p,
                                 'pinType': 'upstream',
                                 'channel': _channel,
-                                'direction_tips':
-                                    '${widget.context.principal.nickName}>'
+                                'direction_tips': _directionTips,
                               }).then((obj) {
-                            if (resetPersons != null) {
-                              resetPersons();
-                            }
+//                            if (resetPersons != null) {
+//                              resetPersons();
+//                            }
                           });
                         },
                       ),
@@ -383,7 +421,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             );
           }).toList(),
         );
-      case PinPersonsSettingsStrategy.only_select:
+      case PinPersonsSettingsStrategy.all_except:
       default:
         return Container(
           width: 0,

@@ -134,7 +134,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelPin` (`id` TEXT, `channel` TEXT, `inPersonSelector` TEXT, `outPersonSelector` TEXT, `outGeoSelector` TEXT, `outWechatPenYouSelector` TEXT, `outWechatHaoYouSelector` TEXT, `outContractSelector` TEXT, `inRights` TEXT, `outRights` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelInputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelInputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `rights` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -458,6 +458,16 @@ class _$IPersonDAO extends IPersonDAO {
     final valueList1 = officials.map((value) => "'$value'").join(', ');
     return _queryAdapter.queryList(
         'SELECT * FROM Person where sandbox=? and official NOT IN ($valueList1) LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, persons_limit, persons_offset],
+        mapper: _personMapper);
+  }
+
+  @override
+  Future<List<Person>> pagePersonWith(String sandbox, List<String> officials,
+      int persons_limit, int persons_offset) async {
+    final valueList1 = officials.map((value) => "'$value'").join(', ');
+    return _queryAdapter.queryList(
+        'SELECT * FROM Person where sandbox=? and official IN ($valueList1) LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, persons_limit, persons_offset],
         mapper: _personMapper);
   }
@@ -1414,6 +1424,7 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
                   'id': item.id,
                   'channel': item.channel,
                   'person': item.person,
+                  'rights': item.rights,
                   'sandbox': item.sandbox
                 });
 
@@ -1424,8 +1435,12 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
   final QueryAdapter _queryAdapter;
 
   static final _channelInputPersonMapper = (Map<String, dynamic> row) =>
-      ChannelInputPerson(row['id'] as String, row['channel'] as String,
-          row['person'] as String, row['sandbox'] as String);
+      ChannelInputPerson(
+          row['id'] as String,
+          row['channel'] as String,
+          row['person'] as String,
+          row['rights'] as String,
+          row['sandbox'] as String);
 
   final InsertionAdapter<ChannelInputPerson>
       _channelInputPersonInsertionAdapter;
@@ -1457,12 +1472,27 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
   }
 
   @override
+  Future<void> updateInputPersonRights(
+      String rights, String person, String channelcode, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChannelInputPerson SET rights = ? WHERE person=? AND channel = ? and sandbox=?',
+        arguments: <dynamic>[rights, person, channelcode, sandbox]);
+  }
+
+  @override
   Future<List<ChannelInputPerson>> listInputPerson(
       String channelcode, String sandbox) async {
     return _queryAdapter.queryList(
         'SELECT * FROM ChannelInputPerson WHERE channel=? and sandbox=?',
         arguments: <dynamic>[channelcode, sandbox],
         mapper: _channelInputPersonMapper);
+  }
+
+  @override
+  Future<void> emptyInputPersons(String channelcode, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM ChannelInputPerson WHERE channel = ? and sandbox=?',
+        arguments: <dynamic>[channelcode, sandbox]);
   }
 
   @override

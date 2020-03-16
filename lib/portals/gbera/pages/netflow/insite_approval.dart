@@ -26,8 +26,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   Channel _channel;
   Person _person;
   bool _check_rejectAllMessages = false;
-  bool _check_rejectChannelMessages = false;
   bool _check_receive_to_channel = false;
+  bool _check_channel_exists = false;
   bool _disabled__check_receive_to_channel = false;
   bool _disabled__check_rejectAllMessages = false;
   bool _disabled__check_rejectChannelMessages = false;
@@ -37,35 +37,37 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     _message = widget.context.page.parameters['message'];
     _channel = widget.context.page.parameters['channel'];
     _person = widget.context.page.parameters['person'];
-    switch (_person.rights) {
-      case 'denyUpstream':
-        _check_rejectAllMessages = true;
-        break;
-      case 'denyDownstream':
-        _check_rejectAllMessages = false;
-        break;
-      case 'denyBoth':
-        _check_rejectAllMessages = true;
-        break;
-      default:
-        _check_rejectAllMessages = false;
-        break;
-    }
+
     _existsChannel().then((v) {
       setState(() {});
     });
     () async {
-      IChannelCache channelCache =
-          widget.context.site.getService('/cache/channels');
-      var ch = await channelCache.get(_channel.id);
-      switch (ch?.rights) {
-        case 'denyInsite':
-          _check_rejectChannelMessages = true;
+      IPersonService personService =
+      widget.context.site.getService('/gbera/persons');
+      var person = await personService.getPerson(_person.official);
+      switch (person.rights) {
+        case 'denyUpstream':
+          _check_rejectAllMessages = true;
+          break;
+        case 'denyDownstream':
+          _check_rejectAllMessages = false;
+          break;
+        case 'denyBoth':
+          _check_rejectAllMessages = true;
           break;
         default:
-          _check_rejectChannelMessages = false;
+          _check_rejectAllMessages = false;
           break;
       }
+
+      IChannelPinService pinService =
+          widget.context.site.getService('/channel/pin');
+      var iperson =
+          await pinService.getInputPerson(_person.official, _channel.id);
+      _check_receive_to_channel = iperson?.rights != 'deny';
+      IChannelService channelService =
+          widget.context.site.getService('/netflow/channels');
+      _check_channel_exists = await channelService.existsChannel(_channel.id);
     }();
     super.initState();
   }
@@ -92,37 +94,32 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   Future<bool> _existsChannel() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    _check_receive_to_channel = await channelService.existsChannel(_channel.id);
-    return _check_receive_to_channel;
+    return await channelService.existsChannel(_channel.id);
   }
 
   Future<void> _rejectHisChannelMessage() async {
     await addPersonToLocal();
-    IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var ch = await channelCache.get(_channel.id);
-    if (ch == null) {
-      IChannelService channelService =
-          widget.context.site.getService('/netflow/channels');
-      await channelCache.cache(_channel);
-      ch = await channelCache.get(_channel.id);
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
+      await pinService.addInputPerson(ChannelInputPerson(
+        Uuid().v1(),
+        _channel.id,
+        _person.official,
+        'allow',
+        widget.context.principal.person,
+      ));
     }
-    switch (ch.rights) {
-      case 'denyInsite':
-        await channelCache.updateRights(ch.id, '');
-        _check_rejectChannelMessages = false;
-        if (_check_rejectAllMessages) {
-          await personService.updateRights(_person.official, '');
-          _person.rights = null;
-          _check_rejectAllMessages = false;
-        }
-        break;
-      default:
-        await channelCache.updateRights(ch.id, 'denyInsite');
-        _check_rejectChannelMessages = true;
-        break;
+    var iperson =
+    await pinService.getInputPerson(_person.official, _channel.id);
+    if(iperson.rights=='allow') {
+      await pinService.updateInputPersonRights(
+          _person.official, _channel.id, 'deny');
+      _check_receive_to_channel =false;
+    }else{
+      await pinService.updateInputPersonRights(
+          _person.official, _channel.id, 'allow');
+      _check_receive_to_channel =true;
     }
   }
 
@@ -130,8 +127,6 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     await addPersonToLocal();
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
     var person = await personService.getPerson(_person.official);
     switch (person.rights) {
       case 'denyUpstream':
@@ -153,9 +148,22 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         await personService.updateRights(person.official, 'denyUpstream');
         _person.rights = 'denyUpstream';
         _check_rejectAllMessages = true;
-        if (!_check_rejectChannelMessages) {
-          await channelCache.updateRights(_channel.id, 'denyInsite');
-          _check_rejectChannelMessages = true;
+        if (_check_receive_to_channel) {
+          IChannelPinService pinService =
+              widget.context.site.getService('/channel/pin');
+          if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
+            await pinService.addInputPerson(ChannelInputPerson(
+              Uuid().v1(),
+              _channel.id,
+              _person.official,
+              'deny',
+              widget.context.principal.person,
+            ));
+          }else {
+            await pinService.updateInputPersonRights(
+                _person.official, _channel.id, 'deny');
+          }
+          _check_receive_to_channel = false;
         }
         break;
     }
@@ -164,11 +172,27 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   Future<void> _addOrRemoveChannel() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
 
     if (await _existsChannel()) {
-      //移除管道
-      await channelService.remove(_channel.id);
-      _check_receive_to_channel = false;
+      if (await pinService.existsInputPerson(_person.official, _channel.id)) {
+        await pinService.updateInputPersonRights(_person.official, _channel.id,'allow');
+        await _moveInsiteMessageToChannel();
+      } else {
+        await pinService.addInputPerson(ChannelInputPerson(
+          Uuid().v1(),
+          _channel.id,
+          _person.official,
+          'allow',
+          widget.context.principal.person,
+        ));
+        //将该管道的公共活动移动到管道内，并标为arrived状态
+        await _moveInsiteMessageToChannel();
+        await addPersonToLocal();
+        //将公众加入管道的输入端
+      }
+      _check_receive_to_channel =true;
       return;
     }
     //添加管道
@@ -181,15 +205,35 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
       _channel.leading = localLeadingFile;
     }
     await channelService.addChannel(_channel);
-    _check_receive_to_channel = true;
-    if (_check_rejectAllMessages) {
-      await _rejectHisAllMessage();
-    } else if (_check_rejectChannelMessages) {
-      await _rejectHisChannelMessage();
+
+    if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
+      await pinService.addInputPerson(ChannelInputPerson(
+        Uuid().v1(),
+        _channel.id,
+        _person.official,
+        'allow',
+        widget.context.principal.person,
+      ));
     }
+
     //将该管道的公共活动移动到管道内，并标为arrived状态
     await _moveInsiteMessageToChannel();
     await addPersonToLocal();
+    //将公众加入管道的输入端
+    if(!_check_receive_to_channel) {
+      await pinService.updateInputPersonRights(
+          _person.official, _channel.id, 'allow');
+    }
+    if(_check_rejectAllMessages) {
+      IPersonService personService =
+      widget.context.site.getService('/gbera/persons');
+      var person = await personService.getPerson(_person.official);
+      await personService.updateRights(person.official, '');
+      _person.rights = null;
+      _check_rejectAllMessages = false;
+    }
+    _check_channel_exists = true;
+    _check_receive_to_channel = true;
   }
 
   Future<void> _moveInsiteMessageToChannel() async {
@@ -242,7 +286,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               padding: EdgeInsets.all(10),
               child: GestureDetector(
                 onTap: () {
-                  widget.context.forward('/netflow/channel/document/path', arguments: {
+                  widget.context
+                      .forward('/netflow/channel/document/path', arguments: {
                     'person': _person,
                     'channel': _channel,
                     'message': _message,
@@ -373,10 +418,10 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                             paddingTop: 10,
                             paddingBottom: 10,
                             title:
-                                '${_disabled__check_rejectChannelMessages ? '处理中...' : '仅拒收该管道消息'}',
+                                '${_disabled__check_rejectChannelMessages ? '处理中...' : '拒收这个管道消息'}',
                             titleColor: Colors.black87,
                             titleSize: 12,
-                            tail: !_check_rejectChannelMessages
+                            tail: _check_receive_to_channel
                                 ? Icon(
                                     Icons.remove,
                                     color: Colors.grey[400],
@@ -435,7 +480,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                   _disabled__check_receive_to_channel = true;
                                   setState(() {});
                                   _addOrRemoveChannel().then((v) {
-                                    _disabled__check_receive_to_channel = false;
+                                    _disabled__check_receive_to_channel = true;
                                     setState(() {});
                                     widget.context
                                         .backward(result: {'refresh': true});
@@ -450,7 +495,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                             tipsSize: 10,
                             titleColor: Colors.black87,
                             titleSize: 12,
-                            tail: !_check_receive_to_channel
+                            tail: !_check_channel_exists ||
+                                    !_check_receive_to_channel
                                 ? Icon(
                                     Icons.remove,
                                     color: Colors.grey[400],

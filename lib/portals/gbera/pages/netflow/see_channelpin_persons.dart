@@ -57,6 +57,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
     _person = widget.context.parameters['person'];
     _pinType = widget.context.parameters['pinType'];
     _directionTips = widget.context.parameters['direction_tips'];
+    _directionTips='$_directionTips>${_person.nickName}';
     _load().then((v) {
       setState(() {});
     });
@@ -234,16 +235,13 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
                   Flexible(
                     child: Text.rich(
                       TextSpan(
-                        text: '${this._channel.name}: ',
+                        text: '${this._channel.name}:',
                         style: TextStyle(
                           color: Colors.grey[500],
                         ),
                         children: [
                           TextSpan(
                             text: _directionTips,
-                          ),
-                          TextSpan(
-                            text: '${_person.nickName ?? _person.accountCode}>',
                           ),
                         ],
                       ),
@@ -306,7 +304,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               'pinType': _pinType,
               'channel': _channel,
               'direction_tips':
-                  '${_directionTips}>${p.nickName ?? p.accountCode}>'
+                  '${_directionTips}'
             }).then((obj) {});
           },
         ),

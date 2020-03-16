@@ -10,11 +10,9 @@ import 'package:path_provider/path_provider.dart';
 mixin IChannelCache {
   Future<void> cache(Channel channel);
 
-  Future<CachedChannel> get(String channel);
+  Future<Channel> get(String channel);
 
-  Future<void> updateRights(String channel, String rights) {}
-
-  Future<List<CachedChannel>> listAll(String official) {}
+  Future<List<Channel>> listAll(String official) {}
 
   Future<void> remove(channel) {}
 }
@@ -44,12 +42,6 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRights(String channel, String rights) {
-    _db.update(
-        {'id': channel, 'sandbox': principal.person}, {'rights': rights});
-  }
-
-  @override
   Future<void> cache(Channel channel) async {
     if (await get(channel.id) != null) {
       return;
@@ -59,20 +51,19 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
   }
 
   @override
-  Future<List<CachedChannel>> listAll(String official) async {
+  Future<List<Channel>> listAll(String official) async {
     var query = {'owner': official, 'sandbox': principal.person};
     var channels = await _db.find(query);
-    var list = <CachedChannel>[];
+    var list = <Channel>[];
     for (var obj in channels) {
-      list.add(CachedChannel(
-        id: obj['id'],
-        name: obj['name'],
-        owner: obj['owner'],
-        leading: obj['leading'],
-        site: obj['site'],
-        ctime: obj['ctime'],
-        sandbox: obj['sandbox'],
-        rights: obj['rights'],
+      list.add(Channel(
+        obj['id'],
+        obj['name'],
+        obj['owner'],
+        obj['leading'],
+        obj['site'],
+        obj['ctime'],
+        obj['sandbox'],
       ));
     }
     return list;
@@ -85,21 +76,20 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
   }
 
   @override
-  Future<CachedChannel> get(String channel) async {
+  Future<Channel> get(String channel) async {
     var query = {'id': channel, 'sandbox': principal.person};
     var obj = await _db.first(query);
     if (obj == null) {
       return null;
     }
-    return CachedChannel(
-      id: obj['id'],
-      name: obj['name'],
-      owner: obj['owner'],
-      leading: obj['leading'],
-      site: obj['site'],
-      ctime: obj['ctime'],
-      sandbox: obj['sandbox'],
-      rights: obj['rights'],
+    return Channel(
+      obj['id'],
+      obj['name'],
+      obj['owner'],
+      obj['leading'],
+      obj['site'],
+      obj['ctime'],
+      obj['sandbox'],
     );
   }
 }

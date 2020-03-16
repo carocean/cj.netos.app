@@ -33,6 +33,11 @@ abstract class IPersonDAO {
       int persons_limit, int persons_offset);
 
   @Query(
+      'SELECT *  FROM Person where sandbox=:sandbox and official IN (:officials) LIMIT :persons_limit OFFSET  :persons_offset')
+  Future<List<Person>> pagePersonWith(String sandbox, List<String> officials,
+      int persons_limit, int persons_offset);
+
+  @Query(
       'SELECT *  FROM Person where sandbox=:sandbox and official IN (:officials)')
   Future<List<Person>> listPersonWith(String sandbox, List<String> officials);
 
@@ -404,9 +409,19 @@ abstract class IChannelInputPersonDAO {
       String person, String channelcode, String sandbox);
 
   @Query(
+      'UPDATE ChannelInputPerson SET rights = :rights WHERE person=:person AND channel = :channelcode and sandbox=:sandbox')
+  Future<void> updateInputPersonRights(String rights, String person, String channelcode, String sandbox) {}
+
+  @Query(
       'SELECT *  FROM ChannelInputPerson WHERE channel=:channelcode and sandbox=:sandbox')
   Future<List<ChannelInputPerson>> listInputPerson(
       String channelcode, String sandbox);
+
+  @Query(
+      'delete FROM ChannelInputPerson WHERE channel = :channelcode and sandbox=:sandbox')
+  Future<void> emptyInputPersons(String channelcode, String sandbox) {}
+
+
 }
 
 @dao

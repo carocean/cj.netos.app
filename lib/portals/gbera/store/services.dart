@@ -26,6 +26,9 @@ mixin IPersonService {
   Future<List<Person>> pagePersonWithout(
       List<String> personList, int persons_limit, int persons_offset);
 
+  Future<List<Person>> pagePersonWith(
+      List<String> persons, int limit, int offset) {}
+
   Future<List<Person>> listPersonWith(List<String> personList);
 
   Future<Person> getPersonByUID(String uid);
@@ -78,7 +81,8 @@ mixin IChannelService {
 
   Future<List<Channel>> fetchChannelsOfPerson(String official) {}
 
-  Future<List<Person>> pageOutputPersonOf( String channel, String person, int limit, int offset) {}
+  Future<List<Person>> pageOutputPersonOf(
+      String channel, String person, int limit, int offset) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -199,6 +203,15 @@ mixin IChannelPinService {
   Future<List<ChannelInputPerson>> listInputPerson(String channelcode);
 
   Future<void> emptyOutputPersons(String channelcode);
+
+  Future<bool> existsInputPerson(String person, String channel) {}
+
+  Future<void> emptyInputPersons(String channelid) {}
+
+  Future<ChannelInputPerson> getInputPerson(String official, channel) {}
+
+  Future<void> updateInputPersonRights(String official, String channel, String rights) {}
+
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}

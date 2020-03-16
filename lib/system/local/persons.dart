@@ -135,6 +135,21 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
+  Future<List<Person>> pagePersonWith(
+      List<String> personList, int persons_limit, int persons_offset)async {
+    List<String> officials = [];
+    for (String p in personList) {
+      Person person = await personDAO.getPerson(p, principal?.person);
+      if (person == null) {
+        continue;
+      }
+      officials.add(person.official);
+    }
+    return await this.personDAO.pagePersonWith(
+        principal?.person, officials, persons_limit, persons_offset);
+  }
+
+  @override
   Future<List<Person>> pagePersonWithout(
       List<String> personList, int persons_limit, int persons_offset) async {
     List<String> officials = [];

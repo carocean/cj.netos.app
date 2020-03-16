@@ -608,10 +608,53 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
+
+    var person = await personService.getPerson(message.upstreamPerson);
+    if (person != null) {
+      if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
+        print('已拒收公号<${person.official}>的所有消息，消息被抛弃:${message.id}');
+        return null;
+      }
+    }
+
     bool existsChannel =
         await channelService.existsChannel(message.upstreamChannel);
+
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+
+    if (!existsChannel) {
+      //缓冲channel
+      var channel = await channelService.fetchChannelOfPerson(
+          message.upstreamChannel, message.upstreamPerson);
+      if (channel != null) {
+        IChannelCache channelCache =
+            widget.context.site.getService('/cache/channels');
+        await channelCache.cache(channel);
+      }
+    }
+
+    var iperson = await pinService.getInputPerson(
+        message.upstreamPerson, message.upstreamChannel);
+    if ('deny' == iperson?.rights) {
+      Channel channel=await channelService.getChannel(message.upstreamChannel,);
+      if(channel==null) {
+        IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+        channel=await channelCache.get(message.upstreamChannel);
+      }
+      print(
+          '已拒收公号<${person.official}>的管道<${channel?.name}>消息，消息被抛弃:${message.id}');
+      return null;
+    }
+
+    bool exitsInputPerson = existsChannel
+        ? await pinService.existsInputPerson(
+            message.upstreamPerson, message.upstreamChannel)
+        : false;
+
     if (frame.head('sender') != widget.context.principal.person &&
-        existsChannel) {
+        exitsInputPerson) {
       if (!(await personService.existsPerson(message.upstreamPerson))) {
         var person = await personService.fetchPerson(message.upstreamPerson,
             isDownloadAvatar: true);
@@ -637,31 +680,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       //返回null是不在打印消息到界面
       return null;
     }
-    IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
-    if (!existsChannel) {
-      //缓冲channel
-      var channel = await channelService.fetchChannelOfPerson(
-          message.upstreamChannel, message.upstreamPerson);
-      if (channel != null) {
-        await channelCache.cache(channel);
-      }
-    }
-    var person = await personService.getPerson(message.upstreamPerson);
-    var channel = await channelCache.get(message.upstreamChannel);
-    if (channel != null) {
-      if (channel.rights == 'denyInsite') {
-        print(
-            '已拒收<${person.nickName}>的管道<${channel.name}>的消息，消息被抛弃:${message.id}');
-        return null;
-      }
-    }
-    if (person != null) {
-      if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
-        print('已拒收公号<${person.official}>的所有消息，消息被抛弃:${message.id}');
-        return null;
-      }
-    }
+
     await messageService.addMessage(message);
     return message;
   }
@@ -998,6 +1017,15 @@ class __ChannelItemState extends State<_ChannelItem> {
         widget.leading, remotePath, widget.channelid);
   }
 
+  _deleteChannel(String channelid) async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    await channelService.remove(channelid);
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    await pinService.emptyInputPersons(channelid);
+  }
+
   @override
   Widget build(BuildContext context) {
     var digest = widget.stateBar.digest;
@@ -1247,11 +1275,5 @@ class __ChannelItemState extends State<_ChannelItem> {
         child: item,
       ),
     );
-  }
-
-  _deleteChannel(String channelid) async {
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    await channelService.remove(channelid);
   }
 }

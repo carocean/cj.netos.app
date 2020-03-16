@@ -24,7 +24,6 @@ class OutsitePersons extends StatefulWidget {
 class _OutsitePersonsState extends State<OutsitePersons> {
   Channel _channel;
   _Refresher __refresher = _Refresher();
-
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
@@ -74,14 +73,14 @@ class _OutsitePersonsState extends State<OutsitePersons> {
                   ),
                   Text.rich(
                     TextSpan(
-                      text: '${_channel.name}: ',
+                      text: '${_channel.name}:',
                       style: TextStyle(
                         color: Colors.grey[500],
                       ),
                       children: [
                         TextSpan(
                             text:
-                                '${widget.context.principal.nickName ?? widget.context.principal.accountCode}>'),
+                                '${widget.context.principal.nickName}'),
                       ],
                     ),
                   ),
@@ -179,7 +178,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
   int _limit = 20;
   int _offset = 0;
   List<Person> _persons = [];
-
+  String _directionTips;
   @override
   void initState() {
     this._offset = 0;
@@ -188,6 +187,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _loadPersons().then((list) {
       setState(() {});
     });
+    _directionTips='${widget.context.principal.nickName}';
     widget.refresher.callback = () {
       resetPersons();
       _loadPersons().then((v) {
@@ -366,7 +366,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                             'pinType': 'upstream',
                             'channel': _channel,
                             'direction_tips':
-                                '${widget.context.principal.nickName}>'
+                            _directionTips,
                           }).then((obj) {
 //                        if (resetPersons != null) {
 //                          resetPersons();

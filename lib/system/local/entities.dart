@@ -83,31 +83,6 @@ class Channel {
 
 }
 
-class CachedChannel {
-  String id;
-  final String name;
-  final String owner;
-  String leading;
-  final String site;
-  int ctime = DateTime.now().millisecondsSinceEpoch;
-  final String sandbox;
-  String rights;
-
-  CachedChannel(
-      {this.id,
-      this.name,
-      this.owner,
-      this.leading,
-      this.site,
-      this.ctime,
-      this.rights,
-      this.sandbox});
-
-  Channel toChannel() {
-    return Channel(id, name, owner, leading, site, ctime, sandbox);
-  }
-}
-
 @entity
 class InsiteMessage {
   @primaryKey
@@ -294,12 +269,14 @@ class ChannelInputPerson {
   final String id;
   final String channel;
   final String person;
+  final String rights;
   final String sandbox;
 
   ChannelInputPerson(
     this.id,
     this.channel,
     this.person,
+    this.rights,
     this.sandbox,
   );
 }

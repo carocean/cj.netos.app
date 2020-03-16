@@ -64,7 +64,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
         channel.id,
         title: channel.name,
         leading: channel.leading,
-        outPersonSelector: 'all_except',
+        outPersonSelector: 'only_select',
         outGeoSelector: true,
       );
     }
@@ -113,7 +113,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
       channel.id,
       title: channel.name,
       leading: channel.leading,
-      outPersonSelector: 'all_except',
+      outPersonSelector: 'only_select',
       outGeoSelector: false,
     );
   }
@@ -133,7 +133,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
     if (channel == null) {
       var cachedchannel = await channelCache.get(channelid);
       if (cachedchannel != null) {
-        channel = cachedchannel.toChannel();
+        channel = cachedchannel;
       }
     }
     return channel;
@@ -145,7 +145,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
     if (channel == null) {
       var cachedchannel = await channelCache.get(channelid);
       if (cachedchannel != null) {
-        channel = cachedchannel.toChannel();
+        channel = cachedchannel;
       }
       if (channel == null) {
         channel = await this.fetchChannelOfPerson(channelid, person);
