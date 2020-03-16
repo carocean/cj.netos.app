@@ -24,6 +24,7 @@ class OutsitePersons extends StatefulWidget {
 class _OutsitePersonsState extends State<OutsitePersons> {
   Channel _channel;
   _Refresher __refresher = _Refresher();
+
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
@@ -78,9 +79,7 @@ class _OutsitePersonsState extends State<OutsitePersons> {
                         color: Colors.grey[500],
                       ),
                       children: [
-                        TextSpan(
-                            text:
-                                '${widget.context.principal.nickName}'),
+                        TextSpan(text: '${widget.context.principal.nickName}'),
                       ],
                     ),
                   ),
@@ -179,6 +178,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
   int _offset = 0;
   List<Person> _persons = [];
   String _directionTips;
+
   @override
   void initState() {
     this._offset = 0;
@@ -187,7 +187,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _loadPersons().then((list) {
       setState(() {});
     });
-    _directionTips='${widget.context.principal.nickName}';
+    _directionTips = '${widget.context.principal.nickName}';
     widget.refresher.callback = () {
       resetPersons();
       _loadPersons().then((v) {
@@ -213,7 +213,6 @@ class __PersonListRegionState extends State<_PersonListRegion> {
 
   Future<void> _onSwipeUp() async {
     await _loadPersons();
-    setState(() {});
   }
 
   Future<List<Person>> _loadPersons() async {
@@ -314,9 +313,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                         arguments: {
                           'channel': _channel,
                         }).then((obj) {
-                      if (resetPersons != null) {
-                        resetPersons();
-                      }
+                      widget.refresher.fireRefresh();
                     });
                   },
               ),
@@ -363,10 +360,9 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                       widget.context.forward('/netflow/channel/pin/see_persons',
                           arguments: {
                             'person': p,
-                            'pinType': 'upstream',
+                            'pinType': 'downstream',
                             'channel': _channel,
-                            'direction_tips':
-                            _directionTips,
+                            'direction_tips': _directionTips,
                           }).then((obj) {
 //                        if (resetPersons != null) {
 //                          resetPersons();

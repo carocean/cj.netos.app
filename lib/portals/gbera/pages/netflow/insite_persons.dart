@@ -270,7 +270,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     }
   }
 
-  _removeFromPersonList(Person person) async {
+  Future<void> _removeFromPersonList(Person person) async {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
     switch (_strategy) {
@@ -278,7 +278,12 @@ class __PersonListRegionState extends State<_PersonListRegion> {
         pinService
             .removeInputPerson(person.official, _channel.id)
             .whenComplete(() {
-          _persons.remove(person);
+          for (var i = 0; i < _persons.length; i++) {
+            if (person.official == _persons[i].person.official) {
+              _persons.removeAt(i);
+              break;
+            }
+          }
           setState(() {});
         });
         break;
@@ -294,7 +299,13 @@ class __PersonListRegionState extends State<_PersonListRegion> {
           ),
         )
             .whenComplete(() {
-          _persons.remove(person);
+          for (var i = 0; i < _persons.length; i++) {
+            if (person.official == _persons[i].person.official) {
+              _persons.removeAt(i);
+              break;
+            }
+          }
+
           setState(() {});
         });
         break;
@@ -330,9 +341,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                         arguments: {
                           'channel': _channel,
                         }).then((obj) {
-                      if (resetPersons != null) {
-                        resetPersons();
-                      }
+                      widget.refresher.fireRefresh();
                     });
                   },
               ),
@@ -368,7 +377,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                   icon: Icons.clear,
                   onTap: () {
                     _allowInsite(p.person.official, _channel.id).then((v) {
-                      p.rights='allow';
+                      p.rights = 'allow';
                       setState(() {});
                     });
                   },
@@ -400,7 +409,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                           widget.context.forward(
                               '/netflow/channel/pin/see_persons',
                               arguments: {
-                                'person': p,
+                                'person': p.person,
                                 'pinType': 'upstream',
                                 'channel': _channel,
                                 'direction_tips': _directionTips,

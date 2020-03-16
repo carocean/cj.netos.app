@@ -64,3 +64,20 @@ String getPath(String url) {
   }
   return path;
 }
+
+String fileExt(String path) {
+  String remain = path;
+  int pos = remain.indexOf("?");
+  if (pos > -1) {
+    remain = remain.substring(0, pos);
+  }
+  pos = remain.lastIndexOf('/');
+  if (pos > -1) {
+    remain = remain.substring(pos + 1);
+  }
+  pos = remain.lastIndexOf('.');
+  if (pos < 0) {
+    return '';
+  }
+  return remain.substring(pos + 1);
+}

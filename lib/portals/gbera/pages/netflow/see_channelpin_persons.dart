@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
@@ -46,10 +47,12 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
   String _directionTips;
   int _limit = 10;
   int _offset = 0;
-  List<Person> _outPersons = [];
+  List<Person> _persons = [];
+  EasyRefreshController _easyRefreshController;
 
   @override
   void initState() {
+    _easyRefreshController = EasyRefreshController();
     super.initState();
     _controller = ScrollController(initialScrollOffset: 0.0);
     _controller.addListener(_listener);
@@ -57,7 +60,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
     _person = widget.context.parameters['person'];
     _pinType = widget.context.parameters['pinType'];
     _directionTips = widget.context.parameters['direction_tips'];
-    _directionTips='$_directionTips>${_person.nickName}';
+    _directionTips = '$_directionTips>${_person.nickName}';
     _load().then((v) {
       setState(() {});
     });
@@ -65,7 +68,9 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
 
   @override
   void dispose() {
-    _outPersons.clear();
+    _offset=0;
+    _easyRefreshController.dispose();
+    _persons.clear();
     this.showOnAppbar = false;
     this._person = null;
     this._pinType = null;
@@ -73,14 +78,24 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
   }
 
   Future<void> _load() async {
-    var at=widget.context.principal.accessToken;
-    print(at);
-    print(_channel.id);
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    var persons = await channelService.pageOutputPersonOf(
-        _channel.id, _person.official, _limit, _offset);
-    _outPersons = persons;
+    List<Person> persons;
+    switch (_pinType) {
+      case 'upstream':
+        persons = await channelService.pageInputPersonOf(
+            _channel.id, _person.official, _limit, _offset);
+        break;
+      case 'downstream':
+        persons = await channelService.pageOutputPersonOf(
+            _channel.id, _person.official, _limit, _offset);
+        break;
+    }
+    if (persons.isEmpty) {
+      _easyRefreshController.finishLoad(success: true, noMore: true);
+    }
+    _offset += persons.length;
+    _persons.addAll(persons);
   }
 
   @override
@@ -206,6 +221,7 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               uid: '${_person.uid}',
               person: _person.official,
               signText: '${_person.signature ?? ''}',
+              accessToken: widget.context.principal.accessToken,
             ),
           ),
           SliverToBoxAdapter(
@@ -252,18 +268,16 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               ),
             ),
           ),
-          SliverToBoxAdapter(
+          SliverFillRemaining(
             child: Card(
               margin: EdgeInsets.only(
                 left: 10,
                 right: 10,
               ),
               color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                ),
+              child: EasyRefresh(
+                controller: _easyRefreshController,
+                onLoad: _load,
                 child: ListView(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
@@ -283,8 +297,19 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
       indent: 40,
     );
     var items = <Widget>[];
-    for (int i = 0; i < _outPersons.length; i++) {
-      var p = _outPersons[i];
+    if (_persons.isEmpty) {
+      items.add(
+        Center(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20, right: 20, bottom: 40, top: 40),
+            child: Text(
+                '<${_person.nickName}>可能没有使用<${_channel.name}>管道或在其<${_channel.name}>管道中没有${_pinType=='downstream'?'下游':'上游'}公众'),
+          ),
+        ),
+      );
+    }
+    for (int i = 0; i < _persons.length; i++) {
+      var p = _persons[i];
       items.add(
         CardItem(
           leading: Image.network(
@@ -303,13 +328,12 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               'person': p,
               'pinType': _pinType,
               'channel': _channel,
-              'direction_tips':
-                  '${_directionTips}'
+              'direction_tips': '${_directionTips}'
             }).then((obj) {});
           },
         ),
       );
-      if (i < _outPersons.length) {
+      if (i < _persons.length) {
         items.add(divider);
       }
     }
@@ -324,6 +348,7 @@ class _Header extends StatefulWidget {
   String person;
   String address;
   String signText;
+  String accessToken;
 
   _Header(
       {this.imgSrc,
@@ -331,6 +356,7 @@ class _Header extends StatefulWidget {
       this.person,
       this.address,
       this.signText,
+      this.accessToken,
       this.title});
 
   @override
@@ -365,12 +391,19 @@ class __HeaderState extends State<_Header> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(6),
                   ),
-                  child: Image.file(
-                    File(widget.imgSrc),
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.fitWidth,
-                  ),
+                  child: widget.imgSrc.startsWith('/')
+                      ? Image.file(
+                          File(widget.imgSrc),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.fitWidth,
+                        )
+                      : Image.network(
+                          '${widget.imgSrc}?accessToken=${widget.accessToken}',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.fitWidth,
+                        ),
                 ),
               ),
               Expanded(

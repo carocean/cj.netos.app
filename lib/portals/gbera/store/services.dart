@@ -83,6 +83,9 @@ mixin IChannelService {
 
   Future<List<Person>> pageOutputPersonOf(
       String channel, String person, int limit, int offset) {}
+
+  Future<List<Person>>  pageInputPersonOf(String channel, String person, int limit, int offset) {}
+
 }
 mixin IInsiteMessageService {
   Future<void> empty();

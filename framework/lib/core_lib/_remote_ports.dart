@@ -189,19 +189,12 @@ class DefaultRemotePorts implements IRemotePorts {
     var remoteFiles = <String, String>{};
     for (var i = 0; i < localFiles.length; i++) {
       var f = localFiles[i];
-      int pos = f.lastIndexOf('.');
-      var ext = '';
-      var prev = '';
-      if (pos > -1) {
-        ext = f.substring(pos + 1, f.length);
-        prev = f.substring(0, pos);
-      } else {
-        prev = f;
+      var ext = fileExt(f);
+      String fn = "${Uuid().v1()}";
+      if (!StringUtil.isEmpty(ext)) {
+        fn = '$fn.$ext';
       }
-      prev = prev.substring(prev.lastIndexOf('/') + 1, prev.length);
-      String fn = "${Uuid().v1()}_$prev.$ext";
       remoteFiles[f] = '${_site.getService('@.prop.fs.reader')}$remoteDir/$fn';
-      print(remoteFiles[f]);
       files.add(await MultipartFile.fromFile(
         f,
         filename: fn,

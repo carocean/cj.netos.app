@@ -167,6 +167,12 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
+  Future<List<Person>> pageInputPersonOf(
+      String channel, String person, int limit, int offset) async{
+    return  await this.channelRemote.pageInputPersonOf(channel, person,limit,offset);
+  }
+
+  @override
   Future<List<Channel>> fetchChannelsOfPerson(String official) async {
     return await this.channelRemote.fetchChannelsOfPerson(official);
   }

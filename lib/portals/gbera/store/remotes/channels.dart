@@ -70,9 +70,39 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     for (var obj in list) {
       persons.add(
         Person(
-          obj['person'],
+          obj['official'],
           obj['uid'],
-          obj['accountCode'],
+          obj['accountName'],
+          obj['appid'],
+          obj['avatar'],
+          obj['rights'],
+          obj['nickName'],
+          obj['signature'],
+          obj['pyname'],
+          principal.person,
+        ),
+      );
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<Person>> pageInputPersonOf(
+      String channel, String person, int limit, int offset) async{
+    List list = await remotePorts
+        .portGET(_networkPortsUrl, 'pageInputPersonOf', parameters: {
+      'channel': channel,
+      'person': person,
+      'limit': limit,
+      'offset': offset,
+    });
+    var persons = <Person>[];
+    for (var obj in list) {
+      persons.add(
+        Person(
+          obj['official'],
+          obj['uid'],
+          obj['accountName'],
           obj['appid'],
           obj['avatar'],
           obj['rights'],
