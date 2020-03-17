@@ -50,7 +50,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
     List<ChannelComment> comments =
         await commentService.pageComments(id, 100000000, 0);
     for (var m in comments) {
-      await commentService.removeComment(m.id);
+      await commentService.removeComment(m.msgid,m.id);
     }
     List<LikePerson> likes =
         await likeService.pageLikePersons(id, 100000000, 0);

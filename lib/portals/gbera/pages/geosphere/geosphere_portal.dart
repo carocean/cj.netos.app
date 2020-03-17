@@ -1126,7 +1126,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   _deleteComment(ChannelComment comment) async {
     IChannelCommentService commentService =
         widget.context.site.getService('/channel/messages/comments');
-    await commentService.removeComment(comment.id);
+    await commentService.removeComment(comment.msgid,comment.id);
   }
 }
 

@@ -39,4 +39,14 @@ mixin IChannelRemote {
 
   Future<List<Person>> pageInputPersonOf(
       String channel, String person, int limit, int offset) {}
+
+  Future<void> unlike(String msgid) {}
+
+  Future<void> like(
+    String msgid,
+  ) {}
+
+  Future<void> addComment(String msgid, String text, String id) {}
+
+  Future<void> removeComment(String msgid, String commentid) {}
 }

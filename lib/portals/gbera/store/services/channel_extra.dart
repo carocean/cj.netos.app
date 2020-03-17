@@ -5,19 +5,22 @@ import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 
 import '../../../../system/local/entities.dart';
+import '../remotes.dart';
 import '../services.dart';
 
 class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
   IChannelMediaDAO channelMediaDAO;
   IServiceProvider site;
+  IChannelRemote channelRemote;
 
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-   builder(IServiceProvider site)  {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelMediaDAO = db.channelMediaDAO;
+    channelRemote = site.getService('/remote/channels');
     return null;
   }
 
@@ -47,10 +50,10 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
 
   @override
   Future<Function> removeBy(String channelid) async {
-    var list = await getMediasBy(channelid);
-    for (var m in list) {
-      _deleteFile(m);
-    }
+//    var list = await getMediasBy(channelid);
+//    for (var m in list) {
+//      _deleteFile(m);
+//    }
     await channelMediaDAO.removeMedia(channelid, principal?.person);
   }
 
@@ -75,12 +78,15 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
   IChannelLikePersonDAO channelLikeDAO;
   IServiceProvider site;
 
+  IChannelRemote channelRemote;
+
   UserPrincipal get principal => site.getService('@.principal');
 
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelLikeDAO = db.channelLikeDAO;
+    channelRemote = site.getService('/remote/channels');
   }
 
   @override
@@ -111,11 +117,13 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
   @override
   Future<Function> unlike(String msgid, String person) async {
     await channelLikeDAO.removeLikePersonBy(msgid, person, principal?.person);
+    await channelRemote.unlike(msgid);
   }
 
   @override
   Future<Function> like(LikePerson like) async {
     await channelLikeDAO.addLikePerson(like);
+    await channelRemote.like(like.msgid);
   }
 }
 
@@ -124,12 +132,14 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
+  IChannelRemote channelRemote;
 
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     channelCommentDAO = db.channelCommentDAO;
+    channelRemote = site.getService('/remote/channels');
   }
 
   @override
@@ -140,6 +150,7 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   @override
   Future<Function> addComment(ChannelComment comment) async {
     await channelCommentDAO.addComment(comment);
+    await channelRemote.addComment(comment.msgid, comment.text, comment.id);
   }
 
   @override
@@ -150,7 +161,8 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeComment(String id) async {
-    await channelCommentDAO.removeComment(id, principal?.person);
+  Future<Function> removeComment(String msgid, String commentid) async {
+    await channelCommentDAO.removeComment(commentid, principal?.person);
+    await channelRemote.removeComment(msgid, commentid);
   }
 }

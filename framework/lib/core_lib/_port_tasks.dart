@@ -460,19 +460,12 @@ void _addUploadTask(_EntrypointArgument args, Dio dio, _PortTask task) async {
   var remoteFiles = <String, String>{};
   for (var i = 0; i < task.localFiles.length; i++) {
     var f = task.localFiles[i];
-    int pos = f.lastIndexOf('.');
-    var ext = '';
-    var prev = '';
-    if (pos > -1) {
-      ext = f.substring(pos + 1, f.length);
-      prev = f.substring(0, pos);
-    } else {
-      prev = f;
+    var ext = fileExt(f);
+    String fn = "${Uuid().v1()}";
+    if (!StringUtil.isEmpty(ext)) {
+      fn = '$fn.$ext';
     }
-    prev = prev.substring(prev.lastIndexOf('/') + 1, prev.length);
-    String fn = "${Uuid().v1()}_$prev.$ext";
     remoteFiles[f] = '${args.readFilePortsUrl}${task.remoteDir}/$fn';
-    print(remoteFiles[f]);
     files.add(await MultipartFile.fromFile(
       f,
       filename: fn,

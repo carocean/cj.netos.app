@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
@@ -10,7 +12,10 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
 
-  get _networkPortsUrl => site.getService('@.prop.ports.link.network');
+  get _netflowPortsUrl => site.getService('@.prop.ports.link.netflow');
+
+  get _channelPortsUrl =>
+      site.getService('@.prop.ports.document.network.channel');
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
 
@@ -26,7 +31,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       @required String leading,
       @required String outPersonSelector,
       @required bool outGeoSelector}) async {
-    await remotePorts.portGET(_networkPortsUrl, 'createChannel', parameters: {
+    await remotePorts.portGET(_netflowPortsUrl, 'createChannel', parameters: {
       'channel': channel,
       'title': title,
       'leading': leading,
@@ -38,7 +43,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<Channel> findChannelOfPerson(String channel, String person) async {
     Map<String, dynamic> map = await remotePorts
-        .portGET(_networkPortsUrl, 'getPersonChannel', parameters: {
+        .portGET(_netflowPortsUrl, 'getPersonChannel', parameters: {
       'channel': channel,
       'person': person,
     });
@@ -60,7 +65,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<List<Person>> pageOutputPersonOf(
       String channel, String person, int limit, int offset) async {
     List list = await remotePorts
-        .portGET(_networkPortsUrl, 'pageOutputPersonOf', parameters: {
+        .portGET(_netflowPortsUrl, 'pageOutputPersonOf', parameters: {
       'channel': channel,
       'person': person,
       'limit': limit,
@@ -88,9 +93,9 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<List<Person>> pageInputPersonOf(
-      String channel, String person, int limit, int offset) async{
+      String channel, String person, int limit, int offset) async {
     List list = await remotePorts
-        .portGET(_networkPortsUrl, 'pageInputPersonOf', parameters: {
+        .portGET(_netflowPortsUrl, 'pageInputPersonOf', parameters: {
       'channel': channel,
       'person': person,
       'limit': limit,
@@ -119,7 +124,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<List<Channel>> fetchChannelsOfPerson(String official) async {
     List<dynamic> list = await remotePorts
-        .portGET(_networkPortsUrl, 'listPersonChannels', parameters: {
+        .portGET(_netflowPortsUrl, 'listPersonChannels', parameters: {
       'person': official,
     });
     if (list == null) {
@@ -143,7 +148,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<List<Channel>> pageChannel({int limit = 20, int offset = 0}) async {
     var list =
-        await remotePorts.portGET(_networkPortsUrl, 'pageChannel', parameters: {
+        await remotePorts.portGET(_netflowPortsUrl, 'pageChannel', parameters: {
       'limit': '$limit',
       'offset': '$offset',
     });
@@ -165,7 +170,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<Function> removeChannel(String channel) async {
-    await remotePorts.portGET(_networkPortsUrl, 'removeChannel', parameters: {
+    await remotePorts.portGET(_netflowPortsUrl, 'removeChannel', parameters: {
       'channel': channel,
     });
   }
@@ -173,7 +178,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> updateLeading(String channelid, String remotePath) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'updateChannelLeading',
       parameters: {'channel': channelid, 'leading': remotePath},
     );
@@ -182,7 +187,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> addInputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'addInputPerson',
       parameters: {
         'channel': channel,
@@ -194,7 +199,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> addOutputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'addOutputPerson',
       parameters: {
         'channel': channel,
@@ -206,7 +211,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> removeInputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'removeInputPerson',
       parameters: {
         'channel': channel,
@@ -218,7 +223,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> removeOutputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'removeOutputPerson',
       parameters: {
         'channel': channel,
@@ -231,7 +236,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<void> updateOutGeoSelector(
       String channel, String outGeoSelector) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'updateOutGeoSelector',
       parameters: {
         'channel': channel,
@@ -244,11 +249,55 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<void> updateOutPersonSelector(
       String channel, outPersonSelector) async {
     await remotePorts.portGET(
-      _networkPortsUrl,
+      _netflowPortsUrl,
       'updateOutPersonSelector',
       parameters: {
         'channel': channel,
         'outPersonSelector': outPersonSelector,
+      },
+    );
+  }
+
+  @override
+  Future<void> like(String msgid) {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'likeDocument',
+      parameters: {'docid': msgid},
+    );
+    return null;
+  }
+
+  @override
+  Future<void> unlike(String msgid) {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'unlikeDocument',
+      parameters: {'docid': msgid},
+    );
+  }
+
+  @override
+  Future<Function> removeComment(String msgid, String commentid) {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'uncommentDocument',
+      parameters: {
+        'docid': msgid,
+        'commentid': commentid,
+      },
+    );
+  }
+
+  @override
+  Future<Function> addComment(String msgid, String text, String commentid) {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'commentDocument',
+      parameters: {
+        'docid': msgid,
+        'commentid': commentid,
+        'content': text,
       },
     );
   }

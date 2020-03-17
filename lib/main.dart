@@ -24,7 +24,7 @@ void main() => platformRun(
           props: {
             ///默认应用，即终端未指定应用号时登录或注册的目标应用
             '@.prop.entrypoint.app': 'gbera.netos',
-            '@.prop.ports.link.network':
+            '@.prop.ports.link.netflow':
             'http://47.105.165.186/link/netflow/self.service',
             '@.prop.ports.uc.auth': 'http://47.105.165.186/uc/auth.service',
             '@.prop.ports.uc.register':
@@ -41,7 +41,7 @@ void main() => platformRun(
             '@.prop.fs.uploader':
                 'http://47.105.165.186:7110/upload/uploader.service',
             '@.prop.fs.reader': 'http://47.105.165.186:7100',
-            '@.prop.ports.network.channel': 'http://47.105.165.186/document/network/channel.service',
+            '@.prop.ports.document.network.channel': 'http://47.105.165.186/document/network/channel.service',
             '@.prop.ports.flow.channel':'http://47.105.165.186/flow/channel.service',
           },
           buildServices: (site) async {

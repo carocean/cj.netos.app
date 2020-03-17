@@ -80,7 +80,6 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         widget.context.principal.person,
       ),
     );
-    var _medias = [];
     for (MediaFile file in images) {
       var type = 'image';
       switch (file.type) {
@@ -93,21 +92,21 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
           type = 'audio';
           break;
       }
-      await channelMediaService.addMedia(
-        Media(
-          '${Uuid().v1()}',
-          type,
-          '${file.src.path}',
-          null,
-          msgid,
-          null,
-          _channel.id,
-          widget.context.principal.person,
-        ),
+      var media = Media(
+        '${Uuid().v1()}',
+        type,
+        '${file.src.path}',
+        null,
+        msgid,
+        null,
+        _channel.id,
+        widget.context.principal.person,
       );
+      await channelMediaService.addMedia(media);
+
       widget.context.ports.portTask.addUploadTask('/app', [file.src.path],
           callbackUrl:
-              '/network/channel/doc?type=$type&localFile=${file.src.path}&docid=$msgid&channel=${_channel.id}&creator=${user.person}');
+              '/network/channel/doc?mediaid=${media.id}&type=$type&localFile=${file.src.path}&docid=$msgid&channel=${_channel.id}&creator=${user.person}&text=${media.text??''}&leading=${media.leading??''}');
     }
 
     var doc = {
@@ -117,10 +116,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'content': content,
       'Location': location,
       'wy': 10.00,
-      'medias': _medias,
     };
     var portsUrl =
-        widget.context.site.getService('@.prop.ports.network.channel');
+        widget.context.site.getService('@.prop.ports.document.network.channel');
     widget.context.ports.portTask.addPortPOSTTask(
       portsUrl,
       'publishDocument',

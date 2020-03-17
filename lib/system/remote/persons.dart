@@ -17,7 +17,7 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
 
-  get _networkPortsUrl => site.getService('@.prop.ports.link.network');
+  get _networkPortsUrl => site.getService('@.prop.ports.link.netflow');
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
 

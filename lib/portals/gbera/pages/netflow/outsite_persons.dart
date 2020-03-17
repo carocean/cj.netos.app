@@ -228,7 +228,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     List<Person> personObjs;
     switch (strategy) {
       case PinPersonsSettingsStrategy.only_select:
-        var out_persons = await pinService.listOutputPerson(_channel.id);
+        var out_persons = await pinService.pageOutputPerson(_channel.id,_limit,_offset);
         var persons = <String>[];
         for (var op in out_persons) {
           persons.add(op.person);
@@ -243,10 +243,12 @@ class __PersonListRegionState extends State<_PersonListRegion> {
         }
         personObjs =
             await personService.pagePersonWithout(persons, _limit, _offset);
-        if (!personObjs.isEmpty) {
-          _offset += personObjs.length;
-        }
         break;
+    }
+    if (personObjs.isEmpty) {
+      _controller.finishLoad(success: true,noMore: true);
+    }else{
+      _offset += personObjs.length;
     }
     for (var p in personObjs) {
       _persons.add(p);

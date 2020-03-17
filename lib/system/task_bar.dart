@@ -60,7 +60,7 @@ class _TaskBarState extends State<TaskBar> {
               reset();
               //推文任务
               var flowChannelPortsUrl =
-              widget.site.getService('@.prop.ports.flow.channel');
+                  widget.site.getService('@.prop.ports.flow.channel');
               ports.portTask.addPortPOSTTask(
                 flowChannelPortsUrl,
                 'pushChannelDocument',
@@ -80,15 +80,19 @@ class _TaskBarState extends State<TaskBar> {
               break;
             case 'done':
               reset();
-              var json=frame.contentText;
-              var files=jsonDecode(json);
+              var json = frame.contentText;
+              var files = jsonDecode(json);
               var map = {
                 'type': frame.parameter('type'),
-                'docid':frame.parameter('docid'),
+                'docid': frame.parameter('docid'),
                 'src': files[frame.parameter('localFile')],
+                'channel': frame.parameter('channel'),
+                'text': frame.parameter('text'),
+                'leading': frame.parameter('leading'),
+                'id': frame.parameter('mediaid'),
               };
-              var portsUrl =
-              widget.site.getService('@.prop.ports.network.channel');
+              var portsUrl = widget.site
+                  .getService('@.prop.ports.document.network.channel');
               ports.portTask.addPortPOSTTask(
                 portsUrl,
                 'addDocumentMedia',
@@ -111,5 +115,4 @@ class _TaskBarState extends State<TaskBar> {
       }
     });
   }
-
 }

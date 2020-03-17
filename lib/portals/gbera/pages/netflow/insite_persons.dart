@@ -238,21 +238,22 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     List<Person> personObjs;
     switch (strategy) {
       case PinPersonsSettingsStrategy.only_select:
-        var in_persons = await pinService.listInputPerson(_channel.id);
+        var in_persons =
+            await pinService.pageInputPerson(_channel.id, _limit, _offset);
         var persons = <String>[];
         for (var op in in_persons) {
           persons.add(op.person);
         }
         personObjs =
             await personService.pagePersonWith(persons, _limit, _offset);
-        if (!personObjs.isEmpty) {
-          _offset += personObjs.length;
-        } else {
-          _controller.finishLoad(success: true, noMore: true);
-        }
         break;
       case PinPersonsSettingsStrategy.all_except:
         throw FlutterError('不支持PinPersonsSettingsStrategy.all_except');
+    }
+    if (!personObjs.isEmpty) {
+      _offset += personObjs.length;
+    } else {
+      _controller.finishLoad(success: true, noMore: true);
     }
     for (var p in personObjs) {
       var inperson = await pinService.getInputPerson(p.official, _channel.id);

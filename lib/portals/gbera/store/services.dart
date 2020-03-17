@@ -162,7 +162,7 @@ mixin IChannelCommentService {
 
   Future<void> addComment(ChannelComment channelComment);
 
-  Future<void> removeComment(String id);
+  Future<void> removeComment(String msgid,String commentid);
 
   Future<void> removeBy(String channelcode) {}
 }
