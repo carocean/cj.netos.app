@@ -130,6 +130,14 @@ mixin IChannelMessageService {
   Future<ChannelMessageDigest> getChannelMessageDigest(String channelid) {}
 
   Future<void> readAllArrivedMessage(String channelid);
+
+  Future<void> loadMessageExtraTask(ChannelMessage channelMessage) {}
+
+  Future<void> setCurrentActivityTask(ChannelMessage channelMessage) {}
+
+  Future<ChannelMessage>  getChannelMessage(String msgid) {}
+
+
 }
 mixin IChannelMediaService {
   Future<void> addMedia(Media media);
@@ -144,9 +152,9 @@ mixin IChannelMediaService {
 mixin IChannelLikeService {
   Future<bool> isLiked(String msgid, String person);
 
-  Future<void> like(LikePerson likePerson);
+  Future<void> like(LikePerson likePerson,{bool onlySaveLocal=false});
 
-  Future<void> unlike(String msgid, String person);
+  Future<void> unlike(String msgid, String person,{bool onlySaveLocal=false});
 
   Future<List<LikePerson>> pageLikePersons(
       String msgid, int pageSize, int offset);
@@ -154,15 +162,18 @@ mixin IChannelLikeService {
   Future<void> remove(String id);
 
   Future<void> removeBy(String channelid) {}
+
+  Future<List<LikePerson>>  listLikePerson() {}
+
 }
 
 mixin IChannelCommentService {
   Future<List<ChannelComment>> pageComments(
       String msgid, int pageSize, int offset);
 
-  Future<void> addComment(ChannelComment channelComment);
+  Future<void> addComment(ChannelComment channelComment,{bool onlySaveLocal=false});
 
-  Future<void> removeComment(String msgid,String commentid);
+  Future<void> removeComment(String msgid,String commentid,{bool onlySaveLocal=false});
 
   Future<void> removeBy(String channelcode) {}
 }

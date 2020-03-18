@@ -293,13 +293,24 @@ class Header extends StatefulWidget {
 
 class _HeaderState extends State<Header> {
   int _arrivedMessageCount = 0;
+  String _arrivedMessageTips='';
   var _workingChannel;
 
   @override
   void initState() {
     _workingChannel = widget.context.parameters['workingChannel'];
-    _workingChannel.onRefreshChannelState = () {
+    _workingChannel.onRefreshChannelState = (command,args) {
       _arrivedMessageCount++;
+//      switch(command) {
+//        case 'likeDocumentCommand':
+//          _arrivedMessageTips='';
+//          break;
+//        case 'unlikeDocumentCommand':
+//          break;
+//        default:
+//          print('不明确的消息提示刷新');
+//          break;
+//      }
       setState(() {});
     };
     super.initState();
@@ -1330,7 +1341,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   _deleteComment(ChannelComment comment) async {
     IChannelCommentService commentService =
         widget.context.site.getService('/channel/messages/comments');
-    await commentService.removeComment(comment.msgid,comment.id);
+    await commentService.removeComment(comment.msgid, comment.id);
   }
 }
 

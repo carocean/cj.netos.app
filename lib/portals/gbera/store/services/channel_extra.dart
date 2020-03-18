@@ -12,6 +12,7 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
   IChannelMediaDAO channelMediaDAO;
   IServiceProvider site;
   IChannelRemote channelRemote;
+  IChannelMessageService messageService;
 
   UserPrincipal get principal => site.getService('@.principal');
 
@@ -21,6 +22,7 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     channelMediaDAO = db.channelMediaDAO;
     channelRemote = site.getService('/remote/channels');
+    messageService = site.getService('/channel/messages');
     return null;
   }
 
@@ -79,6 +81,7 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
   IServiceProvider site;
 
   IChannelRemote channelRemote;
+  IChannelMessageService messageService;
 
   UserPrincipal get principal => site.getService('@.principal');
 
@@ -87,6 +90,7 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     channelLikeDAO = db.channelLikeDAO;
     channelRemote = site.getService('/remote/channels');
+    messageService = site.getService('/channel/messages');
   }
 
   @override
@@ -108,28 +112,46 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
   }
 
   @override
-  Future<bool> isLiked(String msgid, String person) async {
+  Future<List<LikePerson>> listLikePerson() async {
+    return await channelLikeDAO.getAllLikePerson(principal.person);
+  }
+
+  @override
+  Future<bool> isLiked(String msgid, String liker) async {
     var likes =
-        await channelLikeDAO.getLikePersonBy(msgid, person, principal?.person);
+        await channelLikeDAO.getLikePersonBy(msgid, liker, principal?.person);
     return likes.isEmpty ? false : true;
   }
 
   @override
-  Future<Function> unlike(String msgid, String person) async {
-    await channelLikeDAO.removeLikePersonBy(msgid, person, principal?.person);
-    await channelRemote.unlike(msgid);
+  Future<Function> unlike(String msgid, String liker,
+      {bool onlySaveLocal = false}) async {
+    await channelLikeDAO.removeLikePersonBy(msgid, liker, principal?.person);
+    if (onlySaveLocal) {
+      return null;
+    }
+    ChannelMessage message = await messageService.getChannelMessage(msgid);
+    await channelRemote.unlike(message.id, message.onChannel, message.creator);
   }
 
   @override
-  Future<Function> like(LikePerson like) async {
+  Future<Function> like(LikePerson like, {bool onlySaveLocal = false}) async {
+    if (await channelLikeDAO.getLikePerson(like.msgid, like.sandbox) != null) {
+      return null;
+    }
     await channelLikeDAO.addLikePerson(like);
-    await channelRemote.like(like.msgid);
+    if (onlySaveLocal) {
+      return null;
+    }
+    ChannelMessage message = await messageService.getChannelMessage(like.msgid);
+    await channelRemote.like(message.id, message.onChannel, message.creator);
   }
 }
 
 class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   IChannelCommentDAO channelCommentDAO;
   IServiceProvider site;
+  IChannelMessageService messageService;
 
   UserPrincipal get principal => site.getService('@.principal');
   IChannelRemote channelRemote;
@@ -140,6 +162,7 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     channelCommentDAO = db.channelCommentDAO;
     channelRemote = site.getService('/remote/channels');
+    messageService = site.getService('/channel/messages');
   }
 
   @override
@@ -148,9 +171,18 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addComment(ChannelComment comment) async {
+  Future<Function> addComment(ChannelComment comment,{bool onlySaveLocal=false}) async {
+    if(await channelCommentDAO.getComment(comment.id, comment.person)!=null) {
+      return null;
+    }
     await channelCommentDAO.addComment(comment);
-    await channelRemote.addComment(comment.msgid, comment.text, comment.id);
+    if(onlySaveLocal) {
+      return null;
+    }
+    ChannelMessage message =
+        await messageService.getChannelMessage(comment.msgid);
+    await channelRemote.addComment(message.id, message.onChannel,
+        message.creator, comment.text, comment.id);
   }
 
   @override
@@ -161,8 +193,13 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeComment(String msgid, String commentid) async {
+  Future<Function> removeComment(String msgid, String commentid,{bool onlySaveLocal=false}) async {
     await channelCommentDAO.removeComment(commentid, principal?.person);
-    await channelRemote.removeComment(msgid, commentid);
+    if(onlySaveLocal) {
+      return null;
+    }
+    ChannelMessage message = await messageService.getChannelMessage(msgid);
+    await channelRemote.removeComment(
+        message.id, message.onChannel, message.creator, commentid);
   }
 }

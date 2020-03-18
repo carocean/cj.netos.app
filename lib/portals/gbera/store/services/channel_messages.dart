@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 
@@ -16,6 +18,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
+  IChannelRemote channelRemote;
 
   @override
   builder(IServiceProvider site) {
@@ -25,6 +28,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
     mediaService = site.getService('/channel/messages/medias');
     commentService = site.getService('/channel/messages/comments');
     likeService = site.getService('/channel/messages/likes');
+    channelRemote = site.getService('/remote/channels');
   }
 
   @override
@@ -50,7 +54,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
     List<ChannelComment> comments =
         await commentService.pageComments(id, 100000000, 0);
     for (var m in comments) {
-      await commentService.removeComment(m.msgid,m.id);
+      await commentService.removeComment(m.msgid, m.id);
     }
     List<LikePerson> likes =
         await likeService.pageLikePersons(id, 100000000, 0);
@@ -69,7 +73,9 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   }
 
   @override
-  Future<List<ChannelMessage>> getAllMessage() async {}
+  Future<List<ChannelMessage>> getAllMessage() async {
+    return await channelMessageDAO.getAllMessage(principal.person);
+  }
 
   @override
   Future<List<ChannelMessage>> pageMessage(
@@ -91,13 +97,14 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
 
   @override
   Future<void> readAllArrivedMessage(String channelid) async {
-    await channelMessageDAO.updateStateMessage('readed',channelid, principal.person,'arrived');
+    await channelMessageDAO.updateStateMessage(
+        'readed', channelid, principal.person, 'arrived');
   }
 
   @override
   Future<ChannelMessageDigest> getChannelMessageDigest(String channelid) async {
-    List<ChannelMessage> list =
-        await channelMessageDAO.listMessageByState(channelid, principal.person,'arrived');
+    List<ChannelMessage> list = await channelMessageDAO.listMessageByState(
+        channelid, principal.person, 'arrived');
     if (list.isEmpty) {
       return null;
     }
@@ -107,5 +114,55 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
       atime: msg.atime,
       count: list.length,
     );
+  }
+
+  @override
+  Future<ChannelMessage> getChannelMessage(msgid) async {
+    return await channelMessageDAO.getMessage(msgid, principal.person);
+  }
+
+  @override
+  Future<Function> loadMessageExtraTask(ChannelMessage channelMessage) async {
+    _loadExtraLikes(channelMessage);
+    _loadExtraComments(channelMessage);
+    _loadExtraMedias(channelMessage);
+  }
+
+  void _loadExtraLikes(ChannelMessage channelMessage) {
+    int limit = 20;
+    int offset = 0;
+    channelRemote.listenLikeTaskCallback((likes) {
+      print('赞---${likes}');
+      if (likes.isNotEmpty) {
+        offset += likes.length;
+        channelRemote.pageLikeTask(channelMessage, limit, offset);
+      }
+    });
+    channelRemote.pageLikeTask(channelMessage, limit, offset);
+  }
+
+  void _loadExtraComments(ChannelMessage channelMessage) {
+    int limit = 20;
+    int offset = 0;
+    channelRemote.listenCommentTaskCallback((comments) {
+      print('评---${comments}');
+      if (comments.isNotEmpty) {
+        offset += comments.length;
+        channelRemote.pageCommentTask(channelMessage, limit, offset);
+      }
+    });
+    channelRemote.pageCommentTask(channelMessage, limit, offset);
+  }
+
+  void _loadExtraMedias(ChannelMessage channelMessage) {
+    channelRemote.listenMediaTaskCallback((medias) {
+      print('媒体文件---${medias}');
+    });
+    channelRemote.listMediaTask(channelMessage);
+  }
+
+  @override
+  Future<Function> setCurrentActivityTask(ChannelMessage channelMessage) async {
+    await channelRemote.setCurrentActivityTask(channelMessage);
   }
 }

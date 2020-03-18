@@ -2,8 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 mixin IChannelRemote {
-  Future<void> createChannel(
-    String channel, {
+  Future<void> createChannel(String channel, {
     @required String title,
     @required String leading,
 
@@ -34,19 +33,39 @@ mixin IChannelRemote {
 
   Future<List<Channel>> fetchChannelsOfPerson(String official) {}
 
-  Future<List<Person>> pageOutputPersonOf(
-      String channel, String person, int limit, int offset) {}
+  Future<List<Person>> pageOutputPersonOf(String channel, String person,
+      int limit, int offset) {}
 
-  Future<List<Person>> pageInputPersonOf(
-      String channel, String person, int limit, int offset) {}
+  Future<List<Person>> pageInputPersonOf(String channel, String person,
+      int limit, int offset) {}
 
-  Future<void> unlike(String msgid) {}
+  Future<void> unlike(String msgid, String channel,String creator) {}
 
-  Future<void> like(
-    String msgid,
-  ) {}
+  Future<void> like(String msgid, String channel,String creator);
 
-  Future<void> addComment(String msgid, String text, String id) {}
+  Future<void> addComment(String msgid, String channel, String creator, String text, String id) {}
 
-  Future<void> removeComment(String msgid, String commentid) {}
+  Future<void> removeComment(String msgid, String channel, String creator, String commentid) {}
+
+  Future<void> pageLikeTask(ChannelMessage channelMessage, int limit,
+      int offset);
+
+  Future<void> pageCommentTask(ChannelMessage channelMessage, int limit,
+      int offset);
+
+  Future<void> listMediaTask(ChannelMessage channelMessage);
+
+  Future<void> pageActivityTask(ChannelMessage channelMessage, int limit,
+      int offset);
+
+  void listenLikeTaskCallback(Function(List likes) callback);
+
+  void listenCommentTaskCallback(Null Function(List comments) callback);
+
+  void listenMediaTaskCallback(Null Function(List medias) callback);
+
+  void listenActivityTaskCallback(Null Function(List activities) callback);
+
+  Future<void> setCurrentActivityTask(ChannelMessage channelMessage) {}
+
 }

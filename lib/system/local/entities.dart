@@ -118,7 +118,7 @@ class InsiteMessage {
 
   ChannelMessage copy() {
     return ChannelMessage(
-      id,
+      docid,
       upstreamPerson,
       sourceSite,
       sourceApp,

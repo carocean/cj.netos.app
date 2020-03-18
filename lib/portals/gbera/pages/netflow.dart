@@ -22,21 +22,74 @@ import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
 
 class WorkingChannel {
-  Function() onRefreshChannelState;
+  Function(String command, dynamic args) onRefreshChannelState;
 }
 
 class _ChannelStateBar {
   var channelid;
   IChannelMessageService channelMessageService;
-  ChannelMessageDigest digest;
-  Function() refresh;
+  Function(String command, dynamic args) refresh;
+  String brackets; //括号
+  String tips; //提示栏
+  int atime; //时间
+  int count = 0; //消息数提示，0表示无提示
+  bool isShow = false; //是否显示提供
 
   _ChannelStateBar({this.channelid, this.channelMessageService});
 
-  Future<void> relead() async {
-    digest = await channelMessageService.getChannelMessageDigest(channelid);
+  Future<void> update(String command, dynamic args) async {
+    switch (command) {
+      case 'pushDocumentCommand':
+      case 'loadChannelsCommand':
+        var digest =
+            await channelMessageService.getChannelMessageDigest(channelid);
+        if (digest != null) {
+          brackets = '[${digest.count}条]';
+          tips = digest.text;
+          atime = digest.atime;
+          count = digest.count;
+          isShow = true;
+        }
+        break;
+      case 'likeDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person liker = args['liker'];
+        brackets = '[赞]';
+        atime = message.atime;
+        tips = '${liker.nickName}:${message.text}';
+        isShow = true;
+        break;
+      case 'unlikeDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person unliker = args['unliker'];
+        brackets = '[撤消赞]';
+        atime = message.atime;
+        tips = '${unliker.nickName}:${message.text}';
+        isShow = true;
+        break;
+      case 'commentDocumentCommand':
+        ChannelComment comment = args['comment'];
+        Person commenter = args['commenter'];
+        brackets = '[评论]';
+        atime = comment.ctime;
+        tips = '${commenter.nickName}:${comment.text}';
+        isShow = true;
+        break;
+      case 'uncommentDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person uncommenter = args['uncommenter'];
+        brackets = '[撤消评论]';
+        atime =DateTime.now().millisecondsSinceEpoch;
+        tips = '${uncommenter.nickName}:${message.text}';
+        isShow = true;
+        break;
+      default:
+        print('不支持的更新指令:$command');
+        break;
+    }
+
     if (refresh != null) {
-      refresh();
+      refresh(command, args);
     }
   }
 }
@@ -104,7 +157,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         channelMessageService: channelMessageService,
       );
       _channelStateBars[ch.id] = (statebar);
-      await statebar.relead();
+      await statebar.update('loadChannelsCommand', null);
       items.add(
         _ChannelItem(
           context: widget.context,
@@ -544,20 +597,38 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   void initState() {
     if (!widget.context.isListening(matchPath: '/netflow/channel')) {
       widget.context.listenNetwork((frame) {
-        _arrivedMessage(frame).then((message) {
-          if (message == null) {
-            return;
-          }
-          if (message.upstreamPerson == widget.context.principal.person) {
-            return;
-          }
-          if (_messages.length >= _msgListMaxLength) {
-            _messages.removeLast();
-          }
-
-          _messages.addFirst(message);
-          setState(() {});
-        });
+        switch (frame.command) {
+          case 'pushDocument':
+            _arrivedPushDocumentCommand(frame).then((message) {
+              if (message == null) {
+                return;
+              }
+              if (message.upstreamPerson == widget.context.principal.person) {
+                return;
+              }
+              if (_messages.length >= _msgListMaxLength) {
+                _messages.removeLast();
+              }
+              _messages.addFirst(message);
+              setState(() {});
+            });
+            break;
+          case 'likeDocument':
+            _arrivedLikeDocumentCommand(frame);
+            break;
+          case 'unlikeDocument':
+            _arrivedUnlikeDocumentCommand(frame);
+            break;
+          case 'commentDocument':
+            _arrivedCommentDocumentCommand(frame);
+            break;
+          case 'uncommentDocument':
+            _arrivedUncommentDocumentCommand(frame);
+            break;
+          default:
+            print('收到不支持的命令:${frame.command}');
+            break;
+        }
       }, matchPath: '/netflow/channel');
     }
     _loadMessages().then((messages) {
@@ -577,12 +648,216 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     super.dispose();
   }
 
-  Future<InsiteMessage> _arrivedMessage(Frame frame) async {
+  Future<void> _arrivedUnlikeDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+//    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    ChannelMessage message =
+        await channelMessageService.getChannelMessage(docMap['id']);
+    if (message == null) {
+      print('本地不存在消息，已丢弃。');
+      return null;
+    }
+    IChannelLikeService likeService =
+        widget.context.site.getService('/channel/messages/likes');
+    await likeService.unlike(
+      docMap['id'],
+      frame.parameter('unliker'),
+      onlySaveLocal: true,
+    );
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var unliker = frame.parameter('unliker');
+    var unlikerPerson =
+        await personService.getPerson(unliker, isDownloadAvatar: true);
+    //通知当前工作的管道有新消息到
+    if (widget.workingChannel.onRefreshChannelState != null) {
+      widget.workingChannel.onRefreshChannelState('unlikeDocumentCommand', {
+        'message': message,
+        'unliker': unlikerPerson,
+      });
+    }
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    if (widget.channelStateBars.containsKey(docMap['channel'])) {
+      widget.channelStateBars[docMap['channel']]
+          ?.update('unlikeDocumentCommand', {
+        'message': message,
+        'unliker': unlikerPerson,
+      });
+    }
+  }
+
+  Future<void> _arrivedLikeDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+//    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    ChannelMessage message =
+        await channelMessageService.getChannelMessage(docMap['id']);
+    if (message == null) {
+      print('本地不存在消息，已丢弃。');
+      return null;
+    }
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    IChannelLikeService likeService =
+        widget.context.site.getService('/channel/messages/likes');
+    var liker = frame.parameter('liker');
+    var likerPerson =
+        await personService.getPerson(liker, isDownloadAvatar: true);
+    await likeService.like(
+      LikePerson(
+        Uuid().v1(),
+        liker,
+        likerPerson.avatar,
+        docMap['id'],
+        docMap['ctime'],
+        likerPerson.nickName,
+        docMap['channel'],
+        widget.context.principal.person,
+      ),
+      onlySaveLocal: true,
+    );
+
+    //通知当前工作的管道有新消息到
+    if (widget.workingChannel.onRefreshChannelState != null) {
+      widget.workingChannel.onRefreshChannelState('likeDocumentCommand', {
+        'message': message,
+        'liker': likeService,
+      });
+    }
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    if (widget.channelStateBars.containsKey(docMap['channel'])) {
+      widget.channelStateBars[docMap['channel']]
+          ?.update('likeDocumentCommand', {
+        'message': message,
+        'liker': likerPerson,
+      });
+    }
+  }
+
+  Future<void> _arrivedCommentDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var map = jsonDecode(text);
+    var docMap = map['doc'];
+    var comments = map['comments'];
+//    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    ChannelMessage message =
+        await channelMessageService.getChannelMessage(docMap['id']);
+    if (message == null) {
+      print('本地不存在消息，已丢弃。');
+      return null;
+    }
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    IChannelCommentService commentService =
+        widget.context.site.getService('/channel/messages/comments');
+    var commenter = frame.parameter('commenter');
+    var commentid = frame.parameter('commentid');
+    var commentPerson =
+        await personService.getPerson(commenter, isDownloadAvatar: true);
+    var comment = ChannelComment(
+      commentid,
+      commentPerson.official,
+      commentPerson.avatar,
+      docMap['id'],
+      comments,
+      DateTime.now().millisecondsSinceEpoch,
+      commentPerson.nickName,
+      frame.parameter('channel'),
+      widget.context.principal.person,
+    );
+    await commentService.addComment(
+      comment,
+      onlySaveLocal: true,
+    );
+
+    //通知当前工作的管道有新消息到
+    if (widget.workingChannel.onRefreshChannelState != null) {
+      widget.workingChannel.onRefreshChannelState('commentDocumentCommand', {
+        'message': message,
+        'comment': comment,
+        'commenter': commentPerson,
+      });
+    }
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    if (widget.channelStateBars.containsKey(docMap['channel'])) {
+      widget.channelStateBars[docMap['channel']]
+          ?.update('commentDocumentCommand', {
+        'message': message,
+        'comment': comment,
+        'commenter': commentPerson,
+      });
+    }
+  }
+
+  Future<void> _arrivedUncommentDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+//    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    ChannelMessage message =
+        await channelMessageService.getChannelMessage(docMap['id']);
+    if (message == null) {
+      print('本地不存在消息，已丢弃。');
+      return null;
+    }
+    IChannelCommentService commentService =
+        widget.context.site.getService('/channel/messages/comments');
+    await commentService.removeComment(
+      docMap['id'],
+      frame.parameter('commentid'),
+      onlySaveLocal: true,
+    );
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var uncommenter = frame.parameter('uncommenter');
+    var uncommentPerson =
+        await personService.getPerson(uncommenter, isDownloadAvatar: true);
+    //通知当前工作的管道有新消息到
+    if (widget.workingChannel.onRefreshChannelState != null) {
+      widget.workingChannel.onRefreshChannelState('uncommentDocumentCommand', {
+        'message': message,
+        'uncommenter': uncommentPerson,
+      });
+    }
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    if (widget.channelStateBars.containsKey(docMap['channel'])) {
+      widget.channelStateBars[docMap['channel']]
+          ?.update('uncommentDocumentCommand', {
+        'message': message,
+        'uncommenter': uncommentPerson,
+      });
+    }
+  }
+
+  Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，已丢弃。');
@@ -638,11 +913,13 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var iperson = await pinService.getInputPerson(
         message.upstreamPerson, message.upstreamChannel);
     if ('deny' == iperson?.rights) {
-      Channel channel=await channelService.getChannel(message.upstreamChannel,);
-      if(channel==null) {
+      Channel channel = await channelService.getChannel(
+        message.upstreamChannel,
+      );
+      if (channel == null) {
         IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
-        channel=await channelCache.get(message.upstreamChannel);
+            widget.context.site.getService('/cache/channels');
+        channel = await channelCache.get(message.upstreamChannel);
       }
       print(
           '已拒收公号<${person.official}>的管道<${channel?.name}>消息，消息被抛弃:${message.id}');
@@ -672,11 +949,20 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       IChannelMessageService channelMessageService =
           widget.context.site.getService('/channel/messages');
       await channelMessageService.addMessage(channelMessage);
+
+      await channelMessageService.setCurrentActivityTask(channelMessage);
+      await channelMessageService.loadMessageExtraTask(channelMessage);
+
+      //通知当前工作的管道有新消息到
       if (widget.workingChannel.onRefreshChannelState != null) {
-        widget.workingChannel.onRefreshChannelState();
+        widget.workingChannel.onRefreshChannelState('pushDocumentCommand',
+            {'sender': person, 'message': channelMessage});
       }
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
       if (widget.channelStateBars.containsKey(message.upstreamChannel)) {
-        widget.channelStateBars[message.upstreamChannel]?.relead();
+        widget.channelStateBars[message.upstreamChannel]?.update(
+            'pushDocumentCommand',
+            {'sender': person, 'message': channelMessage});
       }
       //返回null是不在打印消息到界面
       return null;
@@ -985,7 +1271,7 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   @override
   void initState() {
-    widget.stateBar.refresh = () {
+    widget.stateBar.refresh = (command, args) {
       setState(() {});
     };
     super.initState();
@@ -1029,7 +1315,6 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   @override
   Widget build(BuildContext context) {
-    var digest = widget.stateBar.digest;
     Widget imgSrc = null;
     if (StringUtil.isEmpty(widget.leading)) {
       imgSrc = Icon(
@@ -1069,7 +1354,7 @@ class __ChannelItemState extends State<_ChannelItem> {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: digest != null
+              crossAxisAlignment: widget.stateBar.isShow
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -1117,7 +1402,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                         Positioned(
                           top: -10,
                           right: -3,
-                          child: digest == null
+                          child: !widget.stateBar.isShow
                               ? Container(
                                   width: 0,
                                   height: 0,
@@ -1128,7 +1413,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     top: 3,
                                   ),
                                   elevation: 0,
-                                  showBadge: digest?.count != 0,
+                                  showBadge: widget.stateBar.count != 0,
                                   badgeContent: Text(
                                     '',
                                   ),
@@ -1172,7 +1457,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                           ),
                         ],
                       ),
-                      digest == null
+                      !widget.stateBar.isShow
                           ? Container(
                               width: 0,
                               height: 0,
@@ -1189,8 +1474,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                 children: <Widget>[
                                   Text.rich(
                                     TextSpan(
-                                      text:
-                                          '[${digest?.count != 0 ? digest?.count : ''}条]',
+                                      text: widget.stateBar.brackets,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -1200,7 +1484,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                           text: ' ',
                                         ),
                                         TextSpan(
-                                          text: '${digest?.text}',
+                                          text: widget.stateBar.tips,
                                           style: TextStyle(
                                             color: Colors.black54,
                                           ),
@@ -1212,7 +1496,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                   ),
                                   Text(
                                     '${TimelineUtil.format(
-                                      digest?.atime,
+                                      widget.stateBar?.atime,
                                       locale: 'zh',
                                       dayFormat: DayFormat.Simple,
                                     )}',

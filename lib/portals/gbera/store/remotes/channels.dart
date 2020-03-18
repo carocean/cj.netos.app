@@ -12,8 +12,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
 
-  get _netflowPortsUrl => site.getService('@.prop.ports.link.netflow');
-
+  get _linkNetflowPortsUrl => site.getService('@.prop.ports.link.netflow');
+  get _flowChannelPortsUrl => site.getService('@.prop.ports.flow.channel');
   get _channelPortsUrl =>
       site.getService('@.prop.ports.document.network.channel');
 
@@ -31,7 +31,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       @required String leading,
       @required String outPersonSelector,
       @required bool outGeoSelector}) async {
-    await remotePorts.portGET(_netflowPortsUrl, 'createChannel', parameters: {
+    await remotePorts.portGET(_linkNetflowPortsUrl, 'createChannel', parameters: {
       'channel': channel,
       'title': title,
       'leading': leading,
@@ -43,7 +43,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<Channel> findChannelOfPerson(String channel, String person) async {
     Map<String, dynamic> map = await remotePorts
-        .portGET(_netflowPortsUrl, 'getPersonChannel', parameters: {
+        .portGET(_linkNetflowPortsUrl, 'getPersonChannel', parameters: {
       'channel': channel,
       'person': person,
     });
@@ -65,7 +65,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<List<Person>> pageOutputPersonOf(
       String channel, String person, int limit, int offset) async {
     List list = await remotePorts
-        .portGET(_netflowPortsUrl, 'pageOutputPersonOf', parameters: {
+        .portGET(_linkNetflowPortsUrl, 'pageOutputPersonOf', parameters: {
       'channel': channel,
       'person': person,
       'limit': limit,
@@ -95,7 +95,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<List<Person>> pageInputPersonOf(
       String channel, String person, int limit, int offset) async {
     List list = await remotePorts
-        .portGET(_netflowPortsUrl, 'pageInputPersonOf', parameters: {
+        .portGET(_linkNetflowPortsUrl, 'pageInputPersonOf', parameters: {
       'channel': channel,
       'person': person,
       'limit': limit,
@@ -124,7 +124,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<List<Channel>> fetchChannelsOfPerson(String official) async {
     List<dynamic> list = await remotePorts
-        .portGET(_netflowPortsUrl, 'listPersonChannels', parameters: {
+        .portGET(_linkNetflowPortsUrl, 'listPersonChannels', parameters: {
       'person': official,
     });
     if (list == null) {
@@ -148,7 +148,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<List<Channel>> pageChannel({int limit = 20, int offset = 0}) async {
     var list =
-        await remotePorts.portGET(_netflowPortsUrl, 'pageChannel', parameters: {
+        await remotePorts.portGET(_linkNetflowPortsUrl, 'pageChannel', parameters: {
       'limit': '$limit',
       'offset': '$offset',
     });
@@ -170,7 +170,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<Function> removeChannel(String channel) async {
-    await remotePorts.portGET(_netflowPortsUrl, 'removeChannel', parameters: {
+    await remotePorts.portGET(_linkNetflowPortsUrl, 'removeChannel', parameters: {
       'channel': channel,
     });
   }
@@ -178,7 +178,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> updateLeading(String channelid, String remotePath) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'updateChannelLeading',
       parameters: {'channel': channelid, 'leading': remotePath},
     );
@@ -187,7 +187,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> addInputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'addInputPerson',
       parameters: {
         'channel': channel,
@@ -199,7 +199,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> addOutputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'addOutputPerson',
       parameters: {
         'channel': channel,
@@ -211,7 +211,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> removeInputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'removeInputPerson',
       parameters: {
         'channel': channel,
@@ -223,7 +223,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   @override
   Future<void> removeOutputPerson(String person, String channel) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'removeOutputPerson',
       parameters: {
         'channel': channel,
@@ -236,7 +236,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<void> updateOutGeoSelector(
       String channel, String outGeoSelector) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'updateOutGeoSelector',
       parameters: {
         'channel': channel,
@@ -249,7 +249,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<void> updateOutPersonSelector(
       String channel, outPersonSelector) async {
     await remotePorts.portGET(
-      _netflowPortsUrl,
+      _linkNetflowPortsUrl,
       'updateOutPersonSelector',
       parameters: {
         'channel': channel,
@@ -259,46 +259,246 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> like(String msgid) {
+  Future<void> like(String msgid, String channel, String creator) {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'likeDocument',
-      parameters: {'docid': msgid},
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+      },
+    );
+    remotePorts.portTask.addPortGETTask(
+      _flowChannelPortsUrl,
+      'pushChannelDocumentLike',
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+        'interval':10,
+      },
     );
     return null;
   }
 
   @override
-  Future<void> unlike(String msgid) {
+  Future<void> unlike(String msgid, String channel, String creator) {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'unlikeDocument',
-      parameters: {'docid': msgid},
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+      },
+    );
+
+    remotePorts.portTask.addPortGETTask(
+      _flowChannelPortsUrl,
+      'pushChannelDocumentUnlike',
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+        'interval':10,
+      },
     );
   }
 
   @override
-  Future<Function> removeComment(String msgid, String commentid) {
+  Future<Function> removeComment(
+      String msgid, String channel, String creator, String commentid) {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'uncommentDocument',
       parameters: {
         'docid': msgid,
+        'channel': channel,
+        'creator': creator,
         'commentid': commentid,
+      },
+    );
+
+    remotePorts.portTask.addPortGETTask(
+      _flowChannelPortsUrl,
+      'pushChannelDocumentUncomment',
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+        'commentid': commentid,
+        'interval':10,
       },
     );
   }
 
   @override
-  Future<Function> addComment(String msgid, String text, String commentid) {
+  Future<Function> addComment(String msgid, String channel, String creator,
+      String text, String commentid) {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'commentDocument',
       parameters: {
         'docid': msgid,
+        'channel': channel,
+        'creator': creator,
         'commentid': commentid,
         'content': text,
       },
+    );
+
+    remotePorts.portTask.addPortGETTask(
+      _flowChannelPortsUrl,
+      'pushChannelDocumentComment',
+      parameters: {
+        'docid': msgid,
+        'channel': channel,
+        'creator': creator,
+        'commentid': commentid,
+        'comments': text,
+        'interval':10,
+      },
+    );
+  }
+
+  @override
+  Future<Function> setCurrentActivityTask(ChannelMessage channelMessage) async {
+    await remotePorts.portGET(
+      _channelPortsUrl,
+      'addExtraActivity',
+      parameters: {
+        'creator': channelMessage.creator,
+        'docid': channelMessage.id,
+        'channel': channelMessage.onChannel,
+      },
+    );
+  }
+
+  @override
+  void listenLikeTaskCallback(Function callback) {
+    remotePorts.portTask.listener('/network/channel/extra/likes', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> pageLikeTask(
+      ChannelMessage channelMessage, int limit, int offset) async {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'pageExtraLike',
+      parameters: {
+        'creator': channelMessage.creator,
+        'docid': channelMessage.id,
+        'channel': channelMessage.onChannel,
+        'limit': limit,
+        'offset': offset,
+      },
+      callbackUrl: '/network/channel/extra/likes',
+    );
+  }
+
+  @override
+  void listenCommentTaskCallback(Function callback) {
+    remotePorts.portTask.listener('/network/channel/extra/comments', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> pageCommentTask(
+      ChannelMessage channelMessage, int limit, int offset) async {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'pageExtraComment',
+      parameters: {
+        'creator': channelMessage.creator,
+        'docid': channelMessage.id,
+        'channel': channelMessage.onChannel,
+        'limit': limit,
+        'offset': offset,
+      },
+      callbackUrl: '/network/channel/extra/comments',
+    );
+  }
+
+  @override
+  void listenMediaTaskCallback(Function callback) {
+    remotePorts.portTask.listener('/network/channel/extra/medias', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var list = jsonDecode(frame.contentText);
+          callback(list);
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> listMediaTask(ChannelMessage channelMessage) async {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'listExtraMedia',
+      parameters: {
+        'creator': channelMessage.creator,
+        'docid': channelMessage.id,
+        'channel': channelMessage.onChannel,
+      },
+      callbackUrl: '/network/channel/extra/medias',
+    );
+  }
+
+  @override
+  void listenActivityTaskCallback(Function callback) {
+    remotePorts.portTask.listener('/network/channel/extra/activities', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var list = jsonDecode(frame.contentText);
+          callback(list);
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> pageActivityTask(
+      ChannelMessage channelMessage, int limit, int offset) async {
+    remotePorts.portTask.addPortGETTask(
+      _channelPortsUrl,
+      'pageExtraActivity',
+      parameters: {
+        'creator': channelMessage.creator,
+        'docid': channelMessage.id,
+        'channel': channelMessage.onChannel,
+        'limit': limit,
+        'offset': offset,
+      },
+      callbackUrl: '/network/channel/extra/activities',
     );
   }
 }
