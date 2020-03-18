@@ -136,7 +136,7 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
 
   @override
   Future<Function> like(LikePerson like, {bool onlySaveLocal = false}) async {
-    if (await channelLikeDAO.getLikePerson(like.msgid, like.sandbox) != null) {
+    if (await isLiked(like.msgid, like.person)) {
       return null;
     }
     await channelLikeDAO.addLikePerson(like);
@@ -171,12 +171,14 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addComment(ChannelComment comment,{bool onlySaveLocal=false}) async {
-    if(await channelCommentDAO.getComment(comment.id, comment.person)!=null) {
+  Future<Function> addComment(ChannelComment comment,
+      {bool onlySaveLocal = false}) async {
+    if (await channelCommentDAO.getComment(comment.id, comment.person) !=
+        null) {
       return null;
     }
     await channelCommentDAO.addComment(comment);
-    if(onlySaveLocal) {
+    if (onlySaveLocal) {
       return null;
     }
     ChannelMessage message =
@@ -193,9 +195,10 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeComment(String msgid, String commentid,{bool onlySaveLocal=false}) async {
+  Future<Function> removeComment(String msgid, String commentid,
+      {bool onlySaveLocal = false}) async {
     await channelCommentDAO.removeComment(commentid, principal?.person);
-    if(onlySaveLocal) {
+    if (onlySaveLocal) {
       return null;
     }
     ChannelMessage message = await messageService.getChannelMessage(msgid);

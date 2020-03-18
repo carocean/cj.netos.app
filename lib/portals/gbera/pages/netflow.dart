@@ -684,6 +684,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
+    if(frame.head('sender')==widget.context.principal.person) {
+      print('自已发送的动态又发还自己，因此丢弃。');
+      return null;
+    }
     var docMap = jsonDecode(text);
 //    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
     IChannelMessageService channelMessageService =
@@ -727,6 +731,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，已丢弃。');
+      return null;
+    }
+    if(frame.head('sender')==widget.context.principal.person) {
+      print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
     var docMap = jsonDecode(text);
@@ -896,6 +904,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
+    if(frame.head('sender')==widget.context.principal.person) {
+      print('自已发送的动态又发还自己，因此丢弃。');
+      return null;
+    }
     var map = jsonDecode(text);
     var docMap = map['doc'];
     var comments = map['comments'];
@@ -955,6 +967,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，已丢弃。');
+      return null;
+    }
+    if(frame.head('sender')==widget.context.principal.person) {
+      print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
     var docMap = jsonDecode(text);

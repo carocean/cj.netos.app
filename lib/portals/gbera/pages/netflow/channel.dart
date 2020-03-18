@@ -293,13 +293,13 @@ class Header extends StatefulWidget {
 
 class _HeaderState extends State<Header> {
   int _arrivedMessageCount = 0;
-  String _arrivedMessageTips='';
+  String _arrivedMessageTips = '';
   var _workingChannel;
 
   @override
   void initState() {
     _workingChannel = widget.context.parameters['workingChannel'];
-    _workingChannel.onRefreshChannelState = (command,args) {
+    _workingChannel.onRefreshChannelState = (command, args) {
       _arrivedMessageCount++;
 //      switch(command) {
 //        case 'likeDocumentCommand':
@@ -605,7 +605,7 @@ class __MessageCardState extends State<_MessageCard> {
                       return DefaultTabController(
                         length: snapshot.data.length,
                         child: PageSelector(
-                          context:widget.context,
+                          context: widget.context,
                           medias: snapshot.data,
                           onMediaLongTap: (media) {
                             widget.context.forward(
@@ -1181,7 +1181,16 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                       color: Colors.black,
                     ),
                   ),
-                  TextSpan(text: '\t'),
+                  TextSpan(
+                    text: '\t${comment.ctime != null ? TimelineUtil.format(
+                        comment.ctime,
+                        dayFormat: DayFormat.Simple,
+                      ) : ''}\t',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
                   isMine
                       ? TextSpan(
                           text: '删除',

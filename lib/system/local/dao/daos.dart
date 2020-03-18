@@ -410,7 +410,8 @@ abstract class IChannelInputPersonDAO {
 
   @Query(
       'UPDATE ChannelInputPerson SET rights = :rights WHERE person=:person AND channel = :channelcode and sandbox=:sandbox')
-  Future<void> updateInputPersonRights(String rights, String person, String channelcode, String sandbox) {}
+  Future<void> updateInputPersonRights(
+      String rights, String person, String channelcode, String sandbox) {}
 
   @Query(
       'SELECT *  FROM ChannelInputPerson WHERE channel=:channelcode and sandbox=:sandbox')
@@ -420,8 +421,6 @@ abstract class IChannelInputPersonDAO {
   @Query(
       'delete FROM ChannelInputPerson WHERE channel = :channelcode and sandbox=:sandbox')
   Future<void> emptyInputPersons(String channelcode, String sandbox) {}
-
-
 }
 
 @dao

@@ -248,6 +248,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
       ChannelMessage cm = msg.copy();
       cm.state = 'arrived';
       await channelMessageService.addMessage(cm);
+      //后台任务拉取赞、评论、媒体文件
     }
   }
 
