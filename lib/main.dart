@@ -12,6 +12,22 @@ final _peerStatus = _PeerStatus(
   reconnectTrytimes: 0,
 );
 
+class ProgressTaskBar {
+  Function(double percent) _target;
+
+  void update(double percent) {
+    if (_target != null) {
+      _target(percent);
+    }
+  }
+
+  set target(Function(double percent) v) {
+    _target = v;
+  }
+}
+
+var _progressTaskBar = ProgressTaskBar();
+
 void main() => platformRun(
       AppCreator(
           title: '金证时代',
@@ -25,14 +41,13 @@ void main() => platformRun(
             ///默认应用，即终端未指定应用号时登录或注册的目标应用
             '@.prop.entrypoint.app': 'gbera.netos',
             '@.prop.ports.link.netflow':
-            'http://47.105.165.186/link/netflow/self.service',
+                'http://47.105.165.186/link/netflow/self.service',
             '@.prop.ports.uc.auth': 'http://47.105.165.186/uc/auth.service',
             '@.prop.ports.uc.register':
                 'http://47.105.165.186/uc/register.service',
             '@.prop.ports.uc.person':
                 'http://47.105.165.186/uc/person/self.service',
-            '@.prop.ports.uc.app':
-            'http://47.105.165.186/uc/app/self.service',
+            '@.prop.ports.uc.app': 'http://47.105.165.186/uc/app/self.service',
             '@.prop.ports.uc.platform':
                 'http://47.105.165.186/uc/platform/self.service',
             '@.prop.ports.nameserver':
@@ -41,8 +56,11 @@ void main() => platformRun(
             '@.prop.fs.uploader':
                 'http://47.105.165.186:7110/upload/uploader.service',
             '@.prop.fs.reader': 'http://47.105.165.186:7100',
-            '@.prop.ports.document.network.channel': 'http://47.105.165.186/document/network/channel.service',
-            '@.prop.ports.flow.channel':'http://47.105.165.186/flow/channel.service',
+            '@.prop.ports.document.network.channel':
+                'http://47.105.165.186/document/network/channel.service',
+            '@.prop.ports.flow.channel':
+                'http://47.105.165.186/flow/channel.service',
+            '@.prop.taskbar.progress': _progressTaskBar,
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
@@ -90,11 +108,10 @@ void main() => platformRun(
           },
 
           ///以下可装饰窗口区，比如在peer连接状态改变时提醒用户
-          appDecorator: (ctx, viewport,site) {
-
+          appDecorator: (ctx, viewport, site) {
             return Window(
               viewport: viewport,
-              site:site,
+              site: site,
             );
           }),
     );
@@ -102,7 +119,8 @@ void main() => platformRun(
 class Window extends StatelessWidget {
   Widget viewport;
   IServiceProvider site;
-  Window({this.viewport,this.site});
+
+  Window({this.viewport, this.site});
 
   @override
   Widget build(BuildContext context) {
@@ -121,13 +139,12 @@ class Window extends StatelessWidget {
           left: 78,
           height: 1,
           width: 30,
-          child: TaskBar(site),
+          child: TaskBar(site,_progressTaskBar),
         ),
       ],
     );
   }
 }
-
 
 class StatusBar extends StatefulWidget {
   @override

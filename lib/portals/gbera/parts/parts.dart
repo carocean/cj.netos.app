@@ -103,6 +103,7 @@ class _CardStoreState extends State<CardStore> {
 
 //微博等内容区的多图展示区
 class PageSelector extends StatefulWidget {
+  PageContext context;
   List<Media> medias;
   Function(Media media) onMediaLongTap;
   Function(Media media) onMediaTap;
@@ -111,6 +112,7 @@ class PageSelector extends StatefulWidget {
 
   PageSelector(
       {this.medias,
+      this.context,
       this.onMediaLongTap,
       this.onMediaTap,
       this.boxFit,
@@ -161,7 +163,7 @@ class _PageSelectorState extends State<PageSelector> {
                           fit: widget.boxFit ?? BoxFit.fitWidth,
                         )
                       : Image.network(
-                          src,
+                          '$src?accessToken=${widget.context.principal.accessToken}',
                           fit: widget.boxFit ?? BoxFit.fitWidth,
                         );
                   break;
@@ -312,7 +314,7 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
   void didUpdateWidget(MyAudioWidget oldWidget) {
     //在列表中的项如果是有状态的，会用同一个状态而绑定新的widget，因此在initState中的初始化仅是在第一次渲染有效，之后列表变化时，widget中的变量值变了，但由于state未变（其initstate方法仅执行一次，因此列表项在同一位置有新的替代时，
     //该状态仍是同一实例，因此需要在didUpdateWidget方法中重新为之赋值
-    if(oldWidget.audioFile!=widget.audioFile){
+    if (oldWidget.audioFile != widget.audioFile) {
       _player.setFilePath(widget.audioFile).then((v) {
         setState(() {});
       });

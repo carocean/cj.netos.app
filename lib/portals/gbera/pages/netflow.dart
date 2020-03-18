@@ -18,8 +18,11 @@ import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:objectdb/objectdb.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
+
+import '../../../main.dart';
 
 class WorkingChannel {
   Function(String command, dynamic args) onRefreshChannelState;
@@ -79,8 +82,30 @@ class _ChannelStateBar {
         ChannelMessage message = args['message'];
         Person uncommenter = args['uncommenter'];
         brackets = '[撤消评论]';
-        atime =DateTime.now().millisecondsSinceEpoch;
+        atime = DateTime.now().millisecondsSinceEpoch;
         tips = '${uncommenter.nickName}:${message.text}';
+        isShow = true;
+        break;
+      case 'mediaDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person mediaer = args['mediaer'];
+        Media media = args['media'];
+        switch (media.type) {
+          case 'image':
+            brackets = '[图]';
+            break;
+          case 'video':
+            brackets = '[视频]';
+            break;
+          case 'audio':
+            brackets = '[语音]';
+            break;
+          default:
+            brackets = '[文件]';
+            break;
+        }
+        atime = DateTime.now().millisecondsSinceEpoch;
+        tips = '${mediaer.nickName}:${message.text}';
         isShow = true;
         break;
       default:
@@ -595,6 +620,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   @override
   void initState() {
+    _listenMeidaFileDownload();
     if (!widget.context.isListening(matchPath: '/netflow/channel')) {
       widget.context.listenNetwork((frame) {
         switch (frame.command) {
@@ -625,6 +651,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
           case 'uncommentDocument':
             _arrivedUncommentDocumentCommand(frame);
             break;
+          case 'mediaDocument':
+            _arrivedMediaDocumentCommand(frame);
+            break;
           default:
             print('收到不支持的命令:${frame.command}');
             break;
@@ -642,6 +671,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   @override
   void dispose() {
+    _unlistenMeidaFileDownload();
     _streamSubscription.cancel();
     widget.context.unlistenNetwork(matchPath: '/netflow/channel');
     _messages.clear();
@@ -745,6 +775,119 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         'liker': likerPerson,
       });
     }
+  }
+
+  _listenMeidaFileDownload() {
+    ProgressTaskBar progressTaskBar =
+        widget.context.site.getService('@.prop.taskbar.progress');
+    IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
+    remotePorts.portTask.listener('/channel/doc/file.download',
+        (Frame frame) async {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'receiveProgress':
+          var count = frame.head('count');
+          var total = frame.head('total');
+          progressTaskBar.update(int.parse(count) * 1.0 / int.parse(total));
+          break;
+        case 'done':
+          var mediaid = frame.parameter('id');
+          var docid = frame.parameter('docid');
+          var type = frame.parameter('type');
+          var src = frame.parameter('src');
+          var leading = frame.parameter('leading');
+          var text = frame.parameter('text');
+          var channel = frame.parameter('channel');
+          var localFile = frame.parameter('localFile');
+
+          IChannelMessageService channelMessageService =
+              widget.context.site.getService('/channel/messages');
+          ChannelMessage message =
+              await channelMessageService.getChannelMessage(docid);
+          if (message == null) {
+            print('本地不存在消息，已丢弃。');
+            return null;
+          }
+
+          var creator = frame.parameter('creator');
+          IPersonService personService =
+              widget.context.site.getService('/gbera/persons');
+          IChannelMediaService mediaService =
+              widget.context.site.getService('/channel/messages/medias');
+          var mediaPerson =
+              await personService.getPerson(creator, isDownloadAvatar: true);
+
+          var media = Media(
+            mediaid,
+            type,
+            localFile,
+            leading,
+            docid,
+            text,
+            channel,
+            widget.context.principal.person,
+          );
+
+          await mediaService.addMedia(
+            media,
+          );
+
+          //通知当前工作的管道有新消息到
+          if (widget.workingChannel.onRefreshChannelState != null) {
+            widget.workingChannel
+                .onRefreshChannelState('mediaDocumentCommand', {
+              'message': message,
+              'media': media,
+              'mediaer': mediaPerson,
+            });
+          }
+          //网流的管道列表中的每个管道的显示消息提醒的状态栏
+          if (widget.channelStateBars.containsKey(channel)) {
+            widget.channelStateBars[channel]?.update('mediaDocumentCommand', {
+              'message': message,
+              'media': media,
+              'mediaer': mediaPerson,
+            });
+          }
+          break;
+        default:
+          print(frame);
+          break;
+      }
+    });
+  }
+
+  _unlistenMeidaFileDownload() {
+    IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
+    remotePorts.portTask.unlistener('/channel/doc/file.download');
+  }
+
+  Future<void> _arrivedMediaDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var map = jsonDecode(text);
+
+    IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
+    var creator = frame.parameter('creator');
+
+    var home = await getApplicationDocumentsDirectory();
+    var dir = '${home.path}/images';
+    var dirFile = Directory(dir);
+    if (!dirFile.existsSync()) {
+      dirFile.createSync();
+    }
+    var fn = '${MD5Util.generateMd5(Uuid().v1())}.${fileExt(map['src'])}';
+    var localFile = '$dir/$fn';
+    remotePorts.portTask.addDownloadTask(
+      '${map['src']}?accessToken=${widget.context.principal.accessToken}',
+      localFile,
+      callbackUrl:
+          '/channel/doc/file.download?creator=$creator&localFile=$localFile&id=${map['id']}&type=${map['type']}&src=${map['src']}&leading=${map['leading']}&docid=${map['docid']}&text=${map['text']}&channel=${map['channel']}',
+    );
   }
 
   Future<void> _arrivedCommentDocumentCommand(Frame frame) async {

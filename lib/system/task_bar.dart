@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/main.dart';
 
 class TaskBar extends StatefulWidget {
   IServiceProvider site;
-
-  TaskBar(this.site);
+  ProgressTaskBar progressTaskbar;
+  TaskBar(this.site,this.progressTaskbar);
 
   @override
   _TaskBarState createState() => _TaskBarState();
@@ -23,6 +24,11 @@ class _TaskBarState extends State<TaskBar> {
 
   @override
   void initState() {
+    widget.progressTaskbar.target = (percent) {
+      this.percent = percent;
+      state=percent>0.99?0:1;
+      setState(() {});
+    };
     IRemotePorts ports = widget.site.getService('@.remote.ports');
     _listenChannelTask(ports);
     super.initState();
@@ -30,6 +36,7 @@ class _TaskBarState extends State<TaskBar> {
 
   @override
   void dispose() {
+    widget.progressTaskbar.target = null;
     IRemotePorts ports = widget.site.getService('@.remote.ports');
     ports.portTask.unlistener('/network/channel/doc');
     super.dispose();
@@ -91,12 +98,26 @@ class _TaskBarState extends State<TaskBar> {
                 'leading': frame.parameter('leading'),
                 'id': frame.parameter('mediaid'),
               };
-              var portsUrl = widget.site
+              var docNetworkportsUrl = widget.site
                   .getService('@.prop.ports.document.network.channel');
               ports.portTask.addPortPOSTTask(
-                portsUrl,
+                docNetworkportsUrl,
                 'addDocumentMedia',
                 callbackUrl: '/network/channel/media',
+                data: {
+                  'media': jsonEncode(map),
+                },
+              );
+              //推送媒体文件
+              var flowChannelPortsUrl =
+                  widget.site.getService('@.prop.ports.flow.channel');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushChannelDocumentMedia',
+                callbackUrl: '/network/channel/media',
+                parameters: {
+                  'interval': 10,
+                },
                 data: {
                   'media': jsonEncode(map),
                 },

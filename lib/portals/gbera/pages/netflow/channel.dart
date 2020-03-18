@@ -605,6 +605,7 @@ class __MessageCardState extends State<_MessageCard> {
                       return DefaultTabController(
                         length: snapshot.data.length,
                         child: PageSelector(
+                          context:widget.context,
                           medias: snapshot.data,
                           onMediaLongTap: (media) {
                             widget.context.forward(

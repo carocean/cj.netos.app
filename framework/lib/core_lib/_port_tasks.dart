@@ -333,6 +333,7 @@ class DefaultPortTaskManager implements IPortTaskManager {
       String lengthHeader = Headers.contentLengthHeader,
       data}) {
     _output.send(_PortTask(
+      url: url,
       accessToken: principal.accessToken,
       callbackUrl: callbackUrl,
       localFile: localFile,
