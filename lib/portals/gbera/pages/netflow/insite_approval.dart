@@ -60,7 +60,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
           _check_rejectAllMessages = false;
           break;
       }
-      _creator=await personService.getPerson(_message.creator);
+      _creator = await personService.getPerson(_message.creator);
 
       IChannelPinService pinService =
           widget.context.site.getService('/channel/pin');
@@ -264,6 +264,11 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
 
   @override
   Widget build(BuildContext context) {
+    if (_creator == null) {
+      return Center(
+        child: Text('正在加载...'),
+      );
+    }
     return Stack(
       overflow: Overflow.visible,
       fit: StackFit.expand,
