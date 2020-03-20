@@ -144,7 +144,7 @@ class DefaultLocalPrincipalManager
     Dio dio = _site.getService('@.http');
     AppKeyPair appKeyPair = _site.getService('@.appKeyPair');
     //强制刷新所有账户的访问令牌
-    var appNonce = MD5Util.generateMd5(Uuid().v1()).toUpperCase();
+    var appNonce = MD5Util.MD5(Uuid().v1()).toUpperCase();
     var response = await dio
         .post(
       _site.getService('@.prop.ports.uc.auth'),

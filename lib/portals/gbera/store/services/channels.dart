@@ -13,7 +13,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
   ///固定管道
   final Map<String, String> _SYSTEM_CHANNELS = {
     ///地推id
-    'geo_channel': MD5Util.generateMd5('4203EC25-1FC8-479D-A78F-74338FC7E769'),
+    'geo_channel': MD5Util.MD5('4203EC25-1FC8-479D-A78F-74338FC7E769'),
   };
 
   IChannelDAO channelDAO;
@@ -102,13 +102,18 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<void> addChannel(Channel channel) async {
+  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading}) async {
     if (StringUtil.isEmpty(channel.id)) {
-      channel.id = MD5Util.generateMd5('${Uuid().v1()}');
+      channel.id = MD5Util.MD5('${Uuid().v1()}');
     }
-
+    if(!StringUtil.isEmpty(localLeading)) {
+      channel.leading=localLeading;
+    }
     await this.channelDAO.addChannel(channel);
     await pinService.initChannelPin(channel.id);
+    if(!StringUtil.isEmpty(remoteLeading)) {
+      channel.leading=remoteLeading;
+    }
     await channelRemote.createChannel(
       channel.id,
       title: channel.name,

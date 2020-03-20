@@ -17,13 +17,13 @@ class AppKeyPair {
   AppKeyPair({this.appid, this.appKey, this.appSecret, this.device});
 
   String appSign(String nonce) {
-    return MD5Util.generateMd5('$appKey$nonce$appSecret').toUpperCase();
+    return MD5Util.MD5('$appKey$nonce$appSecret').toUpperCase();
   }
 
   ///以当前的key获取指定app的key
   Future<AppKeyPair> getAppKeyPair(String appid, IServiceProvider site) async {
     Dio dio = site.getService('@.http');
-    var nonce = MD5Util.generateMd5(
+    var nonce = MD5Util.MD5(
         '${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
     var url = site.getService('@.prop.ports.uc.platform');
     var response = await dio.get(

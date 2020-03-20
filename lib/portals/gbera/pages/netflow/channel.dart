@@ -714,6 +714,15 @@ class __MessageCardState extends State<_MessageCard> {
                         onUnliked: () {
                           _interactiveRegionRefreshAdapter.refresh('unliked');
                         },
+                        onViewFlow: () {
+                          widget.context.forward(
+                              '/netflow/channel/document/path',
+                              arguments: {
+                                'person': _person,
+                                'channel': widget.channel,
+                                'message': widget.message.copy(),
+                              });
+                        },
                       ),
                     ],
                   ),
@@ -853,6 +862,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onComment;
   void Function() onliked;
   void Function() onUnliked;
+  void Function() onViewFlow;
 
   _MessageOperatesPopupMenu({
     this.message,
@@ -861,6 +871,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
     this.onComment,
     this.onliked,
     this.onUnliked,
+    this.onViewFlow,
   });
 
   @override
@@ -899,6 +910,33 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       widget.context.principal.person,
     );
     await likeService.like(likePerson);
+
+    //向下游推文
+    if (widget.message.creator != widget.context.principal.person) {
+      //不是消息的创建者则推
+      var flowChannelPortsUrl =
+          widget.context.site.getService('@.prop.ports.flow.channel');
+      IRemotePorts ports = widget.context.ports;
+      ports.portTask.addPortPOSTTask(
+        flowChannelPortsUrl,
+        'pushChannelDocumentOfPerson',
+        parameters: {
+          'channel': widget.message.onChannel,
+          'docid': widget.message.id,
+          'creator': widget.message.creator,
+          'interval': 100,
+        },
+      );
+      IChannelMessageService channelMessageService =
+          widget.context.site.getService('/channel/messages');
+      await channelMessageService.setCurrentActivityTask(
+        creator: widget.message.creator,
+        docid: widget.message.id,
+        channel: widget.message.onChannel,
+        attach: likePerson.person,
+        action: 'send.like',
+      );
+    }
   }
 
   Future<void> _unlike() async {
@@ -940,6 +978,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               Padding(
                 padding: EdgeInsets.only(
                   right: 2,
+                  left: 2,
                 ),
                 child: Icon(
                   FontAwesomeIcons.thumbsUp,
@@ -951,6 +990,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                 rights['isLiked'] ? '取消点赞' : '点赞',
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -974,6 +1014,31 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                 '评论',
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(
+                  right: 2,
+                  top: 2,
+                ),
+                child: Icon(
+                  Icons.timeline,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '流程',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -1000,6 +1065,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                   '删除',
                   style: TextStyle(
                     color: Colors.white,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -1045,7 +1111,12 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                     widget.onComment();
                   }
                   break;
-                case 2: //删除
+                case 2: //流程
+                  if (widget.onViewFlow != null) {
+                    widget.onViewFlow();
+                  }
+                  break;
+                case 3: //删除
                   _deleteMessage().whenComplete(() {
                     if (widget.onDeleted != null) {
                       widget.onDeleted();
@@ -1346,6 +1417,32 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
         widget.context.principal.person,
       ),
     );
+    //向下游推文
+    if (widget.message.creator != widget.context.principal.person) {
+      //不是消息的创建者则推
+      var flowChannelPortsUrl =
+          widget.context.site.getService('@.prop.ports.flow.channel');
+      IRemotePorts ports = widget.context.ports;
+      ports.portTask.addPortPOSTTask(
+        flowChannelPortsUrl,
+        'pushChannelDocumentOfPerson',
+        parameters: {
+          'channel': widget.message.onChannel,
+          'docid': widget.message.id,
+          'creator': widget.message.creator,
+          'interval': 100,
+        },
+      );
+      IChannelMessageService channelMessageService =
+          widget.context.site.getService('/channel/messages');
+      await channelMessageService.setCurrentActivityTask(
+        creator: widget.message.creator,
+        docid: widget.message.id,
+        channel: widget.message.onChannel,
+        attach: content,
+        action: 'send.comment',
+      );
+    }
   }
 
   _deleteComment(ChannelComment comment) async {

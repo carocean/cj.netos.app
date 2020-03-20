@@ -29,6 +29,11 @@ class InsiteMessageService implements IInsiteMessageService, IServiceBuilder {
   }
 
   @override
+  Future<InsiteMessage> getMessage(docid,channel) async{
+    return await insiteMessageDAO.getMessageByDocid(docid,channel, principal.person);
+  }
+
+  @override
   Future<Function> remove(String msgid) async{
     await insiteMessageDAO.removeMessage(msgid, principal.person);
   }

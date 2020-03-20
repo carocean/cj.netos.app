@@ -1,5 +1,6 @@
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:uuid/uuid.dart';
 
 @Entity(primaryKeys: ['official', 'sandbox'])
 class Person {
@@ -8,7 +9,7 @@ class Person {
   final String accountCode;
   final String appid;
   final String avatar;
-   String rights;
+  String rights;
   final String nickName;
   final String signature;
   final String pyname;
@@ -71,16 +72,15 @@ class Channel {
 
   toMap() {
     return {
-      'id':id,
-      'name':name,
-      'owner':owner,
-      'leading':leading,
-      'site':site,
-      'ctime':ctime,
-      'sandbox':sandbox,
+      'id': id,
+      'name': name,
+      'owner': owner,
+      'leading': leading,
+      'site': site,
+      'ctime': ctime,
+      'sandbox': sandbox,
     };
   }
-
 }
 
 @entity
@@ -173,6 +173,24 @@ class ChannelMessage {
     this.location,
     this.sandbox,
   );
+
+  InsiteMessage copy() {
+    return InsiteMessage(
+      Uuid().v1(),
+      id,
+      upstreamPerson,
+      onChannel,
+      sourceSite,
+      sourceApp,
+      creator,
+      ctime,
+      atime,
+      text,
+      wy,
+      location,
+      sandbox,
+    );
+  }
 }
 
 class ChannelMessageDigest {
@@ -184,7 +202,7 @@ class ChannelMessageDigest {
   ChannelMessageDigest({this.text, this.atime, this.count});
 }
 
-@entity
+@Entity(primaryKeys: ['id', 'sandbox'])
 class LikePerson {
   @primaryKey
   final String id;
@@ -200,9 +218,8 @@ class LikePerson {
       this.nickName, this.onChannel, this.sandbox);
 }
 
-@entity
+@Entity(primaryKeys: ['id', 'sandbox'])
 class ChannelComment {
-  @primaryKey
   final String id;
   final String person;
   final String avatar;
@@ -217,7 +234,7 @@ class ChannelComment {
       this.ctime, this.nickName, this.onChannel, this.sandbox);
 }
 
-@entity
+@Entity(primaryKeys: ['id', 'sandbox'])
 class Media {
   @primaryKey
   final String id;

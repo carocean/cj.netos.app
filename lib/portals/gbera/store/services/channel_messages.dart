@@ -6,6 +6,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../system/local/entities.dart';
 import '../services.dart';
@@ -16,6 +17,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   IChannelCommentService commentService;
   IChannelLikeService likeService;
   IServiceProvider site;
+  IPersonService personService;
 
   UserPrincipal get principal => site.getService('@.principal');
   IChannelRemote channelRemote;
@@ -29,6 +31,7 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
     commentService = site.getService('/channel/messages/comments');
     likeService = site.getService('/channel/messages/likes');
     channelRemote = site.getService('/remote/channels');
+    personService = site.getService('/gbera/persons');
   }
 
   @override
@@ -85,8 +88,12 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addMessage(ChannelMessage message) {
-    channelMessageDAO.addMessage(message);
+  Future<Function> addMessage(ChannelMessage message) async {
+    if (await channelMessageDAO.getMessage(message.id, principal.person) !=
+        null) {
+      return null;
+    }
+    await channelMessageDAO.addMessage(message);
   }
 
   @override
@@ -122,47 +129,109 @@ class ChannelMessageService implements IChannelMessageService, IServiceBuilder {
   }
 
   @override
-  Future<Function> loadMessageExtraTask(ChannelMessage channelMessage) async {
-    _loadExtraLikes(channelMessage);
-    _loadExtraComments(channelMessage);
-    _loadExtraMedias(channelMessage);
+  Future<Function> loadMessageExtraTask(
+      String docCreator, String docid, String channel) async {
+    _loadExtraLikes(docCreator, docid, channel);
+    _loadExtraComments(docCreator, docid, channel);
+    _loadExtraMedias(docCreator, docid, channel);
   }
 
-  void _loadExtraLikes(ChannelMessage channelMessage) {
+  void _loadExtraLikes(String docCreator, String docid, String channel) {
     int limit = 20;
     int offset = 0;
-    channelRemote.listenLikeTaskCallback((likes) {
-      print('赞---${likes}');
-      if (likes.isNotEmpty) {
-        offset += likes.length;
-        channelRemote.pageLikeTask(channelMessage, limit, offset);
+    channelRemote.listenLikeTaskCallback((likes) async {
+      //[{person: cj@gbera.netos, ctime: 1584603469425, channel: 60ae7be56e638073bcefb87b7427be4f, docid: 7682784bb92f89f1f6e662582cb29bc2}]
+      if (likes.isEmpty) {
+        return;
       }
+      for (var like in likes) {
+        Person person = await personService.getPerson(like['person'],
+            isDownloadAvatar: true);
+        await this.likeService.like(
+            LikePerson(
+              MD5Util.MD5('${person.avatar}-${principal.person}'),
+              person.official,
+              person.avatar,
+              like['docid'],
+              like['ctime'],
+              person.nickName,
+              like['channel'],
+              principal.person,
+            ),
+            onlySaveLocal: true);
+      }
+      offset += likes.length;
+      channelRemote.pageLikeTask(docCreator, docid, channel, limit, offset);
     });
-    channelRemote.pageLikeTask(channelMessage, limit, offset);
+    channelRemote.pageLikeTask(docCreator, docid, channel, limit, offset);
   }
 
-  void _loadExtraComments(ChannelMessage channelMessage) {
+  void _loadExtraComments(String docCreator, String docid, String channel) {
     int limit = 20;
     int offset = 0;
-    channelRemote.listenCommentTaskCallback((comments) {
-      print('评---${comments}');
-      if (comments.isNotEmpty) {
-        offset += comments.length;
-        channelRemote.pageCommentTask(channelMessage, limit, offset);
+    channelRemote.listenCommentTaskCallback((comments) async {
+      //[{id: 8c80ea30-69b4-11ea-9bbd-9bc293980e3a, person: cj@gbera.netos, docid: 7682784bb92f89f1f6e662582cb29bc2, content: 好了，在国内生产总值结, channel: 60ae7be56e638073bcefb87b7427be4f, ctime: 1584603475293}]
+      if (comments.isEmpty) {
+        return;
       }
+      for (var comment in comments) {
+        Person person = await personService.getPerson(comment['person'],
+            isDownloadAvatar: true);
+        await this.commentService.addComment(
+            ChannelComment(
+              comment['id'],
+              person.official,
+              person.avatar,
+              comment['docid'],
+              comment['content'],
+              comment['ctime'],
+              person.nickName,
+              comment['channel'],
+              principal.person,
+            ),
+            onlySaveLocal: true);
+      }
+      offset += comments.length;
+      channelRemote.pageCommentTask(docCreator, docid, channel, limit, offset);
     });
-    channelRemote.pageCommentTask(channelMessage, limit, offset);
+    channelRemote.pageCommentTask(docCreator, docid, channel, limit, offset);
   }
 
-  void _loadExtraMedias(ChannelMessage channelMessage) {
-    channelRemote.listenMediaTaskCallback((medias) {
-      print('媒体文件---${medias}');
+  void _loadExtraMedias(String docCreator, String docid, String channel) {
+    channelRemote.listenMediaTaskCallback((medias) async {
+      //{id: 0d667240-69bb-11ea-ffad-1547cdd75721, docid: c63266e02d84a5ce7d2d7a5f0e1392df, type: image, src: http://47.105.165.186:7100/app/0d690a50-69bb-11ea-f54f-0987ba0ae1f6.jpg, text: , leading: , channel: 60ae7be56e638073bcefb87b7427be4f, ctime: 1584606269975}]
+      if (medias.isEmpty) {
+        return;
+      }
+      for (var media in medias) {
+        await this.mediaService.addMedia(Media(
+              media['id'],
+              media['type'],
+              media['src'],
+              media['leading'],
+              media['docid'],
+              media['text'],
+              media['channel'],
+              principal.person,
+            ));
+      }
     });
-    channelRemote.listMediaTask(channelMessage);
+
+    channelRemote.listMediaTask(docCreator, docid, channel);
   }
 
   @override
-  Future<Function> setCurrentActivityTask(ChannelMessage channelMessage) async {
-    await channelRemote.setCurrentActivityTask(channelMessage);
+  Future<Function> setCurrentActivityTask(
+      {String creator,
+      String docid,
+      String channel,
+      String action,
+      String attach}) async {
+    await channelRemote.setCurrentActivityTask(
+        creator: creator,
+        docid: docid,
+        channel: channel,
+        action: action,
+        attach: attach);
   }
 }

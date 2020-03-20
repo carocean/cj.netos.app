@@ -81,7 +81,7 @@ class DefaultPeerManager implements IPeerManager {
     //第三种方案可以让network报告person的登录点，然后通过名服务器来其历史登录点，如果有且可用则用之，有而不可用（节点不在了）则重新负载一个，没有则负载一个。这种方案是全解方案，没缺陷，上线前应实现该方案，否则上线后再实现的话数据迁移是个大工程。
     //目前临时采用person定向负载方式，为什么不采用person/device作为定向负载，因为不论用户用什么设备登录，其接收的信息都是他自己的，各设备都应接收一样信息。
     var nameserver = nameservers[
-        MD5Util.generateMd5(principal.person).hashCode % nameservers.length];
+        MD5Util.MD5(principal.person).hashCode % nameservers.length];
     IPump pump = site.getService('@.pump');
     ILogicNetworkContainer logicNetworkContainer =
         site.getService('@.logic.network.container');

@@ -126,7 +126,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `LikePerson` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -878,8 +878,17 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   @override
   Future<InsiteMessage> getMessage(String id, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM InsiteMessage WHERE id = ? and sandbox=?',
+        'SELECT * FROM InsiteMessage WHERE id = ? and sandbox=? LIMIT 1',
         arguments: <dynamic>[id, sandbox],
+        mapper: _insiteMessageMapper);
+  }
+
+  @override
+  Future<InsiteMessage> getMessageByDocid(
+      String docid, String upstreamChannel, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM InsiteMessage WHERE docid = ? and upstreamChannel=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[docid, upstreamChannel, sandbox],
         mapper: _insiteMessageMapper);
   }
 
@@ -1016,7 +1025,7 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
   @override
   Future<ChannelMessage> getMessage(String id, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM ChannelMessage WHERE id = ? and sandbox=?',
+        'SELECT * FROM ChannelMessage WHERE id = ? and sandbox=? LIMIT 1',
         arguments: <dynamic>[id, sandbox],
         mapper: _channelMessageMapper);
   }
@@ -1103,8 +1112,10 @@ class _$IChannelMediaDAO extends IChannelMediaDAO {
 
   @override
   Future<Media> getMedia(String id, String sandbox) async {
-    return _queryAdapter.query('SELECT * FROM Media WHERE id = ? and sandbox=?',
-        arguments: <dynamic>[id, sandbox], mapper: _mediaMapper);
+    return _queryAdapter.query(
+        'SELECT * FROM Media WHERE id = ? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[id, sandbox],
+        mapper: _mediaMapper);
   }
 
   @override
@@ -1190,7 +1201,7 @@ class _$IChannelLikePersonDAO extends IChannelLikePersonDAO {
   @override
   Future<LikePerson> getLikePerson(String id, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM LikePerson WHERE id = ? and sandbox=?',
+        'SELECT * FROM LikePerson WHERE id = ? and sandbox=? LIMIT 1',
         arguments: <dynamic>[id, sandbox],
         mapper: _likePersonMapper);
   }
@@ -1299,7 +1310,7 @@ class _$IChannelCommentDAO extends IChannelCommentDAO {
   @override
   Future<ChannelComment> getComment(String id, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM ChannelComment WHERE id = ? and sandbox=?',
+        'SELECT * FROM ChannelComment WHERE id = ? and sandbox=? LIMIT 1',
         arguments: <dynamic>[id, sandbox],
         mapper: _channelCommentMapper);
   }

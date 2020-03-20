@@ -17,7 +17,7 @@ mixin IPortTaskManager {
   Future<void> start(IServiceProvider site);
 
   void close();
-
+  bool hasListener(String s) ;
   listener(String path, Function(Frame) onmessage);
 
   unlistener(String path);
@@ -62,6 +62,9 @@ mixin IPortTaskManager {
     String file, {
     String callbackUrl = '/',
   });
+
+
+
 }
 
 class _PortTask {
@@ -124,7 +127,7 @@ class _PortTask {
       parameters: taskObj['parameters'],
       callbackUrl: taskObj['callbackUrl'],
       data: taskObj['data'],
-      localFiles: taskObj['localFiles'],
+      localFiles: taskObj['localFiles']?.cast<String>(),
       url: taskObj['url'],
       localFile: taskObj['localFile'],
       lengthHeader: taskObj['lengthHeader'],
@@ -191,6 +194,16 @@ class DefaultPortTaskManager implements IPortTaskManager {
   @override
   UserPrincipal get principal => _site.getService('@.principal');
 
+  @override
+  bool hasListener(String path) {
+    for (var i = 0; i < _listeners.length; i++) {
+      var listener = _listeners[0];
+      if (listener.path.startsWith(path)) {
+        return true;
+      }
+    }
+    return false;
+  }
   @override
   listener(String path, Function(Frame) onmessage) {
     _listeners.add(_DefaultListener(path: path, onmessage: onmessage));

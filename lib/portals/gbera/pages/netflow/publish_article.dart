@@ -60,7 +60,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         widget.context.site.getService('/channel/messages');
     IChannelMediaService channelMediaService =
         widget.context.site.getService('/channel/messages/medias');
-    var msgid = MD5Util.generateMd5('${Uuid().v1()}');
+    var msgid = MD5Util.MD5('${Uuid().v1()}');
     await channelMessageService.addMessage(
       ChannelMessage(
         msgid,

@@ -195,7 +195,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       var ios = await deviceInfo.iosInfo;
       device = '${ios.name}${ios.model}${ios.identifierForVendor}';
     }
-    device = MD5Util.generateMd5(device);
+    device = MD5Util.MD5(device);
     appKeyPair.device = device;
   }
 

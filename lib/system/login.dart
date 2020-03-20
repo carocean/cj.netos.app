@@ -860,7 +860,7 @@ class PasswordLoginAction {
       _appid = this.context.site.getService('@.prop.entrypoint.app');
     }
     appKeyPair = await appKeyPair.getAppKeyPair(_appid, this.context.site);
-    var nonce = MD5Util.generateMd5(
+    var nonce = MD5Util.MD5(
         '${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
     await context.ports.callback(
       'get ${context.site.getService('@.prop.ports.uc.auth')} http/1.1',
@@ -994,7 +994,7 @@ class __VerifyCodeButtonState extends State<_VerifyCodeButton> {
     _fetchButtonEnabled = false;
     setState(() {});
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
-    var nonce = MD5Util.generateMd5(Uuid().v1());
+    var nonce = MD5Util.MD5(Uuid().v1());
     await widget.context.ports.callback(
       'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'sendVerifyCode',

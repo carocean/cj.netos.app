@@ -133,8 +133,11 @@ abstract class IInsiteMessageDAO {
   Future<List<InsiteMessage>> pageMessageIsMine(
       String sandbox, String creator, int limit, int offset) {}
 
-  @Query('SELECT * FROM InsiteMessage WHERE id = :id and sandbox=:sandbox')
+  @Query('SELECT * FROM InsiteMessage WHERE id = :id and sandbox=:sandbox  LIMIT 1')
   Future<InsiteMessage> getMessage(String id, String sandbox);
+
+  @Query('SELECT * FROM InsiteMessage WHERE docid = :docid and upstreamChannel=:upstreamChannel and sandbox=:sandbox LIMIT 1')
+  Future<InsiteMessage> getMessageByDocid(String docid,String upstreamChannel, String sandbox);
 
   @Query('SELECT * FROM InsiteMessage where sandbox=:sandbox')
   Future<List<InsiteMessage>> getAllMessage(String sandbox);
@@ -224,7 +227,7 @@ abstract class IChannelMessageDAO {
   Future<void> updateStateMessage(String updateToState, String channelid,
       String sandbox, String whereState);
 
-  @Query('SELECT * FROM ChannelMessage WHERE id = :id and sandbox=:sandbox')
+  @Query('SELECT * FROM ChannelMessage WHERE id = :id and sandbox=:sandbox  LIMIT 1')
   Future<ChannelMessage> getMessage(String id, String sandbox);
 
   @Query('SELECT * FROM ChannelMessage where sandbox=:sandbox')
@@ -250,7 +253,7 @@ abstract class IChannelMediaDAO {
       'SELECT *  FROM Media where sandbox=:sandbox LIMIT :pageSize OFFSET  :currPage')
   Future<List<Media>> pageMedia(String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM Media WHERE id = :id and sandbox=:sandbox')
+  @Query('SELECT * FROM Media WHERE id = :id and sandbox=:sandbox  LIMIT 1')
   Future<Media> getMedia(String id, String sandbox);
 
   @Query('SELECT * FROM Media where sandbox=:sandbox')
@@ -277,7 +280,7 @@ abstract class IChannelLikePersonDAO {
   Future<List<LikePerson>> pageLikePerson(
       String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM LikePerson WHERE id = :id and sandbox=:sandbox')
+  @Query('SELECT * FROM LikePerson WHERE id = :id and sandbox=:sandbox  LIMIT 1')
   Future<LikePerson> getLikePerson(String id, String sandbox);
 
   @Query('SELECT * FROM LikePerson where sandbox=:sandbox')
@@ -315,7 +318,7 @@ abstract class IChannelCommentDAO {
   Future<List<ChannelComment>> pageComment(
       String sandbox, int pageSize, int currPage);
 
-  @Query('SELECT * FROM ChannelComment WHERE id = :id and sandbox=:sandbox')
+  @Query('SELECT * FROM ChannelComment WHERE id = :id and sandbox=:sandbox LIMIT 1')
   Future<ChannelComment> getComment(String id, String sandbox);
 
   @Query('SELECT * FROM ChannelComment where sandbox=:sandbox')

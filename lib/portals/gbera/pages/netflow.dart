@@ -56,9 +56,10 @@ class _ChannelStateBar {
         break;
       case 'likeDocumentCommand':
         ChannelMessage message = args['message'];
+        LikePerson likePerson = args['like'];
         Person liker = args['liker'];
         brackets = '[赞]';
-        atime = message.atime;
+        atime = likePerson.ctime;
         tips = '${liker.nickName}:${message.text}';
         isShow = true;
         break;
@@ -66,7 +67,7 @@ class _ChannelStateBar {
         ChannelMessage message = args['message'];
         Person unliker = args['unliker'];
         brackets = '[撤消赞]';
-        atime = message.atime;
+        atime = DateTime.now().millisecondsSinceEpoch;
         tips = '${unliker.nickName}:${message.text}';
         isShow = true;
         break;
@@ -684,7 +685,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if(frame.head('sender')==widget.context.principal.person) {
+    if (frame.head('sender') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -733,7 +734,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if(frame.head('sender')==widget.context.principal.person) {
+    if (frame.head('sender') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -754,17 +755,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var liker = frame.parameter('liker');
     var likerPerson =
         await personService.getPerson(liker, isDownloadAvatar: true);
+    var like = LikePerson(
+      Uuid().v1(),
+      liker,
+      likerPerson.avatar,
+      docMap['id'],
+      docMap['ctime'],
+      likerPerson.nickName,
+      docMap['channel'],
+      widget.context.principal.person,
+    );
     await likeService.like(
-      LikePerson(
-        Uuid().v1(),
-        liker,
-        likerPerson.avatar,
-        docMap['id'],
-        docMap['ctime'],
-        likerPerson.nickName,
-        docMap['channel'],
-        widget.context.principal.person,
-      ),
+      like,
       onlySaveLocal: true,
     );
 
@@ -772,7 +774,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (widget.workingChannel.onRefreshChannelState != null) {
       widget.workingChannel.onRefreshChannelState('likeDocumentCommand', {
         'message': message,
-        'liker': likeService,
+        'like': like,
+        'liker': likerPerson,
       });
     }
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
@@ -780,6 +783,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       widget.channelStateBars[docMap['channel']]
           ?.update('likeDocumentCommand', {
         'message': message,
+        'like': like,
         'liker': likerPerson,
       });
     }
@@ -888,7 +892,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (!dirFile.existsSync()) {
       dirFile.createSync();
     }
-    var fn = '${MD5Util.generateMd5(Uuid().v1())}.${fileExt(map['src'])}';
+    var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(map['src'])}';
     var localFile = '$dir/$fn';
     remotePorts.portTask.addDownloadTask(
       '${map['src']}?accessToken=${widget.context.principal.accessToken}',
@@ -904,7 +908,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if(frame.head('sender')==widget.context.principal.person) {
+    if (frame.head('sender') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -969,7 +973,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if(frame.head('sender')==widget.context.principal.person) {
+    if (frame.head('sender') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -1017,6 +1021,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         widget.context.site.getService('/insite/messages');
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，已丢弃。');
@@ -1024,6 +1031,20 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     }
     var docMap = jsonDecode(text);
 
+    await channelMessageService.setCurrentActivityTask(
+      creator: docMap['creator'],
+      docid: docMap['id'],
+      channel: docMap['channel'],
+      attach: '',
+      action: 'arrive',
+    );
+
+    var existsmsg =
+        await messageService.getMessage(docMap['id'], docMap['channel']);
+    if (existsmsg != null) {
+      print('入站消息已存在，被丢弃。');
+      return null;
+    }
 //    print(docMap);
     var message = InsiteMessage(
       Uuid().v1(),
@@ -1102,15 +1123,20 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         }
       }
 
+      ChannelMessage existsCMSG =
+          await channelMessageService.getChannelMessage(message.docid);
+      if (existsCMSG != null) {
+        print('管道消息已存在，被丢弃。');
+        return null;
+      }
       ChannelMessage channelMessage = message.copy();
       channelMessage.atime = DateTime.now().millisecondsSinceEpoch;
       channelMessage.state = 'arrived';
-      IChannelMessageService channelMessageService =
-          widget.context.site.getService('/channel/messages');
+
       await channelMessageService.addMessage(channelMessage);
 
-      await channelMessageService.setCurrentActivityTask(channelMessage);
-      await channelMessageService.loadMessageExtraTask(channelMessage);
+      await channelMessageService.loadMessageExtraTask(
+          channelMessage.creator, channelMessage.id, channelMessage.onChannel);
 
       //通知当前工作的管道有新消息到
       if (widget.workingChannel.onRefreshChannelState != null) {
@@ -1572,7 +1598,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     top: 3,
                                   ),
                                   elevation: 0,
-                                  showBadge: widget.stateBar.count != 0,
+                                  showBadge: (widget.stateBar.count ?? 0) != 0,
                                   badgeContent: Text(
                                     '',
                                   ),
@@ -1654,11 +1680,13 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    '${TimelineUtil.format(
-                                      widget.stateBar?.atime,
-                                      locale: 'zh',
-                                      dayFormat: DayFormat.Simple,
-                                    )}',
+                                    widget.stateBar?.atime != null
+                                        ? '${TimelineUtil.format(
+                                            widget.stateBar?.atime,
+                                            locale: 'zh',
+                                            dayFormat: DayFormat.Simple,
+                                          )}'
+                                        : '',
                                     style: TextStyle(
                                       color: Colors.grey[500],
                                       fontWeight: FontWeight.normal,

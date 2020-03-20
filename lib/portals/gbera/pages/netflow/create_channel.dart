@@ -72,7 +72,7 @@ class _CreateChannelState extends State<CreateChannel> {
                 ));
                 return;
               }
-              var channelid=MD5Util.generateMd5('${Uuid().v1()}');
+              var channelid=MD5Util.MD5('${Uuid().v1()}');
               Channel channel = Channel(
                 channelid,
                 channelName,

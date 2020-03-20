@@ -25,6 +25,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   InsiteMessage _message;
   Channel _channel;
   Person _person;
+  Person _creator;
   bool _check_rejectAllMessages = false;
   bool _check_receive_to_channel = false;
   bool _check_channel_exists = false;
@@ -43,7 +44,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     });
     () async {
       IPersonService personService =
-      widget.context.site.getService('/gbera/persons');
+          widget.context.site.getService('/gbera/persons');
       var person = await personService.getPerson(_person.official);
       switch (person.rights) {
         case 'denyUpstream':
@@ -59,6 +60,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
           _check_rejectAllMessages = false;
           break;
       }
+      _creator=await personService.getPerson(_message.creator);
 
       IChannelPinService pinService =
           widget.context.site.getService('/channel/pin');
@@ -111,15 +113,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
       ));
     }
     var iperson =
-    await pinService.getInputPerson(_person.official, _channel.id);
-    if(iperson.rights=='allow') {
+        await pinService.getInputPerson(_person.official, _channel.id);
+    if (iperson.rights == 'allow') {
       await pinService.updateInputPersonRights(
           _person.official, _channel.id, 'deny');
-      _check_receive_to_channel =false;
-    }else{
+      _check_receive_to_channel = false;
+    } else {
       await pinService.updateInputPersonRights(
           _person.official, _channel.id, 'allow');
-      _check_receive_to_channel =true;
+      _check_receive_to_channel = true;
     }
   }
 
@@ -151,7 +153,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         if (_check_receive_to_channel) {
           IChannelPinService pinService =
               widget.context.site.getService('/channel/pin');
-          if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
+          if (!await pinService.existsInputPerson(
+              _person.official, _channel.id)) {
             await pinService.addInputPerson(ChannelInputPerson(
               Uuid().v1(),
               _channel.id,
@@ -159,7 +162,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               'deny',
               widget.context.principal.person,
             ));
-          }else {
+          } else {
             await pinService.updateInputPersonRights(
                 _person.official, _channel.id, 'deny');
           }
@@ -177,7 +180,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
 
     if (await _existsChannel()) {
       if (await pinService.existsInputPerson(_person.official, _channel.id)) {
-        await pinService.updateInputPersonRights(_person.official, _channel.id,'allow');
+        await pinService.updateInputPersonRights(
+            _person.official, _channel.id, 'allow');
         await _moveInsiteMessageToChannel();
       } else {
         await pinService.addInputPerson(ChannelInputPerson(
@@ -192,19 +196,22 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         await addPersonToLocal();
         //将公众加入管道的输入端
       }
-      _check_receive_to_channel =true;
+      _check_receive_to_channel = true;
       return;
     }
     //添加管道
-    if (!StringUtil.isEmpty(_channel.leading)) {
+    var remoteLeadingUrl = _channel.leading;
+    var localLeadingFile;
+    if (!StringUtil.isEmpty(_channel.leading) &&
+        !_channel.leading.startsWith('/')) {
       var dio = widget.context.site.getService('@.http');
-      var localLeadingFile = await downloadChannelAvatar(
+      localLeadingFile = await downloadChannelAvatar(
           dio: dio,
           avatarUrl:
               '${_channel.leading}?accessToken=${widget.context.principal.accessToken}');
-      _channel.leading = localLeadingFile;
     }
-    await channelService.addChannel(_channel);
+    await channelService.addChannel(_channel,
+        localLeading: localLeadingFile, remoteLeading: remoteLeadingUrl);
 
     if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
       await pinService.addInputPerson(ChannelInputPerson(
@@ -219,14 +226,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     //将该管道的公共活动移动到管道内，并标为arrived状态
     await _moveInsiteMessageToChannel();
     await addPersonToLocal();
+
     //将公众加入管道的输入端
-    if(!_check_receive_to_channel) {
+    if (!_check_receive_to_channel) {
       await pinService.updateInputPersonRights(
           _person.official, _channel.id, 'allow');
     }
-    if(_check_rejectAllMessages) {
+    if (_check_rejectAllMessages) {
       IPersonService personService =
-      widget.context.site.getService('/gbera/persons');
+          widget.context.site.getService('/gbera/persons');
       var person = await personService.getPerson(_person.official);
       await personService.updateRights(person.official, '');
       _person.rights = null;
@@ -249,6 +257,8 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
       cm.state = 'arrived';
       await channelMessageService.addMessage(cm);
       //后台任务拉取赞、评论、媒体文件
+      await channelMessageService.loadMessageExtraTask(
+          cm.creator, cm.id, cm.onChannel);
     }
   }
 
@@ -300,14 +310,14 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                   children: <Widget>[
                     Padding(
                       padding: EdgeInsets.only(right: 10),
-                      child: _person.avatar.startsWith('/')
+                      child: _creator?.avatar.startsWith('/')
                           ? Image.file(
-                              File(_person.avatar),
+                              File(_creator?.avatar),
                               width: 40,
                               height: 40,
                             )
                           : Image.network(
-                              _person.avatar,
+                              '${_creator?.avatar}?accessToken=${widget.context.principal.accessToken}',
                               width: 40,
                               height: 40,
                             ),
@@ -323,7 +333,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                               bottom: 2,
                             ),
                             child: Text(
-                              '${_person.nickName ?? _person.accountCode}',
+                              '${_creator?.nickName}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                               ),

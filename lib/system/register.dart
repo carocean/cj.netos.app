@@ -41,7 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   _anonymous() async {
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
-    var nonce = MD5Util.generateMd5(Uuid().v1()).toUpperCase();
+    var nonce = MD5Util.MD5(Uuid().v1()).toUpperCase();
     String sign = appKeyPair.appSign(nonce);
     await widget.context.ports.callback(
       'post ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
@@ -95,7 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
     var defaultApp = widget.context.site.getService('@.prop.entrypoint.app');
     appKeyPair = await appKeyPair.getAppKeyPair(defaultApp, widget.context.site);
-    var nonce = MD5Util.generateMd5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
+    var nonce = MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
     await widget.context.ports.callback(
       'post ${widget.context.site.getService('@.prop.ports.uc.register')} http/1.1',
       restCommand: 'registerByIphone',

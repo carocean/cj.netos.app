@@ -154,7 +154,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     });
     var channels = <Channel>[];
     for (var obj in list) {
-      var channelid = MD5Util.generateMd5('${Uuid().v1()}');
+      var channelid = MD5Util.MD5('${Uuid().v1()}');
       channels.add(Channel(
         channelid,
         obj['title'],
@@ -363,20 +363,25 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> setCurrentActivityTask(ChannelMessage channelMessage) async {
+  Future<Function> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) async {
     await remotePorts.portGET(
       _channelPortsUrl,
       'addExtraActivity',
       parameters: {
-        'creator': channelMessage.creator,
-        'docid': channelMessage.id,
-        'channel': channelMessage.onChannel,
+        'creator':creator,
+        'docid': docid,
+        'channel': channel,
+        'action':action??'',
+        'attach':attach??'',
       },
     );
   }
 
   @override
   void listenLikeTaskCallback(Function callback) {
+    if(remotePorts.portTask.hasListener('/network/channel/extra/likes')){
+      return;
+    }
     remotePorts.portTask.listener('/network/channel/extra/likes', (frame) {
       switch (frame.head('sub-command')) {
         case 'begin':
@@ -394,14 +399,14 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<void> pageLikeTask(
-      ChannelMessage channelMessage, int limit, int offset) async {
+      String docCreator,String docid,String channel, int limit, int offset) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'pageExtraLike',
       parameters: {
-        'creator': channelMessage.creator,
-        'docid': channelMessage.id,
-        'channel': channelMessage.onChannel,
+        'creator': docCreator,
+        'docid': docid,
+        'channel': channel,
         'limit': limit,
         'offset': offset,
       },
@@ -411,6 +416,9 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenCommentTaskCallback(Function callback) {
+    if(remotePorts.portTask.hasListener('/network/channel/extra/comments')){
+      return;
+    }
     remotePorts.portTask.listener('/network/channel/extra/comments', (frame) {
       switch (frame.head('sub-command')) {
         case 'begin':
@@ -428,14 +436,14 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<void> pageCommentTask(
-      ChannelMessage channelMessage, int limit, int offset) async {
+      String docCreator,String docid,String channel, int limit, int offset) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'pageExtraComment',
       parameters: {
-        'creator': channelMessage.creator,
-        'docid': channelMessage.id,
-        'channel': channelMessage.onChannel,
+        'creator': docCreator,
+        'docid': docid,
+        'channel':channel,
         'limit': limit,
         'offset': offset,
       },
@@ -445,27 +453,33 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenMediaTaskCallback(Function callback) {
+    if(remotePorts.portTask.hasListener('/network/channel/extra/medias')){
+      return;
+    }
     remotePorts.portTask.listener('/network/channel/extra/medias', (frame) {
       switch (frame.head('sub-command')) {
         case 'begin':
           break;
         case 'done':
-          var list = jsonDecode(frame.contentText);
-          callback(list);
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
           break;
       }
     });
   }
 
   @override
-  Future<void> listMediaTask(ChannelMessage channelMessage) async {
+  Future<void> listMediaTask(String docCreator,String docid,String channel) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'listExtraMedia',
       parameters: {
-        'creator': channelMessage.creator,
-        'docid': channelMessage.id,
-        'channel': channelMessage.onChannel,
+        'creator':docCreator,
+        'docid': docid,
+        'channel': channel,
       },
       callbackUrl: '/network/channel/extra/medias',
     );
@@ -473,6 +487,9 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenActivityTaskCallback(Function callback) {
+    if(remotePorts.portTask.hasListener('/network/channel/extra/activities')){
+      return;
+    }
     remotePorts.portTask.listener('/network/channel/extra/activities', (frame) {
       switch (frame.head('sub-command')) {
         case 'begin':

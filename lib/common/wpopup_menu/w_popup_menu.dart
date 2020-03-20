@@ -12,7 +12,7 @@ class WPopupMenu extends StatefulWidget {
     this.pressType = PressType.longPress,
     this.pageMaxChildCount = 5,
     this.backgroundColor = Colors.black,
-    this.menuWidth = 250,
+    this.menuWidth = 300,
     this.menuHeight = 42,
   });
 

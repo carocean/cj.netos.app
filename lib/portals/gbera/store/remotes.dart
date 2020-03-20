@@ -47,25 +47,25 @@ mixin IChannelRemote {
 
   Future<void> removeComment(String msgid, String channel, String creator, String commentid) {}
 
-  Future<void> pageLikeTask(ChannelMessage channelMessage, int limit,
+  Future<void> pageLikeTask(String docCreator,String docid,String channel, int limit,
       int offset);
 
-  Future<void> pageCommentTask(ChannelMessage channelMessage, int limit,
+  Future<void> pageCommentTask(String docCreator,String docid,String channel, int limit,
       int offset);
 
-  Future<void> listMediaTask(ChannelMessage channelMessage);
+  Future<void> listMediaTask(String docCreator,String docid,String channel);
 
   Future<void> pageActivityTask(ChannelMessage channelMessage, int limit,
       int offset);
 
   void listenLikeTaskCallback(Function(List likes) callback);
 
-  void listenCommentTaskCallback(Null Function(List comments) callback);
+  void listenCommentTaskCallback(Function(List comments) callback);
 
-  void listenMediaTaskCallback(Null Function(List medias) callback);
+  void listenMediaTaskCallback(Function(List medias) callback);
 
-  void listenActivityTaskCallback(Null Function(List activities) callback);
+  void listenActivityTaskCallback(Function(List activities) callback);
 
-  Future<void> setCurrentActivityTask(ChannelMessage channelMessage) {}
+  Future<void> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) {}
 
 }

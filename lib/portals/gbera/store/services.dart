@@ -58,7 +58,7 @@ mixin IChannelService {
 
   Future<bool> existsChannel(channelid);
 
-  Future<void> addChannel(Channel channel);
+  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
@@ -106,6 +106,8 @@ mixin IInsiteMessageService {
   Future<void> remove(String msgid) {}
 
   Future<void> emptyChannel(channel) {}
+
+  Future<InsiteMessage> getMessage(docid,channel) {}
 }
 
 mixin IChannelMessageService {
@@ -131,9 +133,9 @@ mixin IChannelMessageService {
 
   Future<void> readAllArrivedMessage(String channelid);
 
-  Future<void> loadMessageExtraTask(ChannelMessage channelMessage) {}
+  Future<void> loadMessageExtraTask(String docCreator,String docid,String channel) {}
 
-  Future<void> setCurrentActivityTask(ChannelMessage channelMessage) {}
+  Future<void> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) {}
 
   Future<ChannelMessage>  getChannelMessage(String msgid) {}
 

@@ -9,7 +9,7 @@ mixin StringUtil {
   }
 }
 mixin MD5Util {
-  static String generateMd5(String data) {
+  static String MD5(String data) {
     var content = new Utf8Encoder().convert(data);
     var digest = md5.convert(content);
     // 这里其实就是 digest.toString()
@@ -47,10 +47,10 @@ mixin IDisposable {
   void dispose();
 }
 
-
 mixin IServiceBuilder {
   Future<void> builder(IServiceProvider site);
 }
+
 String getPath(String url) {
   var path = '';
   int pos = url.indexOf("?");

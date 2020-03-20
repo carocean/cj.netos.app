@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:framework/framework.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
-
+import 'dart:async';
 import '../../../../system/local/entities.dart';
 import '../remotes.dart';
 import '../services.dart';
@@ -61,6 +61,9 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
 
   @override
   Future<Function> addMedia(Media media) async {
+    if(await channelMediaDAO.getMedia(media.id, principal.person)!=null){
+      return null;
+    }
     await channelMediaDAO.addMedia(media);
   }
 
@@ -131,12 +134,15 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
       return null;
     }
     ChannelMessage message = await messageService.getChannelMessage(msgid);
+    if(message==null) {
+      return null;
+    }
     await channelRemote.unlike(message.id, message.onChannel, message.creator);
   }
 
   @override
   Future<Function> like(LikePerson like, {bool onlySaveLocal = false}) async {
-    if (await isLiked(like.msgid, like.person)) {
+    if (await channelLikeDAO.getLikePerson(like.id, principal.person)!=null) {
       return null;
     }
     await channelLikeDAO.addLikePerson(like);
@@ -173,7 +179,7 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
   @override
   Future<Function> addComment(ChannelComment comment,
       {bool onlySaveLocal = false}) async {
-    if (await channelCommentDAO.getComment(comment.id, comment.person) !=
+    if (await channelCommentDAO.getComment(comment.id, principal.person) !=
         null) {
       return null;
     }
@@ -202,6 +208,9 @@ class ChannelCommentService implements IChannelCommentService, IServiceBuilder {
       return null;
     }
     ChannelMessage message = await messageService.getChannelMessage(msgid);
+    if(message==null) {
+      return null;
+    }
     await channelRemote.removeComment(
         message.id, message.onChannel, message.creator, commentid);
   }
