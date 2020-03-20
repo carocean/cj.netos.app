@@ -396,141 +396,151 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                 ),
               ),
             ),
-            Container(
-              constraints: BoxConstraints.tightForFinite(
-                width: double.maxFinite,
-              ),
-              margin: EdgeInsets.only(
-                left: 40,
-                right: 40,
-              ),
-              padding: EdgeInsets.all(10),
-              child: Column(
-                children: <Widget>[
-                  Container(
-//                    color: Colors.white,
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.only(
-                      left: 10,
-                      right: 10,
+            _message.creator == widget.context.principal.person
+                ? Container(
+                    width: 0,
+                    height: 0,
+                  )
+                : Container(
+                    constraints: BoxConstraints.tightForFinite(
+                      width: double.maxFinite,
                     ),
+                    margin: EdgeInsets.only(
+                      left: 40,
+                      right: 40,
+                    ),
+                    padding: EdgeInsets.all(10),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _disabled__check_rejectChannelMessages
-                              ? null
-                              : () {
-                                  _disabled__check_rejectChannelMessages = true;
-                                  setState(() {});
-                                  _rejectHisChannelMessage().then((v) {
-                                    _disabled__check_rejectChannelMessages =
-                                        false;
-                                    setState(() {});
-                                  });
-                                },
-                          child: CardItem(
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            title:
-                                '${_disabled__check_rejectChannelMessages ? '处理中...' : '拒收这个管道消息'}',
-                            titleColor: Colors.black87,
-                            titleSize: 12,
-                            tail: _check_receive_to_channel
-                                ? Icon(
-                                    Icons.remove,
-                                    color: Colors.grey[400],
-                                    size: 12,
-                                  )
-                                : Icon(
-                                    Icons.check,
-                                    color: Colors.red,
-                                    size: 14,
-                                  ),
+                        Container(
+//                    color: Colors.white,
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.only(
+                            left: 10,
+                            right: 10,
                           ),
-                        ),
-                        Divider(
-                          height: 1,
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _disabled__check_rejectAllMessages
-                              ? null
-                              : () {
-                                  _disabled__check_rejectAllMessages = true;
-                                  setState(() {});
-                                  _rejectHisAllMessage().then((v) {
-                                    _disabled__check_rejectAllMessages = false;
-                                    setState(() {});
-                                  });
-                                },
-                          child: CardItem(
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            title:
-                                '${_disabled__check_rejectAllMessages ? '处理中...' : '拒收他的所有消息'}',
-                            titleColor: Colors.black87,
-                            titleSize: 12,
-                            tail: !_check_rejectAllMessages
-                                ? Icon(
-                                    Icons.remove,
-                                    color: Colors.grey[400],
-                                    size: 12,
-                                  )
-                                : Icon(
-                                    Icons.check,
-                                    color: Colors.red,
-                                    size: 14,
-                                  ),
-                          ),
-                        ),
-                        Divider(
-                          height: 1,
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _disabled__check_receive_to_channel
-                              ? null
-                              : () {
-                                  _disabled__check_receive_to_channel = true;
-                                  setState(() {});
-                                  _addOrRemoveChannel().then((v) {
-                                    _disabled__check_receive_to_channel = true;
-                                    setState(() {});
-                                    widget.context
-                                        .backward(result: {'refresh': true});
-                                  });
-                                },
-                          child: CardItem(
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            title:
-                                '${_disabled__check_receive_to_channel ? '处理中...' : '将消息收取到管道'}',
-                            tipsText: '您可获得: ¥2.21',
-                            tipsSize: 10,
-                            titleColor: Colors.black87,
-                            titleSize: 12,
-                            tail: !_check_channel_exists ||
-                                    !_check_receive_to_channel
-                                ? Icon(
-                                    Icons.remove,
-                                    color: Colors.grey[400],
-                                    size: 12,
-                                  )
-                                : Icon(
-                                    Icons.check,
-                                    color: Colors.red,
-                                    size: 14,
-                                  ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _disabled__check_rejectChannelMessages
+                                    ? null
+                                    : () {
+                                        _disabled__check_rejectChannelMessages =
+                                            true;
+                                        setState(() {});
+                                        _rejectHisChannelMessage().then((v) {
+                                          _disabled__check_rejectChannelMessages =
+                                              false;
+                                          setState(() {});
+                                        });
+                                      },
+                                child: CardItem(
+                                  paddingTop: 10,
+                                  paddingBottom: 10,
+                                  title:
+                                      '${_disabled__check_rejectChannelMessages ? '处理中...' : '拒收这个管道消息'}',
+                                  titleColor: Colors.black87,
+                                  titleSize: 12,
+                                  tail: _check_receive_to_channel
+                                      ? Icon(
+                                          Icons.remove,
+                                          color: Colors.grey[400],
+                                          size: 12,
+                                        )
+                                      : Icon(
+                                          Icons.check,
+                                          color: Colors.red,
+                                          size: 14,
+                                        ),
+                                ),
+                              ),
+                              Divider(
+                                height: 1,
+                              ),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _disabled__check_rejectAllMessages
+                                    ? null
+                                    : () {
+                                        _disabled__check_rejectAllMessages =
+                                            true;
+                                        setState(() {});
+                                        _rejectHisAllMessage().then((v) {
+                                          _disabled__check_rejectAllMessages =
+                                              false;
+                                          setState(() {});
+                                        });
+                                      },
+                                child: CardItem(
+                                  paddingTop: 10,
+                                  paddingBottom: 10,
+                                  title:
+                                      '${_disabled__check_rejectAllMessages ? '处理中...' : '拒收他的所有消息'}',
+                                  titleColor: Colors.black87,
+                                  titleSize: 12,
+                                  tail: !_check_rejectAllMessages
+                                      ? Icon(
+                                          Icons.remove,
+                                          color: Colors.grey[400],
+                                          size: 12,
+                                        )
+                                      : Icon(
+                                          Icons.check,
+                                          color: Colors.red,
+                                          size: 14,
+                                        ),
+                                ),
+                              ),
+                              Divider(
+                                height: 1,
+                              ),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _disabled__check_receive_to_channel
+                                    ? null
+                                    : () {
+                                        _disabled__check_receive_to_channel =
+                                            true;
+                                        setState(() {});
+                                        _addOrRemoveChannel().then((v) {
+                                          _disabled__check_receive_to_channel =
+                                              true;
+                                          setState(() {});
+                                          widget.context.backward(
+                                              result: {'refresh': true});
+                                        });
+                                      },
+                                child: CardItem(
+                                  paddingTop: 10,
+                                  paddingBottom: 10,
+                                  title:
+                                      '${_disabled__check_receive_to_channel ? '处理中...' : '将消息收取到管道'}',
+                                  tipsText: '您可获得: ¥2.21',
+                                  tipsSize: 10,
+                                  titleColor: Colors.black87,
+                                  titleSize: 12,
+                                  tail: !_check_channel_exists ||
+                                          !_check_receive_to_channel
+                                      ? Icon(
+                                          Icons.remove,
+                                          color: Colors.grey[400],
+                                          size: 12,
+                                        )
+                                      : Icon(
+                                          Icons.check,
+                                          color: Colors.red,
+                                          size: 14,
+                                        ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
             Container(
               height: 60,
               decoration: BoxDecoration(
