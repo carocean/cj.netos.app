@@ -459,6 +459,7 @@ class __PlatformNewsDayState extends State<_PlatformNewsDay> {
                             },
                             height: 200,
                             boxFit: BoxFit.fitHeight,
+                            context: widget.context,
                           ),
                         ),
                   Container(
