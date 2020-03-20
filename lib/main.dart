@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
@@ -136,7 +138,7 @@ class Window extends StatelessWidget {
         ),
         Positioned(
           top: 22,
-          left: 78,
+          left: Platform.isAndroid? 78:20,
           height: 1,
           width: 30,
           child: TaskBar(site,_progressTaskBar),
