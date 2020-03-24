@@ -84,11 +84,6 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
           });
         },
       ),
-      floatingActionButton: selectedIndex == 2
-          ? VoiceFloatingButton(
-              context: widget.context,
-            )
-          : null,
     );
   }
 }

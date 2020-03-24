@@ -63,6 +63,7 @@ void main() => platformRun(
             '@.prop.ports.flow.channel':
                 'http://47.105.165.186/flow/channel.service',
             '@.prop.taskbar.progress': _progressTaskBar,
+            '@.prop.ports.document.geo.category':'http://47.105.165.186/document/geo/category.service',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

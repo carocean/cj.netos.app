@@ -46,7 +46,9 @@ dependencies:
   common_utils: ^1.1.3
   uuid: ^2.0.4
   badges: ^1.1.0
-  amap_all_fluttify: ^0.11.1
+  #高德定位依赖
+  permission_handler: ^4.3.0
+  amap_location_fluttify: ^0.8.11+481e45c
   extended_text_field: ^0.4.8
   #已将源码拷到工程
   #  w_popup_menu: ^0.3.0

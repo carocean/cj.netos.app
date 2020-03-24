@@ -57,6 +57,8 @@ class _$AppDatabase extends AppDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
+  IGeoReceptorDAO _geoReceptorDAOInstance;
+
   IPrincipalDAO _principalDAOInstance;
 
   IPersonDAO _upstreamPersonDAOInstance;
@@ -128,9 +130,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `LikePerson` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `LikePerson` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Media` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Media` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelPin` (`id` TEXT, `channel` TEXT, `inPersonSelector` TEXT, `outPersonSelector` TEXT, `outGeoSelector` TEXT, `outWechatPenYouSelector` TEXT, `outWechatHaoYouSelector` TEXT, `outContractSelector` TEXT, `inRights` TEXT, `outRights` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -149,10 +151,18 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `P2PMessage` (`id` TEXT, `sender` TEXT, `receiver` TEXT, `room` TEXT, `type` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `ctime` INTEGER, `device` TEXT, `dependon` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
 
         await callback?.onCreate?.call(database, version);
       },
     );
+  }
+
+  @override
+  IGeoReceptorDAO get geoReceptorDAO {
+    return _geoReceptorDAOInstance ??=
+        _$IGeoReceptorDAO(database, changeListener);
   }
 
   @override
@@ -254,6 +264,79 @@ class _$AppDatabase extends AppDatabase {
   IP2PMessageDAO get p2pMessageDAO {
     return _p2pMessageDAOInstance ??=
         _$IP2PMessageDAO(database, changeListener);
+  }
+}
+
+class _$IGeoReceptorDAO extends IGeoReceptorDAO {
+  _$IGeoReceptorDAO(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _geoReceptorInsertionAdapter = InsertionAdapter(
+            database,
+            'GeoReceptor',
+            (GeoReceptor item) => <String, dynamic>{
+                  'id': item.id,
+                  'title': item.title,
+                  'category': item.category,
+                  'leading': item.leading,
+                  'creator': item.creator,
+                  'location': item.location,
+                  'radius': item.radius,
+                  'ctime': item.ctime,
+                  'device': item.device,
+                  'dependon': item.dependon,
+                  'sandbox': item.sandbox
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  static final _geoReceptorMapper = (Map<String, dynamic> row) => GeoReceptor(
+      row['id'] as String,
+      row['title'] as String,
+      row['category'] as String,
+      row['leading'] as String,
+      row['creator'] as String,
+      row['location'] as String,
+      row['radius'] as double,
+      row['ctime'] as int,
+      row['device'] as String,
+      row['dependon'] as String,
+      row['sandbox'] as String);
+
+  final InsertionAdapter<GeoReceptor> _geoReceptorInsertionAdapter;
+
+  @override
+  Future<GeoReceptor> getReceptor(
+      String creator, String device, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeoReceptor WHERE creator=? and device=? and sandbox=?',
+        arguments: <dynamic>[creator, device, sandbox],
+        mapper: _geoReceptorMapper);
+  }
+
+  @override
+  Future<GeoReceptor> get(String id, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeoReceptor WHERE id=? and sandbox=?',
+        arguments: <dynamic>[id, sandbox],
+        mapper: _geoReceptorMapper);
+  }
+
+  @override
+  Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeoReceptor WHERE sandbox=? limit ? offset ?',
+        arguments: <dynamic>[sandbox, limit, offset],
+        mapper: _geoReceptorMapper);
+  }
+
+  @override
+  Future<void> add(GeoReceptor receptor) async {
+    await _geoReceptorInsertionAdapter.insert(
+        receptor, sqflite.ConflictAlgorithm.abort);
   }
 }
 

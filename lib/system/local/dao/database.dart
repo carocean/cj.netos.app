@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:floor/floor.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
@@ -27,8 +28,11 @@ part 'database.g.dart';
   RoomNick,
   P2PMessage,
   Principal,
+  GeoReceptor,
 ])
 abstract class AppDatabase extends FloorDatabase {
+  IGeoReceptorDAO get geoReceptorDAO;
+
   IPrincipalDAO get principalDAO;
 
   IPersonDAO get upstreamPersonDAO;

@@ -10,9 +10,12 @@ import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desktop_settings.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_discovery.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
@@ -100,12 +103,14 @@ import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/wy.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
 import 'package:netos_app/portals/gbera/store/services/channels.dart';
 import 'package:netos_app/portals/gbera/store/services/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
 import 'package:netos_app/system/local/local_principals.dart';
 import 'package:netos_app/system/local/persons.dart';
@@ -149,6 +154,8 @@ class GberaPortal {
           '/chat/rooms': ChatRoomService(),
           '/chat/p2p/messages': P2PMessageService(),
           '/remote/channels': ChannelRemote(),
+          '/remote/geo/categories': GeoCategoryRemote(),
+          '/geosphere/receptors': GeoReceptorService(),
         };
       },
       builderShareServices: (site) async {
@@ -704,6 +711,33 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/geosphere',
           buildPage: (PageContext pageContext) => Geosphere(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地理感知器',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor',
+          buildPage: (PageContext pageContext) => GeoReceptorWidget(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '选择地理感知器分类',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/category/select',
+          buildPage: (PageContext pageContext) => SelectGeoCategory(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '新创地理感知器',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor/create',
+          buildPage: (PageContext pageContext) => CreateReceptor(
             context: pageContext,
           ),
         ),

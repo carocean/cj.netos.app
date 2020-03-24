@@ -1,3 +1,4 @@
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
 
 import '../../../system/local/entities.dart';
@@ -58,7 +59,8 @@ mixin IChannelService {
 
   Future<bool> existsChannel(channelid);
 
-  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading});
+  Future<void> addChannel(Channel channel,
+      {String localLeading, String remoteLeading});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
@@ -84,8 +86,8 @@ mixin IChannelService {
   Future<List<Person>> pageOutputPersonOf(
       String channel, String person, int limit, int offset) {}
 
-  Future<List<Person>>  pageInputPersonOf(String channel, String person, int limit, int offset) {}
-
+  Future<List<Person>> pageInputPersonOf(
+      String channel, String person, int limit, int offset) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -107,7 +109,7 @@ mixin IInsiteMessageService {
 
   Future<void> emptyChannel(channel) {}
 
-  Future<InsiteMessage> getMessage(docid,channel) {}
+  Future<InsiteMessage> getMessage(docid, channel) {}
 }
 
 mixin IChannelMessageService {
@@ -133,13 +135,17 @@ mixin IChannelMessageService {
 
   Future<void> readAllArrivedMessage(String channelid);
 
-  Future<void> loadMessageExtraTask(String docCreator,String docid,String channel) {}
+  Future<void> loadMessageExtraTask(
+      String docCreator, String docid, String channel) {}
 
-  Future<void> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) {}
+  Future<void> setCurrentActivityTask(
+      {String creator,
+      String docid,
+      String channel,
+      String action,
+      String attach}) {}
 
-  Future<ChannelMessage>  getChannelMessage(String msgid) {}
-
-
+  Future<ChannelMessage> getChannelMessage(String msgid) {}
 }
 mixin IChannelMediaService {
   Future<void> addMedia(Media media);
@@ -154,9 +160,10 @@ mixin IChannelMediaService {
 mixin IChannelLikeService {
   Future<bool> isLiked(String msgid, String person);
 
-  Future<void> like(LikePerson likePerson,{bool onlySaveLocal=false});
+  Future<void> like(LikePerson likePerson, {bool onlySaveLocal = false});
 
-  Future<void> unlike(String msgid, String person,{bool onlySaveLocal=false});
+  Future<void> unlike(String msgid, String person,
+      {bool onlySaveLocal = false});
 
   Future<List<LikePerson>> pageLikePersons(
       String msgid, int pageSize, int offset);
@@ -165,17 +172,18 @@ mixin IChannelLikeService {
 
   Future<void> removeBy(String channelid) {}
 
-  Future<List<LikePerson>>  listLikePerson() {}
-
+  Future<List<LikePerson>> listLikePerson() {}
 }
 
 mixin IChannelCommentService {
   Future<List<ChannelComment>> pageComments(
       String msgid, int pageSize, int offset);
 
-  Future<void> addComment(ChannelComment channelComment,{bool onlySaveLocal=false});
+  Future<void> addComment(ChannelComment channelComment,
+      {bool onlySaveLocal = false});
 
-  Future<void> removeComment(String msgid,String commentid,{bool onlySaveLocal=false});
+  Future<void> removeComment(String msgid, String commentid,
+      {bool onlySaveLocal = false});
 
   Future<void> removeBy(String channelcode) {}
 }
@@ -226,8 +234,8 @@ mixin IChannelPinService {
 
   Future<ChannelInputPerson> getInputPerson(String official, channel) {}
 
-  Future<void> updateInputPersonRights(String official, String channel, String rights) {}
-
+  Future<void> updateInputPersonRights(
+      String official, String channel, String rights) {}
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}
@@ -285,4 +293,28 @@ mixin IPrincipalService {
   Future<void> updateNickName(String person, nickName) {}
 
   Future<void> updateSignature(String person, String signature) {}
+}
+
+mixin IGeoReceptorService {
+  Future<void> init();
+  Future<void> add(GeoReceptor receptor);
+
+  Future<void> remove(String id);
+
+  Future<GeoReceptor> get(String id);
+
+  Future<GeoReceptor> getReceptor(String person, String device);
+
+  Future<List<GeoReceptor>> page(int limit, int offset);
+
+  Future<void> updateLeading(String id, String leading);
+
+  Future<void> updateTitle(String id, String title);
+
+  Future<void> updateLocation(String id, LatLng location);
+
+  Future<void> updateRadius(String id, LatLng location);
+}
+mixin IGeoCategoryRemote{
+  Future<List<GeoCategory>> listCategory();
 }

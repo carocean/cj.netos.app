@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
@@ -470,4 +473,54 @@ class Principal implements IPrincipal {
       this.pubtime,
       this.expiretime,
       this.device);
+}
+
+@Entity(primaryKeys: ['id', 'sandbox'])
+class GeoReceptor {
+  String id;
+  String title;
+  String category;
+  String leading;
+  String creator;
+  String location;
+  double radius;
+  int ctime;
+  String device;
+  String dependon;
+  String sandbox;
+
+  GeoReceptor(
+      this.id,
+      this.title,
+      this.category,
+      this.leading,
+      this.creator,
+      this.location,
+      this.radius,
+      this.ctime,
+      this.device,
+      this.dependon,
+      this.sandbox);
+
+  LatLng getLocationLatLng() {
+    if (StringUtil.isEmpty(location)) {
+      return null;
+    }
+    return LatLng.fromJson(jsonDecode(location));
+  }
+
+  void setLocationLatLng(LatLng location) {
+    var map = location.toJson();
+    this.location = jsonEncode(map);
+  }
+}
+
+class GeoCategory {
+  String id;
+  String title;
+  int sort;
+  int ctime;
+  String creator;
+  bool isDependon;
+  GeoCategory({this.id, this.title, this.sort, this.ctime, this.creator,this.isDependon});
 }
