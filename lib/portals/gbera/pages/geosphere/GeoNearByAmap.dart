@@ -16,7 +16,7 @@ class GeoNearByAmapPOI extends StatefulWidget {
 
 class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
   List<GeoPoi> _poiList = [];
-  String _fixedAddress;
+  GeoPoi _selectedPoi;
 
   @override
   void initState() {
@@ -34,12 +34,11 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
 
 //type: '汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施',
   Future<void> _searchPOI() async {
-    LatLng latLng = widget.context.parameters['latLng'];
-    _fixedAddress = widget.context.parameters['address'];
+    _selectedPoi = widget.context.parameters['poi'];
 
     /// 搜索周边poi
     final poiList = await AmapSearch.searchAround(
-      latLng,
+      _selectedPoi.latLng,
       type:
           '汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施',
       radius: 20000,
@@ -91,12 +90,28 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
                       left: 5,
                       right: 20,
                     ),
-                    child: Text(
-                      _fixedAddress ?? '',
-                      softWrap: true,
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _selectedPoi?.title ?? '',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        StringUtil.isEmpty(_selectedPoi?.address)
+                            ? Container(
+                                width: 0,
+                                height: 0,
+                              )
+                            : Text(
+                                _selectedPoi?.address ?? '',
+                                softWrap: true,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                      ],
                     ),
                   ),
                 ),

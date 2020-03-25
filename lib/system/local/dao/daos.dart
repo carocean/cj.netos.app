@@ -564,7 +564,7 @@ abstract class IGeoReceptorDAO {
   Future<void> add(GeoReceptor receptor) {}
 
   @Query(
-      'SELECT *  FROM GeoReceptor WHERE creator=:creator and device=:device and sandbox=:sandbox')
+      'SELECT *  FROM GeoReceptor WHERE creator=:creator and device=:device and sandbox=:sandbox LIMIT 1')
   Future<GeoReceptor> getReceptor(
       String creator, String device, String sandbox) {}
 
@@ -574,4 +574,7 @@ abstract class IGeoReceptorDAO {
   @Query(
       'SELECT *  FROM GeoReceptor WHERE sandbox=:sandbox limit :limit, offset :offset')
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
+
+  @Query('delete FROM GeoReceptor WHERE id=:id and sandbox = :sandbox')
+  Future<void> remove(String id, String sandbox) {}
 }

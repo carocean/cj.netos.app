@@ -113,9 +113,17 @@ class _GeosphereState extends State<Geosphere>
                   var arguments = <String, Object>{};
                   switch (value) {
                     case '/netflow/manager/create_receptor':
-                      widget.context.forward(
+                      widget.context
+                          .forward(
                         '/geosphere/category/select',
-                      );
+                      )
+                          .then((result) {
+                        _offset = 0;
+                        _streamController.add('refresh');
+                        _loadReceptors().then((v) {
+                          setState(() {});
+                        });
+                      });
                       break;
                     case '/netflow/manager/scan_receptor':
                       break;
@@ -520,6 +528,7 @@ class _GeoReceptors extends StatefulWidget {
 class _GeoReceptorsState extends State<_GeoReceptors> {
   LatLng _currentLatLng;
   double _offset = 0.0;
+  List<GeoReceptor> _receptors = [];
 
   @override
   void initState() {
@@ -527,13 +536,32 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
       _currentLatLng = await location.latLng;
       setState(() {});
     });
+    widget.stream.listen((receptors) {
+      if (receptors is String && receptors == 'refresh') {
+        _receptors.clear();
+        return;
+      }
+      _receptors.addAll(receptors);
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _receptors.clear();
     super.dispose();
+  }
+
+  Future<void> _deleteReceptor(GeoReceptor receptor) async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    await receptorService.remove(receptor.id);
+    for (var i = 0; i < _receptors.length; i++) {
+      if (_receptors[i].id == receptor.id) {
+        _receptors.removeAt(i);
+      }
+    }
   }
 
   @override
@@ -568,47 +596,36 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
               ),
             ],
           ),
-          StreamBuilder(
-            stream: widget.stream,
-            builder: (ctx, snapshot) {
-              if (snapshot.connectionState != ConnectionState.active) {
-                return Center(
-                  child: Text('加载中...'),
-                );
+          ListView(
+            shrinkWrap: true,
+            padding: EdgeInsets.all(0),
+            physics: NeverScrollableScrollPhysics(),
+            children: _receptors.map((receptor) {
+              var latlng = receptor.getLocationLatLng();
+              double offset = 0.0;
+              if (_currentLatLng != null) {
+                offset = getDistance(start: _currentLatLng, end: latlng);
               }
-              var receptors = snapshot.data as List<GeoReceptor>;
-              if (receptors == null || receptors.isEmpty) {
-                return Center(
-                  child: Text('没有地理感知器'),
-                );
-              }
-              return ListView(
-                shrinkWrap: true,
-                padding: EdgeInsets.all(0),
-                physics: NeverScrollableScrollPhysics(),
-                children: receptors.map((receptor) {
-                  var latlng = receptor.getLocationLatLng();
-                  double offset = 0.0;
-                  if (_currentLatLng != null) {
-                    offset = getDistance(start: _currentLatLng, end: latlng);
-                  }
-                  return _ReceptorItem(
-                    context: widget.context,
-                    receptor: _ReceptorInfo(
-                      title: receptor.title,
-                      id: receptor.id,
-                      leading: receptor.leading,
-                      creator: receptor.creator,
-                      isMobileReceptor: receptor.title == '我的地圈',
-                      offset: offset,
-                    ),
-                    stateBar: _ReceptorItemStateBar(
-                      isShow: false,
-                    ),
-                  );
-                }).toList(),
+              return _ReceptorItem(
+                context: widget.context,
+                onDelete: () {
+                  _deleteReceptor(receptor).then((v) {
+                    setState(() {});
+                  });
+                },
+                receptor: _ReceptorInfo(
+                  title: receptor.title,
+                  id: receptor.id,
+                  leading: receptor.leading,
+                  creator: receptor.creator,
+                  isMobileReceptor: receptor.title == '我的地圈',
+                  offset: offset,
+                ),
+                stateBar: _ReceptorItemStateBar(
+                  isShow: false,
+                ),
               );
-            },
+            }).toList(),
           ),
         ],
       ),
@@ -620,11 +637,13 @@ class _ReceptorItem extends StatefulWidget {
   PageContext context;
   _ReceptorInfo receptor;
   _ReceptorItemStateBar stateBar;
+  Function() onDelete;
 
   _ReceptorItem({
     this.context,
     this.stateBar,
     this.receptor,
+    this.onDelete,
   });
 
   @override
@@ -901,7 +920,11 @@ class _ReceptorItemState extends State<_ReceptorItem> {
           caption: '删除',
           foregroundColor: Colors.grey[500],
           icon: Icons.delete,
-          onTap: () async {},
+          onTap: () {
+            if (widget.onDelete != null) {
+              widget.onDelete();
+            }
+          },
         ),
       ],
       child: GestureDetector(

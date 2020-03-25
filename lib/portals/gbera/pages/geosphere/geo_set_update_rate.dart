@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 
 class GeoSetUpdateRate extends StatefulWidget {
@@ -13,6 +14,7 @@ class GeoSetUpdateRate extends StatefulWidget {
 
 class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
   TextEditingController _distanceController;
+  bool _enableCheckButton = false;
 
   @override
   void initState() {
@@ -32,6 +34,22 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
       appBar: AppBar(
         title: Text('更新频率'),
         elevation: 0.0,
+        actions: <Widget>[
+          IconButton(
+            onPressed: !_enableCheckButton
+                ? null
+                : () {
+                    _enableCheckButton = false;
+                    widget.context.backward(result: {
+                      'distance': int.parse(_distanceController.text),
+                    });
+                  },
+            icon: Icon(
+              Icons.check,
+              color: _enableCheckButton ? Colors.green : Colors.grey[400],
+            ),
+          ),
+        ],
       ),
       body: Container(
         child: Column(
@@ -83,6 +101,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                       fit: FlexFit.loose,
                       child: TextField(
                         controller: _distanceController,
+                        keyboardType: TextInputType.number,
                         autofocus: true,
                         onSubmitted: (v) {
                           print(v);
@@ -90,11 +109,19 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                         onEditingComplete: () {
                           print('----');
                         },
+                        onChanged: (v) {
+                          if (StringUtil.isEmpty(_distanceController.text)) {
+                            _enableCheckButton = false;
+                          } else {
+                            _enableCheckButton = true;
+                          }
+                          setState(() {});
+                        },
                         style: TextStyle(
                           fontSize: 15,
                         ),
                         decoration: InputDecoration(
-                          hintText: '输入离开距离',
+                          hintText: '输入离开距离，单位米',
                           hintStyle: TextStyle(
                             fontSize: 15,
                           ),

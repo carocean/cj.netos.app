@@ -40,7 +40,6 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           1000,
           DateTime.now().millisecondsSinceEpoch,
           principal.device,
-          null,
           principal.person,
         ),
       );
@@ -74,7 +73,9 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<Function> remove(String id) async {}
+  Future<Function> remove(String id) async {
+    await receptorDAO.remove(id,principal.person);
+  }
 
   @override
   Future<void> updateLocation(String id, LatLng location) async {

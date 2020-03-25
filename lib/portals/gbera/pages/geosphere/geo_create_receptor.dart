@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
-import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:uuid/uuid.dart';
 
 class GeoCreateReceptor extends StatefulWidget {
   PageContext context;
@@ -19,24 +22,54 @@ class GeoCreateReceptor extends StatefulWidget {
 class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
   TextEditingController _titleController;
   TextEditingController _radiusController;
+  bool _enableFinishButton = false;
+  GeoCategory _category;
+  var _key = GlobalKey<_LocationSettingWidgetState>();
 
   @override
   void initState() {
+    _category = widget.context.parameters['category'];
     _titleController = TextEditingController();
-    _radiusController = TextEditingController();
+    _radiusController = TextEditingController(
+        text:
+            '${_category.defaultRadius == null || _category.defaultRadius == 0 ? 5000 : _category.defaultRadius}');
     super.initState();
   }
 
   @override
   void dispose() {
+    _enableFinishButton = false;
     _titleController.dispose();
     _radiusController.dispose();
     super.dispose();
   }
 
+  Future<void> _saveReceptor() async {
+    _enableFinishButton = false;
+    setState(() {});
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var _geoPoi = _key.currentState._geoPoi;
+    await receptorService.add(
+      GeoReceptor(
+        MD5Util.MD5(Uuid().v1()),
+        _titleController.text,
+        _category.id,
+        null,
+        widget.context.principal.person,
+        jsonEncode(_geoPoi.latLng.toJson()),
+        double.parse(_radiusController.text),
+        DateTime.now().millisecondsSinceEpoch,
+        widget.context.principal.device,
+        widget.context.principal.person,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    GeoCategory category = widget.context.parameters['category'];
+    GeoCategory category = _category;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(category.title),
@@ -44,8 +77,21 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         centerTitle: true,
         actions: <Widget>[
           FlatButton(
-            onPressed: () {},
-            child: Text('完成'),
+            onPressed: !_enableFinishButton
+                ? null
+                : () {
+                    _saveReceptor().then((v) {
+                      widget.context.backward(
+                          clearHistoryPageUrl: '/geosphere/',
+                          result: {'refresh': true});
+                    });
+                  },
+            child: Text(
+              '完成',
+              style: TextStyle(
+                color: _enableFinishButton ? Colors.green : Colors.grey[400],
+              ),
+            ),
           ),
         ],
       ),
@@ -57,6 +103,17 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
             child: _LocationSettingWidget(
               category: category,
               context: widget.context,
+              key: _key,
+              onSelected: () {
+                var poi = _key.currentState._geoPoi;
+                if (!StringUtil.isEmpty(poi?.title)) {
+                  _titleController.text = poi.title;
+                  _enableFinishButton =
+                      !StringUtil.isEmpty(_titleController.text) &&
+                          !StringUtil.isEmpty(_radiusController.text);
+                  setState(() {});
+                }
+              },
             ),
           ),
           SliverFillRemaining(
@@ -102,6 +159,12 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
                             child: TextField(
                               controller: _titleController,
                               autofocus: true,
+                              onChanged: (v) {
+                                _enableFinishButton = !StringUtil.isEmpty(
+                                        _titleController.text) &&
+                                    !StringUtil.isEmpty(_radiusController.text);
+                                setState(() {});
+                              },
                               onSubmitted: (v) {
                                 print(v);
                               },
@@ -168,8 +231,15 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
                                     style: TextStyle(
                                       fontSize: 15,
                                     ),
+                                    onChanged: (v) {
+                                      _enableFinishButton = !StringUtil.isEmpty(
+                                              _titleController.text) &&
+                                          !StringUtil.isEmpty(
+                                              _radiusController.text);
+                                      setState(() {});
+                                    },
                                     decoration: InputDecoration(
-                                      hintText: '输入感知半径',
+                                      hintText: '输入感知半径，单位米',
                                       hintStyle: TextStyle(
                                         fontSize: 15,
                                       ),
@@ -194,8 +264,15 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
 class _LocationSettingWidget extends StatefulWidget {
   GeoCategory category;
   PageContext context;
+  Key key;
+  Function() onSelected;
 
-  _LocationSettingWidget({this.category, this.context});
+  _LocationSettingWidget({
+    this.category,
+    this.context,
+    this.key,
+    this.onSelected,
+  }) : super(key: key);
 
   @override
   _LocationSettingWidgetState createState() => _LocationSettingWidgetState();
@@ -203,6 +280,7 @@ class _LocationSettingWidget extends StatefulWidget {
 
 class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
   GeoPoi _geoPoi;
+  int _distanceUpdateRate = 10;
 
   @override
   void initState() {
@@ -270,12 +348,28 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
                       left: 5,
                       right: 20,
                     ),
-                    child: Text(
-                      _geoPoi?.address ?? '',
-                      softWrap: true,
-                      style: TextStyle(
-                        fontSize: 12,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _geoPoi?.title ?? '',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        StringUtil.isEmpty(_geoPoi?.address)
+                            ? Container(
+                                width: 0,
+                                height: 0,
+                              )
+                            : Text(
+                                _geoPoi?.address ?? '',
+                                softWrap: true,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                      ],
                     ),
                   ),
                 ),
@@ -286,14 +380,16 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               widget.context.forward('/geosphere/amap/near', arguments: {
-                'latLng': _geoPoi?.latLng,
-                'address': _geoPoi?.address,
+                'poi': _geoPoi,
               }).then((result) {
                 if (result == null) {
                   return;
                 }
                 var map = result as Map;
                 _geoPoi = map['poi'];
+                if (widget.onSelected != null) {
+                  widget.onSelected();
+                }
                 setState(() {});
               });
             },
@@ -366,15 +462,33 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              widget.context.forward('/geosphere/receptor/setUpdateRate');
+              widget.context
+                  .forward('/geosphere/receptor/setUpdateRate')
+                  .then((result) {
+                if (result == null) {
+                  return;
+                }
+                _distanceUpdateRate = (result as Map)['distance'];
+                if (widget.onSelected != null) {
+                  widget.onSelected();
+                }
+                setState(() {});
+              });
             },
             child: Row(
               children: <Widget>[
-                Text(
-                  '离开距离',
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 12,
+                Text.rich(
+                  TextSpan(
+                    text: '离开距离: ',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 12,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: '${_distanceUpdateRate}米',
+                      ),
+                    ],
                   ),
                 ),
                 Padding(

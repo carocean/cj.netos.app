@@ -163,7 +163,7 @@ class PageContext {
     if (StringUtil.isEmpty(clearHistoryPageUrl)) {
       return state.pop(result);
     }
-    state.popUntil(_checkHistoryRoute(clearHistoryPageUrl));
+    state.popUntil(_checkHistoryRoute(clearHistoryPageUrl),);
     return true;
   }
 

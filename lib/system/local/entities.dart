@@ -486,7 +486,6 @@ class GeoReceptor {
   double radius;
   int ctime;
   String device;
-  String dependon;
   String sandbox;
 
   GeoReceptor(
@@ -499,7 +498,6 @@ class GeoReceptor {
       this.radius,
       this.ctime,
       this.device,
-      this.dependon,
       this.sandbox);
 
   LatLng getLocationLatLng() {
