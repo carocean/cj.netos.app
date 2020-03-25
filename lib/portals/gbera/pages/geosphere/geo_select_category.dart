@@ -5,16 +5,16 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
-class SelectGeoCategory extends StatefulWidget {
+class GeoSelectGeoCategory extends StatefulWidget {
   PageContext context;
 
-  SelectGeoCategory({this.context});
+  GeoSelectGeoCategory({this.context});
 
   @override
-  _SelectGeoCategoryState createState() => _SelectGeoCategoryState();
+  _GeoSelectGeoCategoryState createState() => _GeoSelectGeoCategoryState();
 }
 
-class _SelectGeoCategoryState extends State<SelectGeoCategory> {
+class _GeoSelectGeoCategoryState extends State<GeoSelectGeoCategory> {
   EasyRefreshController _controller;
   List<GeoCategory> _categories = [];
   GeoCategory _selected;

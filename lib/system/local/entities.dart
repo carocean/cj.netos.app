@@ -515,12 +515,28 @@ class GeoReceptor {
   }
 }
 
+enum GeoCategoryMoveableMode {
+  unmoveable,
+  moveableSelf,
+  moveableDependon,
+}
+
 class GeoCategory {
   String id;
   String title;
   int sort;
   int ctime;
   String creator;
-  bool isDependon;
-  GeoCategory({this.id, this.title, this.sort, this.ctime, this.creator,this.isDependon});
+  GeoCategoryMoveableMode moveMode;
+  double defaultRadius;
+
+  GeoCategory({
+    this.id,
+    this.title,
+    this.sort,
+    this.ctime,
+    this.creator,
+    this.moveMode,
+    this.defaultRadius = 500,
+  });
 }

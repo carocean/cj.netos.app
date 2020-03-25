@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desktop_settings.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_discovery.dart';
@@ -17,7 +18,9 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
@@ -728,7 +731,7 @@ class GberaPortal {
           subtitle: '',
           icon: GalleryIcons.shrine,
           url: '/geosphere/category/select',
-          buildPage: (PageContext pageContext) => SelectGeoCategory(
+          buildPage: (PageContext pageContext) => GeoSelectGeoCategory(
             context: pageContext,
           ),
         ),
@@ -737,7 +740,34 @@ class GberaPortal {
           subtitle: '',
           icon: GalleryIcons.shrine,
           url: '/geosphere/receptor/create',
-          buildPage: (PageContext pageContext) => CreateReceptor(
+          buildPage: (PageContext pageContext) => GeoCreateReceptor(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '更新频率',
+          subtitle: '实时定位地理更新通知变化',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor/setUpdateRate',
+          buildPage: (PageContext pageContext) => GeoSetUpdateRate(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '选择附近地物',
+          subtitle: '由近及远列出高德地圈周边地物',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/amap/near',
+          buildPage: (PageContext pageContext) => GeoNearByAmapPOI(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '查看我的地圈的信息',
+          subtitle: '地圈的感知半径、更新频率',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor/viewMobile',
+          buildPage: (PageContext pageContext) => GeoViewMobile(
             context: pageContext,
           ),
         ),

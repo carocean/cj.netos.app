@@ -28,14 +28,28 @@ class GeoCategoryRemote implements IGeoCategoryRemote, IServiceBuilder {
     );
     List<GeoCategory> categories = [];
     for (var item in list) {
+      var moveMode=item['moveMode'];
+      var lmode=GeoCategoryMoveableMode.unmoveable;
+      switch(moveMode) {
+        case 'unmoveable':
+          lmode=GeoCategoryMoveableMode.unmoveable;
+          break;
+        case 'moveableSelf':
+          lmode=GeoCategoryMoveableMode.moveableSelf;
+          break;
+        case 'moveableDependon':
+          lmode=GeoCategoryMoveableMode.moveableDependon;
+          break;
+      }
       categories.add(
         GeoCategory(
-          creator: item['creator'],
           id: item['id'],
+          creator: item['creator'],
           title: item['title'],
           ctime: item['ctime'],
           sort: item['sort'],
-          isDependon: item['isDependon'],
+          defaultRadius: item['defaultRadius']??500.00,
+          moveMode: lmode,
         ),
       );
     }

@@ -22,7 +22,9 @@ class _GeoLocationListener {
 
   _GeoLocationListener({this.offsetDistance, this.callback});
 }
-final geoLocation=GeoLocation._();
+
+final geoLocation = GeoLocation._();
+
 class GeoLocation {
   Map<String, _GeoLocationListener> _listens = {};
 
@@ -60,18 +62,19 @@ class GeoLocation {
     if (await requestPermission()) {
       AmapLocation.listenLocation(mode: LocationAccuracy.High)
           .listen((location) async {
-        for (var listener in _listens.values) {
+        var listeners = _listens.values.toList(growable: false);
+        for (var listener in listeners) {
           if (listener.offsetDistance == null || listener.offsetDistance == 0) {
             await listener.callback(location);
             continue;
           }
           if (listener.current == null) {
             var latlng = await location.latLng;
-            String city=await location.city;
-            if(StringUtil.isEmpty(city)) {
+            String city = await location.city;
+            if (StringUtil.isEmpty(city)) {
               continue;
             }
-            listener.current=latlng;
+            listener.current = latlng;
             await listener.callback(location);
             continue;
           }
@@ -118,9 +121,9 @@ double getDistance({LatLng start, LatLng end}) {
   return d * 1000;
 }
 
-String getFriendlyDistance(double distance){
-  if(distance<1000){
+String getFriendlyDistance(double distance) {
+  if (distance < 1000) {
     return '${distance.toStringAsFixed(2)}米';
   }
-  return '${(distance/1000).toStringAsFixed(3)}公里';
+  return '${(distance / 1000).toStringAsFixed(3)}公里';
 }
