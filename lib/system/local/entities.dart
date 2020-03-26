@@ -484,6 +484,8 @@ class GeoReceptor {
   String creator;
   String location;
   double radius;
+  //更新距离仅在mobiles分类下的感知器有用
+  int uDistance;
   int ctime;
   String device;
   String sandbox;
@@ -496,6 +498,7 @@ class GeoReceptor {
       this.creator,
       this.location,
       this.radius,
+      this.uDistance,
       this.ctime,
       this.device,
       this.sandbox);

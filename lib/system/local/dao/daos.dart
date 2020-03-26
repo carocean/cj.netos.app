@@ -564,9 +564,9 @@ abstract class IGeoReceptorDAO {
   Future<void> add(GeoReceptor receptor) {}
 
   @Query(
-      'SELECT *  FROM GeoReceptor WHERE creator=:creator and device=:device and sandbox=:sandbox LIMIT 1')
+      'SELECT *  FROM GeoReceptor WHERE category=:category and creator=:creator and device=:device and sandbox=:sandbox LIMIT 1')
   Future<GeoReceptor> getReceptor(
-      String creator, String device, String sandbox) {}
+      String category, String creator, String device, String sandbox) {}
 
   @Query('SELECT *  FROM GeoReceptor WHERE id=:id and sandbox=:sandbox')
   Future<GeoReceptor> get(String id, String sandbox) {}
@@ -575,6 +575,22 @@ abstract class IGeoReceptorDAO {
       'SELECT *  FROM GeoReceptor WHERE sandbox=:sandbox limit :limit, offset :offset')
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
 
-  @Query('delete FROM GeoReceptor WHERE id=:id and sandbox = :sandbox')
-  Future<void> remove(String id, String sandbox) {}
+  @Query('delete FROM GeoReceptor WHERE category=:category and id=:id and sandbox = :sandbox')
+  Future<void> remove(String category,String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET title=:title WHERE id=:id and sandbox=:sandbox')
+  Future<void> updateTitle(String title, String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET leading=:leading WHERE category=:category and id=:id and sandbox=:sandbox')
+  Future<void> updateLeading(String leading,String category, String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET location=:location WHERE id=:id and sandbox=:sandbox')
+  Future<void> updateLocation(String location, String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET radius=:radius WHERE id=:id and sandbox=:sandbox')
+  Future<void> updateRadius(double radius, String id, String person) {}
 }

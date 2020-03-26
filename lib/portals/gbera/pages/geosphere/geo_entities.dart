@@ -8,3 +8,23 @@ class GeoPoi{
   String poiId;
   GeoPoi({this.poiId,this.address, this.title, this.latLng, this.distance});
 }
+
+class ReceptorInfo {
+  String id;
+  String title;
+  String leading;
+  bool isMobileReceptor;
+  String creator;
+  double offset;
+  String category;
+
+  ReceptorInfo({
+    this.id,
+    this.title,
+    this.leading,
+    this.isMobileReceptor = false,
+    this.creator,
+    this.offset,
+    this.category,
+  });
+}

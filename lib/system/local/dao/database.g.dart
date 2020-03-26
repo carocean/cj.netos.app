@@ -152,7 +152,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `ctime` INTEGER, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -281,6 +281,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
                   'creator': item.creator,
                   'location': item.location,
                   'radius': item.radius,
+                  'uDistance': item.uDistance,
                   'ctime': item.ctime,
                   'device': item.device,
                   'sandbox': item.sandbox
@@ -300,6 +301,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
       row['creator'] as String,
       row['location'] as String,
       row['radius'] as double,
+      row['uDistance'] as int,
       row['ctime'] as int,
       row['device'] as String,
       row['sandbox'] as String);
@@ -308,10 +310,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
 
   @override
   Future<GeoReceptor> getReceptor(
-      String creator, String device, String sandbox) async {
+      String category, String creator, String device, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT * FROM GeoReceptor WHERE creator=? and device=? and sandbox=? LIMIT 1',
-        arguments: <dynamic>[creator, device, sandbox],
+        'SELECT * FROM GeoReceptor WHERE category=? and creator=? and device=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[category, creator, device, sandbox],
         mapper: _geoReceptorMapper);
   }
 
@@ -332,10 +334,40 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   }
 
   @override
-  Future<void> remove(String id, String sandbox) async {
+  Future<void> remove(String category, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'delete FROM GeoReceptor WHERE id=? and sandbox = ?',
-        arguments: <dynamic>[id, sandbox]);
+        'delete FROM GeoReceptor WHERE category=? and id=? and sandbox = ?',
+        arguments: <dynamic>[category, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateTitle(String title, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET title=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[title, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateLeading(
+      String leading, String category, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET leading=? WHERE category=? and id=? and sandbox=?',
+        arguments: <dynamic>[leading, category, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateLocation(
+      String location, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET location=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[location, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateRadius(double radius, String id, String person) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET radius=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[radius, id, person]);
   }
 
   @override

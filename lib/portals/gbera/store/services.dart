@@ -296,24 +296,24 @@ mixin IPrincipalService {
 }
 
 mixin IGeoReceptorService {
-  Future<void> init();
+  Future<bool> init(Location location);
   Future<void> add(GeoReceptor receptor);
 
-  Future<void> remove(String id);
+  Future<void> remove(String category,String id);
 
   Future<GeoReceptor> get(String id);
 
-  Future<GeoReceptor> getReceptor(String person, String device);
+  Future<GeoReceptor> getMobileReceptor(String person, String device);
 
   Future<List<GeoReceptor>> page(int limit, int offset);
 
-  Future<void> updateLeading(String id, String leading);
+  Future<void> updateLeading(String category,String id, String lleading,String rleading);
 
   Future<void> updateTitle(String id, String title);
 
   Future<void> updateLocation(String id, LatLng location);
 
-  Future<void> updateRadius(String id, LatLng location);
+  Future<void> updateRadius(String id, double radius);
 }
 mixin IGeoCategoryRemote{
   Future<List<GeoCategory>> listCategory();

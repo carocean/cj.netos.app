@@ -50,6 +50,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     var _geoPoi = _key.currentState._geoPoi;
+    var _udistance=_key.currentState._distanceUpdateRate;
     await receptorService.add(
       GeoReceptor(
         MD5Util.MD5(Uuid().v1()),
@@ -59,6 +60,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         widget.context.principal.person,
         jsonEncode(_geoPoi.latLng.toJson()),
         double.parse(_radiusController.text),
+        _udistance,
         DateTime.now().millisecondsSinceEpoch,
         widget.context.principal.device,
         widget.context.principal.person,
@@ -479,7 +481,7 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
               children: <Widget>[
                 Text.rich(
                   TextSpan(
-                    text: '离开距离: ',
+                    text: '更新距离: ',
                     style: TextStyle(
                       color: Colors.grey[500],
                       fontSize: 12,

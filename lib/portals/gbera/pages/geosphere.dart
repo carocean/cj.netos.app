@@ -22,6 +22,7 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
+import 'geosphere/geo_entities.dart';
 import 'geosphere/geo_utils.dart';
 import 'netflow/article_entities.dart';
 import 'netflow/channel.dart';
@@ -52,11 +53,13 @@ class _GeosphereState extends State<Geosphere>
   void initState() {
     _streamController = StreamController();
     _location = geoLocation;
-    _location.init();
+    _location.start();
+
     _refreshController = EasyRefreshController();
     _onload().then((v) {
       setState(() {});
     });
+    _checkMobileReceptor();
     super.initState();
   }
 
@@ -73,10 +76,29 @@ class _GeosphereState extends State<Geosphere>
     return;
   }
 
+  Future<void> _checkMobileReceptor() async {
+    if (_offset > 0) {
+      return;
+    }
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    bool isInited = false;
+    _location.listen('checkMobileReceptor', 0, (location) async {
+      if (!isInited) {
+        isInited = true;
+        if (await receptorService.init(location)) {
+          _loadReceptors();
+          setState(() {});
+        }
+      }
+      _location.unlisten('checkMobileReceptor');
+    });
+  }
+
   Future<void> _loadReceptors() async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    await receptorService.init();
+
     var receptors = await receptorService.page(_limit, _offset);
     if (receptors.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
@@ -556,7 +578,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   Future<void> _deleteReceptor(GeoReceptor receptor) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    await receptorService.remove(receptor.id);
+    await receptorService.remove(receptor.category, receptor.id);
     for (var i = 0; i < _receptors.length; i++) {
       if (_receptors[i].id == receptor.id) {
         _receptors.removeAt(i);
@@ -613,13 +635,14 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                     setState(() {});
                   });
                 },
-                receptor: _ReceptorInfo(
+                receptor: ReceptorInfo(
                   title: receptor.title,
                   id: receptor.id,
                   leading: receptor.leading,
                   creator: receptor.creator,
                   isMobileReceptor: receptor.title == '我的地圈',
                   offset: offset,
+                  category: receptor.category,
                 ),
                 stateBar: _ReceptorItemStateBar(
                   isShow: false,
@@ -635,7 +658,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
 
 class _ReceptorItem extends StatefulWidget {
   PageContext context;
-  _ReceptorInfo receptor;
+  ReceptorInfo receptor;
   _ReceptorItemStateBar stateBar;
   Function() onDelete;
 
@@ -662,7 +685,36 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     super.dispose();
   }
 
-  Future<void> _updateLeading() async {}
+  @override
+  void didUpdateWidget(_ReceptorItem oldWidget) {
+    if (oldWidget.receptor.leading != widget.receptor.leading) {
+      widget.receptor.leading = oldWidget.receptor.leading;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _updateLeading() async {
+    if (_percentage > 0) {
+      _percentage = 0.0;
+      setState(() {});
+    }
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var receptor = widget.receptor;
+    var map = await widget.context.ports.upload(
+        '/app',
+        <String>[
+          receptor.leading,
+        ],
+        accessToken: widget.context.principal.accessToken,
+        onSendProgress: (i, j) {
+      _percentage = ((i * 1.0 / j));
+      setState(() {});
+    });
+    var remotePath = map[receptor.leading];
+    await receptorService.updateLeading(
+        receptor.category, receptor.id, receptor.leading, remotePath);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -737,6 +789,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                           return;
                         }
                         widget.receptor.leading = path;
+                        setState(() {});
                         _updateLeading();
                       });
                     },
@@ -894,42 +947,40 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         ],
       ),
     );
-    if (widget.receptor.isMobileReceptor) {
-      return Slidable(
-        actionPane: SlidableDrawerActionPane(),
-        secondaryActions: <Widget>[
-          Text(
-            '不能删除我的地圈',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 12,
-            ),
-          ),
-        ],
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {},
-          child: item,
-        ),
-      );
-    }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
-        IconSlideAction(
-          caption: '删除',
-          foregroundColor: Colors.grey[500],
-          icon: Icons.delete,
-          onTap: () {
-            if (widget.onDelete != null) {
-              widget.onDelete();
-            }
-          },
-        ),
+        widget.receptor.isMobileReceptor
+            ? Padding(
+                padding: EdgeInsets.only(
+                  left: 5,
+                  right: 5,
+                ),
+                child: Text(
+                  '不能删除我的地圈',
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            : IconSlideAction(
+                caption: '删除',
+                foregroundColor: Colors.grey[500],
+                icon: Icons.delete,
+                onTap: () {
+                  if (widget.onDelete != null) {
+                    widget.onDelete();
+                  }
+                },
+              ),
       ],
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {},
+        onTap: () {
+          widget.context.forward('/geosphere/receptor',
+              arguments: {'receptor': widget.receptor});
+        },
         child: item,
       ),
     );
@@ -946,22 +997,4 @@ class _ReceptorItemStateBar {
       {this.brackets, this.tips, this.atime, this.count, this.isShow = false});
 
   Future<void> update(String command, dynamic args) async {}
-}
-
-class _ReceptorInfo {
-  String id;
-  String title;
-  String leading;
-  bool isMobileReceptor;
-  String creator;
-  double offset;
-
-  _ReceptorInfo({
-    this.id,
-    this.title,
-    this.leading,
-    this.isMobileReceptor = false,
-    this.creator,
-    this.offset,
-  });
 }

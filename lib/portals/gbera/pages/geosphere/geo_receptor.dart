@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -21,9 +22,22 @@ class GeoReceptorWidget extends StatefulWidget {
 
 class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   List<ChannelMessage> messages = [];
+  ReceptorInfo _receptorInfo;
+
+  @override
+  void initState() {
+    _receptorInfo = widget.context.parameters['receptor'];
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0.0,
+        title: Text(_receptorInfo?.title ?? ''),
+        centerTitle: true,
+      ),
       body: ListView(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
@@ -266,15 +280,15 @@ class __MessageCardState extends State<_MessageCard> {
                                     TextSpan(text: '  '),
                                     TextSpan(
                                         text:
-                                        '¥${(widget.message.wy * 0.001).toStringAsFixed(2)}'),
+                                            '¥${(widget.message.wy * 0.001).toStringAsFixed(2)}'),
                                     TextSpan(text: '\r\n'),
                                     TextSpan(
                                       text:
-                                      '${widget.context.principal?.uid == snapshot.data.uid ? '创建自 ' : '来自 '}',
+                                          '${widget.context.principal?.uid == snapshot.data.uid ? '创建自 ' : '来自 '}',
                                       children: [
                                         TextSpan(
                                           text:
-                                          '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountCode}',
+                                              '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountCode}',
                                           style: TextStyle(
                                             color: Colors.blueGrey,
                                             fontWeight: FontWeight.w600,
@@ -326,7 +340,7 @@ class __MessageCardState extends State<_MessageCard> {
                     message: widget.message,
                     context: widget.context,
                     interactiveRegionRefreshAdapter:
-                    _interactiveRegionRefreshAdapter,
+                        _interactiveRegionRefreshAdapter,
                   ),
                 ],
               ),
@@ -339,7 +353,7 @@ class __MessageCardState extends State<_MessageCard> {
 
   Future<Person> _getPerson() async {
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     var person = '';
     if (!StringUtil.isEmpty(widget.message.upstreamPerson)) {
       person = widget.message.upstreamPerson;
@@ -355,7 +369,7 @@ class __MessageCardState extends State<_MessageCard> {
 
   Future<List<Media>> _getMedias() async {
     IChannelMediaService channelMediaService =
-    widget.context.site.getService('/channel/messages/medias');
+        widget.context.site.getService('/channel/messages/medias');
     return await channelMediaService.getMedias(widget.message.id);
   }
 }
@@ -420,7 +434,7 @@ class __CommentEditorState extends State<_CommentEditor> {
                   color: Colors.black54,
                 ),
                 labelText:
-                '${widget.context.principal.nickName ?? widget.context.principal.accountCode}',
+                    '${widget.context.principal.nickName ?? widget.context.principal.accountCode}',
                 labelStyle: TextStyle(
                   fontSize: 18,
                   color: Colors.blueGrey,
@@ -496,29 +510,27 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     return {
       'isLiked': isLiked,
       'canComment': true,
-      'canDelete':
-      widget.message.creator == widget.context.principal.person,
+      'canDelete': widget.message.creator == widget.context.principal.person,
     };
   }
 
   Future<bool> _isLiked() async {
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     return await likeService.isLiked(
         widget.message.id, widget.context.principal.person);
   }
 
   Future<void> _like() async {
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     LikePerson likePerson = LikePerson(
       '${Uuid().v1()}',
       widget.context.principal.person,
       widget.context.principal.avatarOnRemote,
       widget.message.id,
       DateTime.now().millisecondsSinceEpoch,
-      widget.context.principal.nickName ??
-          widget.context.principal.accountCode,
+      widget.context.principal.nickName ?? widget.context.principal.accountCode,
       widget.message.onChannel,
       widget.context.principal.person,
     );
@@ -527,14 +539,14 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
 
   Future<void> _unlike() async {
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     await likeService.unlike(
         widget.message.id, widget.context.principal.person);
   }
 
   Future<void> _deleteMessage() async {
     IChannelMessageService messageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     messageService.removeMessage(widget.message.id);
   }
 
@@ -618,32 +630,32 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ),
               rights['canDelete']
                   ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                      top: 1,
-                    ),
-                    child: Icon(
-                      Icons.remove,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    '删除',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 2,
+                            top: 1,
+                          ),
+                          child: Icon(
+                            Icons.remove,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
+                        Text(
+                          '删除',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
                   : Container(
-                width: 0,
-                height: 0,
-              ),
+                      width: 0,
+                      height: 0,
+                    ),
             ],
             pressType: PressType.singleClick,
             onValueChanged: (index) {
@@ -729,13 +741,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     IChannelCommentService commentService =
-    widget.context.site.getService('/channel/messages/comments');
+        widget.context.site.getService('/channel/messages/comments');
     List<LikePerson> likes =
-    await likeService.pageLikePersons(widget.message.id, 10, 0);
+        await likeService.pageLikePersons(widget.message.id, 10, 0);
     List<ChannelComment> comments =
-    await commentService.pageComments(widget.message.id, 20, 0);
+        await commentService.pageComments(widget.message.id, 20, 0);
     return <String, List<dynamic>>{"likePersons": likes, "comments": comments};
   }
 
@@ -787,9 +799,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
                     IPersonService personService =
-                    widget.context.site.getService('/gbera/persons');
-                    var person =
-                    await personService.getPerson(comment.person);
+                        widget.context.site.getService('/gbera/persons');
+                    var person = await personService.getPerson(comment.person);
                     widget.context.forward("/site/personal",
                         arguments: {'person': person});
                   },
@@ -808,16 +819,16 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(text: '\t'),
                   isMine
                       ? TextSpan(
-                    text: '删除',
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        await _deleteComment(comment);
-                        setState(() {});
-                      },
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  )
+                          text: '删除',
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              await _deleteComment(comment);
+                              setState(() {});
+                            },
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                        )
                       : TextSpan(text: ''),
                 ],
               ),
@@ -859,77 +870,77 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
               ///点赞区
               likePersons.isEmpty
                   ? Container(
-                width: 0,
-                height: 0,
-              )
+                      width: 0,
+                      height: 0,
+                    )
                   : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 5,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.thumbsUp,
-                      color: Colors.grey[500],
-                      size: 12,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: likePersons.map((like) {
-                          return TextSpan(
-                            text: '${like.nickName}',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 5,
+                          ),
+                          child: Icon(
+                            FontAwesomeIcons.thumbsUp,
+                            color: Colors.grey[500],
+                            size: 12,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: likePersons.map((like) {
+                                return TextSpan(
+                                  text: '${like.nickName}',
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      IPersonService personService = widget
+                                          .context.site
+                                          .getService('/gbera/persons');
+                                      var person = await personService
+                                          .getPerson(like.official);
+                                      widget.context.forward("/site/personal",
+                                          arguments: {'person': person});
+                                    },
+                                  children: [
+                                    TextSpan(
+                                      text: ';  ',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.none,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                IPersonService personService = widget
-                                    .context.site
-                                    .getService('/gbera/persons');
-                                var person = await personService
-                                    .getPerson(like.official);
-                                widget.context.forward("/site/personal",
-                                    arguments: {'person': person});
-                              },
-                            children: [
-                              TextSpan(
-                                text: ';  ',
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.none,
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
 //                                maxLines: 4,
 //                                overflow: TextOverflow.ellipsis,
-                      softWrap: true,
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
               likePersons.isEmpty || comments.isEmpty
                   ? Container(
-                width: 0,
-                height: 3,
-              )
+                      width: 0,
+                      height: 3,
+                    )
                   : Padding(
-                padding: EdgeInsets.only(
-                  bottom: 6,
-                  top: 6,
-                ),
-                child: Divider(
-                  height: 1,
-                ),
-              ),
+                      padding: EdgeInsets.only(
+                        bottom: 6,
+                        top: 6,
+                      ),
+                      child: Divider(
+                        height: 1,
+                      ),
+                    ),
 
               ///评论区
               ListView(
@@ -947,7 +958,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   _appendComment(String content) async {
     IChannelCommentService commentService =
-    widget.context.site.getService('/channel/messages/comments');
+        widget.context.site.getService('/channel/messages/comments');
     await commentService.addComment(
       ChannelComment(
         '${Uuid().v1()}',
@@ -966,8 +977,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   _deleteComment(ChannelComment comment) async {
     IChannelCommentService commentService =
-    widget.context.site.getService('/channel/messages/comments');
-    await commentService.removeComment(comment.msgid,comment.id);
+        widget.context.site.getService('/channel/messages/comments');
+    await commentService.removeComment(comment.msgid, comment.id);
   }
 }
 

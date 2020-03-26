@@ -32,7 +32,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('更新频率'),
+        title: Text('更新距离'),
         elevation: 0.0,
         actions: <Widget>[
           IconButton(
@@ -63,7 +63,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                 bottom: 10,
               ),
               child: Text(
-                '更新频率：指位置变化通知的频次，它由离开距离和当前运动速度决定。离开距离指离开前次位置多少米才通知更新。移动速度越快，距离越短更新就越频繁，太频繁比较耗能，一般建议10米',
+                '更新距离指离开前次位置多少米才通知更新。移动速度越快，距离越短更新就越频繁，太频繁比较耗能，一般建议10米',
                 style: TextStyle(
                   color: Colors.grey[500],
                   fontWeight: FontWeight.w500,
@@ -88,7 +88,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                         bottom: 10,
                       ),
                       child: Text(
-                        '离开距离',
+                        '更新距离',
                         style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w500,
@@ -121,7 +121,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                           fontSize: 15,
                         ),
                         decoration: InputDecoration(
-                          hintText: '输入离开距离，单位米',
+                          hintText: '输入更新距离，单位米',
                           hintStyle: TextStyle(
                             fontSize: 15,
                           ),

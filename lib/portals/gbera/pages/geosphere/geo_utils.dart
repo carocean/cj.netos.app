@@ -30,14 +30,16 @@ class GeoLocation {
 
   GeoLocation._();
 
-  Future<Location> get location async {
-    if (await requestPermission()) {
-      return await AmapLocation.fetchLocation(
-        mode: LocationAccuracy.High,
-      );
-    }
-    return null;
-  }
+//  Future<Location> get location async {
+    //以下代码注释掉，原因：在使用一次性和侦听并用时，侦听会失效
+//    if (await requestPermission()) {
+//      var loc = await AmapLocation.fetchLocation(
+//        mode: LocationAccuracy.High,
+//      );
+//      return loc;
+//    }
+//    return null;
+//  }
 
   void listen(String listener, double offsetDistance,
       Function(Location location) callback) {
@@ -53,15 +55,14 @@ class GeoLocation {
     AmapLocation.stopLocation();
   }
 
-  Future<void> init() async {
+  Future<void> start() async {
     await enableFluttifyLog(false); // 关闭log
     /// !注意: 只要是返回Future的方法, 一律使用`await`修饰, 确保当前方法执行完成后再执行下一行, 在不能使用`await`修饰的环境下, 在`then`方法中执行下一步.
     /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted
 //    await AmapCore.init('2d819189dc47ebef8e38213e7ddc2ed8');
 // 连续定位
     if (await requestPermission()) {
-      AmapLocation.listenLocation(mode: LocationAccuracy.High)
-          .listen((location) async {
+      await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High)){
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
           if (listener.offsetDistance == null || listener.offsetDistance == 0) {
@@ -87,7 +88,7 @@ class GeoLocation {
           await listener.callback(location);
           listener.current = current;
         }
-      });
+      }
     }
   }
 }
