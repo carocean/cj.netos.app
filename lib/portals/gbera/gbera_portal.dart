@@ -114,6 +114,7 @@ import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
 import 'package:netos_app/portals/gbera/store/services/channels.dart';
 import 'package:netos_app/portals/gbera/store/services/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
 import 'package:netos_app/system/local/local_principals.dart';
@@ -161,6 +162,7 @@ class GberaPortal {
           '/remote/geo/categories': GeoCategoryRemote(),
           '/remote/geo/receptors': GeoReceptorRemote(),
           '/geosphere/receptors': GeoReceptorService(),
+          '/geosphere/categories': GeoCategoryLocal(),
         };
       },
       builderShareServices: (site) async {

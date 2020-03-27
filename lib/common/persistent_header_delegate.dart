@@ -4,10 +4,16 @@ import 'package:flutter/material.dart';
 
 import 'util.dart';
 
+enum RenderStateAppBar {
+  origin,
+  showAppBar,
+  expaned,
+}
+
 class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   double _appBarHeight;
-  Function(GberaPersistentHeaderDelegate delegate, bool isShow)
-      onAppBarStateChange;
+  Function(GberaPersistentHeaderDelegate delegate,
+      RenderStateAppBar renderStateAppBar) onRenderAppBar;
   double expandedHeight;
   bool isScale;
   Widget child;
@@ -36,8 +42,8 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.background,
     this.expandedHeight,
     this.child,
-    this.isScale=false,
-    this.onAppBarStateChange,
+    this.isScale = false,
+    this.onRenderAppBar,
     this.leading,
     this.automaticallyImplyLeading = true,
     this.title,
@@ -47,7 +53,7 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.elevation,
     this.shape,
     this.backgroundColor,
-    this.isFixedBackgroundColor=false,
+    this.isFixedBackgroundColor = false,
     this.brightness,
     this.iconTheme,
     this.actionsIconTheme,
@@ -65,8 +71,6 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     }
   }
 
-  bool _appBarState = false;
-
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -77,9 +81,14 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     //开始计算透明度，渐变为1
 //      opacity=(((regionHeight-remaining)/regionHeight)*255.0).round();
     bool showAppBar = remaining < _appBarHeight ? true : false;
-    if (this.onAppBarStateChange != null && _appBarState != showAppBar) {
-      this.onAppBarStateChange(this, showAppBar);
-      _appBarState = showAppBar;
+    if (this.onRenderAppBar != null) {
+      if (remaining < _appBarHeight) {
+        this.onRenderAppBar(this, RenderStateAppBar.showAppBar);
+      } else if (remaining > _appBarHeight) {
+        this.onRenderAppBar(this, RenderStateAppBar.expaned);
+      } else {
+        this.onRenderAppBar(this, RenderStateAppBar.origin);
+      }
     }
     var bkColor = this.backgroundColor ?? Theme.of(context).backgroundColor;
     return Stack(
@@ -91,7 +100,7 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
               : BoxDecoration(
                   image: DecorationImage(
                     image: background,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                   ),
                 ),
           child: OverflowBox(
@@ -113,7 +122,9 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
           left: 0,
           right: 0,
           child: AppBar(
-            backgroundColor:this.isFixedBackgroundColor?bkColor: bkColor.withAlpha(showAppBar ? 255 : 0),
+            backgroundColor: this.isFixedBackgroundColor
+                ? bkColor
+                : bkColor.withAlpha(showAppBar ? 255 : 0),
             elevation: this.background == null ? this.elevation : 0.0,
             textTheme: this.textTheme,
             brightness: this.brightness,

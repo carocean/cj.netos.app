@@ -316,5 +316,14 @@ mixin IGeoReceptorService {
   Future<void> updateRadius(String id, double radius);
 }
 mixin IGeoCategoryRemote{
-  Future<List<GeoCategory>> listCategory();
+  Future<List<GeoCategoryOR>> listCategory();
+
+  Future<GeoCategoryOR> getCategory(String category) {}
+
+ Future<List<GeoCategoryAppOR>> getApps(String category,String on) {}
+
+}
+mixin IGeoCategoryLocal{
+  Future<GeoCategoryOL> get(String category);
+  Future<void> remove(String category);
 }

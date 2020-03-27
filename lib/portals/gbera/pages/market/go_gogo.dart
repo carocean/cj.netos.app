@@ -2247,6 +2247,7 @@ class _GoupCardState extends State<_GoupCard> {
                   child: PageSelector(
                     medias: medias,
                     height: 150,
+                    context: widget.context,
                     onMediaLongTap: (media) {
                       widget.context.forward(
                         '/images/viewer',

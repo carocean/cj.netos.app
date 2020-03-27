@@ -29,7 +29,7 @@ class Geosphere extends StatefulWidget {
 }
 
 class _GeosphereState extends State<Geosphere>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin{
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
   List<ChannelMessage> _messages = <ChannelMessage>[];

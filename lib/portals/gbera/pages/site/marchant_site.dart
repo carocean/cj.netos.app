@@ -35,8 +35,8 @@ class _MarchantSiteState extends State<MarchantSite> {
               isFixedBackgroundColor: true,
               automaticallyImplyLeading: false,
               centerTitle: true,
-              onAppBarStateChange: (d, v) {
-                if (v) {
+              onRenderAppBar: (d, state) {
+                if (state==RenderStateAppBar.showAppBar) {
                   d.title = Text('广东邮政局');
                 } else {
                   d.title = null;

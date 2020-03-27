@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:uuid/uuid.dart';
 
 @Entity(primaryKeys: ['official', 'sandbox'])
@@ -484,6 +485,7 @@ class GeoReceptor {
   String creator;
   String location;
   double radius;
+
   //更新距离仅在mobiles分类下的感知器有用
   int uDistance;
   int ctime;
@@ -522,7 +524,30 @@ enum GeoCategoryMoveableMode {
   moveableDependon,
 }
 
-class GeoCategory {
+@Entity(primaryKeys: ['id', 'sandbox'])
+class GeoCategoryOL {
+  String id;
+  String title;
+  int sort;
+  int ctime;
+  String creator;
+  String moveMode;
+  double defaultRadius;
+  String sandbox;
+
+  GeoCategoryOL(
+    this.id,
+    this.title,
+    this.sort,
+    this.ctime,
+    this.creator,
+    this.moveMode,
+    this.defaultRadius,
+    this.sandbox,
+  );
+}
+
+class GeoCategoryOR {
   String id;
   String title;
   int sort;
@@ -531,7 +556,7 @@ class GeoCategory {
   GeoCategoryMoveableMode moveMode;
   double defaultRadius;
 
-  GeoCategory({
+  GeoCategoryOR({
     this.id,
     this.title,
     this.sort,
@@ -540,4 +565,34 @@ class GeoCategory {
     this.moveMode,
     this.defaultRadius = 500,
   });
+
+  GeoCategoryOL toLocal(sandbox) {
+    var mode;
+    switch (moveMode) {
+      case GeoCategoryMoveableMode.unmoveable:
+        mode = 'unmoveable';
+        break;
+      case GeoCategoryMoveableMode.moveableSelf:
+        mode = 'moveableSelf';
+        break;
+      case GeoCategoryMoveableMode.moveableDependon:
+        mode = 'moveableDependon';
+        break;
+    }
+    return GeoCategoryOL(
+        id, title, sort, ctime, creator, mode, defaultRadius, sandbox);
+  }
+}
+
+class GeoCategoryAppOR{
+  String id;
+  String title;
+  String leading;
+  String path;
+  String category;
+  String creator;
+  int ctime;
+
+  GeoCategoryAppOR({this.id, this.title, this.leading, this.path, this.category,
+      this.creator, this.ctime});
 }

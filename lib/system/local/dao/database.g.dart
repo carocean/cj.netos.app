@@ -59,6 +59,8 @@ class _$AppDatabase extends AppDatabase {
 
   IGeoReceptorDAO _geoReceptorDAOInstance;
 
+  IGeoCategoryDAO _geoCategoryDAOInstance;
+
   IPrincipalDAO _principalDAOInstance;
 
   IPersonDAO _upstreamPersonDAOInstance;
@@ -153,6 +155,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -163,6 +167,12 @@ class _$AppDatabase extends AppDatabase {
   IGeoReceptorDAO get geoReceptorDAO {
     return _geoReceptorDAOInstance ??=
         _$IGeoReceptorDAO(database, changeListener);
+  }
+
+  @override
+  IGeoCategoryDAO get geoCategoryDAO {
+    return _geoCategoryDAOInstance ??=
+        _$IGeoCategoryDAO(database, changeListener);
   }
 
   @override
@@ -374,6 +384,64 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   Future<void> add(GeoReceptor receptor) async {
     await _geoReceptorInsertionAdapter.insert(
         receptor, sqflite.ConflictAlgorithm.abort);
+  }
+}
+
+class _$IGeoCategoryDAO extends IGeoCategoryDAO {
+  _$IGeoCategoryDAO(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _geoCategoryOLInsertionAdapter = InsertionAdapter(
+            database,
+            'GeoCategoryOL',
+            (GeoCategoryOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'title': item.title,
+                  'sort': item.sort,
+                  'ctime': item.ctime,
+                  'creator': item.creator,
+                  'moveMode': item.moveMode,
+                  'defaultRadius': item.defaultRadius,
+                  'sandbox': item.sandbox
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  static final _geoCategoryOLMapper = (Map<String, dynamic> row) =>
+      GeoCategoryOL(
+          row['id'] as String,
+          row['title'] as String,
+          row['sort'] as int,
+          row['ctime'] as int,
+          row['creator'] as String,
+          row['moveMode'] as String,
+          row['defaultRadius'] as double,
+          row['sandbox'] as String);
+
+  final InsertionAdapter<GeoCategoryOL> _geoCategoryOLInsertionAdapter;
+
+  @override
+  Future<GeoCategoryOL> get(String category, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeoCategoryOL WHERE id=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[category, sandbox],
+        mapper: _geoCategoryOLMapper);
+  }
+
+  @override
+  Future<void> remove(String category, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM GeoCategoryOL WHERE id=? and sandbox = ?',
+        arguments: <dynamic>[category, sandbox]);
+  }
+
+  @override
+  Future<void> add(GeoCategoryOL categoryLocal) async {
+    await _geoCategoryOLInsertionAdapter.insert(
+        categoryLocal, sqflite.ConflictAlgorithm.abort);
   }
 }
 

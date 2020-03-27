@@ -17,7 +17,8 @@ class ReceptorInfo {
   String creator;
   double offset;
   String category;
-
+  LatLng latLng;
+  double radius;
   ReceptorInfo({
     this.id,
     this.title,
@@ -26,5 +27,7 @@ class ReceptorInfo {
     this.creator,
     this.offset,
     this.category,
+    this.latLng,
+    this.radius,
   });
 }

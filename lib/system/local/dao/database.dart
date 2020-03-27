@@ -29,9 +29,12 @@ part 'database.g.dart';
   P2PMessage,
   Principal,
   GeoReceptor,
+  GeoCategoryOL,
 ])
 abstract class AppDatabase extends FloorDatabase {
   IGeoReceptorDAO get geoReceptorDAO;
+
+  IGeoCategoryDAO get geoCategoryDAO;
 
   IPrincipalDAO get principalDAO;
 

@@ -16,8 +16,8 @@ class GeoSelectGeoCategory extends StatefulWidget {
 
 class _GeoSelectGeoCategoryState extends State<GeoSelectGeoCategory> {
   EasyRefreshController _controller;
-  List<GeoCategory> _categories = [];
-  GeoCategory _selected;
+  List<GeoCategoryOR> _categories = [];
+  GeoCategoryOR _selected;
 
   @override
   void initState() {

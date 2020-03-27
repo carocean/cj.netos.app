@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
@@ -42,7 +43,8 @@ class _GeosphereState extends State<Geosphere>
   EasyRefreshController _refreshController;
   GeoLocation _location;
   StreamController _streamController;
-  int _limit = 15, _offset = 0;
+  int _limit = 15,
+      _offset = 0;
 
   @override
   bool get wantKeepAlive {
@@ -81,7 +83,7 @@ class _GeosphereState extends State<Geosphere>
       return;
     }
     IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
+    widget.context.site.getService('/geosphere/receptors');
     bool isInited = false;
     _location.listen('checkMobileReceptor', 0, (location) async {
       if (!isInited) {
@@ -97,7 +99,7 @@ class _GeosphereState extends State<Geosphere>
 
   Future<void> _loadReceptors() async {
     IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
+    widget.context.site.getService('/geosphere/receptors');
 
     var receptors = await receptorService.page(_limit, _offset);
     if (receptors.isEmpty) {
@@ -153,7 +155,8 @@ class _GeosphereState extends State<Geosphere>
                       break;
                   }
                 },
-                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                itemBuilder: (context) =>
+                <PopupMenuEntry<String>>[
                   PopupMenuItem(
                     value: '/netflow/manager/create_receptor',
                     child: Row(
@@ -577,7 +580,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
 
   Future<void> _deleteReceptor(GeoReceptor receptor) async {
     IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
+    widget.context.site.getService('/geosphere/receptors');
     await receptorService.remove(receptor.category, receptor.id);
     for (var i = 0; i < _receptors.length; i++) {
       if (_receptors[i].id == receptor.id) {
@@ -636,13 +639,15 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   });
                 },
                 receptor: ReceptorInfo(
-                  title: receptor.title,
-                  id: receptor.id,
-                  leading: receptor.leading,
-                  creator: receptor.creator,
-                  isMobileReceptor: receptor.title == '我的地圈',
-                  offset: offset,
-                  category: receptor.category,
+                    title: receptor.title,
+                    id: receptor.id,
+                    leading: receptor.leading,
+                    creator: receptor.creator,
+                    isMobileReceptor: receptor.title == '我的地圈',
+                    offset: offset,
+                    category: receptor.category,
+                    radius: receptor.radius,
+                    latLng: LatLng.fromJson(jsonDecode(receptor.location)),
                 ),
                 stateBar: _ReceptorItemStateBar(
                   isShow: false,
@@ -699,7 +704,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       setState(() {});
     }
     IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
+    widget.context.site.getService('/geosphere/receptors');
     var receptor = widget.receptor;
     var map = await widget.context.ports.upload(
         '/app',
@@ -708,9 +713,9 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         ],
         accessToken: widget.context.principal.accessToken,
         onSendProgress: (i, j) {
-      _percentage = ((i * 1.0 / j));
-      setState(() {});
-    });
+          _percentage = ((i * 1.0 / j));
+          setState(() {});
+        });
     var remotePath = map[receptor.leading];
     await receptorService.updateLeading(
         receptor.category, receptor.id, receptor.leading, remotePath);
@@ -809,35 +814,35 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                           right: -3,
                           child: !widget.stateBar.isShow
                               ? Container(
-                                  width: 0,
-                                  height: 0,
-                                )
+                            width: 0,
+                            height: 0,
+                          )
                               : Badge(
-                                  position: BadgePosition.topRight(
-                                    right: -3,
-                                    top: 3,
-                                  ),
-                                  elevation: 0,
-                                  showBadge: (widget.stateBar.count ?? 0) != 0,
-                                  badgeContent: Text(
-                                    '',
-                                  ),
-                                  child: null,
-                                ),
+                            position: BadgePosition.topRight(
+                              right: -3,
+                              top: 3,
+                            ),
+                            elevation: 0,
+                            showBadge: (widget.stateBar.count ?? 0) != 0,
+                            badgeContent: Text(
+                              '',
+                            ),
+                            child: null,
+                          ),
                         ),
                         _percentage > 0 && _percentage < 1.0
                             ? Positioned(
-                                left: 0,
-                                bottom: 0,
-                                right: 0,
-                                child: LinearProgressIndicator(
-                                  value: _percentage,
-                                ),
-                              )
+                          left: 0,
+                          bottom: 0,
+                          right: 0,
+                          child: LinearProgressIndicator(
+                            value: _percentage,
+                          ),
+                        )
                             : Container(
-                                width: 0,
-                                height: 0,
-                              ),
+                          width: 0,
+                          height: 0,
+                        ),
                       ],
                     ),
                   ),
@@ -862,78 +867,78 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                           ),
                           widget.receptor.offset == 0
                               ? Container(
-                                  width: 0,
-                                  height: 0,
-                                )
+                            width: 0,
+                            height: 0,
+                          )
                               : Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 5,
-                                  ),
-                                  child: Text(
-                                    '${getFriendlyDistance(widget.receptor.offset)}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ),
+                            padding: EdgeInsets.only(
+                              left: 5,
+                            ),
+                            child: Text(
+                              '${getFriendlyDistance(widget.receptor.offset)}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       !widget.stateBar.isShow
                           ? Container(
-                              width: 0,
-                              height: 0,
-                            )
+                        width: 0,
+                        height: 0,
+                      )
                           : Padding(
-                              padding: EdgeInsets.only(
-                                top: 5,
-                              ),
-                              child: Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                alignment: WrapAlignment.start,
-                                spacing: 5,
-                                runSpacing: 3,
-                                children: <Widget>[
-                                  Text.rich(
-                                    TextSpan(
-                                      text: widget.stateBar.brackets,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: ' ',
-                                        ),
-                                        TextSpan(
-                                          text: widget.stateBar.tips,
-                                          style: TextStyle(
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                        padding: EdgeInsets.only(
+                          top: 5,
+                        ),
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.start,
+                          spacing: 5,
+                          runSpacing: 3,
+                          children: <Widget>[
+                            Text.rich(
+                              TextSpan(
+                                text: widget.stateBar.brackets,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: ' ',
                                   ),
-                                  Text(
-                                    widget.stateBar?.atime != null
-                                        ? '${TimelineUtil.format(
-                                            widget.stateBar?.atime,
-                                            locale: 'zh',
-                                            dayFormat: DayFormat.Simple,
-                                          )}'
-                                        : '',
+                                  TextSpan(
+                                    text: widget.stateBar.tips,
                                     style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 11,
+                                      color: Colors.black54,
                                     ),
                                   ),
                                 ],
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                            Text(
+                              widget.stateBar?.atime != null
+                                  ? '${TimelineUtil.format(
+                                widget.stateBar?.atime,
+                                locale: 'zh',
+                                dayFormat: DayFormat.Simple,
+                              )}'
+                                  : '',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.normal,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -952,28 +957,28 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       secondaryActions: <Widget>[
         widget.receptor.isMobileReceptor
             ? Padding(
-                padding: EdgeInsets.only(
-                  left: 5,
-                  right: 5,
-                ),
-                child: Text(
-                  '不能删除我的地圈',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
-                ),
-              )
+          padding: EdgeInsets.only(
+            left: 5,
+            right: 5,
+          ),
+          child: Text(
+            '不能删除我的地圈',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
+            ),
+          ),
+        )
             : IconSlideAction(
-                caption: '删除',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.delete,
-                onTap: () {
-                  if (widget.onDelete != null) {
-                    widget.onDelete();
-                  }
-                },
-              ),
+          caption: '删除',
+          foregroundColor: Colors.grey[500],
+          icon: Icons.delete,
+          onTap: () {
+            if (widget.onDelete != null) {
+              widget.onDelete();
+            }
+          },
+        ),
       ],
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

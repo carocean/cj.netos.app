@@ -1,11 +1,21 @@
+import 'dart:io';
+
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -23,37 +33,643 @@ class GeoReceptorWidget extends StatefulWidget {
 class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
+  bool _isShowWallPaper = false;
+  bool _isShowBanner = true;
+  EasyRefreshController _refreshController;
+  GeoCategoryOL _category;
+  bool _isLoaded = false;
 
   @override
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
+    _refreshController = EasyRefreshController();
+    _loadCategory().then((v) {
+      _isLoaded = true;
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCategory() async {
+    IGeoCategoryLocal categoryLocal =
+        widget.context.site.getService('/geosphere/categories');
+    _category = await categoryLocal.get(_receptorInfo.category);
+  }
+
+  Future<void> _onloadMessages() async {}
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0.0,
-        title: Text(_receptorInfo?.title ?? ''),
-        centerTitle: true,
+    var slivers = <Widget>[
+      SliverPersistentHeader(
+        floating: false,
+        pinned: true,
+        delegate: GberaPersistentHeaderDelegate(
+            automaticallyImplyLeading: true,
+            elevation: 0,
+            centerTitle: true,
+            expandedHeight: !_isShowBanner ? 0 : 200,
+            background: !_isShowBanner
+                ? null
+                : NetworkImage(
+                    'http://47.105.165.186:7100/public/geosphere/wallpapers/e27df176176b9a03bfe72ee5b05f87e4.jpg?accessToken=${widget.context.principal.accessToken}',
+                  ),
+            onRenderAppBar: (appBar, RenderStateAppBar state) {
+              switch (state) {
+                case RenderStateAppBar.origin:
+                  if (_isShowBanner || _isShowWallPaper) {
+                    _showWhiteAppBar(appBar, showTitle: false);
+                  } else {
+                    _showBlackAppBar(appBar, showTitle: false);
+                  }
+                  return;
+                case RenderStateAppBar.showAppBar:
+                  _showBlackAppBar(appBar);
+                  return;
+                case RenderStateAppBar.expaned:
+                  _showWhiteAppBar(appBar);
+                  return;
+              }
+            }),
       ),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        padding: EdgeInsets.all(0),
-        children: messages.map((msg) {
-          return _MessageCard(
+    ];
+    if (_isLoaded) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: _HeaderWidget(
             context: widget.context,
-            message: msg,
-            onDeleted: (msg) {
-              messages.remove(msg);
-              setState(() {});
-            },
-          );
-        }).toList(),
+            receptorInfo: _receptorInfo,
+            isShowWhite: _isShowWallPaper,
+            categoryOL: _category,
+            refresh: () {},
+          ),
+        ),
+      );
+    }
+    slivers.addAll(
+      _getMessageCards(),
+    );
+    return Scaffold(
+      floatingActionButton: VoiceFloatingButton(
+        onStartRecord: () {},
+        onStopRecord: (a, b, c, d) {},
+      ),
+      body: Container(
+        constraints: BoxConstraints.expand(),
+        decoration: !_isShowWallPaper
+            ? null
+            : BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    'http://47.105.165.186:7100/public/geosphere/wallpapers/f0a313238a3fa420bef974e62167881b.jpg?accessToken=${widget.context.principal.accessToken}',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+        child: EasyRefresh.custom(
+          controller: _refreshController,
+          onLoad: _onloadMessages,
+          slivers: slivers,
+        ),
       ),
     );
+  }
+
+  void _showWhiteAppBar(GberaPersistentHeaderDelegate appBar,
+      {bool showTitle = true}) {
+    if (showTitle) {
+      appBar.title = Text(
+        _receptorInfo.title,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      );
+    } else {
+      appBar.title = null;
+    }
+
+    appBar.iconTheme = IconThemeData(
+      color: Colors.white,
+    );
+    appBar.actions = _getActions(Colors.white);
+  }
+
+  void _showBlackAppBar(
+    GberaPersistentHeaderDelegate appBar, {
+    bool showTitle = true,
+  }) {
+    if (showTitle) {
+      appBar.title = Text(
+        _receptorInfo.title,
+        style: TextStyle(
+          color: null,
+        ),
+      );
+    } else {
+      appBar.title = null;
+    }
+    appBar.iconTheme = IconThemeData(
+      color: null,
+    );
+    appBar.actions = _getActions(null);
+  }
+
+  List<Widget> _getMessageCards() {
+    List<Widget> list = [];
+    for (int i = 0; i < 40; i++) {
+      list.add(
+        SliverToBoxAdapter(
+          child: _MessageCard(
+            context: widget.context,
+            message: ChannelMessage(
+              '0000',
+              'cj@gbera.netos',
+              null,
+              null,
+              '039393993',
+              'cj@gbera.netos',
+              DateTime.now().millisecondsSinceEpoch,
+              null,
+              null,
+              null,
+              'arrived',
+              '被报道“向中方请求医疗物资援助后，又向美国出口大量口罩”，泰国驻华使馆说明泰王国驻华大使馆就中国多家媒体报道“泰国向中方请求医疗物资援助后，又向美国出口大量口罩”一事的声明：            　　就中国多家媒体报道“泰国向中方请求医疗物资援助后，又向美国出口大量口罩”一事的声明就中国多家线上媒体报道称“泰国向中方请求医疗物资援助后又向美国出口大量口罩”以致在中国网络环境中广泛引发读者误解一事，泰王国驻华大使馆就事实真相作以下说明：            　　1。新闻报道的内容存在差异，且未指出部分事实：（1）在中国表示中方有能力给予帮助的基础上，泰国政府接受了中国的医疗物资援助；（2）在中国遭受新冠肺炎疫情严重影响期间，泰国向中国捐赠了资金及包括口罩在内的医疗物资和设备，以援助医护人员和受新冠肺炎影响的人民，不过在那段期间，其实泰国也已开始面临医疗物资尤其是口罩短缺的情况，但泰国依然基于中泰紧密关系和人道主义精神对中国施以援助。          ',
+              10.00,
+              null,
+              widget.context.principal.person,
+            ),
+          ),
+        ),
+      );
+    }
+    return list;
+  }
+
+  List<Widget> _getActions(Color color) {
+    return <Widget>[
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () {
+//          widget.context.forward('/netflow/channel/publish_article',
+//              arguments: <String, dynamic>{
+//                'type': 'text',
+//                'channel': _channel,
+//                'refreshMessages': _refreshMessages
+//              });
+        },
+        child: IconButton(
+          icon: Icon(
+            Icons.camera_enhance,
+            size: 20,
+            color: color,
+          ),
+          onPressed: () {
+            showDialog<Map<String, Object>>(
+              context: context,
+              builder: (BuildContext context) => SimpleDialog(
+                title: Text('请选择'),
+                children: <Widget>[
+                  DialogItem(
+                    text: '文本',
+                    subtext: '注：长按窗口右上角按钮便可不弹出该对话框直接发文',
+                    icon: Icons.font_download,
+                    color: Colors.grey[500],
+                    onPressed: () {
+                      widget.context
+                          .backward(result: <String, dynamic>{'type': 'text'});
+                    },
+                  ),
+                  DialogItem(
+                    text: '从相册选择',
+                    icon: Icons.image,
+                    color: Colors.grey[500],
+                    onPressed: () async {
+                      var image = await ImagePicker.pickImage(
+                          source: ImageSource.gallery);
+                      widget.context.backward(result: <String, dynamic>{
+                        'type': 'gallery',
+                        'mediaFile':
+                            MediaFile(type: MediaFileType.image, src: image),
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ).then<void>((value) {
+              // The value passed to Navigator.pop() or null.
+              if (value != null) {
+//                value['channel'] = _channel;
+//                value['refreshMessages'] = _refreshMessages;
+//                widget.context.forward('/netflow/channel/publish_article',
+//                    arguments: value);
+              }
+            });
+          },
+        ),
+      ),
+    ];
+  }
+}
+
+class _HeaderWidget extends StatefulWidget {
+  PageContext context;
+  Function() refresh;
+  ReceptorInfo receptorInfo;
+  bool isShowWhite;
+  GeoCategoryOL categoryOL;
+
+  _HeaderWidget({
+    this.context,
+    this.refresh,
+    this.receptorInfo,
+    this.isShowWhite,
+    this.categoryOL,
+  });
+
+  @override
+  _HeaderWidgetState createState() => _HeaderWidgetState();
+}
+
+class _HeaderWidgetState extends State<_HeaderWidget> {
+  int _arrivedMessageCount = 5;
+  String _arrivedMessageTips = '';
+  var _workingChannel;
+  String _poiTitle;
+  LatLng _currentLatLng;
+  List<GeoCategoryAppOR> _apps = [];
+
+  @override
+  void initState() {
+    _loadLocation().then((v) {
+      setState(() {});
+    });
+    geoLocation.listen('receptor.header', 5, _updateLocation);
+//    _workingChannel = widget.context.parameters['workingChannel'];
+//    _workingChannel.onRefreshChannelState = (command, args) {
+//      _arrivedMessageCount++;
+//      setState(() {});
+//    };
+    _loadCategoryApps().then((v) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    geoLocation.unlisten('receptor.header');
+    if (_workingChannel != null) {
+      _workingChannel.onRefreshChannelState = null;
+    }
+    _arrivedMessageCount = 0;
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_HeaderWidget oldWidget) {
+    if (oldWidget.categoryOL != widget.categoryOL) {
+      oldWidget.categoryOL = widget.categoryOL;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadCategoryApps() async {
+    if (widget.categoryOL == null) {
+      return;
+    }
+    IGeoCategoryRemote categoryRemote =
+        widget.context.site.getService('/remote/geo/categories');
+    var on =
+        widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
+    _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
+  }
+
+  Future<void> _loadLocation() async {
+    _currentLatLng = widget.receptorInfo.latLng;
+    var list = await AmapSearch.searchAround(_currentLatLng,
+        radius: 2000, type: amapPOIType);
+    if (list == null || list.isEmpty) {
+      return;
+    }
+    _poiTitle = await list[0].title;
+  }
+
+  _updateLocation(Location location) async {
+    if (widget.categoryOL == null) {
+      return;
+    }
+    if (widget.categoryOL.moveMode == 'unmoveable') {
+      _currentLatLng = await location.latLng;
+      setState(() {});
+      return;
+    }
+    _currentLatLng = await location.latLng;
+    _poiTitle = await location.poiName;
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget imgSrc = null;
+    if (StringUtil.isEmpty(widget.receptorInfo.leading)) {
+      imgSrc = Icon(
+        IconData(
+          0xe604,
+          fontFamily: 'netflow2',
+        ),
+        size: 20,
+        color: Colors.grey[500],
+      );
+    } else if (widget.receptorInfo.leading.startsWith('/')) {
+      //本地存储
+      imgSrc = Image.file(
+        File(widget.receptorInfo.leading),
+        width: 20,
+        height: 20,
+      );
+    } else {
+      imgSrc = Image.network(
+        widget.receptorInfo.leading,
+        width: 20,
+        height: 20,
+      );
+    }
+
+    return Container(
+      alignment: Alignment.bottomLeft,
+      padding: EdgeInsets.only(
+        top: 10,
+        left: 15,
+        bottom: 10,
+        right: 15,
+      ),
+      child: ListView(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.all(0),
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.only(
+              bottom: 15,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 0,
+                    right: 0,
+                  ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            return widget.context.part(
+                                '/geosphere/settings', context, arguments: {
+                              'receptor': widget.receptorInfo,
+                              'moveMode': widget.categoryOL?.moveMode
+                            });
+                          }).then((v) {
+                        print('----$v');
+                      });
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          child: imgSrc,
+                          padding: EdgeInsets.only(
+                            right: 10,
+                            top: 3,
+                          ),
+                        ),
+                        Flex(
+                          direction: Axis.vertical,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text.rich(
+                              TextSpan(
+                                text: '${widget.receptorInfo.title}',
+                                children: [],
+                              ),
+                              softWrap: true,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                                color: widget.isShowWhite
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ),
+                            Flex(
+                              direction: Axis.vertical,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text.rich(
+                                  TextSpan(
+                                    text: '${widget.categoryOL?.title ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.isShowWhite
+                                          ? Colors.white
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                                Text.rich(
+                                  TextSpan(
+                                    text: '${_poiTitle ?? ''}',
+                                    children: [
+                                      TextSpan(
+                                        text: '  附近',
+                                      ),
+                                    ],
+                                  ),
+                                  softWrap: true,
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: widget.isShowWhite
+                                        ? Colors.white70
+                                        : Colors.grey[500],
+                                  ),
+                                ),
+                                Text.rich(
+                                  TextSpan(
+                                    text:
+                                        '离你 ${getFriendlyDistance(getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: widget.isShowWhite
+                                          ? Colors.white70
+                                          : Colors.grey[500],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _apps.isEmpty
+              ? Container(
+                  width: 0,
+                  height: 0,
+                )
+              : Container(
+                  height: 60,
+                  alignment: Alignment.center,
+                  child: ListView(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.all(0),
+                    children: _geoCategoryApps(),
+                  ),
+                ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: 15,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                _arrivedMessageCount == 0
+                    ? Container()
+                    : GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {},
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: 10,
+                              ),
+                              child: Icon(
+                                Icons.new_releases,
+                                size: 18,
+                                color: Colors.red,
+                              ),
+                            ),
+                            Container(
+                              child: Text.rich(
+                                TextSpan(
+                                  text: '有$_arrivedMessageCount条新消息',
+                                  style: TextStyle(
+                                    color: widget.isShowWhite
+                                        ? Colors.white
+                                        : Colors.blueGrey,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return widget.context
+                              .part('/geosphere/discovery', context);
+                        }).then((v) {
+                      print('----$v');
+                    });
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 2,
+                        ),
+                        child: Text(
+                          '${widget.categoryOL?.moveMode == 'moveableSelf' ? '服务' : '筛选'}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: widget.isShowWhite
+                                ? Colors.white70
+                                : Colors.grey[500],
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.apps,
+                        size: 18,
+                        color: widget.isShowWhite
+                            ? Colors.white70
+                            : Colors.black54,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _geoCategoryApps() {
+    List<Widget> apps = [];
+    for (var i = 0; i < _apps.length; i++) {
+      var app = _apps[i];
+      apps.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Image.network(
+                '${app.leading}?accessToken=${widget.context.principal.accessToken}',
+                width: 24,
+                height: 24,
+                color: widget.isShowWhite ? Colors.white : Colors.grey[600],
+              ),
+              Text(
+                '${app.title}',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: widget.isShowWhite ? Colors.white : Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return apps;
   }
 }
 

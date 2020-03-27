@@ -89,9 +89,8 @@ class _GeospherePortalState extends State<GeospherePortal> {
               background: NetworkImage(
                 'http://47.105.165.186:7100/public/avatar/395e29ec019959eb130bf1092364f163.jpg',
               ),
-              onAppBarStateChange: (d, v) {
-                print('---$v');
-                if (v) {
+              onRenderAppBar: (d, state) {
+                if (state==RenderStateAppBar.showAppBar) {
                   d.title = Text(
                     '${widget.context.principal.nickName ?? widget.context.principal.accountCode} 的地圈',
                     style: TextStyle(

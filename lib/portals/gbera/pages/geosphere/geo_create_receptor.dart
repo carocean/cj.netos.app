@@ -23,7 +23,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
   TextEditingController _titleController;
   TextEditingController _radiusController;
   bool _enableFinishButton = false;
-  GeoCategory _category;
+  GeoCategoryOR _category;
   var _key = GlobalKey<_LocationSettingWidgetState>();
 
   @override
@@ -70,7 +70,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
 
   @override
   Widget build(BuildContext context) {
-    GeoCategory category = _category;
+    GeoCategoryOR category = _category;
 
     return Scaffold(
       appBar: AppBar(
@@ -264,7 +264,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
 }
 
 class _LocationSettingWidget extends StatefulWidget {
-  GeoCategory category;
+  GeoCategoryOR category;
   PageContext context;
   Key key;
   Function() onSelected;
