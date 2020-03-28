@@ -11,6 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -311,7 +312,7 @@ class _MessageCard extends StatefulWidget {
 class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   Future<Person> _future_getPerson;
-  Future<List<Media>> _future_getMedias;
+  Future<List<MediaSrc>> _future_getMedias;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
 
   @override
@@ -445,7 +446,7 @@ class __MessageCardState extends State<_MessageCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  FutureBuilder<List<Media>>(
+                  FutureBuilder<List<MediaSrc>>(
                     future: _getMedias(),
                     builder: (ctx, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
@@ -609,10 +610,15 @@ class __MessageCardState extends State<_MessageCard> {
     return await personService.getPerson(person);
   }
 
-  Future<List<Media>> _getMedias() async {
+  Future<List<MediaSrc>> _getMedias() async {
     IChannelMediaService channelMediaService =
         widget.context.site.getService('/channel/messages/medias');
-    return await channelMediaService.getMedias(widget.message.id);
+    var medias= await channelMediaService.getMedias(widget.message.id);
+    List<MediaSrc> list = [];
+    for (var media in medias) {
+      list.add(media.toMediaSrc());
+    }
+    return list;
   }
 }
 

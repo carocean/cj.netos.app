@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -286,7 +287,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                   null,
                   null,
                   widget.context.principal.person,
-                ),
+                ).toMediaSrc(),
                 Media(
                   null,
                   'image',
@@ -296,7 +297,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                   null,
                   null,
                   widget.context.principal.person,
-                ),
+                ).toMediaSrc(),
               ],
               Content:
                   '开始禅城区的地商李明找到我跟我说，快点接上帑指市场，未来10倍，20倍的利都有，我跟李明是多年的交情，想必也不会忽悠我，我就尝试着做了。没想到赚钱原来这么容易，小店现在一个月营业额是25万，发行帑银净赚60万'),
@@ -314,7 +315,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                 null,
                 null,
                 widget.context.principal.person,
-              ),
+              ).toMediaSrc(),
             ],
           ),
           _News(
@@ -495,11 +496,11 @@ class __PlatformNewsDayState extends State<_PlatformNewsDay> {
 class _News {
   String title;
   String Content;
-  List<Media> images;
+  List<MediaSrc> images;
 
   _News({this.title, this.Content, this.images}) {
     if (this.images == null) {
-      this.images = <Media>[];
+      this.images = <MediaSrc>[];
     }
   }
 }

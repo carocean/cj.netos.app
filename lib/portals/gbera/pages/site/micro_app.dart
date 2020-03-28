@@ -5,16 +5,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class MicroApp extends StatefulWidget {
+class MicroAppWidget extends StatefulWidget {
   PageContext context;
 
-  MicroApp({this.context});
+  MicroAppWidget({this.context});
 
   @override
-  _MicroAppState createState() => _MicroAppState();
+  _MicroAppWidgetState createState() => _MicroAppWidgetState();
 }
 
-class _MicroAppState extends State<MicroApp> {
+class _MicroAppWidgetState extends State<MicroAppWidget> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 

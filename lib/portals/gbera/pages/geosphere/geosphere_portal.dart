@@ -372,7 +372,7 @@ class __MessageCardState extends State<_MessageCard> {
                       return DefaultTabController(
                         length: snapshot.data.length,
                         child: PageSelector(
-                          medias: snapshot.data,
+//                          medias: snapshot.data,
                           onMediaLongTap: (media) {
                             widget.context.forward(
                               '/images/viewer',

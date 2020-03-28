@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
@@ -7,6 +8,8 @@ import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_k_chart/utils/date_format_util.dart';
+import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +19,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -38,6 +42,9 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   EasyRefreshController _refreshController;
   GeoCategoryOL _category;
   bool _isLoaded = false;
+  int _limit = 15, _offset = 0;
+  List<_GeosphereMessageWrapper> _messageList = [];
+  bool _isLoadedMessages = false;
 
   @override
   void initState() {
@@ -47,11 +54,16 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       _isLoaded = true;
       setState(() {});
     });
+    _onloadMessages().then((v) {
+      _isLoadedMessages = true;
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _messageList.clear();
     _refreshController.dispose();
     super.dispose();
   }
@@ -62,7 +74,117 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     _category = await categoryLocal.get(_receptorInfo.category);
   }
 
-  Future<void> _onloadMessages() async {}
+  //只装载消息体，交互区域信息可能非常长，因此采用独立的滥加载模式
+  Future<void> _onloadMessages() async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+
+    List<GeosphereMessageOL> messages =
+        await geoMessageService.pageMessage(_receptorInfo.id, _limit, _offset);
+    if (messages.isEmpty) {
+      _refreshController.finishLoad(success: true, noMore: true);
+      return;
+    }
+    _offset += messages.length;
+    List<_GeosphereMessageWrapper> wrappers = [];
+    for (var message in messages) {
+      await _fillMessageWrapper(message, wrappers);
+    }
+    _messageList.addAll(wrappers);
+  }
+
+  Future<void> _fillMessageWrapper(message, wrappers) async {
+    IGeosphereMediaService mediaService =
+        widget.context.site.getService('/geosphere/receptor/messages/medias');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    List<GeosphereMediaOL> medias =
+        await mediaService.listMedia(message.receptor, message.id);
+    Person creator =
+        await personService.getPerson(message.creator, isDownloadAvatar: true);
+    Person upstreamPerson;
+    if (!StringUtil.isEmpty(message.upstreamPerson)) {
+      upstreamPerson = await personService.getPerson(message.creator,
+          isDownloadAvatar: true);
+    }
+    List<MediaSrc> _medias = [];
+    for (GeosphereMediaOL mediaOL in medias) {
+      _medias.add(mediaOL.toMedia());
+    }
+    wrappers.add(
+      _GeosphereMessageWrapper(
+        creator: creator,
+        medias: _medias,
+        message: message,
+        upstreamPerson: upstreamPerson,
+      ),
+    );
+  }
+
+  Future<void> _loadMessageAndPutTop(msgid) async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    GeosphereMessageOL messageOL =
+        await geoMessageService.getMessage(_receptorInfo.id, msgid);
+    List<_GeosphereMessageWrapper> wrappers = [];
+    await _fillMessageWrapper(messageOL, wrappers);
+    _messageList.insertAll(0, wrappers);
+  }
+
+  Future<void> _publishVoiceArticle(String path, double timelength) async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    IGeosphereMediaService mediaService =
+        widget.context.site.getService('/geosphere/receptor/messages/medias');
+    var content = '';
+    var wy = 10.00;
+    var location = null;
+    var message = GeosphereMessageOL(
+        MD5Util.MD5(Uuid().v1()),
+        null,
+        null,
+        null,
+        null,
+        _receptorInfo.id,
+        widget.context.principal.person,
+        DateTime.now().millisecondsSinceEpoch,
+        null,
+        null,
+        null,
+        'sended',
+        content,
+        wy,
+        location,
+        _category.id,
+        widget.context.principal.person);
+    await geoMessageService.addMessage(message);
+
+    await mediaService.addMedia(
+      GeosphereMediaOL(
+        MD5Util.MD5('${Uuid().v1()}'),
+        'audio',
+        path,
+        null,
+        message.id,
+        null,
+        _receptorInfo.id,
+        widget.context.principal.person,
+      ),
+    );
+
+    await _loadMessageAndPutTop(message.id);
+  }
+
+  _deleteMessage(_GeosphereMessageWrapper wrapper) async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
+    _messageList.removeWhere((e) {
+      return e.message.id == wrapper.message.id;
+    });
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,8 +239,15 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     );
     return Scaffold(
       floatingActionButton: VoiceFloatingButton(
-        onStartRecord: () {},
-        onStopRecord: (a, b, c, d) {},
+        onStartRecord: (){},
+        onStopRecord: (path, timelength, FlutterPluginRecord c, action) {
+          if (action != 'send') {
+            return;
+          }
+          _publishVoiceArticle(path, timelength).then((v) {
+            setState(() {});
+          });
+        },
       ),
       body: Container(
         constraints: BoxConstraints.expand(),
@@ -182,28 +311,42 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
 
   List<Widget> _getMessageCards() {
     List<Widget> list = [];
-    for (int i = 0; i < 40; i++) {
+    if (_messageList.isEmpty) {
+      if (!_isLoadedMessages) {
+        list.add(
+          SliverToBoxAdapter(
+            child: Center(
+              child: Text('加载中...'),
+            ),
+          ),
+        );
+      } else {
+        list.add(
+          SliverFillRemaining(
+            child: Container(
+              color: Colors.white,
+              child: Center(
+                child: Text(
+                  '没有消息',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      return list;
+    }
+    for (var msg in _messageList) {
       list.add(
         SliverToBoxAdapter(
           child: _MessageCard(
             context: widget.context,
-            message: ChannelMessage(
-              '0000',
-              'cj@gbera.netos',
-              null,
-              null,
-              '039393993',
-              'cj@gbera.netos',
-              DateTime.now().millisecondsSinceEpoch,
-              null,
-              null,
-              null,
-              'arrived',
-              '被报道“向中方请求医疗物资援助后，又向美国出口大量口罩”，泰国驻华使馆说明泰王国驻华大使馆就中国多家媒体报道“泰国向中方请求医疗物资援助后，又向美国出口大量口罩”一事的声明：            　　就中国多家媒体报道“泰国向中方请求医疗物资援助后，又向美国出口大量口罩”一事的声明就中国多家线上媒体报道称“泰国向中方请求医疗物资援助后又向美国出口大量口罩”以致在中国网络环境中广泛引发读者误解一事，泰王国驻华大使馆就事实真相作以下说明：            　　1。新闻报道的内容存在差异，且未指出部分事实：（1）在中国表示中方有能力给予帮助的基础上，泰国政府接受了中国的医疗物资援助；（2）在中国遭受新冠肺炎疫情严重影响期间，泰国向中国捐赠了资金及包括口罩在内的医疗物资和设备，以援助医护人员和受新冠肺炎影响的人民，不过在那段期间，其实泰国也已开始面临医疗物资尤其是口罩短缺的情况，但泰国依然基于中泰紧密关系和人道主义精神对中国施以援助。          ',
-              10.00,
-              null,
-              widget.context.principal.person,
-            ),
+            messageWrapper: msg,
+            onDeleted: _deleteMessage,
           ),
         ),
       );
@@ -216,12 +359,19 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () {
-//          widget.context.forward('/netflow/channel/publish_article',
-//              arguments: <String, dynamic>{
-//                'type': 'text',
-//                'channel': _channel,
-//                'refreshMessages': _refreshMessages
-//              });
+          widget.context.forward('/geosphere/publish_article',
+              arguments: <String, dynamic>{
+                'type': 'text',
+                'category': _category.id,
+                'receptor': _receptorInfo.id,
+              }).then((v) {
+            if (v == null) {
+              return;
+            }
+            _loadMessageAndPutTop(v).then((s) {
+              setState(() {});
+            });
+          });
         },
         child: IconButton(
           icon: Icon(
@@ -241,8 +391,11 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
                     icon: Icons.font_download,
                     color: Colors.grey[500],
                     onPressed: () {
-                      widget.context
-                          .backward(result: <String, dynamic>{'type': 'text'});
+                      widget.context.backward(result: <String, dynamic>{
+                        'type': 'text',
+                        'category': _category.id,
+                        'receptor': _receptorInfo.id,
+                      });
                     },
                   ),
                   DialogItem(
@@ -254,6 +407,8 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
                           source: ImageSource.gallery);
                       widget.context.backward(result: <String, dynamic>{
                         'type': 'gallery',
+                        'category': _category.id,
+                        'receptor': _receptorInfo.id,
                         'mediaFile':
                             MediaFile(type: MediaFileType.image, src: image),
                       });
@@ -263,12 +418,16 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
               ),
             ).then<void>((value) {
               // The value passed to Navigator.pop() or null.
-              if (value != null) {
-//                value['channel'] = _channel;
-//                value['refreshMessages'] = _refreshMessages;
-//                widget.context.forward('/netflow/channel/publish_article',
-//                    arguments: value);
-              }
+              widget.context
+                  .forward('/geosphere/publish_article', arguments: value)
+                  .then((v) {
+                if (v == null) {
+                  return;
+                }
+                _loadMessageAndPutTop(v).then((s) {
+                  setState(() {});
+                });
+              });
             });
           },
         ),
@@ -303,6 +462,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   String _poiTitle;
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
+  Map<String, String> _selectCategory;
 
   @override
   void initState() {
@@ -315,7 +475,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      _arrivedMessageCount++;
 //      setState(() {});
 //    };
-    _loadCategoryApps().then((v) {
+    _loadCategoryAllApps().then((v) {
       setState(() {});
     });
     super.initState();
@@ -339,7 +499,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  Future<void> _loadCategoryApps() async {
+  Future<void> _loadCategoryAllApps() async {
     if (widget.categoryOL == null) {
       return;
     }
@@ -348,6 +508,26 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     var on =
         widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
     _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
+  }
+
+  Future<void> _loadAppsOfCategory(categroyMap) async {
+    _selectCategory = categroyMap.cast<String, String>();
+    IGeoCategoryRemote categoryRemote =
+        widget.context.site.getService('/remote/geo/categories');
+    var on = 'onserved';
+    _apps = await categoryRemote.getApps(categroyMap['category'], on);
+    await _filterMessages(categroyMap);
+  }
+
+  Future<void> _clearSelectCategory() async {
+    print('----清除选择');
+    _selectCategory = null;
+    await _loadCategoryAllApps();
+    _filterMessages(null);
+  }
+
+  Future<void> _filterMessages(categroyMap) async {
+    print('----过滤消息');
   }
 
   Future<void> _loadLocation() async {
@@ -597,10 +777,29 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     showModalBottomSheet(
                         context: context,
                         builder: (context) {
-                          return widget.context
-                              .part('/geosphere/discovery', context);
+                          return widget.context.part(
+                              '/geosphere/discovery', context,
+                              arguments: {'category': widget.categoryOL});
                         }).then((v) {
-                      print('----$v');
+                      if (v == null) {
+                        return;
+                      }
+                      if (v is String && v == 'clear') {
+                        _clearSelectCategory().then((v) {
+                          setState(() {});
+                        });
+                        return;
+                      }
+                      var map = v as Map;
+                      if (widget.categoryOL.moveMode == 'moveableSelf') {
+                        _loadAppsOfCategory(map).then((v) {
+                          setState(() {});
+                        });
+                      } else {
+                        _filterMessages(map).then((v) {
+                          setState(() {});
+                        });
+                      }
                     });
                   },
                   child: Row(
@@ -610,7 +809,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           right: 2,
                         ),
                         child: Text(
-                          '${widget.categoryOL?.moveMode == 'moveableSelf' ? '服务' : '筛选'}',
+                          _selectCategory != null
+                              ? _selectCategory['title']
+                              : widget.categoryOL?.moveMode == 'moveableSelf'
+                                  ? '服务'
+                                  : '筛选',
                           style: TextStyle(
                             fontSize: 10,
                             color: widget.isShowWhite
@@ -619,13 +822,21 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           ),
                         ),
                       ),
-                      Icon(
-                        Icons.apps,
-                        size: 18,
-                        color: widget.isShowWhite
-                            ? Colors.white70
-                            : Colors.black54,
-                      ),
+                      widget.categoryOL?.moveMode == 'moveableSelf'
+                          ? Icon(
+                              Icons.apps,
+                              size: 18,
+                              color: widget.isShowWhite
+                                  ? Colors.white70
+                                  : Colors.black54,
+                            )
+                          : Icon(
+                              FontAwesomeIcons.filter,
+                              size: 13,
+                              color: widget.isShowWhite
+                                  ? Colors.white70
+                                  : Colors.grey[500],
+                            ),
                     ],
                   ),
                 ),
@@ -675,12 +886,12 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
 class _MessageCard extends StatefulWidget {
   PageContext context;
-  ChannelMessage message;
-  void Function(ChannelMessage message) onDeleted;
+  _GeosphereMessageWrapper messageWrapper;
+  void Function(_GeosphereMessageWrapper message) onDeleted;
 
   _MessageCard({
     this.context,
-    this.message,
+    this.messageWrapper,
     this.onDeleted,
   });
 
@@ -690,22 +901,16 @@ class _MessageCard extends StatefulWidget {
 
 class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
-  Future<Person> _future_getPerson;
-  Future<List<Media>> _future_getMedias;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
 
   @override
   void initState() {
-    _future_getPerson = _getPerson();
-    _future_getMedias = _getMedias();
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
     super.initState();
   }
 
   @override
   void dispose() {
-    _future_getPerson = null;
-    _future_getMedias = null;
     _interactiveRegionRefreshAdapter = null;
     super.dispose();
   }
@@ -736,8 +941,11 @@ class __MessageCardState extends State<_MessageCard> {
                 padding: EdgeInsets.only(top: 5, right: 5),
                 child: ClipOval(
                   child: Image(
-                    image: NetworkImage(
-                        'https://sjbz-fd.zol-img.com.cn/t_s208x312c5/g5/M00/01/06/ChMkJ1w3FnmIE9dUAADdYQl3C5IAAuTxAKv7x8AAN15869.jpg'),
+                    image: FileImage(
+                      File(
+                        widget.messageWrapper.sender?.avatar,
+                      ),
+                    ),
                     height: 35,
                     width: 35,
                     fit: BoxFit.fill,
@@ -760,7 +968,7 @@ class __MessageCardState extends State<_MessageCard> {
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Text(
-                          '${widget.message.creator}',
+                          '${widget.messageWrapper.sender?.nickName}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[700],
@@ -800,7 +1008,7 @@ class __MessageCardState extends State<_MessageCard> {
                     alignment: Alignment.topLeft,
                     child: Text.rich(
                       TextSpan(
-                        text: '${widget.message.text}',
+                        text: '${widget.messageWrapper.message.text}',
                         style: TextStyle(
                           fontSize: 15,
                         ),
@@ -819,45 +1027,21 @@ class __MessageCardState extends State<_MessageCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  FutureBuilder<List<Media>>(
-                    future: _getMedias(),
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Container(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        print('${snapshot.error}');
-                        return Container(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      if (snapshot.data.isEmpty) {
-                        return Container(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      return DefaultTabController(
-                        length: snapshot.data.length,
-                        child: PageSelector(
-                          medias: snapshot.data,
-                          onMediaLongTap: (media) {
-                            widget.context.forward(
-                              '/images/viewer',
-                              arguments: {
-                                'media': media,
-                                'others': snapshot.data,
-                                'autoPlay': true,
-                              },
-                            );
+                  DefaultTabController(
+                    length: widget.messageWrapper.medias.length,
+                    child: PageSelector(
+                      medias: widget.messageWrapper.medias,
+                      onMediaLongTap: (media) {
+                        widget.context.forward(
+                          '/images/viewer',
+                          arguments: {
+                            'media': media,
+                            'others': widget.messageWrapper.medias,
+                            'autoPlay': true,
                           },
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                   Row(
                     //内容坠
@@ -865,73 +1049,55 @@ class __MessageCardState extends State<_MessageCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        child: FutureBuilder<Person>(
-                            future: _future_getPerson,
-                            builder: (ctx, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return Container(
-                                  width: 0,
-                                  height: 0,
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                print('${snapshot.error}');
-                                return Container(
-                                  width: 0,
-                                  height: 0,
-                                );
-                              }
-                              return Text.rich(
-                                TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.message.ctime,
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
+                        child: Text.rich(
+                          TextSpan(
+                            text: '${TimelineUtil.format(
+                              widget.messageWrapper.message.ctime,
+                              dayFormat: DayFormat.Simple,
+                            )}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[400],
+                            ),
+                            children: [
+                              TextSpan(text: '  '),
+                              TextSpan(
+                                  text:
+                                      '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
+                              TextSpan(text: '\r\n'),
+                              TextSpan(
+                                text:
+                                    '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        widget.context.forward("/site/personal",
+                                            arguments: {
+                                              'person':
+                                                  widget.messageWrapper.creator,
+                                            });
+                                      },
                                   ),
-                                  children: [
-                                    TextSpan(text: '  '),
-                                    TextSpan(
-                                        text:
-                                            '¥${(widget.message.wy * 0.001).toStringAsFixed(2)}'),
-                                    TextSpan(text: '\r\n'),
-                                    TextSpan(
-                                      text:
-                                          '${widget.context.principal?.uid == snapshot.data.uid ? '创建自 ' : '来自 '}',
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${widget.context.principal?.uid == snapshot.data.uid ? '我' : snapshot.data.accountCode}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              widget.context.forward(
-                                                  "/site/personal",
-                                                  arguments: {
-                                                    'person': snapshot.data,
-                                                  });
-                                            },
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                softWrap: true,
-                              );
-                            }),
+                                ],
+                              )
+                            ],
+                          ),
+                          softWrap: true,
+                        ),
                       ),
                       _MessageOperatesPopupMenu(
-                        message: widget.message,
+                        messageWrapper: widget.messageWrapper,
                         context: widget.context,
                         onDeleted: () {
                           if (widget.onDeleted != null) {
-                            widget.onDeleted(widget.message);
+                            widget.onDeleted(widget.messageWrapper);
                           }
                           setState(() {});
                         },
@@ -953,7 +1119,7 @@ class __MessageCardState extends State<_MessageCard> {
 
                   ///相关交互区
                   _InteractiveRegion(
-                    message: widget.message,
+                    messageWrapper: widget.messageWrapper,
                     context: widget.context,
                     interactiveRegionRefreshAdapter:
                         _interactiveRegionRefreshAdapter,
@@ -965,28 +1131,6 @@ class __MessageCardState extends State<_MessageCard> {
         ),
       ),
     );
-  }
-
-  Future<Person> _getPerson() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var person = '';
-    if (!StringUtil.isEmpty(widget.message.upstreamPerson)) {
-      person = widget.message.upstreamPerson;
-    }
-    if (StringUtil.isEmpty(person)) {
-      person = widget.message.creator;
-    }
-    if (StringUtil.isEmpty(person)) {
-      return null;
-    }
-    return await personService.getPerson(person);
-  }
-
-  Future<List<Media>> _getMedias() async {
-    IChannelMediaService channelMediaService =
-        widget.context.site.getService('/channel/messages/medias');
-    return await channelMediaService.getMedias(widget.message.id);
   }
 }
 
@@ -1099,7 +1243,7 @@ class __CommentEditorState extends State<_CommentEditor> {
 }
 
 class _MessageOperatesPopupMenu extends StatefulWidget {
-  ChannelMessage message;
+  _GeosphereMessageWrapper messageWrapper;
   PageContext context;
   void Function() onDeleted;
   void Function() onComment;
@@ -1107,7 +1251,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onUnliked;
 
   _MessageOperatesPopupMenu({
-    this.message,
+    this.messageWrapper,
     this.context,
     this.onDeleted,
     this.onComment,
@@ -1126,44 +1270,41 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     return {
       'isLiked': isLiked,
       'canComment': true,
-      'canDelete': widget.message.creator == widget.context.principal.person,
+      'canDelete': widget.messageWrapper.creator.official ==
+          widget.context.principal.person,
     };
   }
 
   Future<bool> _isLiked() async {
-    IChannelLikeService likeService =
-        widget.context.site.getService('/channel/messages/likes');
-    return await likeService.isLiked(
-        widget.message.id, widget.context.principal.person);
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    return await geoMessageService.isLiked(
+        widget.messageWrapper.message.receptor,
+        widget.messageWrapper.message.id,
+        widget.context.principal.person);
   }
 
   Future<void> _like() async {
-    IChannelLikeService likeService =
-        widget.context.site.getService('/channel/messages/likes');
-    LikePerson likePerson = LikePerson(
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    GeosphereLikePersonOL likePerson = GeosphereLikePersonOL(
       '${Uuid().v1()}',
       widget.context.principal.person,
       widget.context.principal.avatarOnRemote,
-      widget.message.id,
+      widget.messageWrapper.message.id,
       DateTime.now().millisecondsSinceEpoch,
       widget.context.principal.nickName ?? widget.context.principal.accountCode,
-      widget.message.onChannel,
+      widget.messageWrapper.message.receptor,
       widget.context.principal.person,
     );
-    await likeService.like(likePerson);
+    await geoMessageService.like(likePerson);
   }
 
   Future<void> _unlike() async {
-    IChannelLikeService likeService =
-        widget.context.site.getService('/channel/messages/likes');
-    await likeService.unlike(
-        widget.message.id, widget.context.principal.person);
-  }
-
-  Future<void> _deleteMessage() async {
-    IChannelMessageService messageService =
-        widget.context.site.getService('/channel/messages');
-    messageService.removeMessage(widget.message.id);
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    await geoMessageService.unlike(widget.messageWrapper.message.receptor,
+        widget.messageWrapper.message.id, widget.context.principal.person);
   }
 
   @override
@@ -1299,11 +1440,9 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                   }
                   break;
                 case 2: //删除
-                  _deleteMessage().whenComplete(() {
-                    if (widget.onDeleted != null) {
-                      widget.onDeleted();
-                    }
-                  });
+                  if (widget.onDeleted != null) {
+                    widget.onDeleted();
+                  }
                   break;
               }
             },
@@ -1315,12 +1454,12 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
 }
 
 class _InteractiveRegion extends StatefulWidget {
-  ChannelMessage message;
+  _GeosphereMessageWrapper messageWrapper;
   PageContext context;
   _InteractiveRegionRefreshAdapter interactiveRegionRefreshAdapter;
 
   _InteractiveRegion({
-    this.message,
+    this.messageWrapper,
     this.context,
     this.interactiveRegionRefreshAdapter,
   });
@@ -1356,15 +1495,45 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   }
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
-    IChannelLikeService likeService =
-        widget.context.site.getService('/channel/messages/likes');
-    IChannelCommentService commentService =
-        widget.context.site.getService('/channel/messages/comments');
-    List<LikePerson> likes =
-        await likeService.pageLikePersons(widget.message.id, 10, 0);
-    List<ChannelComment> comments =
-        await commentService.pageComments(widget.message.id, 20, 0);
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    List<GeosphereLikePersonOL> likes = await geoMessageService.pageLikePersons(
+        widget.messageWrapper.message.receptor,
+        widget.messageWrapper.message.id,
+        10,
+        0);
+    List<GeosphereCommentOL> comments = await geoMessageService.pageComments(
+        widget.messageWrapper.message.receptor,
+        widget.messageWrapper.message.id,
+        20,
+        0);
     return <String, List<dynamic>>{"likePersons": likes, "comments": comments};
+  }
+
+  _appendComment(String content) async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    await geoMessageService.addComment(
+      GeosphereCommentOL(
+        '${Uuid().v1()}',
+        widget.context.principal.person,
+        widget.context.principal.avatarOnRemote,
+        widget.messageWrapper.message.id,
+        content,
+        DateTime.now().millisecondsSinceEpoch,
+        widget.context.principal.nickName ??
+            widget.context.principal.accountCode,
+        widget.messageWrapper.message.receptor,
+        widget.context.principal.person,
+      ),
+    );
+  }
+
+  _deleteComment(GeosphereCommentOL comment) async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    await geoMessageService.removeComment(
+        widget.messageWrapper.message.receptor, comment.msgid, comment.id);
   }
 
   @override
@@ -1402,7 +1571,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
           );
         }
         var commentListWidgets = <Widget>[];
-        for (ChannelComment comment in comments) {
+        for (GeosphereCommentOL comment in comments) {
           bool isMine = comment.person == widget.context.principal.person;
           commentListWidgets.add(Padding(
             padding: EdgeInsets.only(
@@ -1571,31 +1740,6 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
       },
     );
   }
-
-  _appendComment(String content) async {
-    IChannelCommentService commentService =
-        widget.context.site.getService('/channel/messages/comments');
-    await commentService.addComment(
-      ChannelComment(
-        '${Uuid().v1()}',
-        widget.context.principal.person,
-        widget.context.principal.avatarOnRemote,
-        widget.message.id,
-        content,
-        DateTime.now().millisecondsSinceEpoch,
-        widget.context.principal.nickName ??
-            widget.context.principal.accountCode,
-        widget.message.onChannel,
-        widget.context.principal.person,
-      ),
-    );
-  }
-
-  _deleteComment(ChannelComment comment) async {
-    IChannelCommentService commentService =
-        widget.context.site.getService('/channel/messages/comments');
-    await commentService.removeComment(comment.msgid, comment.id);
-  }
 }
 
 class _InteractiveRegionRefreshAdapter {
@@ -1605,5 +1749,23 @@ class _InteractiveRegionRefreshAdapter {
     if (handler != null) {
       handler(cause);
     }
+  }
+}
+
+class _GeosphereMessageWrapper {
+  GeosphereMessageOL message;
+  List<MediaSrc> medias;
+  Person creator;
+  Person upstreamPerson;
+
+  _GeosphereMessageWrapper({
+    this.message,
+    this.medias,
+    this.creator,
+    this.upstreamPerson,
+  });
+
+  Person get sender {
+    return upstreamPerson == null ? creator : upstreamPerson;
   }
 }

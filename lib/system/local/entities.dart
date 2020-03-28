@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:uuid/uuid.dart';
 
@@ -252,6 +253,17 @@ class Media {
 
   Media(this.id, this.type, this.src, this.leading, this.msgid, this.text,
       this.onChannel, this.sandbox);
+
+  MediaSrc toMediaSrc() {
+    return MediaSrc(
+        sourceType: 'channel',
+        msgid: msgid,
+        text: text,
+        type: type,
+        id: id,
+        leading: leading,
+        src: src);
+  }
 }
 
 @entity
@@ -528,6 +540,7 @@ enum GeoCategoryMoveableMode {
 class GeoCategoryOL {
   String id;
   String title;
+  String leading;
   int sort;
   int ctime;
   String creator;
@@ -538,6 +551,7 @@ class GeoCategoryOL {
   GeoCategoryOL(
     this.id,
     this.title,
+    this.leading,
     this.sort,
     this.ctime,
     this.creator,
@@ -550,6 +564,7 @@ class GeoCategoryOL {
 class GeoCategoryOR {
   String id;
   String title;
+  String leading;
   int sort;
   int ctime;
   String creator;
@@ -559,6 +574,7 @@ class GeoCategoryOR {
   GeoCategoryOR({
     this.id,
     this.title,
+    this.leading,
     this.sort,
     this.ctime,
     this.creator,
@@ -580,11 +596,11 @@ class GeoCategoryOR {
         break;
     }
     return GeoCategoryOL(
-        id, title, sort, ctime, creator, mode, defaultRadius, sandbox);
+        id, title, leading, sort, ctime, creator, mode, defaultRadius, sandbox);
   }
 }
 
-class GeoCategoryAppOR{
+class GeoCategoryAppOR {
   String id;
   String title;
   String leading;
@@ -593,6 +609,115 @@ class GeoCategoryAppOR{
   String creator;
   int ctime;
 
-  GeoCategoryAppOR({this.id, this.title, this.leading, this.path, this.category,
-      this.creator, this.ctime});
+  GeoCategoryAppOR(
+      {this.id,
+      this.title,
+      this.leading,
+      this.path,
+      this.category,
+      this.creator,
+      this.ctime});
+}
+
+@entity
+class GeosphereMessageOL {
+  @primaryKey
+  final String id;
+  final String upstreamPerson;
+
+//如果是从网流来的消息
+  final String upstreamChannel;
+  final String sourceSite;
+  final String sourceApp;
+  final String receptor;
+  final String creator;
+  final int ctime;
+  int atime;
+  int rtime;
+  int dtime;
+  String state;
+  final String text;
+  final double wy;
+  final String location;
+  final String category;
+  final String sandbox;
+
+  GeosphereMessageOL(
+      this.id,
+      this.upstreamPerson,
+      this.upstreamChannel,
+      this.sourceSite,
+      this.sourceApp,
+      this.receptor,
+      this.creator,
+      this.ctime,
+      this.atime,
+      this.rtime,
+      this.dtime,
+      this.state,
+      this.text,
+      this.wy,
+      this.location,
+      this.category,
+      this.sandbox);
+}
+
+@Entity(primaryKeys: ['id', 'sandbox'])
+class GeosphereLikePersonOL {
+  @primaryKey
+  final String id;
+  final String person;
+  final String avatar;
+  final String msgid;
+  final int ctime;
+  final String nickName;
+  final String receptor;
+  final String sandbox;
+
+  GeosphereLikePersonOL(this.id, this.person, this.avatar, this.msgid,
+      this.ctime, this.nickName, this.receptor, this.sandbox);
+}
+
+@Entity(primaryKeys: ['id', 'sandbox'])
+class GeosphereCommentOL {
+  final String id;
+  final String person;
+  final String avatar;
+  final String msgid;
+  final String text;
+  final int ctime;
+  final String nickName;
+  final String receptor;
+  final String sandbox;
+
+  GeosphereCommentOL(this.id, this.person, this.avatar, this.msgid, this.text,
+      this.ctime, this.nickName, this.receptor, this.sandbox);
+}
+
+@Entity(primaryKeys: ['id', 'sandbox'])
+class GeosphereMediaOL {
+  @primaryKey
+  final String id;
+  final String type;
+  final String src;
+  final String leading;
+  final String msgid;
+  final String text;
+  final String receptor;
+  final String sandbox;
+
+  GeosphereMediaOL(this.id, this.type, this.src, this.leading, this.msgid,
+      this.text, this.receptor, this.sandbox);
+
+  MediaSrc toMedia() {
+    return MediaSrc(
+      leading: leading,
+      id: id,
+      type: type,
+      text: text,
+      msgid: msgid,
+      sourceType: 'geosphere',
+      src: src,
+    );
+  }
 }

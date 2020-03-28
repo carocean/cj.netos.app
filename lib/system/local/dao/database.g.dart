@@ -57,6 +57,14 @@ class _$AppDatabase extends AppDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
+  IGeosphereMessageDAO _geosphereMessageDAOInstance;
+
+  IGeosphereLikePersonDAO _geosphereLikePersonDAOInstance;
+
+  IGeosphereCommentDAO _geosphereCommentDAOInstance;
+
+  IGeosphereMediaDAO _geosphereMediaDAOInstance;
+
   IGeoReceptorDAO _geoReceptorDAOInstance;
 
   IGeoCategoryDAO _geoCategoryDAOInstance;
@@ -156,11 +164,43 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeosphereLikePersonOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeosphereCommentOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `GeosphereMediaOL` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
 
         await callback?.onCreate?.call(database, version);
       },
     );
+  }
+
+  @override
+  IGeosphereMessageDAO get geosphereMessageDAO {
+    return _geosphereMessageDAOInstance ??=
+        _$IGeosphereMessageDAO(database, changeListener);
+  }
+
+  @override
+  IGeosphereLikePersonDAO get geosphereLikePersonDAO {
+    return _geosphereLikePersonDAOInstance ??=
+        _$IGeosphereLikePersonDAO(database, changeListener);
+  }
+
+  @override
+  IGeosphereCommentDAO get geosphereCommentDAO {
+    return _geosphereCommentDAOInstance ??=
+        _$IGeosphereCommentDAO(database, changeListener);
+  }
+
+  @override
+  IGeosphereMediaDAO get geosphereMediaDAO {
+    return _geosphereMediaDAOInstance ??=
+        _$IGeosphereMediaDAO(database, changeListener);
   }
 
   @override
@@ -274,6 +314,279 @@ class _$AppDatabase extends AppDatabase {
   IP2PMessageDAO get p2pMessageDAO {
     return _p2pMessageDAOInstance ??=
         _$IP2PMessageDAO(database, changeListener);
+  }
+}
+
+class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
+  _$IGeosphereMessageDAO(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _geosphereMessageOLInsertionAdapter = InsertionAdapter(
+            database,
+            'GeosphereMessageOL',
+            (GeosphereMessageOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'upstreamPerson': item.upstreamPerson,
+                  'upstreamChannel': item.upstreamChannel,
+                  'sourceSite': item.sourceSite,
+                  'sourceApp': item.sourceApp,
+                  'receptor': item.receptor,
+                  'creator': item.creator,
+                  'ctime': item.ctime,
+                  'atime': item.atime,
+                  'rtime': item.rtime,
+                  'dtime': item.dtime,
+                  'state': item.state,
+                  'text': item.text,
+                  'wy': item.wy,
+                  'location': item.location,
+                  'category': item.category,
+                  'sandbox': item.sandbox
+                }),
+        _geosphereLikePersonOLInsertionAdapter = InsertionAdapter(
+            database,
+            'GeosphereLikePersonOL',
+            (GeosphereLikePersonOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'person': item.person,
+                  'avatar': item.avatar,
+                  'msgid': item.msgid,
+                  'ctime': item.ctime,
+                  'nickName': item.nickName,
+                  'receptor': item.receptor,
+                  'sandbox': item.sandbox
+                }),
+        _geosphereCommentOLInsertionAdapter = InsertionAdapter(
+            database,
+            'GeosphereCommentOL',
+            (GeosphereCommentOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'person': item.person,
+                  'avatar': item.avatar,
+                  'msgid': item.msgid,
+                  'text': item.text,
+                  'ctime': item.ctime,
+                  'nickName': item.nickName,
+                  'receptor': item.receptor,
+                  'sandbox': item.sandbox
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  static final _geosphereMessageOLMapper = (Map<String, dynamic> row) =>
+      GeosphereMessageOL(
+          row['id'] as String,
+          row['upstreamPerson'] as String,
+          row['upstreamChannel'] as String,
+          row['sourceSite'] as String,
+          row['sourceApp'] as String,
+          row['receptor'] as String,
+          row['creator'] as String,
+          row['ctime'] as int,
+          row['atime'] as int,
+          row['rtime'] as int,
+          row['dtime'] as int,
+          row['state'] as String,
+          row['text'] as String,
+          row['wy'] as double,
+          row['location'] as String,
+          row['category'] as String,
+          row['sandbox'] as String);
+
+  static final _geosphereLikePersonOLMapper = (Map<String, dynamic> row) =>
+      GeosphereLikePersonOL(
+          row['id'] as String,
+          row['person'] as String,
+          row['avatar'] as String,
+          row['msgid'] as String,
+          row['ctime'] as int,
+          row['nickName'] as String,
+          row['receptor'] as String,
+          row['sandbox'] as String);
+
+  static final _geosphereCommentOLMapper = (Map<String, dynamic> row) =>
+      GeosphereCommentOL(
+          row['id'] as String,
+          row['person'] as String,
+          row['avatar'] as String,
+          row['msgid'] as String,
+          row['text'] as String,
+          row['ctime'] as int,
+          row['nickName'] as String,
+          row['receptor'] as String,
+          row['sandbox'] as String);
+
+  final InsertionAdapter<GeosphereMessageOL>
+      _geosphereMessageOLInsertionAdapter;
+
+  final InsertionAdapter<GeosphereLikePersonOL>
+      _geosphereLikePersonOLInsertionAdapter;
+
+  final InsertionAdapter<GeosphereCommentOL>
+      _geosphereCommentOLInsertionAdapter;
+
+  @override
+  Future<List<GeosphereMessageOL>> pageMessage(
+      String receptor, String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereMessageOL WHERE receptor=? and sandbox=? ORDER BY ctime DESC, atime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[receptor, sandbox, limit, offset],
+        mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
+  Future<void> removeMessage(String id, String receptor, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM GeosphereMessageOL where id=? and receptor=? and sandbox=?',
+        arguments: <dynamic>[id, receptor, sandbox]);
+  }
+
+  @override
+  Future<GeosphereMessageOL> getMessage(
+      String receptor, dynamic id, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeosphereMessageOL WHERE receptor=? and id=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[receptor, id, sandbox],
+        mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
+  Future<GeosphereLikePersonOL> getLikePersonBy(
+      String receptor, String msgid, String liker, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeosphereLikePersonOL WHERE receptor=? and msgid=? and person=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[receptor, msgid, liker, sandbox],
+        mapper: _geosphereLikePersonOLMapper);
+  }
+
+  @override
+  Future<void> unlike(
+      String receptor, String msgid, String liker, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM GeosphereLikePersonOL where receptor=? and msgid=? and person=? and sandbox=?',
+        arguments: <dynamic>[receptor, msgid, liker, sandbox]);
+  }
+
+  @override
+  Future<List<GeosphereLikePersonOL>> pageLikePersons(String receptor,
+      String msgid, String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereLikePersonOL WHERE receptor=? and msgid=? and sandbox=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[receptor, msgid, sandbox, limit, offset],
+        mapper: _geosphereLikePersonOLMapper);
+  }
+
+  @override
+  Future<void> removeComment(
+      String receptor, String msgid, String commentid, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM GeosphereCommentOL where receptor=? and msgid=? and id=? and sandbox=?',
+        arguments: <dynamic>[receptor, msgid, commentid, sandbox]);
+  }
+
+  @override
+  Future<List<GeosphereCommentOL>> pageComments(String receptor, String msgid,
+      String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereCommentOL WHERE receptor=? and msgid=? and sandbox=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[receptor, msgid, sandbox, limit, offset],
+        mapper: _geosphereCommentOLMapper);
+  }
+
+  @override
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) async {
+    await _geosphereMessageOLInsertionAdapter.insert(
+        geosphereMessageOL, sqflite.ConflictAlgorithm.abort);
+  }
+
+  @override
+  Future<void> like(GeosphereLikePersonOL likePerson) async {
+    await _geosphereLikePersonOLInsertionAdapter.insert(
+        likePerson, sqflite.ConflictAlgorithm.abort);
+  }
+
+  @override
+  Future<void> addComment(GeosphereCommentOL geosphereCommentOL) async {
+    await _geosphereCommentOLInsertionAdapter.insert(
+        geosphereCommentOL, sqflite.ConflictAlgorithm.abort);
+  }
+}
+
+class _$IGeosphereLikePersonDAO extends IGeosphereLikePersonDAO {
+  _$IGeosphereLikePersonDAO(this.database, this.changeListener);
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+}
+
+class _$IGeosphereCommentDAO extends IGeosphereCommentDAO {
+  _$IGeosphereCommentDAO(this.database, this.changeListener);
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+}
+
+class _$IGeosphereMediaDAO extends IGeosphereMediaDAO {
+  _$IGeosphereMediaDAO(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _geosphereMediaOLInsertionAdapter = InsertionAdapter(
+            database,
+            'GeosphereMediaOL',
+            (GeosphereMediaOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'type': item.type,
+                  'src': item.src,
+                  'leading': item.leading,
+                  'msgid': item.msgid,
+                  'text': item.text,
+                  'receptor': item.receptor,
+                  'sandbox': item.sandbox
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  static final _geosphereMediaOLMapper = (Map<String, dynamic> row) =>
+      GeosphereMediaOL(
+          row['id'] as String,
+          row['type'] as String,
+          row['src'] as String,
+          row['leading'] as String,
+          row['msgid'] as String,
+          row['text'] as String,
+          row['receptor'] as String,
+          row['sandbox'] as String);
+
+  final InsertionAdapter<GeosphereMediaOL> _geosphereMediaOLInsertionAdapter;
+
+  @override
+  Future<List<GeosphereMediaOL>> listMedia(
+      String receptor, String msgid, String sandbox) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereMediaOL WHERE receptor=? and msgid=? and sandbox=?',
+        arguments: <dynamic>[receptor, msgid, sandbox],
+        mapper: _geosphereMediaOLMapper);
+  }
+
+  @override
+  Future<void> empty(String receptor, String msgid, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM GeosphereMediaOL where receptor=? and msgid=? and sandbox=?',
+        arguments: <dynamic>[receptor, msgid, sandbox]);
+  }
+
+  @override
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) async {
+    await _geosphereMediaOLInsertionAdapter.insert(
+        geosphereMediaOL, sqflite.ConflictAlgorithm.abort);
   }
 }
 
@@ -396,6 +709,7 @@ class _$IGeoCategoryDAO extends IGeoCategoryDAO {
             (GeoCategoryOL item) => <String, dynamic>{
                   'id': item.id,
                   'title': item.title,
+                  'leading': item.leading,
                   'sort': item.sort,
                   'ctime': item.ctime,
                   'creator': item.creator,
@@ -414,6 +728,7 @@ class _$IGeoCategoryDAO extends IGeoCategoryDAO {
       GeoCategoryOL(
           row['id'] as String,
           row['title'] as String,
+          row['leading'] as String,
           row['sort'] as int,
           row['ctime'] as int,
           row['creator'] as String,

@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -789,8 +790,12 @@ class __CategoryRegionState extends State<_CategoryRegion> {
                   if (item is _Merchant) {
                     return Container(
                       color: Colors.white,
-                      margin: EdgeInsets.only(bottom: 10,),
-                      padding: EdgeInsets.only(top: 10,),
+                      margin: EdgeInsets.only(
+                        bottom: 10,
+                      ),
+                      padding: EdgeInsets.only(
+                        top: 10,
+                      ),
                       child: _GodownCard(
                         merchant: item,
                         context: widget.context,
@@ -2034,8 +2039,7 @@ class _GodownCardState extends State<_GodownCard> {
                       ),
                       children: [
                         TextSpan(
-                          text: StringUtil.isEmpty(
-                                  widget.merchant.subtitle)
+                          text: StringUtil.isEmpty(widget.merchant.subtitle)
                               ? ''
                               : '(${widget.merchant.subtitle})',
                         ),
@@ -2230,9 +2234,18 @@ class _GoupCardState extends State<_GoupCard> {
 
   @override
   Widget build(BuildContext context) {
-    var medias=<Media>[];
-    for(var img in widget.merchandise.images){
-      medias.add(Media(null,'image',img,null,null,null,null,widget.context.principal.person,));
+    var medias = <MediaSrc>[];
+    for (var img in widget.merchandise.images) {
+      medias.add(Media(
+        null,
+        'image',
+        img,
+        null,
+        null,
+        null,
+        null,
+        widget.context.principal.person,
+      ).toMediaSrc());
     }
     return Column(
       children: <Widget>[

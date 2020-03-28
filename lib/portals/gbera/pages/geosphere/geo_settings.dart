@@ -95,17 +95,17 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(8),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          offset: Offset(0, 10),
-                          blurRadius: 10,
-                          spreadRadius: -9,
-                        ),
-                      ],
+//                      borderRadius: BorderRadius.all(
+//                        Radius.circular(8),
+//                      ),
+//                      boxShadow: [
+//                        BoxShadow(
+//                          color: Colors.grey,
+//                          offset: Offset(0, 10),
+//                          blurRadius: 10,
+//                          spreadRadius: -9,
+//                        ),
+//                      ],
                     ),
                     child: Column(
                       children: <Widget>[
@@ -165,17 +165,17 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(8),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          offset: Offset(0, 10),
-                          blurRadius: 10,
-                          spreadRadius: -9,
-                        ),
-                      ],
+//                      borderRadius: BorderRadius.all(
+//                        Radius.circular(8),
+//                      ),
+//                      boxShadow: [
+//                        BoxShadow(
+//                          color: Colors.grey,
+//                          offset: Offset(0, 10),
+//                          blurRadius: 10,
+//                          spreadRadius: -9,
+//                        ),
+//                      ],
                     ),
                     child: Column(
                       children: <Widget>[
@@ -214,17 +214,17 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(8),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          offset: Offset(0, 10),
-                          blurRadius: 10,
-                          spreadRadius: -9,
-                        ),
-                      ],
+//                      borderRadius: BorderRadius.all(
+//                        Radius.circular(8),
+//                      ),
+//                      boxShadow: [
+//                        BoxShadow(
+//                          color: Colors.grey,
+//                          offset: Offset(0, 10),
+//                          blurRadius: 10,
+//                          spreadRadius: -9,
+//                        ),
+//                      ],
                     ),
                     child: Column(
                       children: <Widget>[

@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:netos_app/common/voice_widget.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -104,9 +105,9 @@ class _CardStoreState extends State<CardStore> {
 //微博等内容区的多图展示区
 class PageSelector extends StatefulWidget {
   PageContext context;
-  List<Media> medias;
-  Function(Media media) onMediaLongTap;
-  Function(Media media) onMediaTap;
+  List<MediaSrc> medias;
+  Function(MediaSrc media) onMediaLongTap;
+  Function(MediaSrc media) onMediaTap;
   BoxFit boxFit;
   double height;
 
@@ -231,6 +232,7 @@ class _PageSelectorState extends State<PageSelector> {
     );
   }
 }
+
 
 class VoiceFloatingButton extends StatefulWidget {
   PageContext context;

@@ -609,3 +609,73 @@ abstract class IGeoCategoryDAO {
   @insert
   Future<void> add(GeoCategoryOL categoryLocal) {}
 }
+
+@dao
+abstract class IGeosphereMessageDAO {
+  @insert
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
+  Future<List<GeosphereMessageOL>> pageMessage(
+      String receptor, String sandbox, int limit, int offset) {}
+
+  @Query(
+      'delete FROM GeosphereMessageOL where id=:id and receptor=:receptor and sandbox=:sandbox')
+  Future<void> removeMessage(String id, String receptor, String sandbox) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
+  Future<GeosphereMessageOL> getMessage(String receptor, id, String sandbox) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereLikePersonOL WHERE receptor=:receptor and msgid=:msgid and person=:liker and sandbox=:sandbox LIMIT 1')
+  Future<GeosphereLikePersonOL> getLikePersonBy(
+      String receptor, String msgid, String liker, String sandbox) {}
+
+  @Query(
+      'delete FROM GeosphereLikePersonOL where receptor=:receptor and msgid=:msgid and person=:liker and sandbox=:sandbox')
+  Future<void> unlike(
+      String receptor, String msgid, String liker, String sandbox) {}
+
+  @insert
+  Future<void> like(GeosphereLikePersonOL likePerson) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereLikePersonOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
+  Future<List<GeosphereLikePersonOL>> pageLikePersons(
+      String receptor, String msgid, String sandbox, int limit, int offset) {}
+
+  @Query(
+      'delete FROM GeosphereCommentOL where receptor=:receptor and msgid=:msgid and id=:commentid and sandbox=:sandbox')
+  Future<void> removeComment(
+      String receptor, String msgid, String commentid, String sandbox) {}
+
+  @insert
+  Future<void> addComment(GeosphereCommentOL geosphereCommentOL) {}
+  @Query(
+      'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
+  Future<List<GeosphereCommentOL>>pageComments(String receptor, String msgid,String sandbox, int limit, int offset) {}
+
+}
+
+@dao
+abstract class IGeosphereLikePersonDAO {}
+
+@dao
+abstract class IGeosphereCommentDAO {}
+
+@dao
+abstract class IGeosphereMediaDAO {
+  @insert
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereMediaOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox')
+  Future<List<GeosphereMediaOL>> listMedia(
+      String receptor, String msgid, String sandbox) {}
+
+  @Query(
+      'delete FROM GeosphereMediaOL where receptor=:receptor and msgid=:msgid and sandbox=:sandbox')
+  Future<void> empty(String receptor, String msgid, String sandbox) {}
+}

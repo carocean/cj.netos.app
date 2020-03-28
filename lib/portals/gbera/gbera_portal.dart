@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
+import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
@@ -12,12 +13,12 @@ import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_discovery.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
@@ -57,7 +58,6 @@ import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_settings.d
 import 'package:netos_app/portals/gbera/pages/netflow/publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/scan_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_channel.dart';
-import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/see_channelpin_persons.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/service_menu.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/settings_main.dart';
@@ -108,22 +108,17 @@ import 'package:netos_app/portals/gbera/pages/wallet/wy.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
-import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
 import 'package:netos_app/portals/gbera/store/services/channels.dart';
 import 'package:netos_app/portals/gbera/store/services/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
+import 'package:netos_app/portals/gbera/store/services/geo_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
-import 'package:netos_app/system/local/local_principals.dart';
-import 'package:netos_app/system/local/persons.dart';
-import 'package:netos_app/system/local/principals.dart';
-import 'package:netos_app/common/icons.dart';
-import 'package:netos_app/system/local/dao/database.dart';
-import '../../system/entrypoint.dart';
-import '../../system/register.dart';
+import 'package:netos_app/system/local/entities.dart';
+
 import 'desklets/chats/add_friend.dart';
 import 'desklets/chats/chat_talk.dart';
 import 'desklets/chats/friend_page.dart';
@@ -163,6 +158,8 @@ class GberaPortal {
           '/remote/geo/receptors': GeoReceptorRemote(),
           '/geosphere/receptors': GeoReceptorService(),
           '/geosphere/categories': GeoCategoryLocal(),
+          '/geosphere/receptor/messages': GeosphereMessageService(),
+          '/geosphere/receptor/messages/medias': GeosphereMediaService(),
         };
       },
       builderShareServices: (site) async {
@@ -515,7 +512,7 @@ class GberaPortal {
           desc: '',
           icon: Icons.art_track,
           url: '/micro/app',
-          buildPage: (PageContext pageContext) => MicroApp(
+          buildPage: (PageContext pageContext) => MicroAppWidget(
             context: pageContext,
           ),
         ),

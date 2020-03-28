@@ -297,9 +297,10 @@ mixin IPrincipalService {
 
 mixin IGeoReceptorService {
   Future<bool> init(Location location);
+
   Future<void> add(GeoReceptor receptor);
 
-  Future<void> remove(String category,String id);
+  Future<void> remove(String category, String id);
 
   Future<GeoReceptor> get(String id);
 
@@ -307,7 +308,8 @@ mixin IGeoReceptorService {
 
   Future<List<GeoReceptor>> page(int limit, int offset);
 
-  Future<void> updateLeading(String category,String id, String lleading,String rleading);
+  Future<void> updateLeading(
+      String category, String id, String lleading, String rleading);
 
   Future<void> updateTitle(String id, String title);
 
@@ -315,15 +317,48 @@ mixin IGeoReceptorService {
 
   Future<void> updateRadius(String id, double radius);
 }
-mixin IGeoCategoryRemote{
+mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
 
   Future<GeoCategoryOR> getCategory(String category) {}
 
- Future<List<GeoCategoryAppOR>> getApps(String category,String on) {}
-
+  Future<List<GeoCategoryAppOR>> getApps(String category, String on) {}
 }
-mixin IGeoCategoryLocal{
+mixin IGeoCategoryLocal {
   Future<GeoCategoryOL> get(String category);
+
   Future<void> remove(String category);
+}
+
+mixin IGeosphereMessageService {
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) {}
+
+  Future<List<GeosphereMessageOL>> pageMessage(
+      String receptor, int limit, int offset) {}
+
+  Future<void> removeMessage(String id, String receptor) {}
+
+  Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
+
+  Future<void> like(GeosphereLikePersonOL likePerson) {}
+
+  Future<void> unlike(String receptor, String msgid, String person) {}
+
+  Future<bool> isLiked(String receptor, String msgid, String person) {}
+
+  Future<List<GeosphereLikePersonOL>> pageLikePersons(
+      String receptor, String id, int i, int j) {}
+
+  Future<void> addComment(GeosphereCommentOL geosphereCommentOL) {}
+
+  Future<void> removeComment(String receptor, String msgid, String commentid) {}
+
+  Future<List<GeosphereCommentOL>> pageComments(
+      String receptor, String msgid, int limit, int offset) {
+  }
+}
+mixin IGeosphereMediaService {
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) {}
+
+  Future<List<GeosphereMediaOL>> listMedia(String receptor, String messageid) {}
 }

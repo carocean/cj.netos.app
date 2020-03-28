@@ -254,7 +254,7 @@ class __MessageCardState extends State<_MessageCard> {
         null,
         null,
         widget.context.principal.person,
-      ),
+      ).toMediaSrc(),
     ];
     return Card(
       shape: OutlineInputBorder(

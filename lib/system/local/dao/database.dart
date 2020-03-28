@@ -30,8 +30,20 @@ part 'database.g.dart';
   Principal,
   GeoReceptor,
   GeoCategoryOL,
+  GeosphereMessageOL,
+  GeosphereLikePersonOL,
+  GeosphereCommentOL,
+  GeosphereMediaOL,
 ])
 abstract class AppDatabase extends FloorDatabase {
+  IGeosphereMessageDAO get geosphereMessageDAO;
+
+  IGeosphereLikePersonDAO get geosphereLikePersonDAO;
+
+  IGeosphereCommentDAO get geosphereCommentDAO;
+
+  IGeosphereMediaDAO get geosphereMediaDAO;
+
   IGeoReceptorDAO get geoReceptorDAO;
 
   IGeoCategoryDAO get geoCategoryDAO;

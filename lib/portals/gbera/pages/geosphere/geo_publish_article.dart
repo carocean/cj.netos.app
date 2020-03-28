@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_plugin_record/index.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
-import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
 class GeospherePublishArticle extends StatefulWidget {
@@ -23,9 +22,12 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
 
   TextEditingController _contentController;
-
+  String _category;
+  String _receptor;
   @override
   void initState() {
+    _category=widget.context.parameters['category'];
+    _receptor=widget.context.parameters['receptor'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
     super.initState();
@@ -39,7 +41,6 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
   @override
   Widget build(BuildContext context) {
-    var geo_sphere_channel_code = IChannelService.GEO_CIRCUIT_CHANNEL_CODE;
     var type = widget.context.parameters['type'];
     return Scaffold(
       appBar: AppBar(
@@ -67,18 +68,19 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
               double wy = 38388.38827772;
               var images = shower_key.currentState.files;
               var location = null;
-              IChannelMessageService channelMessageService =
-                  widget.context.site.getService('/channel/messages');
-              IChannelMediaService channelMediaService =
-                  widget.context.site.getService('/channel/messages/medias');
-              var msgid = '${Uuid().v1()}';
-              await channelMessageService.addMessage(
-                ChannelMessage(
+              IGeosphereMessageService  geoMessageService=
+                  widget.context.site.getService('/geosphere/receptor/messages');
+              IGeosphereMediaService mediaService =
+                  widget.context.site.getService('/geosphere/receptor/messages/medias');
+              var msgid = MD5Util.MD5(Uuid().v1());
+              await geoMessageService.addMessage(
+                GeosphereMessageOL(
                   msgid,
                   null,
                   null,
                   null,
-                  geo_sphere_channel_code,
+                  null,
+                  _receptor,
                   user.person,
                   DateTime.now().millisecondsSinceEpoch,
                   null,
@@ -88,6 +90,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                   content,
                   wy,
                   location,
+                  _category,
                   widget.context.principal.person,
                 ),
               );
@@ -103,25 +106,21 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                     type = 'audio';
                     break;
                 }
-                await channelMediaService.addMedia(
-                  Media(
+                await mediaService.addMedia(
+                  GeosphereMediaOL(
                     '${Uuid().v1()}',
                     type,
                     '${file.src.path}',
                     null,
                     msgid,
                     null,
-                    geo_sphere_channel_code,
+                    _receptor,
                     widget.context.principal.person,
                   ),
                 );
               }
-              var refreshMessages =
-                  widget.context.parameters['refreshMessages'];
-              if (refreshMessages != null) {
-                await refreshMessages();
-              }
-              widget.context.backward();
+
+              widget.context.backward(result: msgid);
             },
             child: Text(
               '发表',
