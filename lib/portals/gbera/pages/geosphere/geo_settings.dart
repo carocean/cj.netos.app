@@ -21,6 +21,7 @@ class _GeoSettingsState extends State<GeoSettings> {
   ReceptorInfo _receptor;
   String _poiTitle;
   GeoCategoryMoveableMode _moveMode;
+  bool _switchMessageATipMode = false;
 
   @override
   void initState() {
@@ -243,37 +244,61 @@ class _GeoSettingsState extends State<GeoSettings> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      widget.context.forward(
-                          '/geosphere/receptor/settings/background',
-                          arguments: {'receptor': _receptor});
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        left: 10,
-                        right: 10,
-                      ),
-                      margin: EdgeInsets.only(
-                        bottom: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          CardItem(
-                            title: '背景设置',
-                            tipsText: '',
-                            leading: Icon(
-                              Icons.settings_ethernet,
-                              color: Colors.grey,
-                              size: 25,
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                    ),
+                    margin: EdgeInsets.only(
+                      bottom: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      children: <Widget>[
+                        CardItem(
+                          title: '背景设置',
+                          tipsText: '',
+                          leading: Icon(
+                            Icons.settings_ethernet,
+                            color: Colors.grey,
+                            size: 25,
+                          ),
+                          onItemTap: () {
+                            widget.context.forward(
+                                '/geosphere/receptor/settings/background',
+                                arguments: {'receptor': _receptor});
+                          },
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 35,
+                        ),
+                        CardItem(
+                          title: '消息到达模式',
+                          tipsText: '自动滚屏还是接收为提示消息',
+                          leading: Icon(
+                            Icons.refresh,
+                            color: Colors.grey,
+                            size: 25,
+                          ),
+                          tail: SizedBox(
+                            height: 25,
+                            child: Switch.adaptive(
+                              value: _switchMessageATipMode,
+                              onChanged: (v) {
+                                _switchMessageATipMode = v;
+                                setState(() {});
+                              },
                             ),
                           ),
-                        ],
-                      ),
+                          onItemTap: () {
+                            _switchMessageATipMode = !_switchMessageATipMode;
+                            setState(() {});
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -289,7 +314,7 @@ class _GeoSettingsState extends State<GeoSettings> {
     var title;
     var tips;
     var tail;
-    bool enableButton=false;
+    bool enableButton = false;
     switch (_moveMode) {
       case GeoCategoryMoveableMode.unmoveable:
         title = '固定感知器';
@@ -302,7 +327,7 @@ class _GeoSettingsState extends State<GeoSettings> {
       case GeoCategoryMoveableMode.moveableSelf:
         title = '移动感知器';
         tips = '更新距离：${getFriendlyDistance(_receptor.uDistance * 1.0)}';
-        enableButton=true;
+        enableButton = true;
         break;
       case GeoCategoryMoveableMode.moveableDependon:
         title = '依赖感知器';
@@ -316,7 +341,7 @@ class _GeoSettingsState extends State<GeoSettings> {
     }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap:!enableButton?null: () {},
+      onTap: !enableButton ? null : () {},
       child: CardItem(
         title: title,
         tipsText: tips,
