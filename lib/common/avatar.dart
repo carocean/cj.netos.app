@@ -9,7 +9,8 @@ import 'package:image_picker/image_picker.dart';
 class GberaAvatar extends StatefulWidget {
   PageContext context;
   bool useBackButton;
-  GberaAvatar({this.context,this.useBackButton=false});
+
+  GberaAvatar({this.context, this.useBackButton = false});
 
   @override
   _GberaAvatarState createState() => _GberaAvatarState();
@@ -21,9 +22,23 @@ class _GberaAvatarState extends State<GberaAvatar> {
   File _crop_image;
   var _cropKey = GlobalKey<CropState>();
 
+  //长宽比
+  double aspectRatio;
+
+  @override
+  void initState() {
+    aspectRatio = widget.context.parameters['aspectRatio'];
+    var fileName = widget.context.parameters['file'];
+    if (!StringUtil.isEmpty(fileName)) {
+      _image = File(fileName);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     var bb = widget.useBackButton;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -103,7 +118,7 @@ class _GberaAvatarState extends State<GberaAvatar> {
                     );
                     _image = null;
                     setState(() {
-                      widget.context.backward(result:_crop_image.path);
+                      widget.context.backward(result: _crop_image.path);
                     });
                   },
                   icon: Icon(Icons.check),
@@ -125,17 +140,37 @@ class _GberaAvatarState extends State<GberaAvatar> {
         //RepaintBoundary截图
         child: _crop_image != null
             ? SizedBox(width: 100, height: 100, child: Image.file(_crop_image))
-            : (_image != null
-                ? Crop(
-                    key: _cropKey,
-                    image: FileImage(
-                      _image,
-                    ),
-                    aspectRatio: 1,
-                  )
-                : Text('请拍照或选相册选择')),
+            : _renderMainRegion(),
       ),
     );
+  }
+
+  _renderMainRegion() {
+    if (_image == null) {
+      return Text('请拍照或选相册选择');
+    }
+    var _crop;
+    if (aspectRatio == null) {
+      aspectRatio = 1;
+    }
+    if (aspectRatio == -1) {
+      _crop = Crop(
+        key: _cropKey,
+        image: FileImage(
+          _image,
+        ),
+//                    aspectRatio: aspectRatio,
+      );
+    } else {
+      _crop = Crop(
+        key: _cropKey,
+        image: FileImage(
+          _image,
+        ),
+        aspectRatio: aspectRatio,
+      );
+    }
+    return (_image != null ? _crop : Text('请拍照或选相册选择'));
   }
 
   getLeading(bb) {

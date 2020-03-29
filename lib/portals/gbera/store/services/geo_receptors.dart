@@ -4,6 +4,7 @@ import 'package:amap_core_fluttify/src/dart/models.dart';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -18,17 +19,19 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
   IGeoReceptorDAO receptorDAO;
   IGeoReceptorRemote receptorRemote;
+
   @override
   Future<void> builder(IServiceProvider site) async {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     receptorDAO = db.geoReceptorDAO;
-    receptorRemote=site.getService('/remote/geo/receptors');
+    receptorRemote = site.getService('/remote/geo/receptors');
   }
 
   @override
   Future<bool> init(Location location) async {
-    var mobileReceptor = await getMobileReceptor(principal.person, principal.device);
+    var mobileReceptor =
+        await getMobileReceptor(principal.person, principal.device);
     if (mobileReceptor == null) {
       var latlng = await location.latLng;
       await add(
@@ -42,6 +45,9 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           1000,
           5,
           DateTime.now().millisecondsSinceEpoch,
+          'false',
+          'none',
+          null,
           principal.device,
           principal.person,
         ),
@@ -59,13 +65,54 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
 
   @override
   Future<Function> updateTitle(String id, String title) async {
-   await receptorDAO.updateTitle(title,id,principal.person);
+    await receptorDAO.updateTitle(title, id, principal.person);
   }
 
   @override
-  Future<Function> updateLeading(String category,String id, String lleading,String rleading) async {
-    await receptorDAO.updateLeading(lleading,category,id,principal.person);
-    await receptorRemote.updateLeading(rleading,category,id);
+  Future<Function> updateLeading(
+      String category, String id, String lleading, String rleading) async {
+    await receptorDAO.updateLeading(lleading, category, id, principal.person);
+    await receptorRemote.updateLeading(rleading, category, id);
+  }
+
+  @override
+  Future<Function> updateBackground(
+      String receptor, BackgroundMode mode, String file) async {
+    var _mode;
+    switch (mode) {
+      case BackgroundMode.vertical:
+        _mode = "vertical";
+        break;
+      case BackgroundMode.horizontal:
+        _mode = "horizontal";
+        break;
+      case BackgroundMode.none:
+        _mode = "none";
+        file = null;
+        break;
+    }
+    await receptorDAO.updateBackground(_mode, file, receptor, principal.person);
+  }
+
+  @override
+  Future<Function> emptyBackground(String receptor) async {
+    await receptorDAO.updateBackground(
+        'none', '', receptor, principal.person);
+  }
+
+  @override
+  Future<Function> updateForeground(
+      String receptor, ForegroundMode mode) async {
+    var _mode;
+    switch (mode) {
+      case ForegroundMode.original:
+        _mode = 'original';
+        break;
+      case ForegroundMode.white:
+        _mode = 'white';
+        break;
+    }
+    await receptorDAO.updateForeground(_mode, receptor, principal.person);
   }
 
   @override
@@ -80,25 +127,26 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
 
   @override
   Future<GeoReceptor> getMobileReceptor(String person, String device) async {
-    return await receptorDAO.getReceptor('mobiles',person, device, principal.person);
+    return await receptorDAO.getReceptor(
+        'mobiles', person, device, principal.person);
   }
 
   @override
-  Future<Function> remove(String category,String id) async {
-    await receptorDAO.remove(category,id, principal.person);
+  Future<Function> remove(String category, String id) async {
+    await receptorDAO.remove(category, id, principal.person);
     await receptorRemote.removeReceptor(category, id);
   }
 
   @override
   Future<void> updateLocation(String id, LatLng location) async {
-    var json=jsonEncode(location.toJson());
-    await receptorDAO.updateLocation(json,id,principal.person);
+    var json = jsonEncode(location.toJson());
+    await receptorDAO.updateLocation(json, id, principal.person);
     return null;
   }
 
   @override
   Future<void> updateRadius(String id, double radius) async {
-    await receptorDAO.updateRadius(radius,id,principal.person);
+    await receptorDAO.updateRadius(radius, id, principal.person);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class GeoPoi {
   String address;
@@ -30,7 +31,18 @@ class GeoPoi {
     distance = map['distance'];
   }
 }
+enum BackgroundMode{
+  vertical,horizontal,none,
+}
+enum ForegroundMode{
+  original,white,
+}
+class OnRecetorBackgroundChangedEvent{
+  String action;
+  Map<String,dynamic> args;
 
+  OnRecetorBackgroundChangedEvent({this.action, this.args});
+}
 class ReceptorInfo {
   String id;
   String title;
@@ -42,6 +54,12 @@ class ReceptorInfo {
   LatLng latLng;
   double radius;
   int uDistance;
+  ForegroundMode foregroundMode;
+  ///vertical|horizontal|none
+  BackgroundMode backgroundMode;
+  String background;
+  Future<void> Function(OnRecetorBackgroundChangedEvent e) onBackgroudChanged;
+  GeoReceptor origin;
   ReceptorInfo({
     this.id,
     this.title,
@@ -53,5 +71,10 @@ class ReceptorInfo {
     this.latLng,
     this.radius,
     this.uDistance,
+    this.background,
+    this.backgroundMode=BackgroundMode.none,
+    this.foregroundMode=ForegroundMode.original,
+    this.onBackgroudChanged,
+    this.origin,
   });
 }

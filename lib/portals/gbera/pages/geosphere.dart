@@ -629,6 +629,27 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
               if (_currentLatLng != null) {
                 offset = getDistance(start: _currentLatLng, end: latlng);
               }
+              var backgroundMode;
+              switch(receptor.backgroundMode) {
+                case 'vertical':
+                  backgroundMode=BackgroundMode.vertical;
+                  break;
+                case 'horizontal':
+                  backgroundMode=BackgroundMode.horizontal;
+                  break;
+                case 'none':
+                  backgroundMode=BackgroundMode.none;
+                  break;
+              }
+              var foregroundMode;
+              switch(receptor.foregroundMode) {
+                case 'original':
+                  foregroundMode=ForegroundMode.original;
+                  break;
+                case 'white':
+                  foregroundMode=ForegroundMode.white;
+                  break;
+              }
               return _ReceptorItem(
                 context: widget.context,
                 onDelete: () {
@@ -647,6 +668,10 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   radius: receptor.radius,
                   latLng: LatLng.fromJson(jsonDecode(receptor.location)),
                   uDistance: receptor.uDistance,
+                  background: receptor.background,
+                  backgroundMode: backgroundMode,
+                  foregroundMode: foregroundMode,
+                  origin: receptor,
                 ),
                 stateBar: _ReceptorItemStateBar(
                   isShow: false,

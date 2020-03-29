@@ -162,7 +162,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -606,6 +606,9 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
                   'radius': item.radius,
                   'uDistance': item.uDistance,
                   'ctime': item.ctime,
+                  'foregroundMode': item.foregroundMode,
+                  'backgroundMode': item.backgroundMode,
+                  'background': item.background,
                   'device': item.device,
                   'sandbox': item.sandbox
                 });
@@ -626,6 +629,9 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
       row['radius'] as double,
       row['uDistance'] as int,
       row['ctime'] as int,
+      row['foregroundMode'] as String,
+      row['backgroundMode'] as String,
+      row['background'] as String,
       row['device'] as String,
       row['sandbox'] as String);
 
@@ -691,6 +697,21 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE GeoReceptor SET radius=? WHERE id=? and sandbox=?',
         arguments: <dynamic>[radius, id, person]);
+  }
+
+  @override
+  Future<void> updateBackground(
+      dynamic mode, String file, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET backgroundMode=? , background=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[mode, file, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateForeground(dynamic mode, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET foregroundMode=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[mode, id, sandbox]);
   }
 
   @override

@@ -501,6 +501,11 @@ class GeoReceptor {
   //更新距离仅在mobiles分类下的感知器有用
   int uDistance;
   int ctime;
+  ///original,white,
+  String foregroundMode;
+  ///vertical|horizontal|none
+  String backgroundMode;
+  String background;
   String device;
   String sandbox;
 
@@ -514,6 +519,9 @@ class GeoReceptor {
       this.radius,
       this.uDistance,
       this.ctime,
+      this.foregroundMode,
+      this.backgroundMode,
+      this.background,
       this.device,
       this.sandbox);
 

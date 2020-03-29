@@ -50,7 +50,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     var _geoPoi = _key.currentState._geoPoi;
-    var _udistance=_key.currentState._distanceUpdateRate;
+    var _udistance = _key.currentState._distanceUpdateRate;
     await receptorService.add(
       GeoReceptor(
         MD5Util.MD5(Uuid().v1()),
@@ -62,6 +62,9 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         double.parse(_radiusController.text),
         _udistance,
         DateTime.now().millisecondsSinceEpoch,
+        'false',
+        'none',
+        null,
         widget.context.principal.device,
         widget.context.principal.person,
       ),

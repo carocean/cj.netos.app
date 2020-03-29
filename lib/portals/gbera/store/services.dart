@@ -1,5 +1,6 @@
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 
 import '../../../system/local/entities.dart';
 
@@ -316,6 +317,13 @@ mixin IGeoReceptorService {
   Future<void> updateLocation(String id, LatLng location);
 
   Future<void> updateRadius(String id, double radius);
+
+  Future<void> updateBackground(String id, BackgroundMode mode,String file) {}
+
+  Future<void>  emptyBackground(String id) {}
+
+  Future<void>   updateForeground(String id, ForegroundMode mode) {}
+
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();

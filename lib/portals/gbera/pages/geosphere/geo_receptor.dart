@@ -37,8 +37,6 @@ class GeoReceptorWidget extends StatefulWidget {
 class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
-  bool _isShowWallPaper = false;
-  bool _isShowBanner = true;
   EasyRefreshController _refreshController;
   GeoCategoryOL _category;
   bool _isLoaded = false;
@@ -50,8 +48,9 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   @override
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
-    geoLocation.listen(
-        'geosphere.receptors', (_receptorInfo.uDistance ?? 10)*1.0, _updateLocation);
+    _receptorInfo.onBackgroudChanged = _onBackgroudChanged;
+    geoLocation.listen('geosphere.receptors',
+        (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
@@ -70,6 +69,30 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     _messageList.clear();
     _refreshController.dispose();
     super.dispose();
+  }
+
+  Future<void> _onBackgroudChanged(OnRecetorBackgroundChangedEvent e) async {
+    print(e.action);
+    switch(e.action) {
+      case 'setNoneBackground':
+        _receptorInfo.origin.backgroundMode='none';
+        _receptorInfo.origin.background=null;
+        break;
+      case 'setHorizontalBackground':
+        _receptorInfo.origin.backgroundMode='horizontal';
+        _receptorInfo.origin.background=e.args['file'];
+        break;
+      case 'setVerticalBackground':
+        _receptorInfo.origin.backgroundMode='vertical';
+        _receptorInfo.origin.background=e.args['file'];
+        break;
+      case 'setWhiteForeground':
+        _receptorInfo.origin.foregroundMode='white';
+        break;
+      case 'setOriginalForeground':
+        _receptorInfo.origin.foregroundMode='original';
+        break;
+    }
   }
 
   Future<void> _updateLocation(Location location) async {
@@ -237,16 +260,24 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
             automaticallyImplyLeading: true,
             elevation: 0,
             centerTitle: true,
-            expandedHeight: !_isShowBanner ? 0 : 200,
-            background: !_isShowBanner
-                ? null
-                : NetworkImage(
-                    'http://47.105.165.186:7100/public/geosphere/wallpapers/e27df176176b9a03bfe72ee5b05f87e4.jpg?accessToken=${widget.context.principal.accessToken}',
-                  ),
+            expandedHeight:
+                _receptorInfo.backgroundMode != BackgroundMode.horizontal
+                    ? 0
+                    : 200,
+            background:
+                _receptorInfo.backgroundMode != BackgroundMode.horizontal
+                    ? null
+                    : !StringUtil.isEmpty(_receptorInfo.background)
+                        ? FileImage(
+                            File(_receptorInfo.background),
+                          )
+                        : NetworkImage(
+                            'http://47.105.165.186:7100/public/geosphere/wallpapers/e27df176176b9a03bfe72ee5b05f87e4.jpg?accessToken=${widget.context.principal.accessToken}',
+                          ),
             onRenderAppBar: (appBar, RenderStateAppBar state) {
               switch (state) {
                 case RenderStateAppBar.origin:
-                  if (_isShowBanner || _isShowWallPaper) {
+                  if (_receptorInfo.backgroundMode != BackgroundMode.none) {
                     _showWhiteAppBar(appBar, showTitle: false);
                   } else {
                     _showBlackAppBar(appBar, showTitle: false);
@@ -268,7 +299,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
           child: _HeaderWidget(
             context: widget.context,
             receptorInfo: _receptorInfo,
-            isShowWhite: _isShowWallPaper,
+            isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
             refresh: () {},
           ),
@@ -279,26 +310,28 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       _getMessageCards(),
     );
     return Scaffold(
-      floatingActionButton: VoiceFloatingButton(
-        onStartRecord: () {},
-        onStopRecord: (path, timelength, FlutterPluginRecord c, action) {
-          if (action != 'send') {
-            return;
-          }
-          _publishVoiceArticle(path, timelength).then((v) {
-            setState(() {});
-          });
-        },
-      ),
+//      floatingActionButton: VoiceFloatingButton(
+//        onStartRecord: () {},
+//        onStopRecord: (path, timelength, FlutterPluginRecord c, action) {
+//          if (action != 'send') {
+//            return;
+//          }
+//          _publishVoiceArticle(path, timelength).then((v) {
+//            setState(() {});
+//          });
+//        },
+//      ),
       body: Container(
         constraints: BoxConstraints.expand(),
-        decoration: !_isShowWallPaper
+        decoration: _receptorInfo.backgroundMode != BackgroundMode.vertical
             ? null
             : BoxDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(
-                    'http://47.105.165.186:7100/public/geosphere/wallpapers/f0a313238a3fa420bef974e62167881b.jpg?accessToken=${widget.context.principal.accessToken}',
-                  ),
+                  image: !StringUtil.isEmpty(_receptorInfo.background)
+                      ? FileImage(File(_receptorInfo.background))
+                      : NetworkImage(
+                          'http://47.105.165.186:7100/public/geosphere/wallpapers/f0a313238a3fa420bef974e62167881b.jpg?accessToken=${widget.context.principal.accessToken}',
+                        ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -510,8 +543,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadLocation().then((v) {
       setState(() {});
     });
-    geoLocation.listen('receptor.header', (widget.receptorInfo.uDistance ?? 10)*1.0,
-        _updateLocation);
+    geoLocation.listen('receptor.header',
+        (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
 //    _workingChannel = widget.context.parameters['workingChannel'];
 //    _workingChannel.onRefreshChannelState = (command, args) {
 //      _arrivedMessageCount++;
@@ -605,21 +638,21 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
           0xe604,
           fontFamily: 'netflow2',
         ),
-        size: 20,
+        size: 50,
         color: Colors.grey[500],
       );
     } else if (widget.receptorInfo.leading.startsWith('/')) {
       //本地存储
       imgSrc = Image.file(
         File(widget.receptorInfo.leading),
-        width: 20,
-        height: 20,
+        width: 50,
+        height: 50,
       );
     } else {
       imgSrc = Image.network(
         widget.receptorInfo.leading,
-        width: 20,
-        height: 20,
+        width: 50,
+        height: 50,
       );
     }
 
@@ -660,9 +693,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                               'receptor': widget.receptorInfo,
                               'moveMode': widget.categoryOL?.moveMode
                             });
-                          }).then((v) {
-                        print('----$v');
-                      });
+                          }).then((v) {});
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -689,7 +720,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                               softWrap: true,
                               textAlign: TextAlign.left,
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 25,
                                 fontWeight: FontWeight.w500,
                                 color: widget.isShowWhite
                                     ? Colors.white
@@ -704,7 +735,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   TextSpan(
                                     text: '${widget.categoryOL?.title ?? ''}',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                       color: widget.isShowWhite
                                           ? Colors.white
@@ -905,8 +936,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
             children: <Widget>[
               Image.network(
                 '${app.leading}?accessToken=${widget.context.principal.accessToken}',
-                width: 24,
-                height: 24,
+                width: 35,
+                height: 35,
                 color: widget.isShowWhite ? Colors.white : Colors.grey[600],
               ),
               Text(

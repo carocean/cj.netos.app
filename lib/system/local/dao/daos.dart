@@ -595,6 +595,14 @@ abstract class IGeoReceptorDAO {
   @Query(
       'UPDATE GeoReceptor SET radius=:radius WHERE id=:id and sandbox=:sandbox')
   Future<void> updateRadius(double radius, String id, String person) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET backgroundMode=:mode , background=:file WHERE id=:id and sandbox=:sandbox')
+  Future<void> updateBackground(mode, String file, String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET foregroundMode=:mode WHERE id=:id and sandbox=:sandbox')
+  Future<void> updateForeground(mode, String id, String sandbox) {}
 }
 
 @dao
@@ -653,10 +661,11 @@ abstract class IGeosphereMessageDAO {
 
   @insert
   Future<void> addComment(GeosphereCommentOL geosphereCommentOL) {}
+
   @Query(
       'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
-  Future<List<GeosphereCommentOL>>pageComments(String receptor, String msgid,String sandbox, int limit, int offset) {}
-
+  Future<List<GeosphereCommentOL>> pageComments(
+      String receptor, String msgid, String sandbox, int limit, int offset) {}
 }
 
 @dao

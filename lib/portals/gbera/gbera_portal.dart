@@ -17,6 +17,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_discovery.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_background.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
@@ -778,6 +779,15 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/geosphere/publish_article',
           buildPage: (PageContext pageContext) => GeospherePublishArticle(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '背景设置',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/geosphere/receptor/settings/background',
+          buildPage: (PageContext pageContext) => GeosphereReceptorBackground(
             context: pageContext,
           ),
         ),

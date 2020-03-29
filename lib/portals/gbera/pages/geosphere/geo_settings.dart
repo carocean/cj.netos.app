@@ -6,6 +6,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class GeoSettings extends StatefulWidget {
   PageContext context;
@@ -19,12 +20,23 @@ class GeoSettings extends StatefulWidget {
 class _GeoSettingsState extends State<GeoSettings> {
   ReceptorInfo _receptor;
   String _poiTitle;
-  String _moveMode;
+  GeoCategoryMoveableMode _moveMode;
 
   @override
   void initState() {
     _receptor = widget.context.page.parameters['receptor'];
-    _moveMode = widget.context.page.parameters['moveMode'];
+    var mode = widget.context.page.parameters['moveMode'];
+    switch (mode) {
+      case 'unmoveable':
+        _moveMode = GeoCategoryMoveableMode.unmoveable;
+        break;
+      case 'moveableSelf':
+        _moveMode = GeoCategoryMoveableMode.moveableSelf;
+        break;
+      case 'moveableDependon':
+        _moveMode = GeoCategoryMoveableMode.moveableDependon;
+        break;
+    }
     _loadLocation().then((v) {
       setState(() {});
     });
@@ -96,20 +108,14 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-//                      borderRadius: BorderRadius.all(
-//                        Radius.circular(8),
-//                      ),
-//                      boxShadow: [
-//                        BoxShadow(
-//                          color: Colors.grey,
-//                          offset: Offset(0, 10),
-//                          blurRadius: 10,
-//                          spreadRadius: -9,
-//                        ),
-//                      ],
                     ),
                     child: Column(
                       children: <Widget>[
+                        _getUDistanceItem(),
+                        Divider(
+                          height: 1,
+                          indent: 35,
+                        ),
                         CardItem(
                           title: '位置',
                           tipsText: '${_poiTitle ?? ''}附近',
@@ -132,26 +138,6 @@ class _GeoSettingsState extends State<GeoSettings> {
                             color: Colors.grey,
                             size: 25,
                           ),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 35,
-                        ),
-                        CardItem(
-                          title: '我的动态',
-//                          tipsText: '发表210篇',
-                          leading: Icon(
-                            FontAwesomeIcons.images,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
-                          onItemTap: () {
-                            widget.context.forward('/geosphere/portal');
-                          },
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 35,
                         ),
                       ],
                     ),
@@ -180,6 +166,22 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     child: Column(
                       children: <Widget>[
+                        CardItem(
+                          title: '我的动态',
+//                          tipsText: '发表210篇',
+                          leading: Icon(
+                            FontAwesomeIcons.font,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                          onItemTap: () {
+                            widget.context.forward('/geosphere/portal');
+                          },
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 35,
+                        ),
                         CardItem(
                           title: '圈内实时发现',
                           tipsText: '2894个',
@@ -243,7 +245,11 @@ class _GeoSettingsState extends State<GeoSettings> {
                   ),
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {},
+                    onTap: () {
+                      widget.context.forward(
+                          '/geosphere/receptor/settings/background',
+                          arguments: {'receptor': _receptor});
+                    },
                     child: Container(
                       padding: EdgeInsets.only(
                         left: 10,
@@ -261,7 +267,7 @@ class _GeoSettingsState extends State<GeoSettings> {
                             title: '背景设置',
                             tipsText: '',
                             leading: Icon(
-                              Icons.location_on,
+                              Icons.settings_ethernet,
                               color: Colors.grey,
                               size: 25,
                             ),
@@ -275,6 +281,51 @@ class _GeoSettingsState extends State<GeoSettings> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _getUDistanceItem() {
+    var title;
+    var tips;
+    var tail;
+    bool enableButton=false;
+    switch (_moveMode) {
+      case GeoCategoryMoveableMode.unmoveable:
+        title = '固定感知器';
+        tail = Icon(
+          Icons.remove,
+          size: 16,
+          color: Colors.white,
+        );
+        break;
+      case GeoCategoryMoveableMode.moveableSelf:
+        title = '移动感知器';
+        tips = '更新距离：${getFriendlyDistance(_receptor.uDistance * 1.0)}';
+        enableButton=true;
+        break;
+      case GeoCategoryMoveableMode.moveableDependon:
+        title = '依赖感知器';
+        tips = '该感知器依赖于我的地圈的位置更新通知';
+        tail = Icon(
+          Icons.remove,
+          size: 16,
+          color: Colors.white,
+        );
+        break;
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap:!enableButton?null: () {},
+      child: CardItem(
+        title: title,
+        tipsText: tips,
+        leading: Icon(
+          Icons.category,
+          color: Colors.grey,
+          size: 24,
+        ),
+        tail: tail,
       ),
     );
   }
