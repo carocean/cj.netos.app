@@ -40,7 +40,8 @@ class _GeoSettingsState extends State<GeoSettings> {
   }
 
   Future<void> _loadLocation() async {
-    var list = await AmapSearch.searchAround(_receptor.latLng, radius: 2000,type: amapPOIType);
+    var list = await AmapSearch.searchAround(_receptor.latLng,
+        radius: 2000, type: amapPOIType);
     if (list == null || list.isEmpty) {
       return;
     }
@@ -238,6 +239,35 @@ class _GeoSettingsState extends State<GeoSettings> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {},
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        left: 10,
+                        right: 10,
+                      ),
+                      margin: EdgeInsets.only(
+                        bottom: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          CardItem(
+                            title: '背景设置',
+                            tipsText: '',
+                            leading: Icon(
+                              Icons.location_on,
+                              color: Colors.grey,
+                              size: 25,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

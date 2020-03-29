@@ -144,7 +144,9 @@ class _PageSelectorState extends State<PageSelector> {
   @override
   Widget build(BuildContext context) {
     var _controller = DefaultTabController.of(context);
-
+    if(widget.medias.isEmpty) {
+      return Container(height: 0,width: 0,);
+    }
     return Stack(
       children: <Widget>[
         ConstrainedBox(

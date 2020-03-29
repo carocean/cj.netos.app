@@ -124,7 +124,7 @@ double getDistance({LatLng start, LatLng end}) {
 
 String getFriendlyDistance(double distance) {
   if (distance < 1000) {
-    return '${distance.toStringAsFixed(2)}米';
+    return '${distance.toStringAsFixed(0)}米';
   }
   return '${(distance / 1000).toStringAsFixed(3)}公里';
 }

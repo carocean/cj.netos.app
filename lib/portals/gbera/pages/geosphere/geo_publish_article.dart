@@ -1,12 +1,19 @@
+import 'dart:convert';
+
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+
+import 'geo_entities.dart';
 
 class GeospherePublishArticle extends StatefulWidget {
   PageContext context;
@@ -20,28 +27,59 @@ class GeospherePublishArticle extends StatefulWidget {
 
 class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
-
+  bool _enablePublishButton = false;
   TextEditingController _contentController;
   String _category;
   String _receptor;
+  GeoPoi _poi;
+
   @override
   void initState() {
-    _category=widget.context.parameters['category'];
-    _receptor=widget.context.parameters['receptor'];
+    _category = widget.context.parameters['category'];
+    _receptor = widget.context.parameters['receptor'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
+    geoLocation.listen(
+        'geosphere.recetpor.publish.article', 0, _updateLocation);
     super.initState();
   }
 
   @override
   void dispose() {
+    geoLocation.unlisten('geosphere.recetpor.publish.article');
+    _poi = null;
     _contentController.dispose();
     super.dispose();
   }
 
+  _updateLocation(Location location) async {
+    var latlng = await location.latLng;
+    var list =
+        await AmapSearch.searchAround(latlng, radius: 500, type: amapPOIType);
+    if (list.isEmpty) {
+      return;
+    }
+    var poi = list[0];
+    if (StringUtil.isEmpty(await poi.cityName)) {
+      return;
+    }
+    geoLocation.unlisten('geosphere.recetpor.publish.article');
+    String title = await poi.title;
+    String address = await poi.address;
+    var poiId = await poi.poiId;
+    _poi = GeoPoi(
+      title: title,
+      latLng: latlng,
+      address: address,
+      poiId: poiId,
+    );
+    _enablePublishButton =
+        _poi != null && !StringUtil.isEmpty(_contentController.text);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    var type = widget.context.parameters['type'];
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -60,73 +98,85 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         ),
         actions: <Widget>[
           FlatButton(
-            onPressed: () async {
-              UserPrincipal user = widget.context.principal;
-              var content = _contentController.text;
+            onPressed: !_enablePublishButton
+                ? null
+                : () async {
+                    UserPrincipal user = widget.context.principal;
+                    var content = _contentController.text;
 
-              ///纹银价格从app的更新管理中心或消息中心获取
-              double wy = 38388.38827772;
-              var images = shower_key.currentState.files;
-              var location = null;
-              IGeosphereMessageService  geoMessageService=
-                  widget.context.site.getService('/geosphere/receptor/messages');
-              IGeosphereMediaService mediaService =
-                  widget.context.site.getService('/geosphere/receptor/messages/medias');
-              var msgid = MD5Util.MD5(Uuid().v1());
-              await geoMessageService.addMessage(
-                GeosphereMessageOL(
-                  msgid,
-                  null,
-                  null,
-                  null,
-                  null,
-                  _receptor,
-                  user.person,
-                  DateTime.now().millisecondsSinceEpoch,
-                  null,
-                  null,
-                  null,
-                  'sended',
-                  content,
-                  wy,
-                  location,
-                  _category,
-                  widget.context.principal.person,
+                    ///纹银价格从app的更新管理中心或消息中心获取
+                    double wy = 38388.38827772;
+                    var images = shower_key.currentState.files;
+                    IGeosphereMessageService geoMessageService = widget
+                        .context.site
+                        .getService('/geosphere/receptor/messages');
+                    IGeosphereMediaService mediaService = widget.context.site
+                        .getService('/geosphere/receptor/messages/medias');
+                    var msgid = MD5Util.MD5(Uuid().v1());
+                    await geoMessageService.addMessage(
+                      GeosphereMessageOL(
+                        msgid,
+                        null,
+                        null,
+                        null,
+                        null,
+                        _receptor,
+                        user.person,
+                        DateTime.now().millisecondsSinceEpoch,
+                        null,
+                        null,
+                        null,
+                        'sended',
+                        content,
+                        wy,
+                        _poi.toJson(),
+                        _category,
+                        widget.context.principal.person,
+                      ),
+                    );
+                    for (MediaFile file in images) {
+                      var type = 'image';
+                      switch (file.type) {
+                        case MediaFileType.image:
+                          break;
+                        case MediaFileType.video:
+                          type = 'video';
+                          break;
+                        case MediaFileType.audio:
+                          type = 'audio';
+                          break;
+                      }
+                      await mediaService.addMedia(
+                        GeosphereMediaOL(
+                          '${Uuid().v1()}',
+                          type,
+                          '${file.src.path}',
+                          null,
+                          msgid,
+                          null,
+                          _receptor,
+                          widget.context.principal.person,
+                        ),
+                      );
+                    }
+
+                    widget.context.backward(result: msgid);
+                  },
+            child: Container(
+              color:  null,
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 8,
+                bottom: 8,
+              ),
+              child: Text(
+                '发表',
+                style: TextStyle(
+                  color:
+                      _enablePublishButton ? Colors.green : Colors.grey[400],
+                  fontWeight: FontWeight.w600,
                 ),
-              );
-              for (MediaFile file in images) {
-                var type = 'image';
-                switch (file.type) {
-                  case MediaFileType.image:
-                    break;
-                  case MediaFileType.video:
-                    type = 'video';
-                    break;
-                  case MediaFileType.audio:
-                    type = 'audio';
-                    break;
-                }
-                await mediaService.addMedia(
-                  GeosphereMediaOL(
-                    '${Uuid().v1()}',
-                    type,
-                    '${file.src.path}',
-                    null,
-                    msgid,
-                    null,
-                    _receptor,
-                    widget.context.principal.person,
-                  ),
-                );
-              }
-
-              widget.context.backward(result: msgid);
-            },
-            child: Text(
-              '发表',
-              style: TextStyle(
-                color: Colors.blueGrey,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -149,6 +199,11 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                   controller: _contentController,
                   maxLines: 10,
                   autofocus: true,
+                  onChanged: (v) {
+                    _enablePublishButton = _poi != null &&
+                        !StringUtil.isEmpty(_contentController.text);
+                    setState(() {});
+                  },
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     labelText: '输入内容',
@@ -446,65 +501,80 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                       height: 1,
                       indent: 30,
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 15,
-                        top: 15,
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: Colors.grey,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (_poi == null) {
+                          return;
+                        }
+                        widget.context.forward('/geosphere/amap/near',
+                            arguments: {'poi': _poi}).then((result) {
+                          _poi = (result as Map)['poi'];
+                          setState(() {});
+                        });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 15,
+                          top: 15,
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              padding: EdgeInsets.only(
+                                right: 10,
+                              ),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(
-                                  '所在位置',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                            Expanded(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    '所在位置',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Flexible(
-                                        fit: FlexFit.loose,
-                                        child: Text(''),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 10,
+                                  Flexible(
+                                    fit: FlexFit.loose,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Flexible(
+                                          fit: FlexFit.loose,
+                                          child: Text(
+                                              '${_poi == null ? '定位中...' : '${_poi.title}附近'}'),
                                         ),
-                                        child: Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey,
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 10,
+                                          ),
+                                          child: Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 16,
+                                            color: Colors.grey,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     Divider(

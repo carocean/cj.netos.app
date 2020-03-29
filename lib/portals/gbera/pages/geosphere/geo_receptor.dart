@@ -45,10 +45,13 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   int _limit = 15, _offset = 0;
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
+  GeoPoi _currentLocation;
 
   @override
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
+    geoLocation.listen(
+        'geosphere.receptors', (_receptorInfo.uDistance ?? 10)*1.0, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
@@ -63,9 +66,47 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
 
   @override
   void dispose() {
+    geoLocation.unlisten('geosphere.receptors');
     _messageList.clear();
     _refreshController.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateLocation(Location location) async {
+    var city = await location.city;
+    if (StringUtil.isEmpty(city)) {
+      return;
+    }
+    //计算文档离我的距离
+    var latLng = await location.latLng;
+    var poiList =
+        await AmapSearch.searchAround(latLng, radius: 500, type: amapPOIType);
+    if (poiList.isEmpty) {
+      return;
+    }
+    var amapPoi = poiList[0];
+    var title = await amapPoi.title;
+    var address = await amapPoi.address;
+    var poiId = await amapPoi.poiId;
+
+    var distance = 0;
+    _currentLocation = GeoPoi(
+      distance: distance,
+      title: title,
+      latLng: latLng,
+      address: address,
+      poiId: poiId,
+    );
+    for (var msg in _messageList) {
+      if (msg.poi == null) {
+        continue;
+      }
+      var msglatLng = msg.poi.latLng;
+      var distanceLabel =
+          getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
+      msg.distanceLabel = distanceLabel;
+    }
+    setState(() {});
   }
 
   Future<void> _loadCategory() async {
@@ -239,7 +280,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     );
     return Scaffold(
       floatingActionButton: VoiceFloatingButton(
-        onStartRecord: (){},
+        onStartRecord: () {},
         onStopRecord: (path, timelength, FlutterPluginRecord c, action) {
           if (action != 'send') {
             return;
@@ -469,7 +510,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadLocation().then((v) {
       setState(() {});
     });
-    geoLocation.listen('receptor.header', 5, _updateLocation);
+    geoLocation.listen('receptor.header', (widget.receptorInfo.uDistance ?? 10)*1.0,
+        _updateLocation);
 //    _workingChannel = widget.context.parameters['workingChannel'];
 //    _workingChannel.onRefreshChannelState = (command, args) {
 //      _arrivedMessageCount++;
@@ -917,6 +959,7 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   Widget build(BuildContext context) {
+    GeoPoi poi = widget.messageWrapper.poi;
     return Card(
       shape: Border(),
       elevation: 0,
@@ -1049,47 +1092,116 @@ class __MessageCardState extends State<_MessageCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        child: Text.rich(
-                          TextSpan(
-                            text: '${TimelineUtil.format(
-                              widget.messageWrapper.message.ctime,
-                              dayFormat: DayFormat.Simple,
-                            )}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[400],
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 2,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 0,
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  text: '${TimelineUtil.format(
+                                    widget.messageWrapper.message.ctime,
+                                    dayFormat: DayFormat.Simple,
+                                  )}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                  children: [
+                                    TextSpan(text: '  '),
+                                    TextSpan(
+                                        text:
+                                            '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
+                                  ],
+                                ),
+                              ),
                             ),
-                            children: [
-                              TextSpan(text: '  '),
-                              TextSpan(
-                                  text:
-                                      '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
-                              TextSpan(text: '\r\n'),
-                              TextSpan(
-                                text:
-                                    '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                      fontWeight: FontWeight.w600,
+                            Padding(
+                              padding: EdgeInsets.only(),
+                              child: Text.rich(
+                                TextSpan(
+                                  text: '',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
+                                          style: TextStyle(
+                                            color: Colors.blueGrey,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              widget.context.forward(
+                                                  "/site/personal",
+                                                  arguments: {
+                                                    'person': widget
+                                                        .messageWrapper.creator,
+                                                  });
+                                            },
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                softWrap: true,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 0,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+//                                  Padding(
+//                                    padding: EdgeInsets.only(
+//                                      right: 2,
+//                                    ),
+//                                    child: Icon(
+//                                      Icons.location_on,
+//                                      size: 12,
+//                                      color: Colors.grey[400],
+//                                    ),
+//                                  ),
+                                  Text.rich(
+                                    TextSpan(
+                                      text:
+                                          '${poi == null ? '' : '${poi.title}附近'}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[400],
+                                      ),
+                                      children:
+                                          widget.messageWrapper.distanceLabel ==
+                                                  null
+                                              ? []
+                                              : [
+                                                  TextSpan(text: ' '),
+                                                  TextSpan(
+                                                    text:
+                                                        '距${widget.messageWrapper.distanceLabel}',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
                                     ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        widget.context.forward("/site/personal",
-                                            arguments: {
-                                              'person':
-                                                  widget.messageWrapper.creator,
-                                            });
-                                      },
                                   ),
                                 ],
-                              )
-                            ],
-                          ),
-                          softWrap: true,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       _MessageOperatesPopupMenu(
@@ -1757,6 +1869,7 @@ class _GeosphereMessageWrapper {
   List<MediaSrc> medias;
   Person creator;
   Person upstreamPerson;
+  String _distanceLabel;
 
   _GeosphereMessageWrapper({
     this.message,
@@ -1767,5 +1880,17 @@ class _GeosphereMessageWrapper {
 
   Person get sender {
     return upstreamPerson == null ? creator : upstreamPerson;
+  }
+
+  GeoPoi get poi => StringUtil.isEmpty(message.location)
+      ? null
+      : GeoPoi.from(message.location);
+
+  set distanceLabel(String distanceLabel) {
+    _distanceLabel = distanceLabel;
+  }
+
+  String get distanceLabel {
+    return _distanceLabel;
   }
 }
