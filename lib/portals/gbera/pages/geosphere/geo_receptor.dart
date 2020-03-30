@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
@@ -43,7 +44,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   int _limit = 15, _offset = 0;
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
-  GeoPoi _currentLocation;
+  GeoPoi _currentPoi;
 
   @override
   void initState() {
@@ -113,21 +114,23 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     var poiId = await amapPoi.poiId;
 
     var distance = 0;
-    _currentLocation = GeoPoi(
+    _currentPoi = GeoPoi(
       distance: distance,
       title: title,
       latLng: latLng,
       address: address,
       poiId: poiId,
     );
-    for (var msg in _messageList) {
-      if (msg.poi == null) {
+    for (var msgwrapper in _messageList) {
+      String loc=msgwrapper.message.location;
+      if(StringUtil.isEmpty(loc)) {
         continue;
       }
-      var msglatLng = msg.poi.latLng;
+      var msglatLng = LatLng.fromJson(jsonDecode(loc));
       var distanceLabel =
           getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
-      msg.distanceLabel = distanceLabel;
+      msgwrapper.distanceLabel = distanceLabel;
+      msgwrapper.poi=_currentPoi;
     }
     setState(() {});
   }
@@ -242,7 +245,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(
+    await geoMessageService.removeMessage(_receptorInfo.category,
         wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
@@ -1901,21 +1904,18 @@ class _GeosphereMessageWrapper {
   Person creator;
   Person upstreamPerson;
   String _distanceLabel;
-
+  GeoPoi poi;
   _GeosphereMessageWrapper({
     this.message,
     this.medias,
     this.creator,
     this.upstreamPerson,
+    this.poi,
   });
 
   Person get sender {
     return upstreamPerson == null ? creator : upstreamPerson;
   }
-
-  GeoPoi get poi => StringUtil.isEmpty(message.location)
-      ? null
-      : GeoPoi.from(message.location);
 
   set distanceLabel(String distanceLabel) {
     _distanceLabel = distanceLabel;

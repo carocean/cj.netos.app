@@ -1,5 +1,7 @@
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
@@ -12,6 +14,8 @@ class GeosphereMessageService
   UserPrincipal get principal => site.getService('@.principal');
   IGeosphereMessageDAO messageDAO;
   IGeosphereMediaDAO mediaDAO;
+  IGeoReceptorRemote receptorRemote;
+  IGeoReceptorDAO geoReceptorDAO;
 
   @override
   Future<void> builder(IServiceProvider site) async {
@@ -19,11 +23,15 @@ class GeosphereMessageService
     AppDatabase db = site.getService('@.db');
     messageDAO = db.geosphereMessageDAO;
     mediaDAO = db.geosphereMediaDAO;
+    geoReceptorDAO = db.geoReceptorDAO;
+    receptorRemote = site.getService('/remote/geo/receptors');
   }
 
   @override
   Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) async {
     await messageDAO.addMessage(geosphereMessageOL);
+    await receptorRemote
+        .publishMessage(GeosphereMessageOR.form(geosphereMessageOL));
   }
 
   @override
@@ -34,9 +42,11 @@ class GeosphereMessageService
   }
 
   @override
-  Future<Function> removeMessage(String receptor, String id) async {
-    await messageDAO.removeMessage(id, receptor, principal.person);
-    await mediaDAO.empty(receptor, id, principal.person);
+  Future<Function> removeMessage(
+      String category, String receptor, String msgid) async {
+    await messageDAO.removeMessage(msgid, receptor, principal.person);
+    await mediaDAO.empty(receptor, msgid, principal.person);
+    await receptorRemote.removeMessage(category, receptor, msgid);
   }
 
   @override
@@ -54,6 +64,8 @@ class GeosphereMessageService
   @override
   Future<Function> unlike(String receptor, String msgid, String liker) async {
     await messageDAO.unlike(receptor, msgid, liker, principal.person);
+    var o = await geoReceptorDAO.get(receptor, principal.person);
+    await receptorRemote.unlike(o.category, receptor, msgid, liker);
   }
 
   @override
@@ -61,6 +73,9 @@ class GeosphereMessageService
     await messageDAO.unlike(likePerson.receptor, likePerson.msgid,
         likePerson.person, principal.person);
     await messageDAO.like(likePerson);
+    var o = await geoReceptorDAO.get(likePerson.receptor, principal.person);
+    await receptorRemote.like(
+        o.category, likePerson.receptor, likePerson.msgid, likePerson.person);
   }
 
   @override
@@ -75,11 +90,22 @@ class GeosphereMessageService
       String receptor, String msgid, String commentid) async {
     await messageDAO.removeComment(
         receptor, msgid, commentid, principal.person);
+    var o = await geoReceptorDAO.get(receptor, principal.person);
+    await receptorRemote.removeComment(o.category, receptor, msgid, commentid);
   }
 
   @override
   Future<Function> addComment(GeosphereCommentOL geosphereCommentOL) async {
     await messageDAO.addComment(geosphereCommentOL);
+    var o =
+        await geoReceptorDAO.get(geosphereCommentOL.receptor, principal.person);
+    await receptorRemote.addComment(
+        o.category,
+        geosphereCommentOL.receptor,
+        geosphereCommentOL.msgid,
+        geosphereCommentOL.person,
+        geosphereCommentOL.id,
+        geosphereCommentOL.text);
   }
 
   @override
@@ -95,17 +121,22 @@ class GeosphereMediaService implements IGeosphereMediaService, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
   IGeosphereMediaDAO mediaDAO;
-
+  IGeoReceptorRemote receptorRemote;
+  IGeoReceptorDAO geoReceptorDAO;
   @override
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     mediaDAO = db.geosphereMediaDAO;
+    geoReceptorDAO=db.geoReceptorDAO;
+    receptorRemote = site.getService('/remote/geo/receptors');
   }
 
   @override
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) async {
     await mediaDAO.addMedia(geosphereMediaOL);
+    var o=await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
+    await receptorRemote.uploadMedia(o.category,geosphereMediaOL);
   }
 
   @override

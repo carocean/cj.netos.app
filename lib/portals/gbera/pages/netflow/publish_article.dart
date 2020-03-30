@@ -106,7 +106,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
       widget.context.ports.portTask.addUploadTask('/app', [file.src.path],
           callbackUrl:
-              '/network/channel/doc?mediaid=${media.id}&type=$type&localFile=${file.src.path}&docid=$msgid&channel=${_channel.id}&creator=${user.person}&text=${media.text??''}&leading=${media.leading??''}');
+              '/network/channel/doc?mediaid=${media.id}&type=$type&localFile=${file.src.path}&docid=$msgid&channel=${_channel.id}&creator=${user.person}&text=${media.text ?? ''}&leading=${media.leading ?? ''}');
     }
 
     var doc = {
@@ -124,7 +124,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'publishDocument',
       callbackUrl:
           '/network/channel/doc?docid=$msgid&channel=${_channel.id}&creator=${user.person}',
-      data: {'document': jsonEncode(doc)},
+      data: {
+        'document': jsonEncode(doc),
+      },
     );
 
     var refreshMessages = widget.context.parameters['refreshMessages'];

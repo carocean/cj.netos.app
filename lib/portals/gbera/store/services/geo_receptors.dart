@@ -92,12 +92,19 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         break;
     }
     await receptorDAO.updateBackground(_mode, file, receptor, principal.person);
+    var o = await receptorDAO.get(receptor, principal.person);
+    if (BackgroundMode.none == mode) {
+      await receptorRemote.emptyBackground(o.category, receptor);
+    } else {
+      await receptorRemote.updateBackground(o.category, receptor, _mode, file);
+    }
   }
 
   @override
   Future<Function> emptyBackground(String receptor) async {
-    await receptorDAO.updateBackground(
-        'none', '', receptor, principal.person);
+    await receptorDAO.updateBackground('none', '', receptor, principal.person);
+    var o = await receptorDAO.get(receptor, principal.person);
+    await receptorRemote.emptyBackground(o.category, receptor);
   }
 
   @override
@@ -113,6 +120,8 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         break;
     }
     await receptorDAO.updateForeground(_mode, receptor, principal.person);
+    var o = await receptorDAO.get(receptor, principal.person);
+    await receptorRemote.updateForeground(o.category, receptor, _mode);
   }
 
   @override

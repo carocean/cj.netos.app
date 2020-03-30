@@ -344,7 +344,7 @@ mixin IGeosphereMessageService {
   Future<List<GeosphereMessageOL>> pageMessage(
       String receptor, int limit, int offset) {}
 
-  Future<void> removeMessage(String id, String receptor) {}
+  Future<void> removeMessage(String category,String receptor,String msgid) {}
 
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
 

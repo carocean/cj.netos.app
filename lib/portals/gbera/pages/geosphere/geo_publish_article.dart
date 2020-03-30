@@ -103,6 +103,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                 : () async {
                     UserPrincipal user = widget.context.principal;
                     var content = _contentController.text;
+                    var location = jsonEncode(_poi.latLng.toJson());
 
                     ///纹银价格从app的更新管理中心或消息中心获取
                     double wy = 38388.38827772;
@@ -129,7 +130,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                         'sended',
                         content,
                         wy,
-                        _poi.toJson(),
+                        location,
                         _category,
                         widget.context.principal.person,
                       ),
@@ -163,7 +164,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                     widget.context.backward(result: msgid);
                   },
             child: Container(
-              color:  null,
+              color: null,
               padding: EdgeInsets.only(
                 left: 20,
                 right: 20,
@@ -173,8 +174,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
               child: Text(
                 '发表',
                 style: TextStyle(
-                  color:
-                      _enablePublishButton ? Colors.green : Colors.grey[400],
+                  color: _enablePublishButton ? Colors.green : Colors.grey[400],
                   fontWeight: FontWeight.w600,
                 ),
               ),

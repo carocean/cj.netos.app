@@ -646,7 +646,7 @@ class GeosphereMessageOL {
   String state;
   final String text;
   final double wy;
-  ///location是GEOPoi对象
+  ///location是LatLng对象
   final String location;
   final String category;
   final String sandbox;

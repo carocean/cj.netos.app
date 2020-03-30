@@ -7,7 +7,8 @@ import 'package:netos_app/main.dart';
 class TaskBar extends StatefulWidget {
   IServiceProvider site;
   ProgressTaskBar progressTaskbar;
-  TaskBar(this.site,this.progressTaskbar);
+
+  TaskBar(this.site, this.progressTaskbar);
 
   @override
   _TaskBarState createState() => _TaskBarState();
@@ -26,11 +27,14 @@ class _TaskBarState extends State<TaskBar> {
   void initState() {
     widget.progressTaskbar.target = (percent) {
       this.percent = percent;
-      state=percent>0.99?0:1;
+      state = percent > 0.99 ? 0 : 1;
       setState(() {});
     };
     IRemotePorts ports = widget.site.getService('@.remote.ports');
     _listenChannelTask(ports);
+    _listenGeosphereSettingsTask(ports);
+    _listenGeosphereDocTask(ports);
+    _listenGeosphereDocUploadMediaTask(ports);
     super.initState();
   }
 
@@ -39,6 +43,9 @@ class _TaskBarState extends State<TaskBar> {
     widget.progressTaskbar.target = null;
     IRemotePorts ports = widget.site.getService('@.remote.ports');
     ports.portTask.unlistener('/network/channel/doc');
+    ports.portTask.unlistener('/geosphere/receptor/settings');
+    ports.portTask.unlistener('/geosphere/receptor/docs/publishMessage');
+    ports.portTask.unlistener('/geosphere/receptor/docs/uploadMedia');
     super.dispose();
   }
 
@@ -53,6 +60,100 @@ class _TaskBarState extends State<TaskBar> {
     return LinearProgressIndicator(
       value: percent,
     );
+  }
+
+  void _listenGeosphereDocUploadMediaTask(ports) {
+    //成功上传图片则提交多媒体信息
+    ports.portTask.listener('/geosphere/receptor/docs/uploadMedia',
+        (Frame frame) {
+      switch (frame.command) {
+        case "upload":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              var json = frame.contentText;
+              var files = jsonDecode(json);
+              var remoteFile = files[frame.parameter('background')];
+              var _receptorPortsUrl =
+                  widget.site.getService('@.prop.ports.document.geo.receptor');
+              ports.portTask.addPortGETTask(
+                _receptorPortsUrl,
+                'addMedia',
+                parameters: {
+                  'receptor': frame.parameter('receptor'),
+                  'category': frame.parameter('category'),
+                  'docid': frame.parameter('msgid'),
+                  'id': frame.parameter('id'),
+                  'type': frame.parameter('type'),
+                  'src': remoteFile,
+                  'text': frame.parameter('text'),
+                  'leading': frame.parameter('leading'),
+                },
+              );
+              setState(() {});
+              break;
+            case 'sendProgress':
+              state = 1;
+              var count = frame.head('count');
+              var total = frame.head('total');
+              percent = double.parse(count) / double.parse(total);
+              setState(() {});
+              break;
+          }
+          break;
+      }
+    });
+  }
+
+  void _listenGeosphereDocTask(ports) {
+    //文档成功上传完则推送
+    ports.portTask.listener('/geosphere/receptor/docs/publishMessage', (frame) {
+      print(frame);
+    });
+  }
+
+  void _listenGeosphereSettingsTask(IRemotePorts ports) {
+    ports.portTask.listener('/geosphere/receptor/settings', (frame) {
+      switch (frame.command) {
+        case "upload":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //调用更新背景api
+              var json = frame.contentText;
+              var files = jsonDecode(json);
+              var remoteFile = files[frame.parameter('background')];
+              var _receptorPortsUrl =
+                  widget.site.getService('@.prop.ports.document.geo.receptor');
+              ports.portTask.addPortGETTask(
+                _receptorPortsUrl,
+                'updateBackground',
+                parameters: {
+                  'id': frame.parameter('receptor'),
+                  'category': frame.parameter('category'),
+                  'mode': frame.parameter('mode'),
+                  'background': remoteFile,
+                },
+              );
+              setState(() {});
+              break;
+            case 'sendProgress':
+              state = 1;
+              var count = frame.head('count');
+              var total = frame.head('total');
+              percent = double.parse(count) / double.parse(total);
+              setState(() {});
+              break;
+          }
+          break;
+      }
+    });
   }
 
   void _listenChannelTask(IRemotePorts ports) {
