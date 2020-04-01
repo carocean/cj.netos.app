@@ -629,6 +629,11 @@ abstract class IGeosphereMessageDAO {
       String receptor, String sandbox, int limit, int offset) {}
 
   @Query(
+      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and creator=:creator and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
+  Future<List<GeosphereMessageOL>> pageMyMessage(
+      String receptor,String creator, String sandbox, int limit, int offset) {}
+
+  @Query(
       'delete FROM GeosphereMessageOL where id=:id and receptor=:receptor and sandbox=:sandbox')
   Future<void> removeMessage(String id, String receptor, String sandbox) {}
 

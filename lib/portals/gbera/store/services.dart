@@ -319,12 +319,11 @@ mixin IGeoReceptorService {
 
   Future<void> updateRadius(String id, double radius);
 
-  Future<void> updateBackground(String id, BackgroundMode mode,String file) {}
+  Future<void> updateBackground(String id, BackgroundMode mode, String file) {}
 
-  Future<void>  emptyBackground(String id) {}
+  Future<void> emptyBackground(String id) {}
 
-  Future<void>   updateForeground(String id, ForegroundMode mode) {}
-
+  Future<void> updateForeground(String id, ForegroundMode mode) {}
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
@@ -332,14 +331,6 @@ mixin IGeoCategoryRemote {
   Future<GeoCategoryOR> getCategory(String category) {}
 
   Future<List<GeoCategoryAppOR>> getApps(String category, String on) {}
-
-  Future<List<GeoPOI>> searchAroundReceptors({String categroy, String receptor, String geoType, int limit, int offset}) {}
-
-  Future<List<GeoPOF>>pageReceptorFans({String categroy, String receptor, int limit, int offset}) {}
-
- Future<List<ChannelOR>> listReceptorChannels() {}
-
-
 }
 mixin IGeoCategoryLocal {
   Future<GeoCategoryOL> get(String category);
@@ -353,7 +344,10 @@ mixin IGeosphereMessageService {
   Future<List<GeosphereMessageOL>> pageMessage(
       String receptor, int limit, int offset) {}
 
-  Future<void> removeMessage(String category,String receptor,String msgid) {}
+  Future<List<GeosphereMessageOL>> pageMyMessage(
+      String id,String creator, int limit, int offset) {}
+
+  Future<void> removeMessage(String category, String receptor, String msgid) {}
 
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
 
@@ -371,8 +365,7 @@ mixin IGeosphereMessageService {
   Future<void> removeComment(String receptor, String msgid, String commentid) {}
 
   Future<List<GeosphereCommentOL>> pageComments(
-      String receptor, String msgid, int limit, int offset) {
-  }
+      String receptor, String msgid, int limit, int offset) {}
 }
 mixin IGeosphereMediaService {
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) {}

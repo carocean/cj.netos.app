@@ -42,6 +42,13 @@ class GeosphereMessageService
   }
 
   @override
+  Future<List<GeosphereMessageOL>> pageMyMessage(
+      String receptor,String creator, int limit, int offset) async{
+    return await messageDAO.pageMyMessage(
+        receptor,creator, principal.person, limit, offset);
+  }
+
+  @override
   Future<Function> removeMessage(
       String category, String receptor, String msgid) async {
     await messageDAO.removeMessage(msgid, receptor, principal.person);

@@ -6,6 +6,8 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -45,15 +47,21 @@ class _GeosphereReceptorNetflowGatewayState
 
   Future<void> _loadChannels() async {
     _isLoad = false;
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var pofList = await categoryRemote.listReceptorChannels();
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    var pofList = await receptorRemote.listReceptorChannels();
     if (pofList.isEmpty) {
       _isLoad = true;
       return;
     }
     _channels.addAll(pofList);
     _isLoad = true;
+  }
+
+  Future<void> _removeChannelOutGeo(ChannelOR ch) async {
+    IChannelPinService pinService =
+    widget.context.site.getService('/channel/pin');
+    await pinService.setOutputGeoSelector(ch.channel, false);
   }
 
   @override
@@ -136,12 +144,22 @@ class _GeosphereReceptorNetflowGatewayState
       bool isDiTuiChannel = ch.channel == 'd99bf0e3b662b062d8328b9477e6df16';
       if (!isDiTuiChannel) {
         actions.add(
-          IconButton(
-            icon: Icon(
-              Icons.delete_sweep,
-              color: Colors.black54,
-            ),
-            onPressed: () {},
+          IconSlideAction(
+            caption: '删除',
+            icon: Icons.delete_sweep,
+            onTap: () {
+              _removeChannelOutGeo(ch).then(
+                (v) {
+                  _channels.removeWhere((or) {
+                    if (ch.channel == or.channel) {
+                      return true;
+                    }
+                    return false;
+                  });
+                  setState(() {});
+                },
+              );
+            },
           ),
         );
       }

@@ -4,6 +4,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 
 import 'geo_entities.dart';
@@ -43,9 +44,9 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
 
   Future<void> _onloadFans() async {
     _isLoad=false;
-    IGeoCategoryRemote categoryRemote =
-    widget.context.site.getService('/remote/geo/categories');
-    var pofList = await categoryRemote.pageReceptorFans(
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+    var pofList = await receptorRemote.pageReceptorFans(
       categroy: _receptor.category,
       receptor: _receptor.id,
       limit: _limit,

@@ -438,6 +438,15 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
   }
 
   @override
+  Future<List<GeosphereMessageOL>> pageMyMessage(String receptor,
+      String creator, String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereMessageOL WHERE receptor=? and creator=? and sandbox=? ORDER BY ctime DESC, atime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[receptor, creator, sandbox, limit, offset],
+        mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
   Future<void> removeMessage(String id, String receptor, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'delete FROM GeosphereMessageOL where id=? and receptor=? and sandbox=?',

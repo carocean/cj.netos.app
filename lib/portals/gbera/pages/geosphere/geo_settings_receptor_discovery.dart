@@ -9,6 +9,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -60,9 +61,9 @@ class _GeosphereReceptorDiscoveryState
 
   Future<void> _onloadDiscoveryReceptors() async {
     _isLoad = false;
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var poiList = await categoryRemote.searchAroundReceptors(
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    var poiList = await receptorRemote.searchAroundReceptors(
       categroy: _receptor.category,
       receptor: _receptor.id,
       geoType: _selectedCategory,

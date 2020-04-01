@@ -246,7 +246,12 @@ class _GeoSettingsState extends State<GeoSettings> {
                             size: 22,
                           ),
                           onItemTap: () {
-                            widget.context.forward('/geosphere/portal');
+                            widget.context.forward(
+                              '/geosphere/portal',
+                              arguments: {
+                                'receptor': _receptor,
+                              },
+                            );
                           },
                         ),
                         Divider(
@@ -254,7 +259,7 @@ class _GeoSettingsState extends State<GeoSettings> {
                           indent: 35,
                         ),
                         CardItem(
-                          title: '周边历史',
+                          title: '本地动态',
 //                          tipsText: '发表210篇',
                           leading: Icon(
                             FontAwesomeIcons.history,
@@ -262,7 +267,12 @@ class _GeoSettingsState extends State<GeoSettings> {
                             size: 22,
                           ),
                           onItemTap: () {
-                            widget.context.forward('/geosphere/histories');
+                            widget.context.forward(
+                              '/geosphere/hostories',
+                              arguments: {
+                                'receptor': _receptor,
+                              },
+                            );
                           },
                         ),
                       ],

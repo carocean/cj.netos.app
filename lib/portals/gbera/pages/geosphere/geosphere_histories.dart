@@ -22,20 +22,23 @@ import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
-class GeospherePortal extends StatefulWidget {
+///感知器范围内的历史活动
+class GeosphereHistories extends StatefulWidget {
   PageContext context;
 
-  GeospherePortal({this.context});
+  GeosphereHistories({this.context});
 
   @override
-  _GeospherePortalState createState() => _GeospherePortalState();
+  _GeosphereHistoriesState createState() => _GeosphereHistoriesState();
 }
 
-class _GeospherePortalState extends State<GeospherePortal> {
+class _GeosphereHistoriesState extends State<GeosphereHistories> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
   EasyRefreshController _refreshController;
@@ -44,7 +47,7 @@ class _GeospherePortalState extends State<GeospherePortal> {
   int _limit = 15, _offset = 0;
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
-  AmapPoi _currentPoi;
+  String _selectedGeoType;
 
   @override
   void initState() {
@@ -77,11 +80,15 @@ class _GeospherePortalState extends State<GeospherePortal> {
 
   //只装载消息体，交互区域信息可能非常长，因此采用独立的滥加载模式
   Future<void> _onloadMessages() async {
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
 
-    List<GeosphereMessageOL> messages = await geoMessageService.pageMyMessage(
-        _receptorInfo.id, _receptorInfo.creator, _limit, _offset);
+    List<GeoPOD> messages = await receptorRemote.searchAroundDocuments(
+        category: _receptorInfo.category,
+        receptor: _receptorInfo.id,
+        geoType: _selectedGeoType,
+        limit: _limit,
+        offset: _offset);
     if (messages.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
       return;
@@ -94,11 +101,12 @@ class _GeospherePortalState extends State<GeospherePortal> {
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(message, wrappers) async {
+  Future<void> _fillMessageWrapper(GeoPOD pod, wrappers) async {
     IGeosphereMediaService mediaService =
         widget.context.site.getService('/geosphere/receptor/messages/medias');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
+    var message = pod.message;
     List<GeosphereMediaOL> medias =
         await mediaService.listMedia(message.receptor, message.id);
     Person creator =
@@ -118,6 +126,7 @@ class _GeospherePortalState extends State<GeospherePortal> {
         medias: _medias,
         message: message,
         upstreamPerson: upstreamPerson,
+        distance: pod.distance,
       ),
     );
   }
@@ -795,7 +804,6 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   Widget build(BuildContext context) {
-    AmapPoi poi = widget.messageWrapper.poi;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1018,26 +1026,21 @@ class __MessageCardState extends State<_MessageCard> {
 //                                  ),
                                   Text.rich(
                                     TextSpan(
-                                      text:
-                                          '${poi == null ? '' : '${poi.title}附近'}',
+                                      text: '',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[400],
                                       ),
-                                      children:
-                                          widget.messageWrapper.distanceLabel ==
-                                                  null
-                                              ? []
-                                              : [
-                                                  TextSpan(text: ' '),
-                                                  TextSpan(
-                                                    text:
-                                                        '距${widget.messageWrapper.distanceLabel}',
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                    ),
-                                                  ),
-                                                ],
+                                      children: [
+                                        TextSpan(text: ' '),
+                                        TextSpan(
+                                          text:
+                                              '距中心${getFriendlyDistance(widget.messageWrapper.distance)}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -1707,30 +1710,22 @@ class _InteractiveRegionRefreshAdapter {
 }
 
 class _GeosphereMessageWrapper {
-  GeosphereMessageOL message;
+  GeosphereMessageOR message;
+  double distance;
   List<MediaSrc> medias;
   Person creator;
   Person upstreamPerson;
   String _distanceLabel;
-  AmapPoi poi;
 
   _GeosphereMessageWrapper({
     this.message,
     this.medias,
     this.creator,
     this.upstreamPerson,
-    this.poi,
+    this.distance,
   });
 
   Person get sender {
     return upstreamPerson == null ? creator : upstreamPerson;
-  }
-
-  set distanceLabel(String distanceLabel) {
-    _distanceLabel = distanceLabel;
-  }
-
-  String get distanceLabel {
-    return _distanceLabel;
   }
 }

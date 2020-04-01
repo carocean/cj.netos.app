@@ -27,6 +27,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fa
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
@@ -845,6 +846,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/geosphere/filter',
           buildPage: (PageContext pageContext) => GeoFilter(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '历史活动',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/hostories',
+          buildPage: (PageContext pageContext) => GeosphereHistories(
             context: pageContext,
           ),
         ),
