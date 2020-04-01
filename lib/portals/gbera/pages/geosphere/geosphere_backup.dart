@@ -185,7 +185,7 @@ class _GeosphereState extends State<Geosphere>
               showModalBottomSheet(
                   context: context,
                   builder: (context) {
-                    return widget.context.part('/geosphere/discovery', context);
+                    return widget.context.part('/geosphere/filter', context);
                   }).then((v) {
                 print('----$v');
               });

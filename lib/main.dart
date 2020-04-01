@@ -44,6 +44,8 @@ void main() => platformRun(
             '@.prop.entrypoint.app': 'gbera.netos',
             '@.prop.ports.link.netflow':
                 'http://47.105.165.186/link/netflow/self.service',
+            '@.prop.ports.link.geosphere':
+            'http://47.105.165.186/link/geosphere/self.service',
             '@.prop.ports.uc.auth': 'http://47.105.165.186/uc/auth.service',
             '@.prop.ports.uc.register':
                 'http://47.105.165.186/uc/register.service',

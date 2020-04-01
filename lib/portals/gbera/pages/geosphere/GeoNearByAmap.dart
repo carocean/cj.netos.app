@@ -17,8 +17,8 @@ class GeoNearByAmapPOI extends StatefulWidget {
 }
 
 class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
-  List<GeoPoi> _poiList = [];
-  GeoPoi _selectedPoi;
+  List<AmapPoi> _poiList = [];
+  AmapPoi _selectedPoi;
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
       var poiId = await poi.poiId;
       var lat = await poi.latLng;
       _poiList.add(
-        GeoPoi(
+        AmapPoi(
           title: title,
           distance: distance,
           address: address,

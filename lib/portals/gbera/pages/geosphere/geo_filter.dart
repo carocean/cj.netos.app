@@ -5,16 +5,16 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
-class GeoDiscovery extends StatefulWidget {
+class GeoFilter extends StatefulWidget {
   PageContext context;
 
-  GeoDiscovery({this.context});
+  GeoFilter({this.context});
 
   @override
-  _GeoDiscoveryState createState() => _GeoDiscoveryState();
+  _GeoFilterState createState() => _GeoFilterState();
 }
 
-class _GeoDiscoveryState extends State<GeoDiscovery> {
+class _GeoFilterState extends State<GeoFilter> {
   List<GeoCategoryOR> _categories = [];
   GeoCategoryOL _categoryOL;
 
@@ -106,7 +106,7 @@ class _GeoDiscoveryState extends State<GeoDiscovery> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${_categoryOL.moveMode == 'moveableSelf' ? '服务' : '筛选'}',
+          '选择',
         ),
         titleSpacing: 0,
         centerTitle: true,

@@ -153,17 +153,87 @@ class _GeoSettingsState extends State<GeoSettings> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-//                      borderRadius: BorderRadius.all(
-//                        Radius.circular(8),
-//                      ),
-//                      boxShadow: [
-//                        BoxShadow(
-//                          color: Colors.grey,
-//                          offset: Offset(0, 10),
-//                          blurRadius: 10,
-//                          spreadRadius: -9,
-//                        ),
-//                      ],
+                    ),
+                    child: Column(
+                      children: <Widget>[
+                        CardItem(
+                          title: '实时成员',
+                          tipsText: '能相互收到对方消息',
+                          leading: Icon(
+                            Icons.cached,
+                            color: Colors.grey,
+                            size: 25,
+                          ),
+                          onItemTap: () {
+                            widget.context.forward(
+                              '/geosphere/receptor/settings/links/discovery_receptors',
+                              arguments: {
+                                'receptor': _receptor,
+                              },
+                            );
+                          },
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 35,
+                        ),
+                        CardItem(
+                          title: '粉丝',
+                          tipsText: '能收到本感知器消息',
+                          leading: Icon(
+                            Icons.supervisor_account,
+                            color: Colors.grey,
+                            size: 25,
+                          ),
+                          onItemTap: () {
+                            widget.context.forward(
+                              '/geosphere/receptor/settings/links/fans',
+                              arguments: {
+                                'receptor': _receptor,
+                              },
+                            );
+                          },
+                        ),
+                        _moveMode != GeoCategoryMoveableMode.moveableSelf
+                            ? Container(
+                                width: 0,
+                                height: 0,
+                              )
+                            : Divider(
+                                height: 1,
+                                indent: 35,
+                              ),
+                        _moveMode != GeoCategoryMoveableMode.moveableSelf
+                            ? Container(
+                                width: 0,
+                                height: 0,
+                              )
+                            : CardItem(
+                                title: '网流消息接收网关',
+                                tipsText: '能接收网流消息到感知器',
+                                leading: Icon(
+                                  Icons.security,
+                                  color: Colors.grey,
+                                  size: 23,
+                                ),
+                                onItemTap: () {
+                                  widget.context.forward(
+                                      '/geosphere/receptor/settings/links/netflow_gateway');
+                                },
+                              ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                    ),
+                    margin: EdgeInsets.only(
+                      bottom: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                     ),
                     child: Column(
                       children: <Widget>[
@@ -184,62 +254,16 @@ class _GeoSettingsState extends State<GeoSettings> {
                           indent: 35,
                         ),
                         CardItem(
-                          title: '圈内实时发现',
-                          tipsText: '2894个',
+                          title: '周边历史',
+//                          tipsText: '发表210篇',
                           leading: Icon(
-                            Icons.location_on,
+                            FontAwesomeIcons.history,
                             color: Colors.grey,
-                            size: 25,
+                            size: 22,
                           ),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 35,
-                        ),
-                        CardItem(
-                          title: '事件',
-                          tipsText: '进圈、离圈',
-                          leading: Icon(
-                            FontAwesomeIcons.streetView,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(
-                      left: 10,
-                      right: 10,
-                    ),
-                    margin: EdgeInsets.only(
-                      bottom: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-//                      borderRadius: BorderRadius.all(
-//                        Radius.circular(8),
-//                      ),
-//                      boxShadow: [
-//                        BoxShadow(
-//                          color: Colors.grey,
-//                          offset: Offset(0, 10),
-//                          blurRadius: 10,
-//                          spreadRadius: -9,
-//                        ),
-//                      ],
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        CardItem(
-                          title: '网关',
-                          tipsText: '开、关一些信息的接收和发送',
-                          leading: Icon(
-                            Icons.location_on,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
+                          onItemTap: () {
+                            widget.context.forward('/geosphere/histories');
+                          },
                         ),
                       ],
                     ),

@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:netos_app/system/local/entities.dart';
 
-class GeoPoi {
+class AmapPoi {
   String address;
   String title;
   LatLng latLng;
   int distance;
   String poiId;
 
-  GeoPoi({this.poiId, this.address, this.title, this.latLng, this.distance});
+  AmapPoi({this.poiId, this.address, this.title, this.latLng, this.distance});
 
   String toJson() {
     return jsonEncode({
@@ -22,7 +22,7 @@ class GeoPoi {
     });
   }
 
-  GeoPoi.from(String poiJson) {
+  AmapPoi.from(String poiJson) {
     var map = jsonDecode(poiJson);
     poiId = map['poiId'];
     address = map['address'];

@@ -251,10 +251,10 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           '&receptor=${geosphereMediaOL.receptor}'
           '&msgid=${geosphereMediaOL.msgid}'
           '&id=${geosphereMediaOL.id}'
-          '&type=${geosphereMediaOL.type}'
+          '&type=${geosphereMediaOL.type??''}'
           '&src=${geosphereMediaOL.src}'
-          '&text=${geosphereMediaOL.text}'
-          '&leading=${geosphereMediaOL.leading}',
+          '&text=${geosphereMediaOL.text??''}'
+          '&leading=${geosphereMediaOL.leading??''}',
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 
 import '../../../system/local/entities.dart';
+import 'gbera_entities.dart';
 
 mixin IPersonService {
   Future<void> empty();
@@ -331,6 +332,14 @@ mixin IGeoCategoryRemote {
   Future<GeoCategoryOR> getCategory(String category) {}
 
   Future<List<GeoCategoryAppOR>> getApps(String category, String on) {}
+
+  Future<List<GeoPOI>> searchAroundReceptors({String categroy, String receptor, String geoType, int limit, int offset}) {}
+
+  Future<List<GeoPOF>>pageReceptorFans({String categroy, String receptor, int limit, int offset}) {}
+
+ Future<List<ChannelOR>> listReceptorChannels() {}
+
+
 }
 mixin IGeoCategoryLocal {
   Future<GeoCategoryOL> get(String category);

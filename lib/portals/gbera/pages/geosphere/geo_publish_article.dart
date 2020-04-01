@@ -31,7 +31,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   TextEditingController _contentController;
   String _category;
   String _receptor;
-  GeoPoi _poi;
+  AmapPoi _poi;
 
   @override
   void initState() {
@@ -67,7 +67,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     String title = await poi.title;
     String address = await poi.address;
     var poiId = await poi.poiId;
-    _poi = GeoPoi(
+    _poi = AmapPoi(
       title: title,
       latLng: latlng,
       address: address,

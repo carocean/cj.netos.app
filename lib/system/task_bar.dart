@@ -76,7 +76,7 @@ class _TaskBarState extends State<TaskBar> {
               reset();
               var json = frame.contentText;
               var files = jsonDecode(json);
-              var remoteFile = files[frame.parameter('background')];
+              var remoteFile = files[frame.parameter('src')];
               var _receptorPortsUrl =
                   widget.site.getService('@.prop.ports.document.geo.receptor');
               ports.portTask.addPortGETTask(
@@ -87,10 +87,10 @@ class _TaskBarState extends State<TaskBar> {
                   'category': frame.parameter('category'),
                   'docid': frame.parameter('msgid'),
                   'id': frame.parameter('id'),
-                  'type': frame.parameter('type'),
+                  'type': frame.parameter('type')??'',
                   'src': remoteFile,
-                  'text': frame.parameter('text'),
-                  'leading': frame.parameter('leading'),
+                  'text': frame.parameter('text')??'',
+                  'leading': frame.parameter('leading')??'',
                 },
               );
               setState(() {});

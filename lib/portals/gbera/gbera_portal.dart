@@ -13,7 +13,7 @@ import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_discovery.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_filter.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
@@ -22,6 +22,9 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_discovery.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fans.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal.dart';
@@ -792,6 +795,33 @@ class GberaPortal {
           ),
         ),
         Page(
+          title: '实时感知发现',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/geosphere/receptor/settings/links/discovery_receptors',
+          buildPage: (PageContext pageContext) => GeosphereReceptorDiscovery(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '粉丝',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/geosphere/receptor/settings/links/fans',
+          buildPage: (PageContext pageContext) => GeosphereReceptorFans(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '网流消息网关',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/geosphere/receptor/settings/links/netflow_gateway',
+          buildPage: (PageContext pageContext) => GeosphereReceptorNetflowGateway(
+            context: pageContext,
+          ),
+        ),
+        Page(
           title: '地圈动态门户',
           subtitle: '',
           icon: Icons.art_track,
@@ -813,8 +843,8 @@ class GberaPortal {
           title: '实时发现',
           subtitle: '',
           icon: GalleryIcons.shrine,
-          url: '/geosphere/discovery',
-          buildPage: (PageContext pageContext) => GeoDiscovery(
+          url: '/geosphere/filter',
+          buildPage: (PageContext pageContext) => GeoFilter(
             context: pageContext,
           ),
         ),

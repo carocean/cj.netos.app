@@ -284,7 +284,7 @@ class _LocationSettingWidget extends StatefulWidget {
 }
 
 class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
-  GeoPoi _geoPoi;
+  AmapPoi _geoPoi;
   int _distanceUpdateRate = 10;
 
   @override
@@ -304,7 +304,7 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
     if (StringUtil.isEmpty(address)) {
       return;
     }
-    _geoPoi = GeoPoi(
+    _geoPoi = AmapPoi(
       latLng: await location.latLng,
       address: address,
       title: await location.poiName,

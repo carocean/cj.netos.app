@@ -44,7 +44,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   int _limit = 15, _offset = 0;
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
-  GeoPoi _currentPoi;
+  AmapPoi _currentPoi;
 
   @override
   void initState() {
@@ -114,7 +114,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     var poiId = await amapPoi.poiId;
 
     var distance = 0;
-    _currentPoi = GeoPoi(
+    _currentPoi = AmapPoi(
       distance: distance,
       title: title,
       latLng: latLng,
@@ -854,7 +854,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                         context: context,
                         builder: (context) {
                           return widget.context.part(
-                              '/geosphere/discovery', context,
+                              '/geosphere/filter', context,
                               arguments: {'category': widget.categoryOL});
                         }).then((v) {
                       if (v == null) {
@@ -993,7 +993,7 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   Widget build(BuildContext context) {
-    GeoPoi poi = widget.messageWrapper.poi;
+    AmapPoi poi = widget.messageWrapper.poi;
     return Card(
       shape: Border(),
       elevation: 0,
@@ -1904,7 +1904,7 @@ class _GeosphereMessageWrapper {
   Person creator;
   Person upstreamPerson;
   String _distanceLabel;
-  GeoPoi poi;
+  AmapPoi poi;
   _GeosphereMessageWrapper({
     this.message,
     this.medias,
