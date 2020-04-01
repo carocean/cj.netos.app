@@ -169,7 +169,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'document': docMap,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/publishMessage?receptor=${geosphereMessageOR.id}&category=${geosphereMessageOR.category}',
+          '/geosphere/receptor/docs/publishMessage?receptor=${geosphereMessageOR.receptor}&category=${geosphereMessageOR.category}&msgid=${geosphereMessageOR.id}',
     );
   }
 

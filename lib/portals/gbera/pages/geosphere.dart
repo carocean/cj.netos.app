@@ -61,17 +61,39 @@ class _GeosphereState extends State<Geosphere>
       setState(() {});
     });
     _checkMobileReceptor();
+
+    if (!widget.context.isListening(matchPath: '/geosphere/receptor')) {
+      widget.context.listenNetwork((frame) {
+        switch (frame.command) {
+          case 'pushDocument':
+            _arrivedPushDocumentCommand(frame).then((message) {
+              setState(() {});
+            });
+            break;
+        }
+      },matchPath: '/geosphere/receptor',);
+    }
     super.initState();
   }
 
   @override
   void dispose() {
+    widget.context.unlistenNetwork(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
     _location.stop();
     _streamController.close();
     super.dispose();
   }
+  Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，已丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
 
+    print(docMap);
+  }
   Future<void> _onload() async {
     await _loadReceptors();
     return;

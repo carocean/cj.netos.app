@@ -64,6 +64,8 @@ void main() => platformRun(
                 'http://47.105.165.186/document/network/channel.service',
             '@.prop.ports.flow.channel':
                 'http://47.105.165.186/flow/channel.service',
+            '@.prop.ports.flow.geosphere':
+            'http://47.105.165.186/flow/geosphere.service',
             '@.prop.taskbar.progress': _progressTaskBar,
             '@.prop.ports.document.geo.category':'http://47.105.165.186/document/geo/category.service',
             '@.prop.ports.document.geo.receptor':'http://47.105.165.186/document/geo/receptor.service',

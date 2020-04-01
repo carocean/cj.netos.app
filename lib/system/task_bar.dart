@@ -87,10 +87,10 @@ class _TaskBarState extends State<TaskBar> {
                   'category': frame.parameter('category'),
                   'docid': frame.parameter('msgid'),
                   'id': frame.parameter('id'),
-                  'type': frame.parameter('type')??'',
+                  'type': frame.parameter('type') ?? '',
                   'src': remoteFile,
-                  'text': frame.parameter('text')??'',
-                  'leading': frame.parameter('leading')??'',
+                  'text': frame.parameter('text') ?? '',
+                  'leading': frame.parameter('leading') ?? '',
                 },
               );
               setState(() {});
@@ -111,7 +111,31 @@ class _TaskBarState extends State<TaskBar> {
   void _listenGeosphereDocTask(ports) {
     //文档成功上传完则推送
     ports.portTask.listener('/geosphere/receptor/docs/publishMessage', (frame) {
-      print(frame);
+      switch (frame.command) {
+        case "portPost":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //推文任务
+              var flowChannelPortsUrl =
+                  widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushGeoDocument',
+                parameters: {
+                  'category': frame.parameter('category'),
+                  'receptor': frame.parameter('receptor'),
+                  'docid': frame.parameter('msgid'),
+                  'interval': 100,
+                },
+              );
+              break;
+          }
+          break;
+      }
     });
   }
 
