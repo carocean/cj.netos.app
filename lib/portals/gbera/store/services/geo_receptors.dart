@@ -48,6 +48,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           'false',
           'none',
           null,
+          'false',
           principal.device,
           principal.person,
         ),
@@ -73,6 +74,11 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
       String category, String id, String lleading, String rleading) async {
     await receptorDAO.updateLeading(lleading, category, id, principal.person);
     await receptorRemote.updateLeading(rleading, category, id);
+  }
+
+  @override
+  Future<Function> setAutoScrollMessage(String receptor, bool isAutoScrollMessage) async{
+    await receptorDAO.setAutoScrollMessage(isAutoScrollMessage?'true':'false',receptor, principal.person);
   }
 
   @override

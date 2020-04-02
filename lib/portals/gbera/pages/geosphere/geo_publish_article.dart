@@ -54,19 +54,14 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
   _updateLocation(Location location) async {
     var latlng = await location.latLng;
-    var list =
-        await AmapSearch.searchAround(latlng, radius: 500, type: amapPOIType);
-    if (list.isEmpty) {
-      return;
-    }
-    var poi = list[0];
-    if (StringUtil.isEmpty(await poi.cityName)) {
+    var city=await location.city;
+    if (StringUtil.isEmpty(city)) {
       return;
     }
     geoLocation.unlisten('geosphere.recetpor.publish.article');
-    String title = await poi.title;
-    String address = await poi.address;
-    var poiId = await poi.poiId;
+    String title = await location.poiName;
+    String address = await location.address;
+    var poiId = await location.adCode;
     _poi = AmapPoi(
       title: title,
       latLng: latlng,
@@ -76,6 +71,29 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     _enablePublishButton =
         _poi != null && !StringUtil.isEmpty(_contentController.text);
     setState(() {});
+//以下代码在ios上有问题
+//    var list =
+//        await AmapSearch.searchAround(latlng, radius: 500, type: amapPOIType);
+//    if (list.isEmpty) {
+//      return;
+//    }
+//    var poi = list[0];
+//    if (StringUtil.isEmpty(await poi.cityName)) {
+//      return;
+//    }
+//    geoLocation.unlisten('geosphere.recetpor.publish.article');
+//    String title = await poi.title;
+//    String address = await poi.address;
+//    var poiId = await poi.poiId;
+//    _poi = AmapPoi(
+//      title: title,
+//      latLng: latlng,
+//      address: address,
+//      poiId: poiId,
+//    );
+//    _enablePublishButton =
+//        _poi != null && !StringUtil.isEmpty(_contentController.text);
+//    setState(() {});
   }
 
   @override
@@ -117,6 +135,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                     await geoMessageService.addMessage(
                       GeosphereMessageOL(
                         msgid,
+                        null,
+                        null,
                         null,
                         null,
                         null,

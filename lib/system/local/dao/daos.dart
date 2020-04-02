@@ -603,6 +603,11 @@ abstract class IGeoReceptorDAO {
   @Query(
       'UPDATE GeoReceptor SET foregroundMode=:mode WHERE id=:id and sandbox=:sandbox')
   Future<void> updateForeground(mode, String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET isAutoScrollMessage=:isAutoScrollMessage WHERE id=:receptor and sandbox=:sandbox')
+  Future<void> setAutoScrollMessage(
+      String isAutoScrollMessage, String receptor, String sandbox) {}
 }
 
 @dao
@@ -631,7 +636,7 @@ abstract class IGeosphereMessageDAO {
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and creator=:creator and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
   Future<List<GeosphereMessageOL>> pageMyMessage(
-      String receptor,String creator, String sandbox, int limit, int offset) {}
+      String receptor, String creator, String sandbox, int limit, int offset) {}
 
   @Query(
       'delete FROM GeosphereMessageOL where id=:id and receptor=:receptor and sandbox=:sandbox')
@@ -640,6 +645,23 @@ abstract class IGeosphereMessageDAO {
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
   Future<GeosphereMessageOL> getMessage(String receptor, id, String sandbox) {}
+
+  @Query(
+      "SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and state=:state and sandbox=:sandbox ORDER BY atime desc LIMIT 1")
+  Future<GeosphereMessageOL> firstUnreadMessage(
+      String receptor, String state, String sandbox) {}
+
+  //欲接收限定字段的值应该像声明CountValue对象那样使用
+  ///CountValue用于接收查询的统计字段，并且以 as 字段别名，别名与CountValue对应
+  @Query(
+      "SELECT count(*) as value  FROM GeosphereMessageOL WHERE receptor=:receptor and state=:state and sandbox=:sandbox ORDER BY atime desc")
+  Future<CountValue> listUnreadMessage(
+      String receptor, String state, String sandbox) {}
+
+  @Query(
+      "update GeosphereMessageOL set state=:newState WHERE receptor=:receptor and state=:oldstate and sandbox=:sandbox")
+  Future<void> flagArrivedMessagesReaded(
+      String newState, String receptor, String oldstate, String sandbox) {}
 
   @Query(
       'SELECT *  FROM GeosphereLikePersonOL WHERE receptor=:receptor and msgid=:msgid and person=:liker and sandbox=:sandbox LIMIT 1')

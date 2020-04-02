@@ -6,6 +6,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 class GeoSettings extends StatefulWidget {
@@ -26,6 +27,8 @@ class _GeoSettingsState extends State<GeoSettings> {
   @override
   void initState() {
     _receptor = widget.context.page.parameters['receptor'];
+    _switchMessageATipMode = _receptor.isAutoScrollMessage;
+
     var mode = widget.context.page.parameters['moveMode'];
     switch (mode) {
       case 'unmoveable':
@@ -67,6 +70,24 @@ class _GeoSettingsState extends State<GeoSettings> {
     }
 //    _poiAddress = await location.address;
     setState(() {});
+  }
+
+  Future<void> _updateMessageArrivedMode() async {
+    _receptor.isAutoScrollMessage = _switchMessageATipMode;
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    await receptorService.setAutoScrollMessage(
+        _receptor.id, _receptor.isAutoScrollMessage);
+    if (_receptor.onSettingsChanged != null) {
+      await _receptor.onSettingsChanged(
+        OnReceptorSettingsChangedEvent(
+          action: 'scrollMessageMode',
+          args: {
+            'isAutoScrollMessage': _receptor.isAutoScrollMessage,
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -323,12 +344,14 @@ class _GeoSettingsState extends State<GeoSettings> {
                               value: _switchMessageATipMode,
                               onChanged: (v) {
                                 _switchMessageATipMode = v;
+                                _updateMessageArrivedMode();
                                 setState(() {});
                               },
                             ),
                           ),
                           onItemTap: () {
                             _switchMessageATipMode = !_switchMessageATipMode;
+                            _updateMessageArrivedMode();
                             setState(() {});
                           },
                         ),

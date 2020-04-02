@@ -49,7 +49,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   @override
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
-    _receptorInfo.onBackgroudChanged = _onBackgroudChanged;
+    _receptorInfo.onSettingsChanged = _onSettingChanged;
     geoLocation.listen('geosphere.receptors',
         (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
     _refreshController = EasyRefreshController();
@@ -61,6 +61,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       _isLoadedMessages = true;
       setState(() {});
     });
+    _flagMessagesReaded();
     super.initState();
   }
 
@@ -72,26 +73,35 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     super.dispose();
   }
 
-  Future<void> _onBackgroudChanged(OnRecetorBackgroundChangedEvent e) async {
+  Future<void> _flagMessagesReaded() async {
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    await geoMessageService.flagMessagesReaded(_receptorInfo.id);
+  }
+
+  Future<void> _onSettingChanged(OnReceptorSettingsChangedEvent e) async {
     print(e.action);
-    switch(e.action) {
+    switch (e.action) {
       case 'setNoneBackground':
-        _receptorInfo.origin.backgroundMode='none';
-        _receptorInfo.origin.background=null;
+        _receptorInfo.origin.backgroundMode = 'none';
+        _receptorInfo.origin.background = null;
         break;
       case 'setHorizontalBackground':
-        _receptorInfo.origin.backgroundMode='horizontal';
-        _receptorInfo.origin.background=e.args['file'];
+        _receptorInfo.origin.backgroundMode = 'horizontal';
+        _receptorInfo.origin.background = e.args['file'];
         break;
       case 'setVerticalBackground':
-        _receptorInfo.origin.backgroundMode='vertical';
-        _receptorInfo.origin.background=e.args['file'];
+        _receptorInfo.origin.backgroundMode = 'vertical';
+        _receptorInfo.origin.background = e.args['file'];
         break;
       case 'setWhiteForeground':
-        _receptorInfo.origin.foregroundMode='white';
+        _receptorInfo.origin.foregroundMode = 'white';
         break;
       case 'setOriginalForeground':
-        _receptorInfo.origin.foregroundMode='original';
+        _receptorInfo.origin.foregroundMode = 'original';
+        break;
+      case 'scrollMessageMode':
+        _receptorInfo.origin.isAutoScrollMessage=e.args['isAutoScrollMessage']?'true':'false';
         break;
     }
   }
@@ -122,15 +132,15 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       poiId: poiId,
     );
     for (var msgwrapper in _messageList) {
-      String loc=msgwrapper.message.location;
-      if(StringUtil.isEmpty(loc)) {
+      String loc = msgwrapper.message.location;
+      if (StringUtil.isEmpty(loc)) {
         continue;
       }
       var msglatLng = LatLng.fromJson(jsonDecode(loc));
       var distanceLabel =
           getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
       msgwrapper.distanceLabel = distanceLabel;
-      msgwrapper.poi=_currentPoi;
+      msgwrapper.poi = _currentPoi;
     }
     setState(() {});
   }
@@ -198,55 +208,11 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     _messageList.insertAll(0, wrappers);
   }
 
-  Future<void> _publishVoiceArticle(String path, double timelength) async {
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
-    IGeosphereMediaService mediaService =
-        widget.context.site.getService('/geosphere/receptor/messages/medias');
-    var content = '';
-    var wy = 10.00;
-    var location = null;
-    var message = GeosphereMessageOL(
-        MD5Util.MD5(Uuid().v1()),
-        null,
-        null,
-        null,
-        null,
-        _receptorInfo.id,
-        widget.context.principal.person,
-        DateTime.now().millisecondsSinceEpoch,
-        null,
-        null,
-        null,
-        'sended',
-        content,
-        wy,
-        location,
-        _category.id,
-        widget.context.principal.person);
-    await geoMessageService.addMessage(message);
-
-    await mediaService.addMedia(
-      GeosphereMediaOL(
-        MD5Util.MD5('${Uuid().v1()}'),
-        'audio',
-        path,
-        null,
-        message.id,
-        null,
-        _receptorInfo.id,
-        widget.context.principal.person,
-      ),
-    );
-
-    await _loadMessageAndPutTop(message.id);
-  }
-
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(_receptorInfo.category,
-        wrapper.message.receptor, wrapper.message.id);
+    await geoMessageService.removeMessage(
+        _receptorInfo.category, wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -304,7 +270,13 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
-            refresh: () {},
+            refresh: () async {
+              _offset = 0;
+              _messageList.clear();
+              await _onloadMessages();
+              await _flagMessagesReaded();
+              setState(() {});
+            },
           ),
         ),
       );
@@ -518,6 +490,7 @@ class _HeaderWidget extends StatefulWidget {
   Function() refresh;
   ReceptorInfo receptorInfo;
   bool isShowWhite;
+
   GeoCategoryOL categoryOL;
 
   _HeaderWidget({
@@ -533,13 +506,13 @@ class _HeaderWidget extends StatefulWidget {
 }
 
 class _HeaderWidgetState extends State<_HeaderWidget> {
-  int _arrivedMessageCount = 5;
-  String _arrivedMessageTips = '';
+  int _arrivedMessageCount = 0;
   var _workingChannel;
   String _poiTitle;
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
@@ -556,11 +529,33 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadCategoryAllApps().then((v) {
       setState(() {});
     });
+    Stream _notify = widget.context.parameters['notify'];
+    _streamSubscription = _notify.listen((cmd) async{
+      print('---$cmd');
+      GeosphereMessageOL message = cmd['message'];
+      var sender = cmd['sender'];
+      switch (cmd['command']) {
+        case 'pushDocumentCommand':
+          if(widget.receptorInfo.isAutoScrollMessage) {
+            if (widget.refresh != null) {
+              await widget.refresh();
+              _arrivedMessageCount = 0;
+              setState(() {});
+            }
+          }else {
+            _loadUnreadMessage().then((v) {
+              setState(() {});
+            });
+          }
+          break;
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _streamSubscription.cancel();
     geoLocation.unlisten('receptor.header');
     if (_workingChannel != null) {
       _workingChannel.onRefreshChannelState = null;
@@ -575,6 +570,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       oldWidget.categoryOL = widget.categoryOL;
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadUnreadMessage() async {
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    _arrivedMessageCount =
+        await messageService.countUnreadMessage(widget.receptorInfo.id);
   }
 
   Future<void> _loadCategoryAllApps() async {
@@ -814,7 +816,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     ? Container()
                     : GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () {},
+                        onTap: () async {
+                          if (widget.refresh != null) {
+                            await widget.refresh();
+                            _arrivedMessageCount = 0;
+                            setState(() {});
+                          }
+                        },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -1905,6 +1913,7 @@ class _GeosphereMessageWrapper {
   Person upstreamPerson;
   String _distanceLabel;
   AmapPoi poi;
+
   _GeosphereMessageWrapper({
     this.message,
     this.medias,

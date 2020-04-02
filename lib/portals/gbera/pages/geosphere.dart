@@ -19,7 +19,9 @@ import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
@@ -42,7 +44,8 @@ class _GeosphereState extends State<Geosphere>
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
   GeoLocation _location;
-  StreamController _streamController;
+  StreamController _messageStreamController;
+  StreamController _notifyStreamController;
   int _limit = 15, _offset = 0;
 
   @override
@@ -52,7 +55,8 @@ class _GeosphereState extends State<Geosphere>
 
   @override
   void initState() {
-    _streamController = StreamController();
+    _messageStreamController = StreamController();
+    _notifyStreamController = StreamController.broadcast();
     _location = geoLocation;
     _location.start();
 
@@ -63,15 +67,18 @@ class _GeosphereState extends State<Geosphere>
     _checkMobileReceptor();
 
     if (!widget.context.isListening(matchPath: '/geosphere/receptor')) {
-      widget.context.listenNetwork((frame) {
-        switch (frame.command) {
-          case 'pushDocument':
-            _arrivedPushDocumentCommand(frame).then((message) {
-              setState(() {});
-            });
-            break;
-        }
-      },matchPath: '/geosphere/receptor',);
+      widget.context.listenNetwork(
+        (frame) {
+          switch (frame.command) {
+            case 'pushDocument':
+              _arrivedPushDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
+          }
+        },
+        matchPath: '/geosphere/receptor',
+      );
     }
     super.initState();
   }
@@ -81,19 +88,85 @@ class _GeosphereState extends State<Geosphere>
     widget.context.unlistenNetwork(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
     _location.stop();
-    _streamController.close();
+    _messageStreamController.close();
+    _notifyStreamController.close();
     super.dispose();
   }
-  Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
+
+  Future<GeosphereMessageOL> _arrivedPushDocumentCommand(Frame frame) async {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
-      print('消息为空，已丢弃。');
+      print('消息为空，被丢弃。');
       return null;
     }
     var docMap = jsonDecode(text);
+    var message =
+        GeosphereMessageOL.from(docMap, widget.context.principal.person);
+    message.state = 'arrived';
+    message.atime = DateTime.now().millisecondsSinceEpoch;
+    message.upstreamPerson = frame.head("sender");
+    message.category = frame.parameter('category');
 
-    print(docMap);
+    if (message.creator == message.upstreamPerson) {
+      await _cachePerson(message.creator);
+    } else {
+      await _cachePerson(message.creator);
+      await _cachePerson(message.upstreamPerson);
+    }
+
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var exists = await messageService.getMessage(message.receptor, message.id);
+    if (exists != null) {
+      print('存在消息，被丢弃。');
+      return null;
+    }
+
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var receptor = await receptorService.get(message.receptor);
+    if (receptor != null) {
+      //如果关注了感知器，则直接发往感知器
+      await messageService.addMessage(message);
+    } else {
+      //感知器不存在则发往我的地圈
+      var principal = widget.context.principal;
+      receptor = await receptorService.getMobileReceptor(
+          principal.person, principal.device);
+      IGeoReceptorRemote receptorRemote =
+          widget.context.site.getService('/remote/geo/receptors');
+      message.upstreamReceptor = message.receptor;
+      message.upstreamCategory = message.category;
+      message.receptor = receptor.id;
+      message.category = receptor.category;
+      await messageService.addMessage(message);
+    }
+
+    //通知当前工作的管道有新消息到
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    _notifyStreamController.add({
+      'command': 'pushDocumentCommand',
+      'sender': frame.head('sender'),
+      'message': message,
+    });
+    return message;
   }
+
+  //如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢
+  Future<void> _cachePerson(String _person) async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    if (!(await personService.existsPerson(_person))) {
+      var person =
+          await personService.fetchPerson(_person, isDownloadAvatar: true);
+      if (person != null) {
+        IPersonCache _personCache =
+            widget.context.site.getService('/cache/persons');
+        await _personCache.cache(person);
+      }
+    }
+  }
+
   Future<void> _onload() async {
     await _loadReceptors();
     return;
@@ -128,7 +201,7 @@ class _GeosphereState extends State<Geosphere>
       return;
     }
     _offset += receptors.length;
-    _streamController.add(receptors);
+    _messageStreamController.add(receptors);
   }
 
   @override
@@ -164,7 +237,7 @@ class _GeosphereState extends State<Geosphere>
                       )
                           .then((result) {
                         _offset = 0;
-                        _streamController.add('refresh');
+                        _messageStreamController.add('refresh');
                         _loadReceptors().then((v) {
                           setState(() {});
                         });
@@ -276,11 +349,12 @@ class _GeosphereState extends State<Geosphere>
         SliverToBoxAdapter(
           child: _GeoReceptors(
             context: widget.context,
-            stream: _streamController.stream,
+            stream: _messageStreamController.stream,
+            notify: _notifyStreamController.stream,
             onTapMarchant: (value) {
               widget.context.forward('/site/personal');
             },
-            onTapDiscovery: () {
+            onTapFilter: () {
               showModalBottomSheet(
                   context: context,
                   builder: (context) {
@@ -554,14 +628,16 @@ class _GeoDistrictState extends State<_GeoDistrict> {
 class _GeoReceptors extends StatefulWidget {
   PageContext context;
   Stream stream;
-  Function() onTapDiscovery;
+  Stream notify;
+  Function() onTapFilter;
   Function() onTapGeoCircle;
   Function(Object args) onTapMarchant;
 
   _GeoReceptors({
     this.context,
     this.stream,
-    this.onTapDiscovery,
+    this.notify,
+    this.onTapFilter,
     this.onTapMarchant,
     this.onTapGeoCircle,
   });
@@ -574,6 +650,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   LatLng _currentLatLng;
   double _offset = 0.0;
   List<GeoReceptor> _receptors = [];
+  Map<String, _ReceptorItemStateBar> _stateBars = {};
 
   @override
   void initState() {
@@ -652,24 +729,24 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                 offset = getDistance(start: _currentLatLng, end: latlng);
               }
               var backgroundMode;
-              switch(receptor.backgroundMode) {
+              switch (receptor.backgroundMode) {
                 case 'vertical':
-                  backgroundMode=BackgroundMode.vertical;
+                  backgroundMode = BackgroundMode.vertical;
                   break;
                 case 'horizontal':
-                  backgroundMode=BackgroundMode.horizontal;
+                  backgroundMode = BackgroundMode.horizontal;
                   break;
                 case 'none':
-                  backgroundMode=BackgroundMode.none;
+                  backgroundMode = BackgroundMode.none;
                   break;
               }
               var foregroundMode;
-              switch(receptor.foregroundMode) {
+              switch (receptor.foregroundMode) {
                 case 'original':
-                  foregroundMode=ForegroundMode.original;
+                  foregroundMode = ForegroundMode.original;
                   break;
                 case 'white':
-                  foregroundMode=ForegroundMode.white;
+                  foregroundMode = ForegroundMode.white;
                   break;
               }
               return _ReceptorItem(
@@ -688,6 +765,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   offset: offset,
                   category: receptor.category,
                   radius: receptor.radius,
+                  isAutoScrollMessage: receptor.isAutoScrollMessage=='true'?true:false,
                   latLng: LatLng.fromJson(jsonDecode(receptor.location)),
                   uDistance: receptor.uDistance,
                   background: receptor.background,
@@ -695,9 +773,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   foregroundMode: foregroundMode,
                   origin: receptor,
                 ),
-                stateBar: _ReceptorItemStateBar(
-                  isShow: false,
-                ),
+                notify: widget.notify,
               );
             }).toList(),
           ),
@@ -710,14 +786,14 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
 class _ReceptorItem extends StatefulWidget {
   PageContext context;
   ReceptorInfo receptor;
-  _ReceptorItemStateBar stateBar;
+  Stream notify;
   Function() onDelete;
 
   _ReceptorItem({
     this.context,
-    this.stateBar,
     this.receptor,
     this.onDelete,
+    this.notify,
   });
 
   @override
@@ -726,13 +802,33 @@ class _ReceptorItem extends StatefulWidget {
 
 class _ReceptorItemState extends State<_ReceptorItem> {
   double _percentage = 0.0;
+  _ReceptorItemStateBar _stateBar;
+  StreamSubscription<dynamic> _streamSubscription;
 
   @override
   void initState() {
+    _stateBar = _ReceptorItemStateBar(isShow: false);
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    _streamSubscription = widget.notify.listen((cmd) async {
+      GeosphereMessageOL message = cmd['message'];
+      var sender = cmd['sender'];
+      switch (cmd['command']) {
+        case 'pushDocumentCommand':
+          _loadUnreadMessage().then((v) {
+            setState(() {});
+          });
+          break;
+      }
+    });
+    _loadUnreadMessage().then((v) {
+      setState(() {});
+    });
     super.initState();
   }
 
   void dispose() {
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -742,6 +838,34 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       widget.receptor.leading = oldWidget.receptor.leading;
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadUnreadMessage() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var message = await messageService.firstUnreadMessage(widget.receptor.id);
+    if (message == null) {
+      _stateBar.count = 0;
+      _stateBar.atime = null;
+      _stateBar.isShow = false;
+      _stateBar.brackets = null;
+      _stateBar.tips = null;
+      return;
+    }
+    var count = await messageService.countUnreadMessage(widget.receptor.id);
+    _stateBar.count = count;
+    _stateBar.atime = message?.atime;
+    var person;
+    if (!StringUtil.isEmpty(message?.upstreamPerson)) {
+      person = await personService.getPerson(message.upstreamPerson);
+    } else {
+      person = await personService.getPerson(message.creator);
+    }
+    _stateBar.brackets = '${count > 0 ? '$count条' : '${person.nickName}'}';
+    _stateBar.tips = '${person.nickName}:${message?.text}';
+    _stateBar.isShow = true;
   }
 
   Future<void> _updateLeading() async {
@@ -808,7 +932,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: widget.stateBar.isShow
+              crossAxisAlignment: _stateBar.isShow
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -858,7 +982,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                         Positioned(
                           top: -10,
                           right: -3,
-                          child: !widget.stateBar.isShow
+                          child: !_stateBar.isShow
                               ? Container(
                                   width: 0,
                                   height: 0,
@@ -869,7 +993,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                     top: 3,
                                   ),
                                   elevation: 0,
-                                  showBadge: (widget.stateBar.count ?? 0) != 0,
+                                  showBadge: (_stateBar.count ?? 0) != 0,
                                   badgeContent: Text(
                                     '',
                                   ),
@@ -931,7 +1055,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                 ),
                         ],
                       ),
-                      !widget.stateBar.isShow
+                      !_stateBar.isShow
                           ? Container(
                               width: 0,
                               height: 0,
@@ -948,7 +1072,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                 children: <Widget>[
                                   Text.rich(
                                     TextSpan(
-                                      text: widget.stateBar.brackets,
+                                      text: '[${_stateBar.brackets}]',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -958,7 +1082,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                           text: ' ',
                                         ),
                                         TextSpan(
-                                          text: widget.stateBar.tips,
+                                          text: _stateBar.tips,
                                           style: TextStyle(
                                             color: Colors.black54,
                                           ),
@@ -969,9 +1093,9 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    widget.stateBar?.atime != null
+                                    _stateBar?.atime != null
                                         ? '${TimelineUtil.format(
-                                            widget.stateBar?.atime,
+                                            _stateBar?.atime,
                                             locale: 'zh',
                                             dayFormat: DayFormat.Simple,
                                           )}'
@@ -1029,8 +1153,14 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          widget.context.forward('/geosphere/receptor',
-              arguments: {'receptor': widget.receptor});
+          widget.context.forward('/geosphere/receptor', arguments: {
+            'receptor': widget.receptor,
+            'notify': widget.notify,
+          }).then((v) {
+            _loadUnreadMessage().then((v) {
+              setState(() {});
+            });
+          });
         },
         child: item,
       ),

@@ -42,11 +42,11 @@ enum ForegroundMode {
   white,
 }
 
-class OnRecetorBackgroundChangedEvent {
+class OnReceptorSettingsChangedEvent {
   String action;
   Map<String, dynamic> args;
 
-  OnRecetorBackgroundChangedEvent({this.action, this.args});
+  OnReceptorSettingsChangedEvent({this.action, this.args});
 }
 
 class ReceptorInfo {
@@ -54,6 +54,7 @@ class ReceptorInfo {
   String title;
   String leading;
   bool isMobileReceptor;
+  bool isAutoScrollMessage;
   String creator;
   double offset;
   String category;
@@ -65,7 +66,7 @@ class ReceptorInfo {
   ///vertical|horizontal|none
   BackgroundMode backgroundMode;
   String background;
-  Future<void> Function(OnRecetorBackgroundChangedEvent e) onBackgroudChanged;
+  Future<void> Function(OnReceptorSettingsChangedEvent e) onSettingsChanged;
   GeoReceptor origin;
 
   ReceptorInfo({
@@ -73,6 +74,7 @@ class ReceptorInfo {
     this.title,
     this.leading,
     this.isMobileReceptor = false,
+    this.isAutoScrollMessage=false,
     this.creator,
     this.offset,
     this.category,
@@ -82,7 +84,7 @@ class ReceptorInfo {
     this.background,
     this.backgroundMode = BackgroundMode.none,
     this.foregroundMode = ForegroundMode.original,
-    this.onBackgroudChanged,
+    this.onSettingsChanged,
     this.origin,
   });
 }
@@ -90,7 +92,6 @@ class ReceptorInfo {
 class GeosphereMessageOR {
   String id;
   String upstreamPerson;
-
 //如果是从网流来的消息
   String upstreamChannel;
   String sourceSite;

@@ -126,6 +126,8 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `CountValue` (`value` INTEGER, PRIMARY KEY (`value`))');
+        await database.execute(
             'CREATE TABLE IF NOT EXISTS `Person` (`official` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroSite` (`id` TEXT, `name` TEXT, `leading` TEXT, `desc` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
@@ -162,17 +164,19 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereLikePersonOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereCommentOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereMediaOL` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+        await database.execute(
+            'CREATE INDEX `index_GeosphereMediaOL_msgid_receptor` ON `GeosphereMediaOL` (`msgid`, `receptor`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -326,6 +330,8 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
             (GeosphereMessageOL item) => <String, dynamic>{
                   'id': item.id,
                   'upstreamPerson': item.upstreamPerson,
+                  'upstreamReceptor': item.upstreamReceptor,
+                  'upstreamCategory': item.upstreamCategory,
                   'upstreamChannel': item.upstreamChannel,
                   'sourceSite': item.sourceSite,
                   'sourceApp': item.sourceApp,
@@ -380,6 +386,8 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
       GeosphereMessageOL(
           row['id'] as String,
           row['upstreamPerson'] as String,
+          row['upstreamReceptor'] as String,
+          row['upstreamCategory'] as String,
           row['upstreamChannel'] as String,
           row['sourceSite'] as String,
           row['sourceApp'] as String,
@@ -395,6 +403,9 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
           row['location'] as String,
           row['category'] as String,
           row['sandbox'] as String);
+
+  static final _countValueMapper =
+      (Map<String, dynamic> row) => CountValue(row['value'] as int);
 
   static final _geosphereLikePersonOLMapper = (Map<String, dynamic> row) =>
       GeosphereLikePersonOL(
@@ -460,6 +471,32 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
         'SELECT * FROM GeosphereMessageOL WHERE receptor=? and id=? and sandbox=? LIMIT 1',
         arguments: <dynamic>[receptor, id, sandbox],
         mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
+  Future<GeosphereMessageOL> firstUnreadMessage(
+      String receptor, String state, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeosphereMessageOL WHERE receptor=? and state=? and sandbox=? ORDER BY atime desc LIMIT 1',
+        arguments: <dynamic>[receptor, state, sandbox],
+        mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
+  Future<CountValue> listUnreadMessage(
+      String receptor, String state, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM GeosphereMessageOL WHERE receptor=? and state=? and sandbox=? ORDER BY atime desc',
+        arguments: <dynamic>[receptor, state, sandbox],
+        mapper: _countValueMapper);
+  }
+
+  @override
+  Future<void> flagArrivedMessagesReaded(
+      String newState, String receptor, String oldstate, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'update GeosphereMessageOL set state=? WHERE receptor=? and state=? and sandbox=?',
+        arguments: <dynamic>[newState, receptor, oldstate, sandbox]);
   }
 
   @override
@@ -618,6 +655,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
                   'foregroundMode': item.foregroundMode,
                   'backgroundMode': item.backgroundMode,
                   'background': item.background,
+                  'isAutoScrollMessage': item.isAutoScrollMessage,
                   'device': item.device,
                   'sandbox': item.sandbox
                 });
@@ -641,6 +679,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
       row['foregroundMode'] as String,
       row['backgroundMode'] as String,
       row['background'] as String,
+      row['isAutoScrollMessage'] as String,
       row['device'] as String,
       row['sandbox'] as String);
 
@@ -721,6 +760,14 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE GeoReceptor SET foregroundMode=? WHERE id=? and sandbox=?',
         arguments: <dynamic>[mode, id, sandbox]);
+  }
+
+  @override
+  Future<void> setAutoScrollMessage(
+      String isAutoScrollMessage, String receptor, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET isAutoScrollMessage=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[isAutoScrollMessage, receptor, sandbox]);
   }
 
   @override

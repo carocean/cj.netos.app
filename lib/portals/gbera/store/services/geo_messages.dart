@@ -43,9 +43,9 @@ class GeosphereMessageService
 
   @override
   Future<List<GeosphereMessageOL>> pageMyMessage(
-      String receptor,String creator, int limit, int offset) async{
+      String receptor, String creator, int limit, int offset) async {
     return await messageDAO.pageMyMessage(
-        receptor,creator, principal.person, limit, offset);
+        receptor, creator, principal.person, limit, offset);
   }
 
   @override
@@ -59,6 +59,25 @@ class GeosphereMessageService
   @override
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) async {
     return await messageDAO.getMessage(receptor, msgid, principal.person);
+  }
+
+  @override
+  Future<GeosphereMessageOL> firstUnreadMessage(String receptor) async {
+    return await messageDAO.firstUnreadMessage(
+        receptor, 'arrived', principal.person);
+  }
+
+  @override
+  Future<int> countUnreadMessage(String receptor) async {
+    var value = await messageDAO.listUnreadMessage(
+        receptor, 'arrived', principal.person);
+    return value?.value??0;
+  }
+
+  @override
+  Future<Function> flagMessagesReaded(String receptor) async{
+    await messageDAO.flagArrivedMessagesReaded('readed',
+        receptor, 'arrived', principal.person);
   }
 
   @override
@@ -130,20 +149,22 @@ class GeosphereMediaService implements IGeosphereMediaService, IServiceBuilder {
   IGeosphereMediaDAO mediaDAO;
   IGeoReceptorRemote receptorRemote;
   IGeoReceptorDAO geoReceptorDAO;
+
   @override
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     mediaDAO = db.geosphereMediaDAO;
-    geoReceptorDAO=db.geoReceptorDAO;
+    geoReceptorDAO = db.geoReceptorDAO;
     receptorRemote = site.getService('/remote/geo/receptors');
   }
 
   @override
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) async {
     await mediaDAO.addMedia(geosphereMediaOL);
-    var o=await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
-    await receptorRemote.uploadMedia(o.category,geosphereMediaOL);
+    var o =
+        await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
+    await receptorRemote.uploadMedia(o.category, geosphereMediaOL);
   }
 
   @override

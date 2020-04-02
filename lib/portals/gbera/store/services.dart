@@ -324,6 +324,9 @@ mixin IGeoReceptorService {
   Future<void> emptyBackground(String id) {}
 
   Future<void> updateForeground(String id, ForegroundMode mode) {}
+
+  Future<void> setAutoScrollMessage(String id, bool isAutoScrollMessage) {}
+
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
@@ -345,7 +348,7 @@ mixin IGeosphereMessageService {
       String receptor, int limit, int offset) {}
 
   Future<List<GeosphereMessageOL>> pageMyMessage(
-      String id,String creator, int limit, int offset) {}
+      String id, String creator, int limit, int offset) {}
 
   Future<void> removeMessage(String category, String receptor, String msgid) {}
 
@@ -366,6 +369,13 @@ mixin IGeosphereMessageService {
 
   Future<List<GeosphereCommentOL>> pageComments(
       String receptor, String msgid, int limit, int offset) {}
+
+  Future<GeosphereMessageOL> firstUnreadMessage(String receptor) {}
+
+  Future<int> countUnreadMessage(String receptor) {}
+
+  Future<void> flagMessagesReaded(String id) {}
+
 }
 mixin IGeosphereMediaService {
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) {}

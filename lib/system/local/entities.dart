@@ -506,6 +506,7 @@ class GeoReceptor {
   ///vertical|horizontal|none
   String backgroundMode;
   String background;
+  String isAutoScrollMessage;
   String device;
   String sandbox;
 
@@ -522,6 +523,7 @@ class GeoReceptor {
       this.foregroundMode,
       this.backgroundMode,
       this.background,
+      this.isAutoScrollMessage,
       this.device,
       this.sandbox);
 
@@ -630,30 +632,33 @@ class GeoCategoryAppOR {
 @entity
 class GeosphereMessageOL {
   @primaryKey
-  final String id;
-  final String upstreamPerson;
-
+   String id;
+   String upstreamPerson;
+  String upstreamReceptor;
+  String upstreamCategory;
 //如果是从网流来的消息
-  final String upstreamChannel;
-  final String sourceSite;
-  final String sourceApp;
-  final String receptor;
-  final String creator;
-  final int ctime;
+   String upstreamChannel;
+   String sourceSite;
+   String sourceApp;
+   String receptor;
+   String creator;
+   int ctime;
   int atime;
   int rtime;
   int dtime;
   String state;
-  final String text;
-  final double wy;
+   String text;
+   double wy;
   ///location是LatLng对象
-  final String location;
-  final String category;
-  final String sandbox;
+   String location;
+   String category;
+   String sandbox;
 
   GeosphereMessageOL(
       this.id,
       this.upstreamPerson,
+      this.upstreamReceptor,
+      this.upstreamCategory,
       this.upstreamChannel,
       this.sourceSite,
       this.sourceApp,
@@ -669,6 +674,29 @@ class GeosphereMessageOL {
       this.location,
       this.category,
       this.sandbox);
+
+  GeosphereMessageOL.from(map,sandbox) {
+      id=map['id'];
+      upstreamPerson=map['upstreamPerson'];
+      upstreamReceptor=map['upstreamReceptor'];
+      upstreamCategory=map['upstreamCategory'];
+      upstreamChannel=map['upstreamChannel'];
+      sourceSite=map['sourceSite'];
+      sourceApp=map['sourceApp'];
+      receptor=map['receptor'];
+      creator=map['creator'];
+      ctime=map['ctime'];
+     atime=map['atime'];
+     rtime=map['rtime'];
+     dtime=map['dtime'];
+     state=map['state'];
+      text=map['text'];
+      wy=map['wy'];
+      location=jsonEncode(map['location']);
+      category=map['category'];
+      this.sandbox=sandbox;
+  }
+
 }
 
 @Entity(primaryKeys: ['id', 'sandbox'])
@@ -703,9 +731,8 @@ class GeosphereCommentOL {
       this.ctime, this.nickName, this.receptor, this.sandbox);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'])
+@Entity(primaryKeys: ['id', 'sandbox'],indices: [Index(value: ['msgid','receptor'])])
 class GeosphereMediaOL {
-  @primaryKey
   final String id;
   final String type;
   final String src;
@@ -729,4 +756,11 @@ class GeosphereMediaOL {
       src: src,
     );
   }
+}
+@entity
+class CountValue{
+  @primaryKey
+  int value;
+
+  CountValue(this.value);
 }

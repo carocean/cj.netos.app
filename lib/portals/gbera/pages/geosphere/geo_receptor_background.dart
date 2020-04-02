@@ -46,9 +46,9 @@ class _GeosphereReceptorBackgroundState
     await receptorService.emptyBackground(_receptor.id);
     _receptor.backgroundMode = BackgroundMode.none;
     _receptor.background = null;
-    if (_receptor.onBackgroudChanged != null) {
-     await _receptor.onBackgroudChanged(
-          OnRecetorBackgroundChangedEvent(action: 'setNoneBackground'));
+    if (_receptor.onSettingsChanged != null) {
+     await _receptor.onSettingsChanged(
+          OnReceptorSettingsChangedEvent(action: 'setNoneBackground'));
     }
     await _setOriginalForeground();
   }
@@ -60,8 +60,8 @@ class _GeosphereReceptorBackgroundState
         _receptor.id, BackgroundMode.horizontal, file);
     _receptor.backgroundMode = BackgroundMode.horizontal;
     _receptor.background = file;
-    if (_receptor.onBackgroudChanged != null) {
-    await  _receptor.onBackgroudChanged(OnRecetorBackgroundChangedEvent(
+    if (_receptor.onSettingsChanged != null) {
+    await  _receptor.onSettingsChanged(OnReceptorSettingsChangedEvent(
           action: 'setHorizontalBackground', args:{'file':file}));
     }
   }
@@ -73,8 +73,8 @@ class _GeosphereReceptorBackgroundState
         _receptor.id, BackgroundMode.vertical, file);
     _receptor.backgroundMode = BackgroundMode.vertical;
     _receptor.background = file;
-    if (_receptor.onBackgroudChanged != null) {
-     await _receptor.onBackgroudChanged(OnRecetorBackgroundChangedEvent(
+    if (_receptor.onSettingsChanged != null) {
+     await _receptor.onSettingsChanged(OnReceptorSettingsChangedEvent(
           action: 'setVerticalBackground', args:{'file':file}));
     }
   }
@@ -84,8 +84,8 @@ class _GeosphereReceptorBackgroundState
     widget.context.site.getService('/geosphere/receptors');
     await receptorService.updateForeground(_receptor.id, ForegroundMode.white);
     _receptor.foregroundMode = ForegroundMode.white;
-    if (_receptor.onBackgroudChanged != null) {
-      await _receptor.onBackgroudChanged(OnRecetorBackgroundChangedEvent(
+    if (_receptor.onSettingsChanged != null) {
+      await _receptor.onSettingsChanged(OnReceptorSettingsChangedEvent(
           action: 'setWhiteForeground'));
     }
   }
@@ -96,8 +96,8 @@ class _GeosphereReceptorBackgroundState
     await receptorService.updateForeground(
         _receptor.id, ForegroundMode.original);
     _receptor.foregroundMode = ForegroundMode.original;
-    if (_receptor.onBackgroudChanged != null) {
-      await _receptor.onBackgroudChanged(OnRecetorBackgroundChangedEvent(
+    if (_receptor.onSettingsChanged != null) {
+      await _receptor.onSettingsChanged(OnReceptorSettingsChangedEvent(
           action: 'setOriginalForeground'));
     }
   }

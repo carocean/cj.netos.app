@@ -342,6 +342,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               creator: receptor['creator'],
               category: receptor['category'],
               isMobileReceptor: receptor['category'] == 'mobiles',
+              isAutoScrollMessage: receptor['isAutoScrollMessage']=='true'?true:false,
               offset: item['distance'],
             )),
       );

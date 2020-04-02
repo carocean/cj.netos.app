@@ -10,6 +10,9 @@ import 'daos.dart';
 part 'database.g.dart';
 
 @Database(version: 1, entities: [
+  ///欲接收限定字段的值应该像声明CountValue对象那样使用
+  ///CountValue用于接收查询的统计字段，并且以 as 字段别名，别名与CountValue对应
+  CountValue,
   Person,
   MicroSite,
   MicroApp,
