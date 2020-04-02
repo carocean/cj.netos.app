@@ -35,6 +35,10 @@ class _TaskBarState extends State<TaskBar> {
     _listenGeosphereSettingsTask(ports);
     _listenGeosphereDocTask(ports);
     _listenGeosphereDocUploadMediaTask(ports);
+    _listenGeosphereDocLikeTask(ports);
+    _listenGeosphereDocUnlikeTask(ports);
+    _listenGeosphereDocCommentTask(ports);
+    _listenGeosphereDocUncommentTask(ports);
     super.initState();
   }
 
@@ -46,6 +50,10 @@ class _TaskBarState extends State<TaskBar> {
     ports.portTask.unlistener('/geosphere/receptor/settings');
     ports.portTask.unlistener('/geosphere/receptor/docs/publishMessage');
     ports.portTask.unlistener('/geosphere/receptor/docs/uploadMedia');
+    ports.portTask.unlistener('/geosphere/receptor/docs/like');
+    ports.portTask.unlistener('/geosphere/receptor/docs/unlike');
+    ports.portTask.unlistener('/geosphere/receptor/docs/addComment');
+    ports.portTask.unlistener('/geosphere/receptor/docs/removeComment');
     super.dispose();
   }
 
@@ -107,7 +115,125 @@ class _TaskBarState extends State<TaskBar> {
       }
     });
   }
-
+  void _listenGeosphereDocCommentTask(ports){
+    ports.portTask.listener('/geosphere/receptor/docs/addComment', (frame) {
+      switch (frame.command) {
+        case "portGet":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //推文任务
+              var flowChannelPortsUrl =
+              widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushGeoDocumentComment',
+                parameters: {
+                  'category': frame.parameter('category'),
+                  'receptor': frame.parameter('receptor'),
+                  'docid': frame.parameter('msgid'),
+                  'commentid':frame.parameter('commentid'),
+                  'comments':frame.parameter('content'),
+                  'interval': 100,
+                },
+              );
+              break;
+          }
+          break;
+      }
+    });
+  }
+  void _listenGeosphereDocUncommentTask(ports){
+    ports.portTask.listener('/geosphere/receptor/docs/removeComment', (frame) {
+      switch (frame.command) {
+        case "portGet":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //推文任务
+              var flowChannelPortsUrl =
+              widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushGeoDocumentUncomment',
+                parameters: {
+                  'category': frame.parameter('category'),
+                  'receptor': frame.parameter('receptor'),
+                  'docid': frame.parameter('msgid'),
+                  'commentid':frame.parameter('commentid'),
+                  'interval': 100,
+                },
+              );
+              break;
+          }
+          break;
+      }
+    });
+  }
+  void _listenGeosphereDocLikeTask(ports){
+    ports.portTask.listener('/geosphere/receptor/docs/like', (frame) {
+      switch (frame.command) {
+        case "portGet":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //推文任务
+              var flowChannelPortsUrl =
+              widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushGeoDocumentLike',
+                parameters: {
+                  'category': frame.parameter('category'),
+                  'receptor': frame.parameter('receptor'),
+                  'docid': frame.parameter('msgid'),
+                  'interval': 100,
+                },
+              );
+              break;
+          }
+          break;
+      }
+    });
+  }
+  void _listenGeosphereDocUnlikeTask(ports){
+    ports.portTask.listener('/geosphere/receptor/docs/unlike', (frame) {
+      switch (frame.command) {
+        case "portGet":
+          switch (frame.head('sub-command')) {
+            case 'begin':
+              reset();
+              break;
+            case 'done':
+              reset();
+              //推文任务
+              var flowChannelPortsUrl =
+              widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowChannelPortsUrl,
+                'pushGeoDocumentUnlike',
+                parameters: {
+                  'category': frame.parameter('category'),
+                  'receptor': frame.parameter('receptor'),
+                  'docid': frame.parameter('msgid'),
+                  'interval': 100,
+                },
+              );
+              break;
+          }
+          break;
+      }
+    });
+  }
   void _listenGeosphereDocTask(ports) {
     //文档成功上传完则推送
     ports.portTask.listener('/geosphere/receptor/docs/publishMessage', (frame) {

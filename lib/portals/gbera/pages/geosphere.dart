@@ -75,6 +75,26 @@ class _GeosphereState extends State<Geosphere>
                 setState(() {});
               });
               break;
+            case 'likeDocument':
+              _arrivedLikeDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
+            case 'unlikeDocument':
+              _arrivedUnlikeDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
+            case 'commentDocument':
+              _arrivedCommentDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
+            case 'uncommentDocument':
+              _arrivedUncommentDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
           }
         },
         matchPath: '/geosphere/receptor',
@@ -93,13 +113,228 @@ class _GeosphereState extends State<Geosphere>
     super.dispose();
   }
 
-  Future<GeosphereMessageOL> _arrivedPushDocumentCommand(Frame frame) async {
+  Future<GeosphereMessageOL> _arrivedLikeDocumentCommand(Frame frame) async {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，被丢弃。');
       return null;
     }
     var docMap = jsonDecode(text);
+
+    var receptor = frame.parameter('receptor');
+    var category = frame.parameter('category');
+    var docid = frame.parameter('docid');
+    var sender = frame.head('sender');
+
+    if (sender == widget.context.principal.person) {
+      print('自已的点赞操作又发给自己，被丢弃。');
+      return null;
+    }
+
+    await _cachePerson(sender);
+
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var receptorObj = await _getReceptor(receptor);
+    receptor = receptorObj.id;
+    var exists = await messageService.getMessage(receptor, docid);
+    if (exists == null) {
+      print('消息不存在，被丢弃。');
+      return null;
+    }
+
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var sendPerson = await personService.getPerson(sender);
+    var like = GeosphereLikePersonOL(
+        MD5Util.MD5(Uuid().v1()),
+        sender,
+        sendPerson.avatar,
+        docid,
+        DateTime.now().millisecondsSinceEpoch,
+        sendPerson.nickName,
+        receptor,
+        widget.context.principal.person);
+    await messageService.like(like);
+
+    //通知当前工作的管道有新消息到
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    _notifyStreamController.add({
+      'command': 'likeDocumentCommand',
+      'sender': frame.head('sender'),
+      'receptor': receptor,
+      'category': category,
+      'like': like,
+      'message':exists,
+    });
+    return exists;
+  }
+
+  Future<GeosphereMessageOL> _arrivedUnlikeDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+
+    var receptor = frame.parameter('receptor');
+    var category = frame.parameter('category');
+    var docid = frame.parameter('docid');
+    var sender = frame.head('sender');
+
+    if (sender == widget.context.principal.person) {
+      print('自已的取消赞操作又发给自己，被丢弃。');
+      return null;
+    }
+
+    await _cachePerson(sender);
+
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var receptorObj = await _getReceptor(receptor);
+    receptor = receptorObj.id;
+    var exists = await messageService.getMessage(receptor, docid);
+    if (exists == null) {
+      print('消息不存在，被丢弃。');
+      return null;
+    }
+
+    await messageService.unlike(receptor, docid, sender);
+
+    //通知当前工作的管道有新消息到
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    _notifyStreamController.add({
+      'command': 'unlikeDocumentCommand',
+      'sender': frame.head('sender'),
+      'receptor': receptor,
+      'category': category,
+      'message':exists,
+    });
+    return exists;
+  }
+
+  Future<GeosphereMessageOL> _arrivedCommentDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+
+    var receptor = frame.parameter('receptor');
+    var category = frame.parameter('category');
+    var docid = frame.parameter('docid');
+    var commentid = frame.parameter('commentid');
+    var comments = docMap['comments'];
+    var sender = frame.head('sender');
+
+    if (sender == widget.context.principal.person) {
+      print('自已的评论操作又发给自己，被丢弃。');
+      return null;
+    }
+
+    await _cachePerson(sender);
+
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var receptorObj = await _getReceptor(receptor);
+    receptor = receptorObj.id;
+    var exists = await messageService.getMessage(receptor, docid);
+    if (exists == null) {
+      print('消息不存在，被丢弃。');
+      return null;
+    }
+
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var sendPerson = await personService.getPerson(sender);
+    var comment = GeosphereCommentOL(
+        commentid,
+        sender,
+        sendPerson.avatar,
+        docid,
+        comments,
+        DateTime.now().millisecondsSinceEpoch,
+        sendPerson.nickName,
+        receptor,
+        widget.context.principal.person);
+    await messageService.addComment(comment);
+
+    //通知当前工作的管道有新消息到
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    _notifyStreamController.add({
+      'command': 'commentDocumentCommand',
+      'sender': frame.head('sender'),
+      'receptor': receptor,
+      'category': category,
+      'commentid': commentid,
+      'comment': comment,
+      'message':exists,
+    });
+    return exists;
+  }
+
+  Future<GeosphereMessageOL> _arrivedUncommentDocumentCommand(
+      Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+
+    var receptor = frame.parameter('receptor');
+    var category = frame.parameter('category');
+    var docid = frame.parameter('docid');
+    var sender = frame.head('sender');
+    var commentid = frame.parameter('commentid');
+
+    if (sender == widget.context.principal.person) {
+      print('自已的取消评论操作又发给自己，被丢弃。');
+      return null;
+    }
+
+    await _cachePerson(sender);
+
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    var receptorObj = await _getReceptor(receptor);
+    receptor = receptorObj.id;
+    var exists = await messageService.getMessage(receptor, docid);
+    if (exists == null) {
+      print('消息不存在，被丢弃。');
+      return null;
+    }
+
+    await messageService.removeComment(receptor, docid, commentid);
+
+    //通知当前工作的管道有新消息到
+    //网流的管道列表中的每个管道的显示消息提醒的状态栏
+    _notifyStreamController.add({
+      'command': 'uncommentDocumentCommand',
+      'sender': sender,
+      'receptor': receptor,
+      'category': category,
+      'commentid': commentid,
+      'message':exists,
+    });
+    return exists;
+  }
+
+  Future<GeosphereMessageOL> _arrivedPushDocumentCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    if (frame.head("sender") == widget.context.principal.person) {
+      print('自已的消息又发给自己，被丢弃。');
+      return null;
+    }
+
+    var docMap = jsonDecode(text);
+    var category = frame.parameter('category');
     var message =
         GeosphereMessageOL.from(docMap, widget.context.principal.person);
     message.state = 'arrived';
@@ -147,9 +382,24 @@ class _GeosphereState extends State<Geosphere>
     _notifyStreamController.add({
       'command': 'pushDocumentCommand',
       'sender': frame.head('sender'),
+      'receptor': receptor,
+      'category': category,
       'message': message,
     });
     return message;
+  }
+
+  Future<GeoReceptor> _getReceptor(receptorid) async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var receptor = await receptorService.get(receptorid);
+    if (receptor != null) {
+      return receptor;
+    }
+    var principal = widget.context.principal;
+    receptor = await receptorService.getMobileReceptor(
+        principal.person, principal.device);
+    return receptor;
   }
 
   //如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢
@@ -765,7 +1015,8 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   offset: offset,
                   category: receptor.category,
                   radius: receptor.radius,
-                  isAutoScrollMessage: receptor.isAutoScrollMessage=='true'?true:false,
+                  isAutoScrollMessage:
+                      receptor.isAutoScrollMessage == 'true' ? true : false,
                   latLng: LatLng.fromJson(jsonDecode(receptor.location)),
                   uDistance: receptor.uDistance,
                   background: receptor.background,
@@ -811,13 +1062,52 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     _streamSubscription = widget.notify.listen((cmd) async {
-      GeosphereMessageOL message = cmd['message'];
-      var sender = cmd['sender'];
       switch (cmd['command']) {
         case 'pushDocumentCommand':
           _loadUnreadMessage().then((v) {
             setState(() {});
           });
+          break;
+        case 'likeDocumentCommand':
+          var sender = cmd['sender'];
+          var person=await personService.getPerson(sender);
+          GeosphereMessageOL message=cmd['message'];
+          _stateBar.count = 1;
+          _stateBar.atime = message.atime;
+          _stateBar.isShow = true;
+          _stateBar.brackets = '赞';
+          _stateBar.tips = '${person.nickName}赞对:${message.text}';
+          break;
+        case 'unlikeDocumentCommand':
+          var sender = cmd['sender'];
+          var person=await personService.getPerson(sender);
+          GeosphereMessageOL message=cmd['message'];
+          _stateBar.count = 1;
+          _stateBar.atime = message.atime;
+          _stateBar.isShow = true;
+          _stateBar.brackets = '取消点赞';
+          _stateBar.tips = '${person.nickName}取消点赞对:${message.text}';
+          break;
+        case 'commentDocumentCommand':
+          var sender = cmd['sender'];
+          var person=await personService.getPerson(sender);
+          GeosphereMessageOL message=cmd['message'];
+          GeosphereCommentOL comment=cmd['comment'];
+          _stateBar.count = 1;
+          _stateBar.atime = comment.ctime;
+          _stateBar.isShow = true;
+          _stateBar.brackets = '评论';
+          _stateBar.tips = '${person.nickName}说:${comment.text}';
+          break;
+        case 'uncommentDocumentCommand':
+          var sender = cmd['sender'];
+          var person=await personService.getPerson(sender);
+          GeosphereMessageOL message=cmd['message'];
+          _stateBar.count = 1;
+          _stateBar.atime = message.atime;
+          _stateBar.isShow = true;
+          _stateBar.brackets = '取消评论';
+          _stateBar.tips = '${person.nickName}取消了对:${message.text}';
           break;
       }
     });

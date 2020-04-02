@@ -535,6 +535,21 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       GeosphereMessageOL message = cmd['message'];
       var sender = cmd['sender'];
       switch (cmd['command']) {
+        case 'likeDocumentCommand':
+        case 'unlikeDocumentCommand':
+        case 'commentDocumentCommand':
+        case 'uncommentDocumentCommand':
+        if(widget.receptorInfo.isAutoScrollMessage) {
+          if (widget.refresh != null) {
+            await widget.refresh();
+            _arrivedMessageCount = 0;
+            setState(() {});
+          }
+        }else {
+          _arrivedMessageCount+=1;
+          setState(() {});
+        }
+        break;
         case 'pushDocumentCommand':
           if(widget.receptorInfo.isAutoScrollMessage) {
             if (widget.refresh != null) {
