@@ -342,7 +342,7 @@ mixin IGeoCategoryLocal {
 }
 
 mixin IGeosphereMessageService {
-  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) {}
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,{bool isOnlySaveLocal=false}) {}
 
   Future<List<GeosphereMessageOL>> pageMessage(
       String receptor, int limit, int offset) {}
@@ -354,18 +354,18 @@ mixin IGeosphereMessageService {
 
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
 
-  Future<void> like(GeosphereLikePersonOL likePerson) {}
+  Future<void> like(GeosphereLikePersonOL likePerson,{bool isOnlySaveLocal=false}) {}
 
-  Future<void> unlike(String receptor, String msgid, String person) {}
+  Future<void> unlike(String receptor, String msgid, String person,{bool isOnlySaveLocal=false}) {}
 
   Future<bool> isLiked(String receptor, String msgid, String person) {}
 
   Future<List<GeosphereLikePersonOL>> pageLikePersons(
       String receptor, String id, int i, int j) {}
 
-  Future<void> addComment(GeosphereCommentOL geosphereCommentOL) {}
+  Future<void> addComment(GeosphereCommentOL geosphereCommentOL,{bool isOnlySaveLocal=false}) {}
 
-  Future<void> removeComment(String receptor, String msgid, String commentid) {}
+  Future<void> removeComment(String receptor, String msgid, String commentid,{bool isOnlySaveLocal=false}) {}
 
   Future<List<GeosphereCommentOL>> pageComments(
       String receptor, String msgid, int limit, int offset) {}
@@ -378,7 +378,7 @@ mixin IGeosphereMessageService {
 
 }
 mixin IGeosphereMediaService {
-  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) {}
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,{bool isOnlySaveLocal=false}) {}
 
   Future<List<GeosphereMediaOL>> listMedia(String receptor, String messageid) {}
 }

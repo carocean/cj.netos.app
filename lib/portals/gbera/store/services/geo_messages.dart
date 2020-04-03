@@ -28,10 +28,12 @@ class GeosphereMessageService
   }
 
   @override
-  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL) async {
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,{bool isOnlySaveLocal=false}) async {
     await messageDAO.addMessage(geosphereMessageOL);
-    await receptorRemote
-        .publishMessage(GeosphereMessageOR.form(geosphereMessageOL));
+    if(!isOnlySaveLocal) {
+      await receptorRemote
+          .publishMessage(GeosphereMessageOR.form(geosphereMessageOL));
+    }
   }
 
   @override
@@ -88,20 +90,24 @@ class GeosphereMessageService
   }
 
   @override
-  Future<Function> unlike(String receptor, String msgid, String liker) async {
+  Future<Function> unlike(String receptor, String msgid, String liker,{bool isOnlySaveLocal=false}) async {
     await messageDAO.unlike(receptor, msgid, liker, principal.person);
-    var o = await geoReceptorDAO.get(receptor, principal.person);
-    await receptorRemote.unlike(o.category, receptor, msgid, liker);
+    if(!isOnlySaveLocal) {
+      var o = await geoReceptorDAO.get(receptor, principal.person);
+      await receptorRemote.unlike(o.category, receptor, msgid, liker);
+    }
   }
 
   @override
-  Future<Function> like(GeosphereLikePersonOL likePerson) async {
+  Future<Function> like(GeosphereLikePersonOL likePerson,{bool isOnlySaveLocal=false}) async {
     await messageDAO.unlike(likePerson.receptor, likePerson.msgid,
         likePerson.person, principal.person);
     await messageDAO.like(likePerson);
-    var o = await geoReceptorDAO.get(likePerson.receptor, principal.person);
-    await receptorRemote.like(
-        o.category, likePerson.receptor, likePerson.msgid, likePerson.person);
+    if(!isOnlySaveLocal) {
+      var o = await geoReceptorDAO.get(likePerson.receptor, principal.person);
+      await receptorRemote.like(
+          o.category, likePerson.receptor, likePerson.msgid, likePerson.person);
+    }
   }
 
   @override
@@ -113,25 +119,30 @@ class GeosphereMessageService
 
   @override
   Future<Function> removeComment(
-      String receptor, String msgid, String commentid) async {
+      String receptor, String msgid, String commentid,{bool isOnlySaveLocal=false}) async {
     await messageDAO.removeComment(
         receptor, msgid, commentid, principal.person);
-    var o = await geoReceptorDAO.get(receptor, principal.person);
-    await receptorRemote.removeComment(o.category, receptor, msgid, commentid);
+    if(!isOnlySaveLocal) {
+      var o = await geoReceptorDAO.get(receptor, principal.person);
+      await receptorRemote.removeComment(
+          o.category, receptor, msgid, commentid);
+    }
   }
 
   @override
-  Future<Function> addComment(GeosphereCommentOL geosphereCommentOL) async {
+  Future<Function> addComment(GeosphereCommentOL geosphereCommentOL,{bool isOnlySaveLocal=false}) async {
     await messageDAO.addComment(geosphereCommentOL);
-    var o =
-        await geoReceptorDAO.get(geosphereCommentOL.receptor, principal.person);
-    await receptorRemote.addComment(
-        o.category,
-        geosphereCommentOL.receptor,
-        geosphereCommentOL.msgid,
-        geosphereCommentOL.person,
-        geosphereCommentOL.id,
-        geosphereCommentOL.text);
+    if(!isOnlySaveLocal) {
+      var o =
+      await geoReceptorDAO.get(geosphereCommentOL.receptor, principal.person);
+      await receptorRemote.addComment(
+          o.category,
+          geosphereCommentOL.receptor,
+          geosphereCommentOL.msgid,
+          geosphereCommentOL.person,
+          geosphereCommentOL.id,
+          geosphereCommentOL.text);
+    }
   }
 
   @override
@@ -160,11 +171,13 @@ class GeosphereMediaService implements IGeosphereMediaService, IServiceBuilder {
   }
 
   @override
-  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL) async {
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,{bool isOnlySaveLocal=false}) async {
     await mediaDAO.addMedia(geosphereMediaOL);
-    var o =
-        await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
-    await receptorRemote.uploadMedia(o.category, geosphereMediaOL);
+    if(!isOnlySaveLocal) {
+      var o =
+      await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
+      await receptorRemote.uploadMedia(o.category, geosphereMediaOL);
+    }
   }
 
   @override

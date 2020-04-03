@@ -169,7 +169,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                       }
                       await mediaService.addMedia(
                         GeosphereMediaOL(
-                          '${Uuid().v1()}',
+                          MD5Util.MD5(Uuid().v1()),
                           type,
                           '${file.src.path}',
                           null,

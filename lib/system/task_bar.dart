@@ -70,7 +70,7 @@ class _TaskBarState extends State<TaskBar> {
     );
   }
 
-  void _listenGeosphereDocUploadMediaTask(ports) {
+  void _listenGeosphereDocUploadMediaTask(IRemotePorts ports) {
     //成功上传图片则提交多媒体信息
     ports.portTask.listener('/geosphere/receptor/docs/uploadMedia',
         (Frame frame) {
@@ -87,19 +87,35 @@ class _TaskBarState extends State<TaskBar> {
               var remoteFile = files[frame.parameter('src')];
               var _receptorPortsUrl =
                   widget.site.getService('@.prop.ports.document.geo.receptor');
+              var media={
+                'receptor': frame.parameter('receptor'),
+                'category': frame.parameter('category'),
+                'docid': frame.parameter('msgid'),
+                'id': frame.parameter('id'),
+                'type': frame.parameter('type') ?? '',
+                'src': remoteFile,
+                'text': frame.parameter('text') ?? '',
+                'leading': frame.parameter('leading') ?? '',
+              };
               ports.portTask.addPortGETTask(
                 _receptorPortsUrl,
                 'addMedia',
+                parameters: media,
+                callbackUrl: '/geosphere/receptor/media/addMedia',
+              );
+
+              var flowGeoPortsUrl =
+              widget.site.getService('@.prop.ports.flow.geosphere');
+              ports.portTask.addPortPOSTTask(
+                flowGeoPortsUrl,
+                'pushGeoDocumentMedia',
                 parameters: {
-                  'receptor': frame.parameter('receptor'),
-                  'category': frame.parameter('category'),
-                  'docid': frame.parameter('msgid'),
-                  'id': frame.parameter('id'),
-                  'type': frame.parameter('type') ?? '',
-                  'src': remoteFile,
-                  'text': frame.parameter('text') ?? '',
-                  'leading': frame.parameter('leading') ?? '',
+                  'interval': '100',
                 },
+                data: {
+                  'media':jsonEncode(media),
+                },
+                callbackUrl: '/geosphere/receptor/media/pushGeoDocumentMedia',
               );
               setState(() {});
               break;
@@ -126,10 +142,10 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-              var flowChannelPortsUrl =
+              var flowGeoPortsUrl =
               widget.site.getService('@.prop.ports.flow.geosphere');
               ports.portTask.addPortPOSTTask(
-                flowChannelPortsUrl,
+                flowGeoPortsUrl,
                 'pushGeoDocumentComment',
                 parameters: {
                   'category': frame.parameter('category'),
@@ -157,10 +173,10 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-              var flowChannelPortsUrl =
+              var flowGeoPortsUrl =
               widget.site.getService('@.prop.ports.flow.geosphere');
               ports.portTask.addPortPOSTTask(
-                flowChannelPortsUrl,
+                flowGeoPortsUrl,
                 'pushGeoDocumentUncomment',
                 parameters: {
                   'category': frame.parameter('category'),
@@ -187,10 +203,10 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-              var flowChannelPortsUrl =
+              var flowGeoPortsUrl =
               widget.site.getService('@.prop.ports.flow.geosphere');
               ports.portTask.addPortPOSTTask(
-                flowChannelPortsUrl,
+                flowGeoPortsUrl,
                 'pushGeoDocumentLike',
                 parameters: {
                   'category': frame.parameter('category'),
@@ -216,10 +232,10 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-              var flowChannelPortsUrl =
+              var flowGeoPortsUrl =
               widget.site.getService('@.prop.ports.flow.geosphere');
               ports.portTask.addPortPOSTTask(
-                flowChannelPortsUrl,
+                flowGeoPortsUrl,
                 'pushGeoDocumentUnlike',
                 parameters: {
                   'category': frame.parameter('category'),
@@ -246,10 +262,10 @@ class _TaskBarState extends State<TaskBar> {
             case 'done':
               reset();
               //推文任务
-              var flowChannelPortsUrl =
+              var flowGeoPortsUrl =
                   widget.site.getService('@.prop.ports.flow.geosphere');
               ports.portTask.addPortPOSTTask(
-                flowChannelPortsUrl,
+                flowGeoPortsUrl,
                 'pushGeoDocument',
                 parameters: {
                   'category': frame.parameter('category'),

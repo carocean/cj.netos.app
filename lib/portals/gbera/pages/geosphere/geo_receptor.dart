@@ -531,10 +531,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     });
     Stream _notify = widget.context.parameters['notify'];
     _streamSubscription = _notify.listen((cmd) async{
-      print('---$cmd');
       GeosphereMessageOL message = cmd['message'];
+      if(cmd['receptor']!=widget.receptorInfo.id){
+        return;
+      }
       var sender = cmd['sender'];
       switch (cmd['command']) {
+        case 'mediaDocumentCommand':
         case 'likeDocumentCommand':
         case 'unlikeDocumentCommand':
         case 'commentDocumentCommand':
@@ -1131,6 +1134,7 @@ class __MessageCardState extends State<_MessageCard> {
                     length: widget.messageWrapper.medias.length,
                     child: PageSelector(
                       medias: widget.messageWrapper.medias,
+                      context: widget.context,
                       onMediaLongTap: (media) {
                         widget.context.forward(
                           '/images/viewer',

@@ -23,8 +23,10 @@ import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../main.dart';
 import 'geosphere/geo_entities.dart';
 import 'geosphere/geo_utils.dart';
 import 'netflow/article_entities.dart';
@@ -66,6 +68,7 @@ class _GeosphereState extends State<Geosphere>
     });
     _checkMobileReceptor();
 
+    _listenMeidaFileDownload();
     if (!widget.context.isListening(matchPath: '/geosphere/receptor')) {
       widget.context.listenNetwork(
         (frame) {
@@ -95,6 +98,11 @@ class _GeosphereState extends State<Geosphere>
                 setState(() {});
               });
               break;
+            case 'mediaDocument':
+              _arrivedMediaDocumentCommand(frame).then((message) {
+                setState(() {});
+              });
+              break;
           }
         },
         matchPath: '/geosphere/receptor',
@@ -105,12 +113,127 @@ class _GeosphereState extends State<Geosphere>
 
   @override
   void dispose() {
+    widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
     widget.context.unlistenNetwork(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
     _location.stop();
     _messageStreamController.close();
     _notifyStreamController.close();
     super.dispose();
+  }
+
+  Future<void> _listenMeidaFileDownload() async {
+    ProgressTaskBar progressTaskBar =
+        widget.context.site.getService('@.prop.taskbar.progress');
+    widget.context.ports.portTask.listener('/geosphere/doc/file.download',
+        (Frame frame) async {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'receiveProgress':
+          var count = frame.head('count');
+          var total = frame.head('total');
+          progressTaskBar.update(int.parse(count) * 1.0 / int.parse(total));
+          break;
+        case 'done':
+          var mediaid = frame.parameter('id');
+          var docid = frame.parameter('docid');
+          var type = frame.parameter('type');
+          var src = frame.parameter('src');
+          var leading = frame.parameter('leading');
+          var text = frame.parameter('text');
+          var receptor = frame.parameter('receptor');
+          var category = frame.parameter('category');
+          var localFile = frame.parameter('localFile');
+
+          IGeosphereMessageService messageService =
+              widget.context.site.getService('/geosphere/receptor/messages');
+          var exists = await messageService.getMessage(receptor, docid);
+          if (exists == null) {
+            print('消息不存在，被丢弃。');
+            return null;
+          }
+
+          IGeosphereMediaService mediaService = widget.context.site
+              .getService('/geosphere/receptor/messages/medias');
+
+          var creator = frame.parameter('creator');
+          IPersonService personService =
+              widget.context.site.getService('/gbera/persons');
+          var mediaPerson =
+              await personService.getPerson(creator, isDownloadAvatar: true);
+
+          var media = GeosphereMediaOL(
+            mediaid,
+            type,
+            localFile,
+            leading,
+            docid,
+            text,
+            receptor,
+            widget.context.principal.person,
+          );
+          await mediaService.addMedia(media, isOnlySaveLocal: true);
+
+          //通知当前工作的管道有新消息到
+          //网流的管道列表中的每个管道的显示消息提醒的状态栏
+          _notifyStreamController.add({
+            'command': 'mediaDocumentCommand',
+            'sender': creator,
+            'receptor': receptor,
+            'category': category,
+            'media': media,
+            'message': exists,
+          });
+          break;
+        default:
+          print(frame);
+          break;
+      }
+    });
+  }
+
+  Future<void> _arrivedMediaDocumentCommand(frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    var docMap = jsonDecode(text);
+
+    var receptor = docMap['receptor'];
+    var category = docMap['category'];
+    var docid = docMap['docid'];
+    var sender = frame.head('sender');
+
+    if (sender == widget.context.principal.person) {
+      print('自已的点赞操作又发给自己，被丢弃。');
+      return null;
+    }
+
+    await _cachePerson(sender);
+
+    var receptorObj = await _getReceptor(receptor);
+    receptor = receptorObj.id;
+
+    var home = await getApplicationDocumentsDirectory();
+    var dir = '${home.path}/images';
+    var dirFile = Directory(dir);
+    if (!dirFile.existsSync()) {
+      dirFile.createSync();
+    }
+    var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(docMap['src'])}';
+    var localFile = '$dir/$fn';
+
+    IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
+    remotePorts.portTask.addDownloadTask(
+      '${docMap['src']}?accessToken=${widget.context.principal.accessToken}',
+      localFile,
+      callbackUrl:
+          '/geosphere/doc/file.download?creator=$sender&localFile=$localFile&id=${docMap['id']}&type=${docMap['type']}&src=${docMap['src']}&leading=${docMap['leading']}&docid=${docMap['docid']}&text=${docMap['text']}&receptor=${receptor}&category=$category',
+    );
+
+    return null;
   }
 
   Future<GeosphereMessageOL> _arrivedLikeDocumentCommand(Frame frame) async {
@@ -155,7 +278,7 @@ class _GeosphereState extends State<Geosphere>
         sendPerson.nickName,
         receptor,
         widget.context.principal.person);
-    await messageService.like(like);
+    await messageService.like(like, isOnlySaveLocal: true);
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
@@ -165,7 +288,7 @@ class _GeosphereState extends State<Geosphere>
       'receptor': receptor,
       'category': category,
       'like': like,
-      'message':exists,
+      'message': exists,
     });
     return exists;
   }
@@ -200,7 +323,7 @@ class _GeosphereState extends State<Geosphere>
       return null;
     }
 
-    await messageService.unlike(receptor, docid, sender);
+    await messageService.unlike(receptor, docid, sender, isOnlySaveLocal: true);
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
@@ -209,7 +332,7 @@ class _GeosphereState extends State<Geosphere>
       'sender': frame.head('sender'),
       'receptor': receptor,
       'category': category,
-      'message':exists,
+      'message': exists,
     });
     return exists;
   }
@@ -259,7 +382,7 @@ class _GeosphereState extends State<Geosphere>
         sendPerson.nickName,
         receptor,
         widget.context.principal.person);
-    await messageService.addComment(comment);
+    await messageService.addComment(comment, isOnlySaveLocal: true);
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
@@ -270,7 +393,7 @@ class _GeosphereState extends State<Geosphere>
       'category': category,
       'commentid': commentid,
       'comment': comment,
-      'message':exists,
+      'message': exists,
     });
     return exists;
   }
@@ -307,7 +430,8 @@ class _GeosphereState extends State<Geosphere>
       return null;
     }
 
-    await messageService.removeComment(receptor, docid, commentid);
+    await messageService.removeComment(receptor, docid, commentid,
+        isOnlySaveLocal: true);
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
@@ -317,7 +441,7 @@ class _GeosphereState extends State<Geosphere>
       'receptor': receptor,
       'category': category,
       'commentid': commentid,
-      'message':exists,
+      'message': exists,
     });
     return exists;
   }
@@ -362,7 +486,7 @@ class _GeosphereState extends State<Geosphere>
     var receptor = await receptorService.get(message.receptor);
     if (receptor != null) {
       //如果关注了感知器，则直接发往感知器
-      await messageService.addMessage(message);
+      await messageService.addMessage(message, isOnlySaveLocal: true);
     } else {
       //感知器不存在则发往我的地圈
       var principal = widget.context.principal;
@@ -374,7 +498,7 @@ class _GeosphereState extends State<Geosphere>
       message.upstreamCategory = message.category;
       message.receptor = receptor.id;
       message.category = receptor.category;
-      await messageService.addMessage(message);
+      await messageService.addMessage(message, isOnlySaveLocal: true);
     }
 
     //通知当前工作的管道有新消息到
@@ -382,7 +506,7 @@ class _GeosphereState extends State<Geosphere>
     _notifyStreamController.add({
       'command': 'pushDocumentCommand',
       'sender': frame.head('sender'),
-      'receptor': receptor,
+      'receptor': receptor.id,
       'category': category,
       'message': message,
     });
@@ -1062,6 +1186,9 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     _streamSubscription = widget.notify.listen((cmd) async {
+      if (cmd['receptor'] != widget.receptor.id) {
+        return;
+      }
       switch (cmd['command']) {
         case 'pushDocumentCommand':
           _loadUnreadMessage().then((v) {
@@ -1070,44 +1197,59 @@ class _ReceptorItemState extends State<_ReceptorItem> {
           break;
         case 'likeDocumentCommand':
           var sender = cmd['sender'];
-          var person=await personService.getPerson(sender);
-          GeosphereMessageOL message=cmd['message'];
+          var person = await personService.getPerson(sender);
+          GeosphereMessageOL message = cmd['message'];
           _stateBar.count = 1;
           _stateBar.atime = message.atime;
           _stateBar.isShow = true;
           _stateBar.brackets = '赞';
           _stateBar.tips = '${person.nickName}赞对:${message.text}';
+          setState(() {});
           break;
         case 'unlikeDocumentCommand':
           var sender = cmd['sender'];
-          var person=await personService.getPerson(sender);
-          GeosphereMessageOL message=cmd['message'];
+          var person = await personService.getPerson(sender);
+          GeosphereMessageOL message = cmd['message'];
           _stateBar.count = 1;
           _stateBar.atime = message.atime;
           _stateBar.isShow = true;
           _stateBar.brackets = '取消点赞';
           _stateBar.tips = '${person.nickName}取消点赞对:${message.text}';
+          setState(() {});
           break;
         case 'commentDocumentCommand':
           var sender = cmd['sender'];
-          var person=await personService.getPerson(sender);
-          GeosphereMessageOL message=cmd['message'];
-          GeosphereCommentOL comment=cmd['comment'];
+          var person = await personService.getPerson(sender);
+          GeosphereMessageOL message = cmd['message'];
+          GeosphereCommentOL comment = cmd['comment'];
           _stateBar.count = 1;
           _stateBar.atime = comment.ctime;
           _stateBar.isShow = true;
           _stateBar.brackets = '评论';
           _stateBar.tips = '${person.nickName}说:${comment.text}';
+          setState(() {});
           break;
         case 'uncommentDocumentCommand':
           var sender = cmd['sender'];
-          var person=await personService.getPerson(sender);
-          GeosphereMessageOL message=cmd['message'];
+          var person = await personService.getPerson(sender);
+          GeosphereMessageOL message = cmd['message'];
           _stateBar.count = 1;
           _stateBar.atime = message.atime;
           _stateBar.isShow = true;
           _stateBar.brackets = '取消评论';
           _stateBar.tips = '${person.nickName}取消了对:${message.text}';
+          setState(() {});
+          break;
+        case 'mediaDocumentCommand':
+          var sender = cmd['sender'];
+          var person = await personService.getPerson(sender);
+          GeosphereMessageOL message = cmd['message'];
+          _stateBar.count = 1;
+          _stateBar.atime = message.atime;
+          _stateBar.isShow = true;
+          _stateBar.brackets = '图';
+          _stateBar.tips = '${person.nickName}发图对:${message.text}';
+          setState(() {});
           break;
       }
     });
