@@ -22,6 +22,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -101,7 +102,8 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
         _receptorInfo.origin.foregroundMode = 'original';
         break;
       case 'scrollMessageMode':
-        _receptorInfo.origin.isAutoScrollMessage=e.args['isAutoScrollMessage']?'true':'false';
+        _receptorInfo.origin.isAutoScrollMessage =
+            e.args['isAutoScrollMessage'] ? 'true' : 'false';
         break;
     }
   }
@@ -530,9 +532,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       setState(() {});
     });
     Stream _notify = widget.context.parameters['notify'];
-    _streamSubscription = _notify.listen((cmd) async{
+    _streamSubscription = _notify.listen((cmd) async {
       GeosphereMessageOL message = cmd['message'];
-      if(cmd['receptor']!=widget.receptorInfo.id){
+      if (cmd['receptor'] != widget.receptorInfo.id) {
         return;
       }
       var sender = cmd['sender'];
@@ -542,25 +544,25 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
         case 'unlikeDocumentCommand':
         case 'commentDocumentCommand':
         case 'uncommentDocumentCommand':
-        if(widget.receptorInfo.isAutoScrollMessage) {
-          if (widget.refresh != null) {
-            await widget.refresh();
-            _arrivedMessageCount = 0;
-            setState(() {});
-          }
-        }else {
-          _arrivedMessageCount+=1;
-          setState(() {});
-        }
-        break;
-        case 'pushDocumentCommand':
-          if(widget.receptorInfo.isAutoScrollMessage) {
+          if (widget.receptorInfo.isAutoScrollMessage) {
             if (widget.refresh != null) {
               await widget.refresh();
               _arrivedMessageCount = 0;
               setState(() {});
             }
-          }else {
+          } else {
+            _arrivedMessageCount += 1;
+            setState(() {});
+          }
+          break;
+        case 'pushDocumentCommand':
+          if (widget.receptorInfo.isAutoScrollMessage) {
+            if (widget.refresh != null) {
+              await widget.refresh();
+              _arrivedMessageCount = 0;
+              setState(() {});
+            }
+          } else {
             _loadUnreadMessage().then((v) {
               setState(() {});
             });
@@ -644,12 +646,16 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     if (widget.categoryOL.moveMode == 'unmoveable') {
       _currentLatLng = await location.latLng;
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _currentLatLng = await location.latLng;
     _poiTitle = await location.poiName;
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -1004,10 +1010,17 @@ class _MessageCard extends StatefulWidget {
 class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
+  GeoReceptor _upstreamReceptor;
 
   @override
   void initState() {
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
+    _loadUpstreamReceptor().then((v) {
+      //检查该状态类是否已释放，如果挂在树上则可用
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -1015,6 +1028,38 @@ class __MessageCardState extends State<_MessageCard> {
   void dispose() {
     _interactiveRegionRefreshAdapter = null;
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_MessageCard oldWidget) {
+    if (oldWidget.messageWrapper != widget.messageWrapper) {
+      oldWidget.messageWrapper=widget.messageWrapper;
+      _loadUpstreamReceptor().then((v) {
+        //检查该状态类是否已释放，如果挂在树上则可用
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _loadUpstreamReceptor() async {
+    var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
+    var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
+    if (StringUtil.isEmpty(upstreamReceptor)) {
+      return;
+    }
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    _upstreamReceptor =
+        await receptorService.get(upstreamCategory, upstreamReceptor);
+    if (_upstreamReceptor == null) {
+      IGeoReceptorRemote receptorRemote =
+          widget.context.site.getService('/remote/geo/receptors');
+      _upstreamReceptor =
+          await receptorRemote.getReceptor(upstreamCategory, upstreamReceptor);
+    }
   }
 
   @override
@@ -1204,11 +1249,34 @@ class __MessageCardState extends State<_MessageCard> {
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () {
                                               widget.context.forward(
-                                                  "/site/personal",
+                                                  "/geosphere/view/person",
                                                   arguments: {
                                                     'person': widget
                                                         .messageWrapper.creator,
                                                   });
+                                            },
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              '${_upstreamReceptor == null ? '' : '的'}',
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              '${_upstreamReceptor?.title ?? ''}',
+                                          style: TextStyle(
+                                            color: Colors.blueGrey,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              widget.context.forward(
+                                                '/geosphere/portal',
+                                                arguments: {
+                                                  'receptor':
+                                                      ReceptorInfo.create(
+                                                          _upstreamReceptor),
+                                                },
+                                              );
                                             },
                                         ),
                                       ],
@@ -1499,6 +1567,72 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
         }
         var rights = snapshot.data;
 
+        var actions = <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                child: Icon(
+                  FontAwesomeIcons.thumbsUp,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                rights['isLiked'] ? '取消点赞' : '点赞',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                child: Icon(
+                  Icons.comment,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '评论',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ];
+        if (rights['canDelete']) {
+          actions.add(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                  child: Icon(
+                    Icons.remove,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '删除',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         return Padding(
           padding: EdgeInsets.only(
             top: 4,
@@ -1512,81 +1646,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ),
               size: 22,
             ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.thumbsUp,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    rights['isLiked'] ? '取消点赞' : '点赞',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                      top: 2,
-                    ),
-                    child: Icon(
-                      Icons.comment,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    '评论',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              rights['canDelete']
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 2,
-                            top: 1,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                        Text(
-                          '删除',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      width: 0,
-                      height: 0,
-                    ),
-            ],
+            actions: actions,
             pressType: PressType.singleClick,
             onValueChanged: (index) {
               switch (index) {

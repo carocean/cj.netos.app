@@ -683,6 +683,9 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
       row['device'] as String,
       row['sandbox'] as String);
 
+  static final _countValueMapper =
+      (Map<String, dynamic> row) => CountValue(row['value'] as int);
+
   final InsertionAdapter<GeoReceptor> _geoReceptorInsertionAdapter;
 
   @override
@@ -768,6 +771,15 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE GeoReceptor SET isAutoScrollMessage=? WHERE id=? and sandbox=?',
         arguments: <dynamic>[isAutoScrollMessage, receptor, sandbox]);
+  }
+
+  @override
+  Future<CountValue> countReceptor(
+      String id, String category, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM GeoReceptor WHERE id=? and category=? and sandbox=?',
+        arguments: <dynamic>[id, category, sandbox],
+        mapper: _countValueMapper);
   }
 
   @override

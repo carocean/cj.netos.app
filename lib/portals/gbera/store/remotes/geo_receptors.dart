@@ -1,11 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_remote_ports.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/system/local/dao/daos.dart';
+import 'package:netos_app/system/local/dao/database.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../gbera_entities.dart';
 import '../services.dart';
@@ -28,14 +34,12 @@ mixin IGeoReceptorRemote {
 
   Future<void> removeMessage(String category, String receptor, String msgid);
 
-  Future<void> like(
-      String category, String receptor, String msgid, String person) {}
+  Future<void> like(String category, String receptor, String msgid) {}
 
-  Future<void> unlike(
-      String category, String receptor, String msgid, String liker) {}
+  Future<void> unlike(String category, String receptor, String msgid) {}
 
   Future<void> addComment(String category, String receptor, String msgid,
-      String person, String commentid, String text) {}
+      String commentid, String text) {}
 
   Future<void> removeComment(
       String category, String receptor, String msgid, String commentid) {}
@@ -55,7 +59,18 @@ mixin IGeoReceptorRemote {
 
   Future<List<ChannelOR>> listReceptorChannels() {}
 
- Future<List<GeoPOD>> searchAroundDocuments({String category, String receptor,String geoType, int limit, int offset}) {}
+  Future<List<GeoPOD>> searchAroundDocuments(
+      {String category,
+      String receptor,
+      String geoType,
+      int limit,
+      int offset}) {}
+
+  Future<GeoReceptor> getReceptor(String category, String receptorid) {}
+
+  void syncTaskRemote({Function() done}) {}
+
+  Future<GeoReceptor> getMyMobilReceptor() {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -69,10 +84,13 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   get _geospherePortsUrl => site.getService('@.prop.ports.link.geosphere');
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
+  IGeoReceptorDAO receptorDAO;
 
   @override
   Future<void> builder(IServiceProvider site) async {
     this.site = site;
+    AppDatabase db = site.getService('@.db');
+    receptorDAO = db.geoReceptorDAO;
     return null;
   }
 
@@ -103,6 +121,22 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'category': category,
       },
     );
+  }
+
+  @override
+  Future<GeoReceptor> getReceptor(String category, String receptor) async {
+    var map = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'getGeoReceptor',
+      parameters: {
+        'id': receptor,
+        'category': category,
+      },
+    );
+    if (map == null) {
+      return null;
+    }
+    return GeoReceptor.load(map, principal.person);
   }
 
   @override
@@ -208,7 +242,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<Function> addComment(String category, String receptor, String msgid,
-      String person, String commentid, String text) {
+      String commentid, String text) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'addComment',
@@ -216,18 +250,16 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'receptor': receptor,
         'category': category,
         'docid': msgid,
-        'commenter': person,
         'commentid': commentid,
         'content': text,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/addComment?category=$category&receptor=$receptor&msgid=$msgid&commenter=$person&commentid=$commentid&content=$text',
+          '/geosphere/receptor/docs/addComment?category=$category&receptor=$receptor&msgid=$msgid&commentid=$commentid&content=$text',
     );
   }
 
   @override
-  Future<Function> unlike(
-      String category, String receptor, String msgid, String unliker) {
+  Future<Function> unlike(String category, String receptor, String msgid) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'unlike',
@@ -235,16 +267,14 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'receptor': receptor,
         'category': category,
         'docid': msgid,
-        'unliker': unliker,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/unlike?category=$category&receptor=$receptor&msgid=$msgid&unliker=$unliker',
+          '/geosphere/receptor/docs/unlike?category=$category&receptor=$receptor&msgid=$msgid',
     );
   }
 
   @override
-  Future<Function> like(
-      String category, String receptor, String msgid, String person) {
+  Future<Function> like(String category, String receptor, String msgid) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'like',
@@ -252,10 +282,9 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'receptor': receptor,
         'category': category,
         'docid': msgid,
-        'liker': person,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/like?category=$category&receptor=$receptor&msgid=$msgid&liker=$person',
+          '/geosphere/receptor/docs/like?category=$category&receptor=$receptor&msgid=$msgid',
     );
   }
 
@@ -342,7 +371,8 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               creator: receptor['creator'],
               category: receptor['category'],
               isMobileReceptor: receptor['category'] == 'mobiles',
-              isAutoScrollMessage: receptor['isAutoScrollMessage']=='true'?true:false,
+              isAutoScrollMessage:
+                  receptor['isAutoScrollMessage'] == 'true' ? true : false,
               offset: item['distance'],
             )),
       );
@@ -408,14 +438,14 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       String receptor,
       String geoType,
       int limit,
-      int offset}) async{
+      int offset}) async {
     var list = await remotePorts.portGET(
       _geospherePortsUrl,
       'searchAroundDocuments',
       parameters: {
         'category': category,
         'receptor': receptor,
-        'geoType':geoType??'',
+        'geoType': geoType ?? '',
         'limit': limit,
         'offset': offset,
       },
@@ -425,5 +455,76 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       podList.add(GeoPOD.parse(pod));
     }
     return podList;
+  }
+
+  @override
+  Future<GeoReceptor> getMyMobilReceptor() async {
+    var map = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'getMobileGeoReceptor',
+    );
+    if (map == null) {
+      return null;
+    }
+    return GeoReceptor.load(map, principal.person);
+  }
+
+  ///远程到本地的同步任务
+  @override
+  void syncTaskRemote({Function() done}) {
+    remotePorts.portTask.listener('/geosphere/receptor/getAllMyReceptor',
+        (Frame frame) async {
+      if ('getAllMyReceptor' == frame.command) {
+        return;
+      }
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          remotePorts.portTask
+              .unlistener('/geosphere/receptor/getAllMyReceptor');
+          var content = frame.contentText;
+          var list = jsonDecode(content);
+          for (var item in list) {
+            var receptor = GeoReceptor.load(item, principal.person);
+            CountValue value = await receptorDAO.countReceptor(
+                receptor.id, receptor.category, principal.person);
+            if (value.value < 1) {
+              print('感知器:${receptor.title} 正在下载...');
+              var home = await getApplicationDocumentsDirectory();
+              var dir = '${home.path}/images';
+              var dirFile = Directory(dir);
+              if (!dirFile.existsSync()) {
+                dirFile.createSync();
+              }
+              if (!StringUtil.isEmpty(receptor.leading)) {
+                var fn =
+                    '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
+                var localFile = '$dir/$fn';
+                await remotePorts.download('${receptor.leading}?accessToken=${principal.accessToken}', localFile);
+                receptor.leading = localFile;
+              }
+              if (!StringUtil.isEmpty(receptor.background)) {
+                var fn =
+                    '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.background)}';
+                var localFile = '$dir/$fn';
+                await remotePorts.download('${receptor.background}?accessToken=${principal.accessToken}', localFile);
+                receptor.background = localFile;
+              }
+              await receptorDAO.add(receptor);
+              print('感知器:${receptor.title} 成功安装');
+            }
+          }
+          if(done!=null) {
+            done();
+          }
+          break;
+      }
+    });
+    remotePorts.portTask.addPortGETTask(
+      _receptorPortsUrl,
+      'getAllMyReceptor',
+      callbackUrl: '/geosphere/receptor/getAllMyReceptor',
+    );
   }
 }

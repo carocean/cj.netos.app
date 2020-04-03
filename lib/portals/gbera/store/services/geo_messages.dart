@@ -28,9 +28,10 @@ class GeosphereMessageService
   }
 
   @override
-  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,{bool isOnlySaveLocal=false}) async {
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,
+      {bool isOnlySaveLocal = false}) async {
     await messageDAO.addMessage(geosphereMessageOL);
-    if(!isOnlySaveLocal) {
+    if (!isOnlySaveLocal) {
       await receptorRemote
           .publishMessage(GeosphereMessageOR.form(geosphereMessageOL));
     }
@@ -73,13 +74,13 @@ class GeosphereMessageService
   Future<int> countUnreadMessage(String receptor) async {
     var value = await messageDAO.listUnreadMessage(
         receptor, 'arrived', principal.person);
-    return value?.value??0;
+    return value?.value ?? 0;
   }
 
   @override
-  Future<Function> flagMessagesReaded(String receptor) async{
-    await messageDAO.flagArrivedMessagesReaded('readed',
-        receptor, 'arrived', principal.person);
+  Future<Function> flagMessagesReaded(String receptor) async {
+    await messageDAO.flagArrivedMessagesReaded(
+        'readed', receptor, 'arrived', principal.person);
   }
 
   @override
@@ -90,23 +91,30 @@ class GeosphereMessageService
   }
 
   @override
-  Future<Function> unlike(String receptor, String msgid, String liker,{bool isOnlySaveLocal=false}) async {
+  Future<Function> unlike(String receptor, String msgid, String liker,
+      {bool isOnlySaveLocal = false}) async {
     await messageDAO.unlike(receptor, msgid, liker, principal.person);
-    if(!isOnlySaveLocal) {
-      var o = await geoReceptorDAO.get(receptor, principal.person);
-      await receptorRemote.unlike(o.category, receptor, msgid, liker);
+    if (!isOnlySaveLocal) {
+      var msg = await getMessage(receptor, msgid);
+      receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
+          ? msg.upstreamReceptor
+          : msg.receptor;
+      await receptorRemote.unlike(msg.category, receptor, msgid);
     }
   }
 
   @override
-  Future<Function> like(GeosphereLikePersonOL likePerson,{bool isOnlySaveLocal=false}) async {
+  Future<Function> like(GeosphereLikePersonOL likePerson,
+      {bool isOnlySaveLocal = false}) async {
     await messageDAO.unlike(likePerson.receptor, likePerson.msgid,
         likePerson.person, principal.person);
     await messageDAO.like(likePerson);
-    if(!isOnlySaveLocal) {
-      var o = await geoReceptorDAO.get(likePerson.receptor, principal.person);
-      await receptorRemote.like(
-          o.category, likePerson.receptor, likePerson.msgid, likePerson.person);
+    if (!isOnlySaveLocal) {
+      var msg = await getMessage(likePerson.receptor, likePerson.msgid);
+      var receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
+          ? msg.upstreamReceptor
+          : msg.receptor;
+      await receptorRemote.like(msg.category, receptor, likePerson.msgid);
     }
   }
 
@@ -119,27 +127,34 @@ class GeosphereMessageService
 
   @override
   Future<Function> removeComment(
-      String receptor, String msgid, String commentid,{bool isOnlySaveLocal=false}) async {
+      String receptor, String msgid, String commentid,
+      {bool isOnlySaveLocal = false}) async {
     await messageDAO.removeComment(
         receptor, msgid, commentid, principal.person);
-    if(!isOnlySaveLocal) {
-      var o = await geoReceptorDAO.get(receptor, principal.person);
+    if (!isOnlySaveLocal) {
+      var msg = await getMessage(receptor, msgid);
+      receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
+          ? msg.upstreamReceptor
+          : msg.receptor;
       await receptorRemote.removeComment(
-          o.category, receptor, msgid, commentid);
+          msg.category, receptor, msgid, commentid);
     }
   }
 
   @override
-  Future<Function> addComment(GeosphereCommentOL geosphereCommentOL,{bool isOnlySaveLocal=false}) async {
+  Future<Function> addComment(GeosphereCommentOL geosphereCommentOL,
+      {bool isOnlySaveLocal = false}) async {
     await messageDAO.addComment(geosphereCommentOL);
-    if(!isOnlySaveLocal) {
-      var o =
-      await geoReceptorDAO.get(geosphereCommentOL.receptor, principal.person);
+    if (!isOnlySaveLocal) {
+      var msg = await getMessage(
+          geosphereCommentOL.receptor, geosphereCommentOL.msgid);
+      var receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
+          ? msg.upstreamReceptor
+          : msg.receptor;
       await receptorRemote.addComment(
-          o.category,
-          geosphereCommentOL.receptor,
+          msg.category,
+          receptor,
           geosphereCommentOL.msgid,
-          geosphereCommentOL.person,
           geosphereCommentOL.id,
           geosphereCommentOL.text);
     }
@@ -171,11 +186,12 @@ class GeosphereMediaService implements IGeosphereMediaService, IServiceBuilder {
   }
 
   @override
-  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,{bool isOnlySaveLocal=false}) async {
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,
+      {bool isOnlySaveLocal = false}) async {
     await mediaDAO.addMedia(geosphereMediaOL);
-    if(!isOnlySaveLocal) {
+    if (!isOnlySaveLocal) {
       var o =
-      await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
+          await geoReceptorDAO.get(geosphereMediaOL.receptor, principal.person);
       await receptorRemote.uploadMedia(o.category, geosphereMediaOL);
     }
   }

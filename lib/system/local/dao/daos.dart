@@ -608,6 +608,11 @@ abstract class IGeoReceptorDAO {
       'UPDATE GeoReceptor SET isAutoScrollMessage=:isAutoScrollMessage WHERE id=:receptor and sandbox=:sandbox')
   Future<void> setAutoScrollMessage(
       String isAutoScrollMessage, String receptor, String sandbox) {}
+
+  @Query(
+      'SELECT count(*) as value  FROM GeoReceptor WHERE id=:id and category=:category and sandbox=:sandbox')
+  Future<CountValue>  countReceptor(String id, String category, String sandbox) {}
+
 }
 
 @dao

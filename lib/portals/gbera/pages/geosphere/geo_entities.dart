@@ -87,6 +87,44 @@ class ReceptorInfo {
     this.onSettingsChanged,
     this.origin,
   });
+  ReceptorInfo.create(GeoReceptor receptor) {
+    this.id=receptor.id;
+    this.title=receptor.title;
+    this.leading=receptor.leading;
+    this.isMobileReceptor =receptor.category=='mobiles';
+    this.isAutoScrollMessage=receptor.isAutoScrollMessage=='true';
+    this.creator=receptor.creator;
+    this.category=receptor.category;
+    this.latLng=receptor.getLocationLatLng();
+    this.radius=receptor.radius;
+    this.uDistance=receptor.uDistance;
+    this.background=receptor.background;
+    var bmode;
+    switch(receptor.backgroundMode) {
+      case 'horizontal':
+        bmode=BackgroundMode.horizontal;
+        break;
+      case 'vertical':
+        bmode=BackgroundMode.vertical;
+        break;
+      case 'none':
+        bmode=BackgroundMode.none;
+        break;
+    }
+    var fmode;
+    switch(receptor.foregroundMode) {
+      case 'white':
+        fmode=ForegroundMode.white;
+        break;
+      case 'original':
+        fmode=ForegroundMode.original;
+        break;
+    }
+    this.backgroundMode =bmode;
+    this.foregroundMode =fmode;
+    this.origin=receptor;
+  }
+
 }
 
 class GeosphereMessageOR {

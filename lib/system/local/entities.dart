@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:uuid/uuid.dart';
@@ -501,8 +502,10 @@ class GeoReceptor {
   //更新距离仅在mobiles分类下的感知器有用
   int uDistance;
   int ctime;
+
   ///original,white,
   String foregroundMode;
+
   ///vertical|horizontal|none
   String backgroundMode;
   String background;
@@ -537,6 +540,24 @@ class GeoReceptor {
   void setLocationLatLng(LatLng location) {
     var map = location.toJson();
     this.location = jsonEncode(map);
+  }
+
+  GeoReceptor.load(map, String sandbox) {
+    id = map['id'];
+    title = map['title'];
+    category = map['category'];
+    leading = map['leading'];
+    creator = map['creator'];
+    location = jsonEncode(map['location']);
+    radius = map['radius'];
+    uDistance = map['uDistance'];
+    ctime = map['ctime'];
+    foregroundMode = map['foregroundMode']??'original';
+    backgroundMode = map['backgroundMode']??'none';
+    background = map['background'];
+    isAutoScrollMessage = map['isAutoScrollMessage'];
+    device = map['device'];
+    this.sandbox = sandbox;
   }
 }
 
@@ -632,27 +653,29 @@ class GeoCategoryAppOR {
 @entity
 class GeosphereMessageOL {
   @primaryKey
-   String id;
-   String upstreamPerson;
+  String id;
+  String upstreamPerson;
   String upstreamReceptor;
   String upstreamCategory;
+
 //如果是从网流来的消息
-   String upstreamChannel;
-   String sourceSite;
-   String sourceApp;
-   String receptor;
-   String creator;
-   int ctime;
+  String upstreamChannel;
+  String sourceSite;
+  String sourceApp;
+  String receptor;
+  String creator;
+  int ctime;
   int atime;
   int rtime;
   int dtime;
   String state;
-   String text;
-   double wy;
+  String text;
+  double wy;
+
   ///location是LatLng对象
-   String location;
-   String category;
-   String sandbox;
+  String location;
+  String category;
+  String sandbox;
 
   GeosphereMessageOL(
       this.id,
@@ -675,28 +698,27 @@ class GeosphereMessageOL {
       this.category,
       this.sandbox);
 
-  GeosphereMessageOL.from(map,sandbox) {
-      id=map['id'];
-      upstreamPerson=map['upstreamPerson'];
-      upstreamReceptor=map['upstreamReceptor'];
-      upstreamCategory=map['upstreamCategory'];
-      upstreamChannel=map['upstreamChannel'];
-      sourceSite=map['sourceSite'];
-      sourceApp=map['sourceApp'];
-      receptor=map['receptor'];
-      creator=map['creator'];
-      ctime=map['ctime'];
-     atime=map['atime'];
-     rtime=map['rtime'];
-     dtime=map['dtime'];
-     state=map['state'];
-      text=map['text'];
-      wy=map['wy'];
-      location=jsonEncode(map['location']);
-      category=map['category'];
-      this.sandbox=sandbox;
+  GeosphereMessageOL.from(map, sandbox) {
+    id = map['id'];
+    upstreamPerson = map['upstreamPerson'];
+    upstreamReceptor = map['upstreamReceptor'];
+    upstreamCategory = map['upstreamCategory'];
+    upstreamChannel = map['upstreamChannel'];
+    sourceSite = map['sourceSite'];
+    sourceApp = map['sourceApp'];
+    receptor = map['receptor'];
+    creator = map['creator'];
+    ctime = map['ctime'];
+    atime = map['atime'];
+    rtime = map['rtime'];
+    dtime = map['dtime'];
+    state = map['state'];
+    text = map['text'];
+    wy = map['wy'];
+    location = jsonEncode(map['location']);
+    category = map['category'];
+    this.sandbox = sandbox;
   }
-
 }
 
 @Entity(primaryKeys: ['id', 'sandbox'])
@@ -731,7 +753,12 @@ class GeosphereCommentOL {
       this.ctime, this.nickName, this.receptor, this.sandbox);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'],indices: [Index(value: ['msgid','receptor'])])
+@Entity(primaryKeys: [
+  'id',
+  'sandbox'
+], indices: [
+  Index(value: ['msgid', 'receptor'])
+])
 class GeosphereMediaOL {
   final String id;
   final String type;
@@ -757,8 +784,9 @@ class GeosphereMediaOL {
     );
   }
 }
+
 @entity
-class CountValue{
+class CountValue {
   @primaryKey
   int value;
 

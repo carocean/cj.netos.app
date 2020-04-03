@@ -26,9 +26,11 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_di
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_person.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
@@ -733,6 +735,24 @@ class GberaPortal {
           ),
         ),
         Page(
+          title: '感知器查看器',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/view/receptor',
+          buildPage: (PageContext pageContext) => GeoViewReceptor(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地理用户查看器',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/view/person',
+          buildPage: (PageContext pageContext) => GeoViewPerson(
+            context: pageContext,
+          ),
+        ),
+        Page(
           title: '选择地理感知器分类',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -818,7 +838,8 @@ class GberaPortal {
           subtitle: '',
           icon: Icons.art_track,
           url: '/geosphere/receptor/settings/links/netflow_gateway',
-          buildPage: (PageContext pageContext) => GeosphereReceptorNetflowGateway(
+          buildPage: (PageContext pageContext) =>
+              GeosphereReceptorNetflowGateway(
             context: pageContext,
           ),
         ),

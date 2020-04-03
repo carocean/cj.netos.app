@@ -46,7 +46,7 @@ class _GeosphereState extends State<Geosphere>
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
   GeoLocation _location;
-  StreamController _messageStreamController;
+  StreamController _receptorStreamController;
   StreamController _notifyStreamController;
   int _limit = 15, _offset = 0;
 
@@ -57,7 +57,7 @@ class _GeosphereState extends State<Geosphere>
 
   @override
   void initState() {
-    _messageStreamController = StreamController();
+    _receptorStreamController = StreamController();
     _notifyStreamController = StreamController.broadcast();
     _location = geoLocation;
     _location.start();
@@ -117,7 +117,7 @@ class _GeosphereState extends State<Geosphere>
     widget.context.unlistenNetwork(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
     _location.stop();
-    _messageStreamController.close();
+    _receptorStreamController.close();
     _notifyStreamController.close();
     super.dispose();
   }
@@ -213,7 +213,7 @@ class _GeosphereState extends State<Geosphere>
 
     await _cachePerson(sender);
 
-    var receptorObj = await _getReceptor(receptor);
+    var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
 
     var home = await getApplicationDocumentsDirectory();
@@ -258,7 +258,7 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(receptor);
+    var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
@@ -315,7 +315,7 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(receptor);
+    var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
@@ -361,7 +361,7 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(receptor);
+    var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
@@ -422,7 +422,7 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(receptor);
+    var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
@@ -480,10 +480,12 @@ class _GeosphereState extends State<Geosphere>
       print('存在消息，被丢弃。');
       return null;
     }
+    await _cacheReceptor(message.category, message.receptor);
 
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    var receptor = await receptorService.get(message.receptor);
+    var receptor =
+        await receptorService.get(message.category, message.receptor);
     if (receptor != null) {
       //如果关注了感知器，则直接发往感知器
       await messageService.addMessage(message, isOnlySaveLocal: true);
@@ -513,10 +515,24 @@ class _GeosphereState extends State<Geosphere>
     return message;
   }
 
-  Future<GeoReceptor> _getReceptor(receptorid) async {
+  Future<void> _cacheReceptor(category, receptor) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    var receptor = await receptorService.get(receptorid);
+    var obj = await receptorService.get(category, receptor);
+    if (obj == null) {
+      IGeoReceptorRemote receptorRemote =
+          widget.context.site.getService('/remote/geo/receptors');
+      obj = await receptorRemote.getReceptor(category, receptor);
+      if (obj != null) {
+        await receptorService.add(obj, isOnlySaveLocal: true);
+      }
+    }
+  }
+
+  Future<GeoReceptor> _getReceptor(category, receptorid) async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var receptor = await receptorService.get(category, receptorid);
     if (receptor != null) {
       return receptor;
     }
@@ -556,9 +572,20 @@ class _GeosphereState extends State<Geosphere>
     _location.listen('checkMobileReceptor', 0, (location) async {
       if (!isInited) {
         isInited = true;
-        if (await receptorService.init(location)) {
-          _loadReceptors();
-          setState(() {});
+        if (await receptorService.init(location, done: () {
+          if (mounted) {
+            _offset = 0;
+            _receptorStreamController.add('refresh');
+            _loadReceptors().then((v) {
+              setState(() {});
+            });
+          }
+        })) {
+          _offset = 0;
+          _receptorStreamController.add('refresh');
+          _loadReceptors().then((v) {
+            setState(() {});
+          });
         }
       }
       _location.unlisten('checkMobileReceptor');
@@ -575,7 +602,7 @@ class _GeosphereState extends State<Geosphere>
       return;
     }
     _offset += receptors.length;
-    _messageStreamController.add(receptors);
+    _receptorStreamController.add(receptors);
   }
 
   @override
@@ -611,7 +638,7 @@ class _GeosphereState extends State<Geosphere>
                       )
                           .then((result) {
                         _offset = 0;
-                        _messageStreamController.add('refresh');
+                        _receptorStreamController.add('refresh');
                         _loadReceptors().then((v) {
                           setState(() {});
                         });
@@ -723,7 +750,7 @@ class _GeosphereState extends State<Geosphere>
         SliverToBoxAdapter(
           child: _GeoReceptors(
             context: widget.context,
-            stream: _messageStreamController.stream,
+            stream: _receptorStreamController.stream,
             notify: _notifyStreamController.stream,
             onTapMarchant: (value) {
               widget.context.forward('/site/personal');
@@ -1344,7 +1371,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       );
     } else {
       imgSrc = Image.network(
-        widget.receptor.leading,
+        '${widget.receptor.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
         height: 40,
       );

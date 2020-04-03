@@ -298,13 +298,13 @@ mixin IPrincipalService {
 }
 
 mixin IGeoReceptorService {
-  Future<bool> init(Location location);
+  Future<bool> init(Location location, {Function() done});
 
-  Future<void> add(GeoReceptor receptor);
+  Future<void> add(GeoReceptor receptor,{bool isOnlySaveLocal=false});
 
   Future<void> remove(String category, String id);
 
-  Future<GeoReceptor> get(String id);
+  Future<GeoReceptor> get(String category,String receptorid);
 
   Future<GeoReceptor> getMobileReceptor(String person, String device);
 
