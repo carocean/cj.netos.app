@@ -543,12 +543,19 @@ class GeoReceptor {
   }
 
   GeoReceptor.load(map, String sandbox) {
+    var loc=map['location'];
+    var locStr;
+    if(loc is String) {
+      locStr=loc;
+    }else{
+      locStr=jsonEncode(loc);
+    }
     id = map['id'];
     title = map['title'];
     category = map['category'];
     leading = map['leading'];
     creator = map['creator'];
-    location = jsonEncode(map['location']);
+    location = locStr;
     radius = map['radius'];
     uDistance = map['uDistance'];
     ctime = map['ctime'];

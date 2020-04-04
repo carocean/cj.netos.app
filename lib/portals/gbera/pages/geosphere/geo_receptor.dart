@@ -396,6 +396,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
         SliverToBoxAdapter(
           child: _MessageCard(
             context: widget.context,
+            receptor: _receptorInfo,
             messageWrapper: msg,
             onDeleted: _deleteMessage,
           ),
@@ -995,10 +996,12 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 class _MessageCard extends StatefulWidget {
   PageContext context;
   _GeosphereMessageWrapper messageWrapper;
+  ReceptorInfo receptor;
   void Function(_GeosphereMessageWrapper message) onDeleted;
 
   _MessageCard({
     this.context,
+    this.receptor,
     this.messageWrapper,
     this.onDeleted,
   });
@@ -1011,6 +1014,7 @@ class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
   GeoReceptor _upstreamReceptor;
+  Person _upstreamPerson;
 
   @override
   void initState() {
@@ -1033,7 +1037,7 @@ class __MessageCardState extends State<_MessageCard> {
   @override
   void didUpdateWidget(_MessageCard oldWidget) {
     if (oldWidget.messageWrapper != widget.messageWrapper) {
-      oldWidget.messageWrapper=widget.messageWrapper;
+      oldWidget.messageWrapper = widget.messageWrapper;
       _loadUpstreamReceptor().then((v) {
         //检查该状态类是否已释放，如果挂在树上则可用
         if (mounted) {
@@ -1047,6 +1051,7 @@ class __MessageCardState extends State<_MessageCard> {
   _loadUpstreamReceptor() async {
     var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
     var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
+    var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
     if (StringUtil.isEmpty(upstreamReceptor)) {
       return;
     }
@@ -1059,6 +1064,15 @@ class __MessageCardState extends State<_MessageCard> {
           widget.context.site.getService('/remote/geo/receptors');
       _upstreamReceptor =
           await receptorRemote.getReceptor(upstreamCategory, upstreamReceptor);
+    }
+    if (!StringUtil.isEmpty(upstreamPerson)) {
+      IPersonService personService =
+          widget.context.site.getService('/gbera/persons');
+//      _upstreamPerson = await personService.getPerson(
+//        upstreamPerson,
+//        isDownloadAvatar: true,
+//      );
+      _upstreamPerson = widget.messageWrapper.upstreamPerson;
     }
   }
 
@@ -1234,54 +1248,7 @@ class __MessageCardState extends State<_MessageCard> {
                                     fontSize: 12,
                                     color: Colors.grey[400],
                                   ),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              widget.context.forward(
-                                                  "/geosphere/view/person",
-                                                  arguments: {
-                                                    'person': widget
-                                                        .messageWrapper.creator,
-                                                  });
-                                            },
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              '${_upstreamReceptor == null ? '' : '的'}',
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              '${_upstreamReceptor?.title ?? ''}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              widget.context.forward(
-                                                '/geosphere/portal',
-                                                arguments: {
-                                                  'receptor':
-                                                      ReceptorInfo.create(
-                                                          _upstreamReceptor),
-                                                },
-                                              );
-                                            },
-                                        ),
-                                      ],
-                                    )
-                                  ],
+                                  children: _getMessageSourceTextSpan(),
                                 ),
                                 softWrap: true,
                               ),
@@ -1372,6 +1339,84 @@ class __MessageCardState extends State<_MessageCard> {
         ),
       ),
     );
+  }
+
+  List<TextSpan> _getMessageSourceTextSpan() {
+    var isMe = widget.context.principal?.person ==
+        widget.messageWrapper.creator.official;
+    var list = <TextSpan>[];
+
+    if (isMe) {
+      list.add(
+        TextSpan(text: '创建自 '),
+      );
+      list.add(
+        TextSpan(
+          text: '我',
+          style: TextStyle(
+            color: Colors.blueGrey,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              widget.context.forward(
+                '/geosphere/portal',
+                arguments: {
+                  'receptor': widget.receptor,
+                },
+              );
+            },
+        ),
+      );
+    } else {
+      if (_upstreamPerson == null || _upstreamReceptor == null) {
+        return list;
+      }
+      list.add(
+        TextSpan(text: '来自 '),
+      );
+      if (_upstreamReceptor.category == 'mobiles') {
+        list.add(
+          TextSpan(
+            text: '${_upstreamPerson?.nickName}的地圈',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w500,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                widget.context.forward(
+                  '/geosphere/view/receptor',
+                  arguments: {
+                    'receptor': ReceptorInfo.create(_upstreamReceptor),
+                  },
+                );
+              },
+          ),
+        );
+      } else {
+        list.add(
+          TextSpan(
+            text: '${_upstreamReceptor.title}',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w500,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                widget.context.forward(
+                  '/geosphere/view/receptor',
+                  arguments: {
+                    'receptor': ReceptorInfo.create(_upstreamReceptor),
+                  },
+                );
+              },
+          ),
+        );
+      }
+    }
+
+    return list;
   }
 }
 
@@ -1835,6 +1880,16 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                     ),
                   ),
                   TextSpan(text: '\t'),
+                  TextSpan(
+                    text: '\t${comment.ctime != null ? TimelineUtil.format(
+                      comment.ctime,
+                      dayFormat: DayFormat.Simple,
+                    ) : ''}\t',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
                   isMine
                       ? TextSpan(
                           text: '删除',

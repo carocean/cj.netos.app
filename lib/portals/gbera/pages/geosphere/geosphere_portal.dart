@@ -1556,6 +1556,16 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                     ),
                   ),
                   TextSpan(text: '\t'),
+                  TextSpan(
+                    text: '\t${comment.ctime != null ? TimelineUtil.format(
+                      comment.ctime,
+                      dayFormat: DayFormat.Simple,
+                    ) : ''}\t',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
                   isMine
                       ? TextSpan(
                           text: '删除',

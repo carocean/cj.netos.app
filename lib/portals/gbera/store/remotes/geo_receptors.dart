@@ -71,6 +71,9 @@ mixin IGeoReceptorRemote {
   void syncTaskRemote({Function() done}) {}
 
   Future<GeoReceptor> getMyMobilReceptor() {}
+
+  Future<List<GeosphereMessageOL>> pageMessage(String category, String receptor,
+      String creator, int limit, int offset) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -501,21 +504,25 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
                 var fn =
                     '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
                 var localFile = '$dir/$fn';
-                await remotePorts.download('${receptor.leading}?accessToken=${principal.accessToken}', localFile);
+                await remotePorts.download(
+                    '${receptor.leading}?accessToken=${principal.accessToken}',
+                    localFile);
                 receptor.leading = localFile;
               }
               if (!StringUtil.isEmpty(receptor.background)) {
                 var fn =
                     '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.background)}';
                 var localFile = '$dir/$fn';
-                await remotePorts.download('${receptor.background}?accessToken=${principal.accessToken}', localFile);
+                await remotePorts.download(
+                    '${receptor.background}?accessToken=${principal.accessToken}',
+                    localFile);
                 receptor.background = localFile;
               }
               await receptorDAO.add(receptor);
               print('感知器:${receptor.title} 成功安装');
             }
           }
-          if(done!=null) {
+          if (done != null) {
             done();
           }
           break;
@@ -526,5 +533,28 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       'getAllMyReceptor',
       callbackUrl: '/geosphere/receptor/getAllMyReceptor',
     );
+  }
+
+  @override
+  Future<List<GeosphereMessageOL>> pageMessage(String category, String receptor,
+      String creator, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'pageDocument',
+      parameters: {
+        'id': receptor,
+        'category': category,
+        'creator': creator,
+        'limit': limit,
+        'skip': offset,
+      },
+    );
+    var msgs = <GeosphereMessageOL>[];
+    for (var item in list) {
+      msgs.add(
+        GeosphereMessageOL.from(item, principal.person),
+      );
+    }
+    return msgs;
   }
 }
