@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:amap_core_fluttify/src/dart/models.dart';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
@@ -23,6 +24,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   IGeoReceptorRemote receptorRemote;
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
+  IGeoReceptorCache receptorCache;
 
   @override
   Future<void> builder(IServiceProvider site) async {
@@ -30,6 +32,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     receptorDAO = db.geoReceptorDAO;
     receptorRemote = site.getService('/remote/geo/receptors');
+    receptorCache = site.getService('/cache/geosphere/receptor');
   }
 
   @override
@@ -177,7 +180,17 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   @override
   Future<GeoReceptor> get(String category, String receptorid) async {
     GeoReceptor receptor = await receptorDAO.get(receptorid, principal.person);
+    if (receptor == null) {
+      receptor = await receptorCache.get(category, receptorid);
+    }
     return receptor;
+  }
+
+  @override
+  Future<bool> existsLocal(String category, String receptor) async {
+    CountValue count =
+        await receptorDAO.countReceptor(receptor, category, principal.person);
+    return count != null && count.value > 0;
   }
 
   @override
@@ -203,5 +216,66 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   Future<void> updateRadius(String id, double radius) async {
     await receptorDAO.updateRadius(radius, id, principal.person);
     return null;
+  }
+}
+
+class GeoReceptorCache implements IGeoReceptorCache, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+  ISharedPreferences sharedPreferences;
+  IGeoReceptorRemote receptorRemote;
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  @override
+  Future<void> builder(IServiceProvider site) async {
+    this.site = site;
+    sharedPreferences = site.getService('@.sharedPreferences');
+    receptorRemote = site.getService('/remote/geo/receptors');
+  }
+
+  @override
+  Future<void> add(GeoReceptor receptor) async {
+    var home = await getApplicationDocumentsDirectory();
+    var dir = '${home.path}/images';
+    var dirFile = Directory(dir);
+    if (!dirFile.existsSync()) {
+      dirFile.createSync();
+    }
+    if (!StringUtil.isEmpty(receptor.leading) &&
+        receptor.leading.startsWith("http")) {
+      var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
+      var localFile = '$dir/$fn';
+      await remotePorts.download(
+          '${receptor.leading}?accessToken=${principal.accessToken}',
+          localFile);
+      receptor.leading = localFile;
+    }
+    if (!StringUtil.isEmpty(receptor.background) &&
+        receptor.background.startsWith("http")) {
+      var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.background)}';
+      var localFile = '$dir/$fn';
+      await remotePorts.download(
+          '${receptor.background}?accessToken=${principal.accessToken}',
+          localFile);
+      receptor.background = localFile;
+    }
+    var json = jsonEncode(receptor.toMap());
+    await sharedPreferences.setString(
+        '/geosphere/receptors/${receptor.id}.${receptor.category}', json,
+        person: principal.person);
+  }
+
+  @override
+  Future<GeoReceptor> get(String category, String receptorid) async {
+    var json = sharedPreferences.getString(
+        '/geosphere/receptors/$receptorid.$category',
+        person: principal.person);
+    if (StringUtil.isEmpty(json)) {
+      return null;
+    }
+    var map = jsonDecode(json);
+    return GeoReceptor.load(map, principal.person);
   }
 }

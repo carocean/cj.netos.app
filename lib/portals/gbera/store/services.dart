@@ -296,7 +296,10 @@ mixin IPrincipalService {
 
   Future<void> updateSignature(String person, String signature) {}
 }
-
+mixin IGeoReceptorCache{
+  Future<void> add(GeoReceptor receptor);
+  Future<GeoReceptor> get(String category,String receptorid);
+}
 mixin IGeoReceptorService {
   Future<bool> init(Location location, {Function() done});
 
@@ -326,6 +329,9 @@ mixin IGeoReceptorService {
   Future<void> updateForeground(String id, ForegroundMode mode) {}
 
   Future<void> setAutoScrollMessage(String id, bool isAutoScrollMessage) {}
+
+  Future<bool> existsLocal(String category, String receptor) {}
+
 
 }
 mixin IGeoCategoryRemote {

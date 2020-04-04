@@ -552,12 +552,32 @@ class GeoReceptor {
     radius = map['radius'];
     uDistance = map['uDistance'];
     ctime = map['ctime'];
-    foregroundMode = map['foregroundMode']??'original';
-    backgroundMode = map['backgroundMode']??'none';
+    foregroundMode = map['foregroundMode'] ?? 'original';
+    backgroundMode = map['backgroundMode'] ?? 'none';
     background = map['background'];
     isAutoScrollMessage = map['isAutoScrollMessage'];
     device = map['device'];
     this.sandbox = sandbox;
+  }
+
+  dynamic toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'category': category,
+      'leading': leading,
+      'creator': creator,
+      'location': location,
+      'radius': radius,
+      'uDistance': uDistance,
+      'ctime': ctime,
+      'foregroundMode': foregroundMode,
+      'backgroundMode': backgroundMode,
+      'background': background,
+      'isAutoScrollMessage': isAutoScrollMessage,
+      'device': device,
+      'sandbox': sandbox,
+    };
   }
 }
 

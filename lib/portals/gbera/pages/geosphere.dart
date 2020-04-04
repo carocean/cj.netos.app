@@ -215,7 +215,7 @@ class _GeosphereState extends State<Geosphere>
 
     var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
-
+    category=receptorObj.category;
     var home = await getApplicationDocumentsDirectory();
     var dir = '${home.path}/images';
     var dirFile = Directory(dir);
@@ -260,6 +260,7 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptor/messages');
     var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
+    category = receptorObj.category;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
       print('消息不存在，被丢弃。');
@@ -317,6 +318,7 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptor/messages');
     var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
+    category=receptorObj.category;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
       print('消息不存在，被丢弃。');
@@ -363,6 +365,7 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptor/messages');
     var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
+    category=receptorObj.category;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
       print('消息不存在，被丢弃。');
@@ -424,6 +427,7 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptor/messages');
     var receptorObj = await _getReceptor(category, receptor);
     receptor = receptorObj.id;
+    category=receptorObj.category;
     var exists = await messageService.getMessage(receptor, docid);
     if (exists == null) {
       print('消息不存在，被丢弃。');
@@ -481,19 +485,17 @@ class _GeosphereState extends State<Geosphere>
       return null;
     }
     //如果是cache则出现在感知器列表，这与关注冲突
-//    await _cacheReceptor(message.category, message.receptor);
+    await _cacheReceptor(message.category, message.receptor);
 
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    var receptor =
-        await receptorService.get(message.category, message.receptor);
-    if (receptor != null) {
+    if (await receptorService.existsLocal(message.category, message.receptor)) {
       //如果关注了感知器，则直接发往感知器
       await messageService.addMessage(message, isOnlySaveLocal: true);
     } else {
       //感知器不存在则发往我的地圈
       var principal = widget.context.principal;
-      receptor = await receptorService.getMobileReceptor(
+      var receptor = await receptorService.getMobileReceptor(
           principal.person, principal.device);
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
@@ -509,8 +511,8 @@ class _GeosphereState extends State<Geosphere>
     _notifyStreamController.add({
       'command': 'pushDocumentCommand',
       'sender': frame.head('sender'),
-      'receptor': receptor.id,
-      'category': category,
+      'receptor': message.receptor,
+      'category': message.category,
       'message': message,
     });
     return message;
@@ -525,7 +527,9 @@ class _GeosphereState extends State<Geosphere>
           widget.context.site.getService('/remote/geo/receptors');
       obj = await receptorRemote.getReceptor(category, receptor);
       if (obj != null) {
-        await receptorService.add(obj, isOnlySaveLocal: true);
+        IGeoReceptorCache receptorCache =
+            widget.context.site.getService('/cache/geosphere/receptor');
+        await receptorCache.add(obj);
       }
     }
   }
@@ -533,14 +537,13 @@ class _GeosphereState extends State<Geosphere>
   Future<GeoReceptor> _getReceptor(category, receptorid) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    var receptor = await receptorService.get(category, receptorid);
-    if (receptor != null) {
-      return receptor;
+    if (await receptorService.existsLocal(category, receptorid)) {
+      return await receptorService.get(category, receptorid);
+      ;
     }
     var principal = widget.context.principal;
-    receptor = await receptorService.getMobileReceptor(
+    return await receptorService.getMobileReceptor(
         principal.person, principal.device);
-    return receptor;
   }
 
   //如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢

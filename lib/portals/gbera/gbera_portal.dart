@@ -167,6 +167,7 @@ class GberaPortal {
           '/geosphere/categories': GeoCategoryLocal(),
           '/geosphere/receptor/messages': GeosphereMessageService(),
           '/geosphere/receptor/messages/medias': GeosphereMediaService(),
+          '/cache/geosphere/receptor':GeoReceptorCache(),
         };
       },
       builderShareServices: (site) async {
