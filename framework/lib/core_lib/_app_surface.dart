@@ -193,7 +193,8 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
           '${android.device}${android.type}${android.model}${android.product}';
     } else if (Platform.isIOS) {
       var ios = await deviceInfo.iosInfo;
-      device = '${ios.name}${ios.model}${ios.identifierForVendor}';
+      //ios.identifierForVendor每次重新安装应用都会变
+      device = '${ios.name}${ios.model}${ios.utsname.machine}';
     }
     device = MD5Util.MD5(device);
     appKeyPair.device = device;

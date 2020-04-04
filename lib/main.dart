@@ -137,14 +137,14 @@ class Window extends StatelessWidget {
       children: <Widget>[
         this.viewport,
         Positioned(
-          top: Platform.isAndroid?5:10,
-          left: Platform.isAndroid? 78:40,
+          top: Platform.isAndroid?5:13,
+          left: Platform.isAndroid? 78:5,
           right: 0,
           child: StatusBar(),
         ),
         Positioned(
-          top: Platform.isAndroid?22:27,
-          left: Platform.isAndroid? 78:40,
+          top: Platform.isAndroid?22:30,
+          left: Platform.isAndroid? 78:5,
           height: 1,
           width: 30,
           child: TaskBar(site,_progressTaskBar),

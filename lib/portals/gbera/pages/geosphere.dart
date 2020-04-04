@@ -480,7 +480,8 @@ class _GeosphereState extends State<Geosphere>
       print('存在消息，被丢弃。');
       return null;
     }
-    await _cacheReceptor(message.category, message.receptor);
+    //如果是cache则出现在感知器列表，这与关注冲突
+//    await _cacheReceptor(message.category, message.receptor);
 
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');

@@ -96,10 +96,16 @@ class GeosphereMessageService
     await messageDAO.unlike(receptor, msgid, liker, principal.person);
     if (!isOnlySaveLocal) {
       var msg = await getMessage(receptor, msgid);
-      receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
-          ? msg.upstreamReceptor
-          : msg.receptor;
-      await receptorRemote.unlike(msg.category, receptor, msgid);
+      var category;
+      if(StringUtil.isEmpty(msg.upstreamReceptor)){
+        receptor=msg.receptor;
+        category=msg.category;
+      }
+      else{
+        receptor=msg.upstreamReceptor;
+        category=msg.upstreamCategory;
+      }
+      await receptorRemote.unlike(category, receptor, msgid);
     }
   }
 
@@ -111,10 +117,17 @@ class GeosphereMessageService
     await messageDAO.like(likePerson);
     if (!isOnlySaveLocal) {
       var msg = await getMessage(likePerson.receptor, likePerson.msgid);
-      var receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
-          ? msg.upstreamReceptor
-          : msg.receptor;
-      await receptorRemote.like(msg.category, receptor, likePerson.msgid);
+      var receptor;
+      var category;
+      if(StringUtil.isEmpty(msg.upstreamReceptor)){
+        receptor=msg.receptor;
+        category=msg.category;
+      }
+      else{
+        receptor=msg.upstreamReceptor;
+        category=msg.upstreamCategory;
+      }
+      await receptorRemote.like(category, receptor, likePerson.msgid);
     }
   }
 
@@ -133,11 +146,17 @@ class GeosphereMessageService
         receptor, msgid, commentid, principal.person);
     if (!isOnlySaveLocal) {
       var msg = await getMessage(receptor, msgid);
-      receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
-          ? msg.upstreamReceptor
-          : msg.receptor;
+      var category;
+      if(StringUtil.isEmpty(msg.upstreamReceptor)){
+        receptor=msg.receptor;
+        category=msg.category;
+      }
+      else{
+        receptor=msg.upstreamReceptor;
+        category=msg.upstreamCategory;
+      }
       await receptorRemote.removeComment(
-          msg.category, receptor, msgid, commentid);
+          category, receptor, msgid, commentid);
     }
   }
 
@@ -148,11 +167,18 @@ class GeosphereMessageService
     if (!isOnlySaveLocal) {
       var msg = await getMessage(
           geosphereCommentOL.receptor, geosphereCommentOL.msgid);
-      var receptor = !StringUtil.isEmpty(msg.upstreamReceptor)
-          ? msg.upstreamReceptor
-          : msg.receptor;
+      var receptor;
+      var category;
+      if(StringUtil.isEmpty(msg.upstreamReceptor)){
+        receptor=msg.receptor;
+        category=msg.category;
+      }
+      else{
+        receptor=msg.upstreamReceptor;
+        category=msg.upstreamCategory;
+      }
       await receptorRemote.addComment(
-          msg.category,
+          category,
           receptor,
           geosphereCommentOL.msgid,
           geosphereCommentOL.id,
