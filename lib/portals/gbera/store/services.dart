@@ -351,7 +351,9 @@ mixin IGeosphereMessageService {
   Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,{bool isOnlySaveLocal=false}) {}
 
   Future<List<GeosphereMessageOL>> pageMessage(
-      String receptor, int limit, int offset) {}
+      String receptor,int limit, int offset) {}
+  Future<List<GeosphereMessageOL>> pageFilterMessage(
+      String receptor,String filterCategory, int limit, int offset) {}
 
   Future<List<GeosphereMessageOL>> pageMyMessage(
       String id, String creator, int limit, int offset) {}
@@ -381,6 +383,8 @@ mixin IGeosphereMessageService {
   Future<int> countUnreadMessage(String receptor) {}
 
   Future<void> flagMessagesReaded(String id) {}
+
+
 
 }
 mixin IGeosphereMediaService {

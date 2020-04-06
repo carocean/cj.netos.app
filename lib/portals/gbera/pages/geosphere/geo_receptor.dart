@@ -46,6 +46,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
   AmapPoi _currentPoi;
+  String _filterCategory;
 
   @override
   void initState() {
@@ -158,8 +159,15 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
 
-    List<GeosphereMessageOL> messages =
-        await geoMessageService.pageMessage(_receptorInfo.id, _limit, _offset);
+    List<GeosphereMessageOL> messages;
+    if (StringUtil.isEmpty(_filterCategory)) {
+      messages = await geoMessageService.pageMessage(
+          _receptorInfo.id, _limit, _offset);
+    } else {
+      messages = await geoMessageService.pageFilterMessage(
+          _receptorInfo.id, _filterCategory, _limit, _offset);
+    }
+
     if (messages.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
       return;
@@ -272,6 +280,18 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
+            filterMessages: (category) async {
+              _offset = 0;
+              _messageList.clear();
+              if(category!=null) {
+                _filterCategory = category['category'];
+              }else{
+                _filterCategory=null;
+              }
+              await _onloadMessages();
+              await _flagMessagesReaded();
+              setState(() {});
+            },
             refresh: () async {
               _offset = 0;
               _messageList.clear();
@@ -493,12 +513,13 @@ class _HeaderWidget extends StatefulWidget {
   Function() refresh;
   ReceptorInfo receptorInfo;
   bool isShowWhite;
-
+  Function(Map category) filterMessages;
   GeoCategoryOL categoryOL;
 
   _HeaderWidget({
     this.context,
     this.refresh,
+    this.filterMessages,
     this.receptorInfo,
     this.isShowWhite,
     this.categoryOL,
@@ -601,13 +622,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Future<void> _loadCategoryAllApps() async {
-    if (widget.categoryOL == null) {
+    if (widget.categoryOL == null||widget.receptorInfo.creator!=widget.context.principal.person) {
       return;
     }
     IGeoCategoryRemote categoryRemote =
         widget.context.site.getService('/remote/geo/categories');
-    var on =
-        widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
+    var on ;
+    if(widget.categoryOL.moveMode == 'moveableSelf') {
+      on='onserved';
+    }else{
+      on='onservice';
+    }
     _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
   }
 
@@ -621,14 +646,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Future<void> _clearSelectCategory() async {
-    print('----清除选择');
     _selectCategory = null;
     await _loadCategoryAllApps();
     _filterMessages(null);
   }
 
   Future<void> _filterMessages(categroyMap) async {
-    print('----过滤消息');
+    await widget.filterMessages(categroyMap);
   }
 
   Future<void> _loadLocation() async {
@@ -1015,12 +1039,16 @@ class __MessageCardState extends State<_MessageCard> {
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
   GeoReceptor _upstreamReceptor;
   Person _upstreamPerson;
+  String _titleLabel;
+  String _leading;
+  bool _isMine = false;
 
   @override
   void initState() {
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
     _loadUpstreamReceptor().then((v) {
       //检查该状态类是否已释放，如果挂在树上则可用
+      _setTitleLabel();
       if (mounted) {
         setState(() {});
       }
@@ -1037,9 +1065,11 @@ class __MessageCardState extends State<_MessageCard> {
   @override
   void didUpdateWidget(_MessageCard oldWidget) {
     if (oldWidget.messageWrapper != widget.messageWrapper) {
+      oldWidget.receptor = widget.receptor;
       oldWidget.messageWrapper = widget.messageWrapper;
       _loadUpstreamReceptor().then((v) {
         //检查该状态类是否已释放，如果挂在树上则可用
+        _setTitleLabel();
         if (mounted) {
           setState(() {});
         }
@@ -1048,11 +1078,30 @@ class __MessageCardState extends State<_MessageCard> {
     super.didUpdateWidget(oldWidget);
   }
 
+  _setTitleLabel() {
+    if (_upstreamReceptor != null) {
+      if (_upstreamReceptor.category == 'mobiles') {
+        _titleLabel = '${_upstreamPerson.nickName}的地圈';
+        _leading = _upstreamReceptor.leading;
+      } else {
+        _titleLabel = _upstreamReceptor.title;
+        _leading = _upstreamReceptor.leading;
+      }
+    } else {
+      _titleLabel = widget.receptor.title;
+      _leading = widget.receptor.leading;
+    }
+    _isMine = widget.context.principal?.person ==
+        widget.messageWrapper.creator.official;
+  }
+
   _loadUpstreamReceptor() async {
     var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
     var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
     var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
     if (StringUtil.isEmpty(upstreamReceptor)) {
+      _upstreamReceptor=null;
+      _upstreamPerson=null;
       return;
     }
     IGeoReceptorService receptorService =
@@ -1079,6 +1128,7 @@ class __MessageCardState extends State<_MessageCard> {
   @override
   Widget build(BuildContext context) {
     AmapPoi poi = widget.messageWrapper.poi;
+
     return Card(
       shape: Border(),
       elevation: 0,
@@ -1097,21 +1147,26 @@ class __MessageCardState extends State<_MessageCard> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/site/marchant');
+                if (!_isMine) {
+                  widget.context.forward(
+                    '/geosphere/view/receptor',
+                    arguments: {
+                      'receptor': ReceptorInfo.create(_upstreamReceptor),
+                    },
+                  );
+                  return;
+                }
+                widget.context.forward(
+                  '/geosphere/portal',
+                  arguments: {
+                    'receptor': widget.receptor,
+                  },
+                );
               },
               child: Padding(
                 padding: EdgeInsets.only(top: 5, right: 5),
                 child: ClipOval(
-                  child: Image(
-                    image: FileImage(
-                      File(
-                        widget.messageWrapper.sender?.avatar,
-                      ),
-                    ),
-                    height: 35,
-                    width: 35,
-                    fit: BoxFit.fill,
-                  ),
+                  child: _getleadingImg(),
                 ),
               ),
             ),
@@ -1126,11 +1181,26 @@ class __MessageCardState extends State<_MessageCard> {
                     children: <Widget>[
                       GestureDetector(
                         onTap: () {
-                          widget.context.forward('/site/marchant');
+                          if (!_isMine) {
+                            widget.context.forward(
+                              '/geosphere/view/receptor',
+                              arguments: {
+                                'receptor':
+                                    ReceptorInfo.create(_upstreamReceptor),
+                              },
+                            );
+                            return;
+                          }
+                          widget.context.forward(
+                            '/geosphere/portal',
+                            arguments: {
+                              'receptor': widget.receptor,
+                            },
+                          );
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Text(
-                          '${widget.messageWrapper.sender?.nickName}',
+                          '${_titleLabel ?? ''}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[700],
@@ -1342,14 +1412,11 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   List<TextSpan> _getMessageSourceTextSpan() {
-    var isMe = widget.context.principal?.person ==
-        widget.messageWrapper.creator.official;
     var list = <TextSpan>[];
-
-    if (isMe) {
-      list.add(
-        TextSpan(text: '创建自 '),
-      );
+    list.add(
+      TextSpan(text: '发表自 '),
+    );
+    if (_isMine) {
       list.add(
         TextSpan(
           text: '我',
@@ -1359,64 +1426,64 @@ class __MessageCardState extends State<_MessageCard> {
           ),
           recognizer: TapGestureRecognizer()
             ..onTap = () {
-              widget.context.forward(
-                '/geosphere/portal',
-                arguments: {
-                  'receptor': widget.receptor,
-                },
-              );
+              widget.context.forward('/site/marchant');
             },
         ),
       );
     } else {
-      if (_upstreamPerson == null || _upstreamReceptor == null) {
-        return list;
-      }
       list.add(
-        TextSpan(text: '来自 '),
+        TextSpan(
+          text: '${widget.messageWrapper.creator.nickName}',
+          style: TextStyle(
+            color: Colors.blueGrey,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              widget.context.forward('/site/marchant');
+            },
+        ),
       );
-      if (_upstreamReceptor.category == 'mobiles') {
-        list.add(
-          TextSpan(
-            text: '${_upstreamPerson?.nickName}的地圈',
-            style: TextStyle(
-              color: Colors.blueGrey,
-              fontWeight: FontWeight.w500,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                widget.context.forward(
-                  '/geosphere/view/receptor',
-                  arguments: {
-                    'receptor': ReceptorInfo.create(_upstreamReceptor),
-                  },
-                );
-              },
-          ),
-        );
-      } else {
-        list.add(
-          TextSpan(
-            text: '${_upstreamReceptor.title}',
-            style: TextStyle(
-              color: Colors.blueGrey,
-              fontWeight: FontWeight.w500,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                widget.context.forward(
-                  '/geosphere/view/receptor',
-                  arguments: {
-                    'receptor': ReceptorInfo.create(_upstreamReceptor),
-                  },
-                );
-              },
-          ),
-        );
-      }
     }
 
     return list;
+  }
+
+  _getleadingImg() {
+    var leadingImg;
+    if (StringUtil.isEmpty(_leading)) {
+      leadingImg = Image(
+        image: AssetImage(
+          'lib/portals/gbera/images/netflow.png',
+        ),
+        height: 35,
+        width: 35,
+        fit: BoxFit.fill,
+      );
+    } else {
+      if (_leading.startsWith("/")) {
+        leadingImg = Image(
+          image: FileImage(
+            File(
+              _leading,
+            ),
+          ),
+          height: 35,
+          width: 35,
+          fit: BoxFit.fill,
+        );
+      } else {
+        leadingImg = Image(
+          image: NetworkImage(
+            '${_leading}?accessToken=${widget.context.principal.accessToken}',
+          ),
+          height: 35,
+          width: 35,
+          fit: BoxFit.fill,
+        );
+      }
+    }
+    return leadingImg;
   }
 }
 
@@ -1882,9 +1949,9 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(text: '\t'),
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
-                      comment.ctime,
-                      dayFormat: DayFormat.Simple,
-                    ) : ''}\t',
+                        comment.ctime,
+                        dayFormat: DayFormat.Simple,
+                      ) : ''}\t',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

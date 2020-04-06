@@ -43,7 +43,12 @@ class GeosphereMessageService
     return await messageDAO.pageMessage(
         receptor, principal.person, limit, offset);
   }
-
+  @override
+  Future<List<GeosphereMessageOL>> pageFilterMessage(
+      String receptor,String filterCategory, int limit, int offset) async {
+    return await messageDAO.pageFilterMessage(
+        receptor,filterCategory, principal.person, limit, offset);
+  }
   @override
   Future<List<GeosphereMessageOL>> pageMyMessage(
       String receptor, String creator, int limit, int offset) async {

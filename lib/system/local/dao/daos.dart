@@ -611,8 +611,8 @@ abstract class IGeoReceptorDAO {
 
   @Query(
       'SELECT count(*) as value  FROM GeoReceptor WHERE id=:id and category=:category and sandbox=:sandbox')
-  Future<CountValue>  countReceptor(String id, String category, String sandbox) {}
-
+  Future<CountValue> countReceptor(
+      String id, String category, String sandbox) {}
 }
 
 @dao
@@ -637,6 +637,11 @@ abstract class IGeosphereMessageDAO {
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
   Future<List<GeosphereMessageOL>> pageMessage(
       String receptor, String sandbox, int limit, int offset) {}
+
+  @Query(
+      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and upstreamCategory=:category and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
+  Future<List<GeosphereMessageOL>> pageFilterMessage(
+      String receptor, String category, String person, int limit, int offset) {}
 
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and creator=:creator and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
@@ -698,6 +703,8 @@ abstract class IGeosphereMessageDAO {
       'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
   Future<List<GeosphereCommentOL>> pageComments(
       String receptor, String msgid, String sandbox, int limit, int offset) {}
+
+
 }
 
 @dao

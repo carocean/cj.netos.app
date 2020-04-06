@@ -20,6 +20,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/service_menu.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -82,8 +83,9 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
   }
 
   Future<void> _onloadOwner() async {
-    IPersonService personService=widget.context.site.getService('/gbera/persons');
-    _owner=await personService.getPerson(_receptorInfo.creator);
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    _owner = await personService.getPerson(_receptorInfo.creator);
   }
 
   Future<void> _loadCategory() async {
@@ -242,7 +244,9 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
       {bool showTitle = true}) {
     if (showTitle) {
       appBar.title = Text(
-        _receptorInfo.category == 'mobiles' ? '${_owner.nickName}的地圈' : _receptorInfo.title,
+        _receptorInfo.category == 'mobiles'
+            ? '${_owner.nickName}的地圈'
+            : _receptorInfo.title,
         style: TextStyle(
           color: Colors.white,
         ),
@@ -263,7 +267,9 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
   }) {
     if (showTitle) {
       appBar.title = Text(
-        _receptorInfo.category == 'mobiles' ? '${_owner.nickName}的地圈' : _receptorInfo.title,
+        _receptorInfo.category == 'mobiles'
+            ? '${_owner.nickName}的地圈'
+            : _receptorInfo.title,
         style: TextStyle(
           color: null,
         ),
@@ -400,13 +406,20 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   var _workingChannel;
   String _poiTitle;
   LatLng _currentLatLng;
-  List<GeoCategoryAppOR> _apps = [];
+  List<List<ThirdPartyService>> _serviceMenu = [];
   Map<String, String> _selectCategory;
+  var _controller;
+  var _isFollowed = false;
+  var _followCount = 0;
+  var _followLabel = '关注';
 
   @override
   void initState() {
+    _controller = DefaultTabController.of(context);
     _loadLocation().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     geoLocation.listen('receptor.header',
         (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
@@ -415,8 +428,15 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      _arrivedMessageCount++;
 //      setState(() {});
 //    };
-    _loadCategoryAllApps().then((v) {
-      setState(() {});
+    _loadServiceMenu().then((v) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _loadFollow().then((v) {
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -428,6 +448,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       _workingChannel.onRefreshChannelState = null;
     }
     _arrivedMessageCount = 0;
+    _serviceMenu.clear();
     super.dispose();
   }
 
@@ -439,37 +460,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  Future<void> _loadCategoryAllApps() async {
-    if (widget.categoryOL == null) {
-      return;
-    }
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on =
-        widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
-    _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
-  }
-
-  Future<void> _loadAppsOfCategory(categroyMap) async {
-    _selectCategory = categroyMap.cast<String, String>();
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on = 'onserved';
-    _apps = await categoryRemote.getApps(categroyMap['category'], on);
-    await _filterMessages(categroyMap);
-  }
-
-  Future<void> _clearSelectCategory() async {
-    print('----清除选择');
-    _selectCategory = null;
-    await _loadCategoryAllApps();
-    _filterMessages(null);
-  }
-
-  Future<void> _filterMessages(categroyMap) async {
-    print('----过滤消息');
-  }
-
   Future<void> _loadLocation() async {
     _currentLatLng = widget.receptorInfo.latLng;
     var list = await AmapSearch.searchAround(_currentLatLng,
@@ -478,6 +468,73 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       return;
     }
     _poiTitle = await list[0].title;
+  }
+
+  _loadServiceMenu() async {
+    var services_page1 = <ThirdPartyService>[];
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1410704196,754504588&fm=26&gp=0.jpg',
+      title: '费用｜积分',
+      onTap: () {
+        widget.context.forward('/micro/app', arguments: {'selected': '费用'});
+      },
+    ));
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3461514539,795423572&fm=26&gp=0.jpg',
+      title: '在用产品',
+      onTap: () {
+        widget.context.forward('/micro/app', arguments: {'selected': '在用产品'});
+      },
+    ));
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3399756601,3876810634&fm=26&gp=0.jpg',
+      title: '流量｜通话',
+      onTap: () {
+        widget.context.forward('/micro/app', arguments: {'selected': '流量｜通话'});
+      },
+    ));
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1368553957,2392681342&fm=26&gp=0.jpg',
+      title: '装机修障进度',
+    ));
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=150135425,1929992673&fm=26&gp=0.jpg',
+      title: '充值交费',
+    ));
+    services_page1.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=276772382,2920623207&fm=26&gp=0.jpg',
+      title: '5G专区',
+    ));
+
+    var services_page2 = <ThirdPartyService>[];
+    services_page2.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2265008670,1770423049&fm=26&gp=0.jpg',
+      title: '附近营业厅',
+    ));
+    services_page2.add(ThirdPartyService(
+      iconUrl:
+          'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=144715234,836389000&fm=26&gp=0.jpg',
+      title: '服务大厅',
+    ));
+    services_page2.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=108446868,1406702903&fm=26&gp=0.jpg',
+      title: '优惠活动',
+    ));
+    services_page2.add(ThirdPartyService(
+      iconUrl:
+          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=4035533329,1566894074&fm=26&gp=0.jpg',
+      title: '在线客服',
+    ));
+    _serviceMenu.add(services_page1);
+    _serviceMenu.add(services_page2);
   }
 
   _updateLocation(Location location) async {
@@ -492,6 +549,36 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _currentLatLng = await location.latLng;
     _poiTitle = await location.poiName;
     setState(() {});
+  }
+
+  _loadFollow() async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var exists = await receptorService.existsLocal(
+        widget.receptorInfo.category, widget.receptorInfo.id);
+    _isFollowed = exists;
+    _followLabel = exists ? '不再关注' : '关注';
+  }
+
+  Future<void> _follow() async {
+    _followLabel = '处理中...';
+    setState(() {});
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    if (_isFollowed) {
+      //取消
+      await receptorService.remove(
+          widget.receptorInfo.category, widget.receptorInfo.id);
+      _isFollowed = false;
+      _followLabel = '关注';
+      return;
+    }
+    await receptorService.add(widget.receptorInfo.origin,
+        isOnlySaveLocal: true);
+    IGeosphereMessageService messageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    _isFollowed = true;
+    _followLabel = '不再关注';
   }
 
   @override
@@ -536,7 +623,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
         children: <Widget>[
           Container(
             padding: EdgeInsets.only(
-              bottom: 15,
+              bottom: 0,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -579,7 +666,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           children: <Widget>[
                             Text.rich(
                               TextSpan(
-                                text:  widget.receptorInfo.category == 'mobiles' ? '${widget.owner.nickName}的地圈' : widget.receptorInfo.title,
+                                text: widget.receptorInfo.category == 'mobiles'
+                                    ? '${widget.owner.nickName}的地圈'
+                                    : widget.receptorInfo.title,
                                 children: [],
                               ),
                               softWrap: true,
@@ -639,7 +728,49 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   ),
                                 ),
                               ],
-                            )
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: 10,
+                              ),
+                              child: Flex(
+                                direction: Axis.horizontal,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      right: 10,
+                                    ),
+                                    child: Text(
+                                      '粉丝($_followCount)',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.blueGrey,
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      _follow().then((v) {
+                                        setState(() {});
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 10,
+                                      ),
+                                      child: Text(
+                                        '${_followLabel}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -649,140 +780,103 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
               ],
             ),
           ),
-          _apps.isEmpty
-              ? Container(
-                  width: 0,
-                  height: 0,
-                )
-              : Container(
-                  height: 60,
-                  alignment: Alignment.center,
-                  child: ListView(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.all(0),
-                    children: _geoCategoryApps(),
-                  ),
-                ),
-          Padding(
-            padding: EdgeInsets.only(
-              top: 15,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Container(),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context.part(
-                              '/geosphere/filter', context,
-                              arguments: {'category': widget.categoryOL});
-                        }).then((v) {
-                      if (v == null) {
-                        return;
-                      }
-                      if (v is String && v == 'clear') {
-                        _clearSelectCategory().then((v) {
-                          setState(() {});
-                        });
-                        return;
-                      }
-                      var map = v as Map;
-                      if (widget.categoryOL.moveMode == 'moveableSelf') {
-                        _loadAppsOfCategory(map).then((v) {
-                          setState(() {});
-                        });
-                      } else {
-                        _filterMessages(map).then((v) {
-                          setState(() {});
-                        });
-                      }
-                    });
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          right: 2,
-                        ),
-                        child: Text(
-                          _selectCategory != null
-                              ? _selectCategory['title']
-                              : widget.categoryOL?.moveMode == 'moveableSelf'
-                                  ? '服务'
-                                  : '筛选',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: widget.isShowWhite
-                                ? Colors.white70
-                                : Colors.grey[500],
-                          ),
-                        ),
-                      ),
-                      widget.categoryOL?.moveMode == 'moveableSelf'
-                          ? Icon(
-                              Icons.apps,
-                              size: 18,
-                              color: widget.isShowWhite
-                                  ? Colors.white70
-                                  : Colors.black54,
-                            )
-                          : Icon(
-                              FontAwesomeIcons.filter,
-                              size: 13,
-                              color: widget.isShowWhite
-                                  ? Colors.white70
-                                  : Colors.grey[500],
-                            ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _renderServiceMenu(),
         ],
       ),
     );
   }
 
-  List<Widget> _geoCategoryApps() {
-    List<Widget> apps = [];
-    for (var i = 0; i < _apps.length; i++) {
-      var app = _apps[i];
-      apps.add(
-        Padding(
-          padding: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Image.network(
-                '${app.leading}?accessToken=${widget.context.principal.accessToken}',
-                width: 35,
-                height: 35,
-                color: widget.isShowWhite ? Colors.white : Colors.grey[600],
-              ),
-              Text(
-                '${app.title}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: widget.isShowWhite ? Colors.white : Colors.black54,
+  Widget _renderServiceMenu() {
+    if (_serviceMenu.isEmpty) {
+      return Container(
+        height: 0,
+        width: 0,
+      );
+    }
+    var pageViews = <Widget>[];
+    for (var menu in _serviceMenu) {
+      List<ThirdPartyService> list = menu;
+      pageViews.add(
+        CustomScrollView(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: Container(
+                alignment: Alignment.center,
+//                decoration: BoxDecoration(
+//                  color: Colors.white,
+////                  borderRadius: BorderRadius.all(Radius.circular(20)),
+//                ),
+                height: 180,
+                child: Wrap(
+                  children: list.map((service) {
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: service.onTap,
+                      child: Container(
+                        padding: EdgeInsets.all(15),
+                        width: 100,
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 5,
+                              ),
+                              child: Image.network(
+                                service.iconUrl,
+                                height: 30,
+                                width: 30,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Text(
+                              service.title,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              softWrap: true,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
-    return apps;
+    return Container(
+      height: 200,
+      alignment: Alignment.center,
+      child: DefaultTabController(
+        length: pageViews.length,
+        child: Column(
+          children: <Widget>[
+            Flexible(
+              child: Container(
+                padding: EdgeInsets.all(10),
+                child: TabBarView(
+                  children: pageViews,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 12,
+              child: TabPageSelector(
+                controller: _controller,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -841,75 +935,25 @@ class __MessageCardState extends State<_MessageCard> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context.forward('/site/marchant');
-              },
-              child: Padding(
-                padding: EdgeInsets.only(top: 5, right: 5),
-                child: ClipOval(
-                  child: Image(
-                    image: FileImage(
-                      File(
-                        widget.messageWrapper.sender?.avatar,
-                      ),
-                    ),
-                    height: 35,
-                    width: 35,
-                    fit: BoxFit.fill,
-                  ),
-                ),
-              ),
-            ),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          widget.context.forward('/site/marchant');
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Text(
-                          '${widget.messageWrapper.sender?.nickName}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
+                  Container(
+                    padding: EdgeInsets.only(
+                      bottom: 10,
+                    ),
+                    child: Text(
+                      '${TimelineUtil.format(
+                        widget.messageWrapper.message.ctime,
+                        dayFormat: DayFormat.Full,
+                      )}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
                       ),
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: IconButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return widget.context.part(
-                                      '/netflow/channel/serviceMenu', context);
-                                }).then((value) {
-                              print('-----$value');
-                              if (value == null) return;
-                              widget.context
-                                  .forward('/micro/app', arguments: value);
-                            });
-                          },
-                          icon: Icon(
-                            Icons.art_track,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   Container(
                     //内容区
@@ -968,10 +1012,7 @@ class __MessageCardState extends State<_MessageCard> {
                               ),
                               child: Text.rich(
                                 TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.messageWrapper.message.ctime,
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
+                                  text: '',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[400],
@@ -983,44 +1024,6 @@ class __MessageCardState extends State<_MessageCard> {
                                             '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
                                   ],
                                 ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              widget.context.forward(
-                                                  "/site/personal",
-                                                  arguments: {
-                                                    'person': widget
-                                                        .messageWrapper.creator,
-                                                  });
-                                            },
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                softWrap: true,
                               ),
                             ),
                             Padding(
@@ -1581,9 +1584,9 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(text: '\t'),
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
-                      comment.ctime,
-                      dayFormat: DayFormat.Simple,
-                    ) : ''}\t',
+                        comment.ctime,
+                        dayFormat: DayFormat.Simple,
+                      ) : ''}\t',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

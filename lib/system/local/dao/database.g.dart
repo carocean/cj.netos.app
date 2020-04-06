@@ -449,6 +449,15 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
   }
 
   @override
+  Future<List<GeosphereMessageOL>> pageFilterMessage(String receptor,
+      String category, String person, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeosphereMessageOL WHERE receptor=? and upstreamCategory=? and sandbox=? ORDER BY ctime DESC, atime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[receptor, category, person, limit, offset],
+        mapper: _geosphereMessageOLMapper);
+  }
+
+  @override
   Future<List<GeosphereMessageOL>> pageMyMessage(String receptor,
       String creator, String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
