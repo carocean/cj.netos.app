@@ -8,6 +8,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:nineold/nine_old_frame.dart';
 import 'package:uuid/uuid.dart';
 
 import 'friend_page.dart';
@@ -24,18 +25,35 @@ class ChatRoomsPortlet extends StatefulWidget {
 }
 
 class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
+  @override
+  void initState() {
+    print('---!---');
+
+    if(!widget.context.isListening(matchPath: '/chat/room/message')){
+      widget.context.listenNetwork(_onmessage,matchPath: '/chat/room/message');
+    }
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
+    super.dispose();
+  }
+  Future<void> _onmessage(Frame frame){
+    print(frame);
+  }
   Future<void> _createChatroom(List<String> members) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    var roomCode = Uuid().v1();
-    chatRoomService.addRoom(
+    var roomCode = MD5Util.MD5(Uuid().v1());
+    await chatRoomService.addRoom(
       ChatRoom(
-        Uuid().v1(),
         roomCode,
         null,
         null,
         widget.context.principal.person,
-        0,
+        DateTime.now().millisecondsSinceEpoch,
         null,
         null,
         'false',
@@ -43,10 +61,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.principal.person,
       ),
     );
-    for (var official in members) {
-      chatRoomService.addMember(
+    for (var i = 0; i < members.length; i++) {
+      var official = members[i];
+      await chatRoomService.addMember(
         RoomMember(
-          Uuid().v1(),
+          MD5Util.MD5(Uuid().v1()),
           roomCode,
           official,
           widget.context.principal.person,
@@ -64,11 +83,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     List<_ChatRoomModel> models = [];
     for (var room in rooms) {
       List<Friend> friends =
-          await chatRoomService.listWhoAddMember(room.code, room.creator);
+          await chatRoomService.listWhoAddMember(room.id, room.creator);
       models.add(
         _ChatRoomModel(
           chatRoom: room,
-          creatorAddMembers: friends,
+          members: friends,
         ),
       );
     }
@@ -78,7 +97,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoomById(room.id);
+    await chatRoomService.removeChatRoom(room.id);
     return;
   }
 
@@ -185,101 +204,99 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                     ],
                   ),
                 ),
-                if (topFives.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 20,
-                    ),
-                    child: Center(
-                      child: Text.rich(
-                        TextSpan(
-                          text: '没有聊天室！ ',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '点击此处建立',
-                              style: TextStyle(
-                                color: Colors.blueGrey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () async {
-                                  var result = await widget.context
-                                          .forward('/portlet/chat/friends')
-                                      as List<String>;
-                                  if (result == null || result.isEmpty) {
-                                    return;
-                                  }
-                                  _createChatroom(result).then((v) {
-                                    setState(() {});
-                                  });
-                                },
-                            ),
-                          ],
+                topFives.isEmpty
+                    ? Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 20,
                         ),
+                        child: Center(
+                          child: Text.rich(
+                            TextSpan(
+                              text: '没有聊天室！ ',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '点击此处建立',
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      var result = await widget.context
+                                              .forward('/portlet/chat/friends')
+                                          as List<String>;
+                                      if (result == null || result.isEmpty) {
+                                        return;
+                                      }
+                                      _createChatroom(result).then((v) {
+                                        setState(() {});
+                                      });
+                                    },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : ListView(
+                        padding: EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        children: topFives.map((model) {
+                          return _ChatRoomItem(
+                            isBottomItem: false,
+                            context: widget.context,
+                            title: model.displayRoomTitle,
+                            leading: model.leading,
+                            time: model.unreadMessage == null
+                                ? ''
+                                : TimelineUtil.format(
+                                    model.unreadMessage.atime,
+                                    dayFormat: DayFormat.Simple,
+                                  ),
+                            unreadMsgCount: model.unreadMsgCount ?? 0,
+                            showNewest: model.unreadMsgCount ?? 0 > 0,
+                            subtitle: '${model.unreadMessage?.content ?? ''}',
+                            who: '',
+                            onOpenRoom: () {
+                              widget.context
+                                  .forward('/portlet/chat/talk', arguments: {
+                                'chatRoom': model.chatRoom,
+                                'displayRoomTitle': model.displayRoomTitle,
+                              });
+                            },
+                            onOpenAvatar: () {
+                              widget.context
+                                  .forward(
+                                '/portlet/chat/room/avatar',
+                              )
+                                  .then((v) {
+                                if (v == null) {
+                                  return;
+                                }
+                                var result = v as Map<String, Object>;
+                                if (StringUtil.isEmpty(result['image'])) {
+                                  return;
+                                }
+                                String fileName = result['image'];
+                                _updateRoomLeading(model.chatRoom.id, fileName)
+                                    .then((v) {
+                                  setState(() {});
+                                });
+                              });
+                            },
+                            onRemoveAction: () {
+                              _removeChatRoom(model.chatRoom).then((v) {
+                                snapshot.data.remove(model);
+                                setState(() {});
+                              });
+                            },
+                          );
+                        }).toList(),
                       ),
-                    ),
-                  )
-                else
-                  ListView(
-                    padding: EdgeInsets.all(0),
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: topFives.map((model) {
-                      return _ChatRoomItem(
-                        isBottomItem: false,
-                        context: widget.context,
-                        title: model.displayRoomTitle,
-                        leading: model.chatRoom.leading == null
-                            ? Icon(Icons.chat,color: Colors.grey[500],)
-                            : Image.file(
-                                File(model.chatRoom.leading),
-                                fit: BoxFit.fill,
-                              ),
-                        time: model.unreadMessage == null
-                            ? ''
-                            : TimelineUtil.format(
-                                model.unreadMessage.atime,
-                                dayFormat: DayFormat.Simple,
-                              ),
-                        unreadMsgCount: model.unreadMsgCount ?? 0,
-                        showNewest: model.unreadMsgCount ?? 0>0,
-                        subtitle: '${model.unreadMessage?.content ?? ''}',
-                        who: '',
-                        onOpenRoom: () {
-                          widget.context.forward('/portlet/chat/talk',arguments: {'chatRoom':model.chatRoom,'displayRoomTitle':model.displayRoomTitle,});
-                        },
-                        onOpenAvatar: () {
-                          widget.context
-                              .forward(
-                            '/portlet/chat/room/avatar',
-                          )
-                              .then((v) {
-                            if (v == null) {
-                              return;
-                            }
-                            var result = v as Map<String, Object>;
-                            if (StringUtil.isEmpty(result['image'])) {
-                              return;
-                            }
-                            String fileName = result['image'];
-                            _updateRoomLeading(model.chatRoom.id, fileName)
-                                .then((v) {
-                              setState(() {});
-                            });
-                          });
-                        },
-                        onRemoveAction: () {
-                          _removeChatRoom(model.chatRoom).then((v) {
-                            snapshot.data.remove(model);
-                            setState(() {});
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
                 if (!expandRooms.isEmpty)
                   _MessagesExpansionPanel(
                     updateRoomLeading: _updateRoomLeading,
@@ -456,10 +473,7 @@ class __MessagesExpansionPanelState extends State<_MessagesExpansionPanel> {
                         _expandRoomsIndex >= widget.expandRooms.length,
                     context: widget.context,
                     title: model.displayRoomTitle,
-                    leading: Image.network(
-                      'http://47.105.165.186:7100/public/avatar/341d5e0f2d4fbd21ff5a2acafcf44cdb.jpg',
-                      fit: BoxFit.fill,
-                    ),
+                    leading: model.leading,
                     time: model.unreadMessage == null
                         ? ''
                         : TimelineUtil.format(
@@ -467,11 +481,14 @@ class __MessagesExpansionPanelState extends State<_MessagesExpansionPanel> {
                             dayFormat: DayFormat.Simple,
                           ),
                     unreadMsgCount: model.unreadMsgCount ?? 0,
-                    showNewest: model.unreadMsgCount ?? 0>0,
+                    showNewest: model.unreadMsgCount ?? 0 > 0,
                     subtitle: '${model.unreadMessage?.content ?? ''}',
                     who: '',
                     onOpenRoom: () {
-                      widget.context.forward('/portlet/chat/talk',arguments: {'chatRoom':model.chatRoom,'displayRoomTitle':model.displayRoomTitle,});
+                      widget.context.forward('/portlet/chat/talk', arguments: {
+                        'chatRoom': model.chatRoom,
+                        'displayRoomTitle': model.displayRoomTitle,
+                      });
                     },
                     onOpenAvatar: () {
                       widget.context
@@ -574,19 +591,19 @@ class _ChatRoomItem extends StatefulWidget {
 class __ChatRoomItem extends State<_ChatRoomItem> {
   @override
   Widget build(BuildContext context) {
-    Widget imgSrc = null;
-    if (widget.leading == null) {
-      imgSrc = Icon(
-        IconData(
-          0xe606,
-          fontFamily: 'netflow',
-        ),
-        size: 32,
-        color: Colors.grey[500],
-      );
-    } else {
-      imgSrc = widget.leading;
-    }
+    Widget imgSrc = widget.leading;
+//    if (widget.leading == null) {
+//      imgSrc = Icon(
+//        IconData(
+//          0xe606,
+//          fontFamily: 'netflow',
+//        ),
+//        size: 32,
+//        color: Colors.grey[500],
+//      );
+//    } else {
+//      imgSrc = widget.leading;
+//    }
     var item = Container(
       decoration: new BoxDecoration(
         color: Colors.white,
@@ -691,43 +708,48 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
                           ),
                         ),
                         if (widget.showNewest)
-                          Padding(padding: EdgeInsets.only(top: 5,),child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            alignment: WrapAlignment.start,
-                            spacing: 5,
-                            runSpacing: 3,
-                            children: <Widget>[
-                              Text.rich(
-                                TextSpan(
-                                  text: '',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                  children: [
-                                    if (widget.unreadMsgCount > 0)
-                                      TextSpan(
-                                          text:
-                                          '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]'),
-                                    TextSpan(
-                                      text: ' ',
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 5,
+                            ),
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.start,
+                              spacing: 5,
+                              runSpacing: 3,
+                              children: <Widget>[
+                                Text.rich(
+                                  TextSpan(
+                                    text: '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
                                     ),
+                                    children: [
+                                      if (widget.unreadMsgCount > 0)
+                                        TextSpan(
+                                            text:
+                                                '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]'),
+                                      TextSpan(
+                                        text: ' ',
+                                      ),
 //                                      TextSpan(
 //                                        text: '${this.who}: ',
 //                                      ),
-                                    TextSpan(
-                                      text: '${widget.subtitle}',
-                                      style: TextStyle(
-                                        color: Colors.black54,
+                                      TextSpan(
+                                        text: '${widget.subtitle}',
+                                        style: TextStyle(
+                                          color: Colors.black54,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -764,27 +786,24 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
 
 class _ChatRoomModel {
   ChatRoom chatRoom;
-  List<Friend> creatorAddMembers;
-  P2PMessage unreadMessage;
+  List<Friend> members;
+  ChatMessage unreadMessage;
   int unreadMsgCount = 0;
 
   _ChatRoomModel(
-      {this.chatRoom,
-      this.creatorAddMembers,
-      this.unreadMessage,
-      this.unreadMsgCount});
+      {this.chatRoom, this.members, this.unreadMessage, this.unreadMsgCount});
 
   ///创建者添加的成员,当聊天室无标题和头像时根据创建者添加的成员生成它
   String get displayRoomTitle {
     if (!StringUtil.isEmpty(chatRoom.title)) {
       return chatRoom.title;
     }
-    if (creatorAddMembers == null || creatorAddMembers.isEmpty) {
+    if (members == null || members.isEmpty) {
       return "";
     }
     String name = '';
-    for (int i = 0; i < creatorAddMembers.length; i++) {
-      var f = creatorAddMembers[i];
+    for (int i = 0; i < members.length; i++) {
+      var f = members[i];
       name += '${f.nickName ?? f.accountName},';
       if (i >= 6) {
         break;
@@ -794,5 +813,32 @@ class _ChatRoomModel {
       name = name.substring(0, name.length - 1);
     }
     return name;
+  }
+
+  Widget get leading {
+    if (!StringUtil.isEmpty(this.chatRoom.leading)) {
+      if (this.chatRoom.leading.startsWith('/')) {
+        return Image.file(
+          File(this.chatRoom.leading),
+          width: 40,
+          height: 40,
+        );
+      }
+      return Image.network(
+        this.chatRoom.leading,
+        height: 40,
+        width: 40,
+      );
+    }
+    //九宫格
+    var list = <String>[];
+    for (var i = 0; i < members.length; i++) {
+      if (i >= 9) {
+        break;
+      }
+      var m = members[i];
+      list.add(m.avatar);
+    }
+    return NineOldWidget(list);
   }
 }

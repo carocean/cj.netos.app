@@ -29,7 +29,7 @@ part 'database.g.dart';
   ChatRoom,
   RoomMember,
   RoomNick,
-  P2PMessage,
+  ChatMessage,
   Principal,
   GeoReceptor,
   GeoCategoryOL,

@@ -503,12 +503,20 @@ abstract class IRoomMemberDAO {
   Future<List<RoomMember>> topMember10(String sandbox, String roomcode) {}
 
   @Query('delete FROM RoomMember WHERE room = :roomCode AND sandbox=:sandbox')
-  Future<void> removeChatRoomByRoomCode(String roomCode, String sandbox) {}
+  Future<void> emptyRoomMembers(String roomCode, String sandbox) {}
 
   @Query(
       'SELECT f.*  FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=:sandbox and m.room=:roomCode and m.whoAdd=:whoAdd ')
   Future<List<Friend>> listWhoAddMember(
       String sandbox, String roomCode, String whoAdd) {}
+
+  @Query(
+      'delete FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox')
+  Future<void> removeMember(String code, person, String sandbox) {}
+
+  @Query(
+      'SELECT count(*) as value  FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox ')
+  Future<CountValue> countMember(String code, person, String sandbox) {}
 }
 
 @dao
@@ -517,11 +525,11 @@ abstract class IRoomNickDAO {}
 @dao
 abstract class IP2PMessageDAO {
   @insert
-  Future<void> addMessage(P2PMessage message) {}
+  Future<void> addMessage(ChatMessage message) {}
 
   @Query(
-      'SELECT *  FROM P2PMessage where sandbox=:sandbox and room=:roomCode ORDER BY ctime DESC LIMIT :limit OFFSET  :offset')
-  Future<List<P2PMessage>> pageMessage(
+      'SELECT *  FROM ChatMessage where sandbox=:sandbox and room=:roomCode ORDER BY ctime DESC LIMIT :limit OFFSET  :offset')
+  Future<List<ChatMessage>> pageMessage(
       String sandbox, String roomCode, int limit, int offset) {}
 }
 
@@ -703,8 +711,6 @@ abstract class IGeosphereMessageDAO {
       'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
   Future<List<GeosphereCommentOL>> pageComments(
       String receptor, String msgid, String sandbox, int limit, int offset) {}
-
-
 }
 
 @dao

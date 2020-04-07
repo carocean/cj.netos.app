@@ -42,6 +42,10 @@ void main() => platformRun(
           props: {
             ///默认应用，即终端未指定应用号时登录或注册的目标应用
             '@.prop.entrypoint.app': 'gbera.netos',
+            '@.prop.ports.link.chatroom':
+            'http://47.105.165.186/link/chatroom/self.service',
+            '@.prop.ports.flow.chatroom':
+            'http://47.105.165.186/flow/chat.service',
             '@.prop.ports.link.netflow':
                 'http://47.105.165.186/link/netflow/self.service',
             '@.prop.ports.link.geosphere':

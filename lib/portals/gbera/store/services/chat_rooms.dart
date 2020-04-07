@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:floor/floor.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 
@@ -15,7 +16,7 @@ class FriendService implements IFriendService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     friendDAO = db.friendDAO;
@@ -64,18 +65,37 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
-
+  IChatRoomRemote chatRoomRemote;
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     chatRoomDAO = db.chatRoomDAO;
     roomMemberDAO = db.roomMemberDAO;
+    chatRoomRemote=site.getService('/remote/chat/rooms');
   }
 
   @override
   Future<List<RoomMember>> top20Members(String code) async {
     return chatRoomDAO.top20Members(principal.person, code);
+  }
+
+  @override
+  Future<Function> removeMember(String code, official,{bool isOnlySaveLocal=false}) async {
+    await roomMemberDAO.removeMember(code, official, principal.person);
+    if(!isOnlySaveLocal) {
+      await chatRoomRemote.removeMember(code,official);
+    }
+  }
+
+  @override
+  Future<bool> existsMember(String code, official) async {
+    CountValue value =
+        await roomMemberDAO.countMember(code, official, principal.person);
+    if (value == null) {
+      return false;
+    }
+    return value.value > 0;
   }
 
   @override
@@ -94,13 +114,19 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addRoom(ChatRoom chatRoom) async {
+  Future<Function> addRoom(ChatRoom chatRoom,{bool isOnlySaveLocal=false}) async {
     await chatRoomDAO.addRoom(chatRoom);
+    if(!isOnlySaveLocal) {
+      await chatRoomRemote.createRoom(chatRoom);
+    }
   }
 
   @override
-  Future<Function> addMember(RoomMember roomMember) async {
+  Future<Function> addMember(RoomMember roomMember,{bool isOnlySaveLocal=false}) async {
     await roomMemberDAO.addMember(roomMember);
+    if(!isOnlySaveLocal) {
+      await chatRoomRemote.addMember(roomMember);
+    }
   }
 
   @override
@@ -115,36 +141,41 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   @transaction
   @override
-  Future<Function> removeChatRoomById(String id) async {
+  Future<Function> removeChatRoom(String id,{bool isOnlySaveLocal=false}) async {
     var room = await chatRoomDAO.getChatRoomById(id, principal.person);
     if (room == null) {
       return null;
     }
     await chatRoomDAO.removeChatRoomById(id, principal.person);
-    await roomMemberDAO.removeChatRoomByRoomCode(room.code, principal.person);
+    await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
+    if(!isOnlySaveLocal) {
+      await chatRoomRemote.removeChatRoom(room.id);
+    }
   }
 }
 
 class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   IP2PMessageDAO p2pMessageDAO;
   IServiceProvider site;
-
+  IChatRoomRemote chatRoomRemote;
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
-   builder(IServiceProvider site) {
+  builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     p2pMessageDAO = db.p2pMessageDAO;
+    chatRoomRemote=site.getService('/remote/chat/rooms');
   }
 
   @override
-  Future<Function> addMessage(P2PMessage message) async {
+  Future<Function> addMessage(ChatMessage message) async {
     await p2pMessageDAO.addMessage(message);
+    await chatRoomRemote.pushMessage(message);
   }
 
   @override
-  Future<List<P2PMessage>> pageMessage(String roomCode, int limit, int offset) {
+  Future<List<ChatMessage>> pageMessage(String roomCode, int limit, int offset) {
     return p2pMessageDAO.pageMessage(principal.person, roomCode, limit, offset);
   }
 }

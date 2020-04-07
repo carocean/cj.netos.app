@@ -154,13 +154,13 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountName` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `code` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomMember` (`id` TEXT, `room` TEXT, `person` TEXT, `whoAdd` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomNick` (`id` TEXT, `person` TEXT, `room` TEXT, `nickName` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `P2PMessage` (`id` TEXT, `sender` TEXT, `receiver` TEXT, `room` TEXT, `type` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
@@ -2299,7 +2299,6 @@ class _$IChatRoomDAO extends IChatRoomDAO {
             'ChatRoom',
             (ChatRoom item) => <String, dynamic>{
                   'id': item.id,
-                  'code': item.code,
                   'title': item.title,
                   'leading': item.leading,
                   'creator': item.creator,
@@ -2319,7 +2318,6 @@ class _$IChatRoomDAO extends IChatRoomDAO {
 
   static final _chatRoomMapper = (Map<String, dynamic> row) => ChatRoom(
       row['id'] as String,
-      row['code'] as String,
       row['title'] as String,
       row['leading'] as String,
       row['creator'] as String,
@@ -2425,6 +2423,9 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
       row['pyname'] as String,
       row['sandbox'] as String);
 
+  static final _countValueMapper =
+      (Map<String, dynamic> row) => CountValue(row['value'] as int);
+
   final InsertionAdapter<RoomMember> _roomMemberInsertionAdapter;
 
   @override
@@ -2436,7 +2437,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   }
 
   @override
-  Future<void> removeChatRoomByRoomCode(String roomCode, String sandbox) async {
+  Future<void> emptyRoomMembers(String roomCode, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'delete FROM RoomMember WHERE room = ? AND sandbox=?',
         arguments: <dynamic>[roomCode, sandbox]);
@@ -2449,6 +2450,22 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
         'SELECT f.* FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=? and m.room=? and m.whoAdd=?',
         arguments: <dynamic>[sandbox, roomCode, whoAdd],
         mapper: _friendMapper);
+  }
+
+  @override
+  Future<void> removeMember(String code, dynamic person, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM RoomMember WHERE room = ? and person=? AND sandbox=?',
+        arguments: <dynamic>[code, person, sandbox]);
+  }
+
+  @override
+  Future<CountValue> countMember(
+      String code, dynamic person, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM RoomMember WHERE room = ? and person=? AND sandbox=?',
+        arguments: <dynamic>[code, person, sandbox],
+        mapper: _countValueMapper);
   }
 
   @override
@@ -2469,15 +2486,14 @@ class _$IRoomNickDAO extends IRoomNickDAO {
 class _$IP2PMessageDAO extends IP2PMessageDAO {
   _$IP2PMessageDAO(this.database, this.changeListener)
       : _queryAdapter = QueryAdapter(database),
-        _p2PMessageInsertionAdapter = InsertionAdapter(
+        _chatMessageInsertionAdapter = InsertionAdapter(
             database,
-            'P2PMessage',
-            (P2PMessage item) => <String, dynamic>{
+            'ChatMessage',
+            (ChatMessage item) => <String, dynamic>{
                   'id': item.id,
                   'sender': item.sender,
-                  'receiver': item.receiver,
                   'room': item.room,
-                  'type': item.type,
+                  'contentType': item.contentType,
                   'content': item.content,
                   'state': item.state,
                   'ctime': item.ctime,
@@ -2493,12 +2509,11 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
 
   final QueryAdapter _queryAdapter;
 
-  static final _p2PMessageMapper = (Map<String, dynamic> row) => P2PMessage(
+  static final _chatMessageMapper = (Map<String, dynamic> row) => ChatMessage(
       row['id'] as String,
       row['sender'] as String,
-      row['receiver'] as String,
       row['room'] as String,
-      row['type'] as String,
+      row['contentType'] as String,
       row['content'] as String,
       row['state'] as String,
       row['ctime'] as int,
@@ -2507,20 +2522,20 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
       row['dtime'] as int,
       row['sandbox'] as String);
 
-  final InsertionAdapter<P2PMessage> _p2PMessageInsertionAdapter;
+  final InsertionAdapter<ChatMessage> _chatMessageInsertionAdapter;
 
   @override
-  Future<List<P2PMessage>> pageMessage(
+  Future<List<ChatMessage>> pageMessage(
       String sandbox, String roomCode, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM P2PMessage where sandbox=? and room=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
+        'SELECT * FROM ChatMessage where sandbox=? and room=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, roomCode, limit, offset],
-        mapper: _p2PMessageMapper);
+        mapper: _chatMessageMapper);
   }
 
   @override
-  Future<void> addMessage(P2PMessage message) async {
-    await _p2PMessageInsertionAdapter.insert(
+  Future<void> addMessage(ChatMessage message) async {
+    await _chatMessageInsertionAdapter.insert(
         message, sqflite.ConflictAlgorithm.abort);
   }
 }

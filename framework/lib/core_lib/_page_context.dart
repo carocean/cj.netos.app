@@ -139,7 +139,6 @@ class PageContext {
     }
   }
 
-
   Page findPage(String url) {
     String path = url;
     int pos = path.lastIndexOf('?');
@@ -163,7 +162,9 @@ class PageContext {
     if (StringUtil.isEmpty(clearHistoryPageUrl)) {
       return state.pop(result);
     }
-    state.popUntil(_checkHistoryRoute(clearHistoryPageUrl),);
+    state.popUntil(
+      _checkHistoryRoute(clearHistoryPageUrl),
+    );
     return true;
   }
 
@@ -250,7 +251,7 @@ class PageContext {
     return !name.startsWith(url);
   }
 
-  bool isListening({String matchPath}){
+  bool isListening({String matchPath}) {
     String path;
     if (!StringUtil.isEmpty(matchPath)) {
       path = matchPath;
@@ -258,7 +259,8 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    return pump.networkPumpWell?.isListening(principal, path);
+    var isListening = pump.networkPumpWell?.isListening(principal, path);
+    return isListening ?? false;
   }
 
   void listenNetwork(Onmessage onmessage, {String matchPath}) {

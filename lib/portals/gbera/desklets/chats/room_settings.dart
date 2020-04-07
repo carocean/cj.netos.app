@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatRoomSettings extends StatefulWidget {
   PageContext context;
@@ -25,12 +27,15 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _chatRoom = widget.context.parameters['chatRoom'];
     super.initState();
     _loadTop20Members().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
   @override
   void dispose() {
+    _chatRoom = null;
     super.dispose();
   }
 
@@ -40,13 +45,38 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     List<RoomMember> members =
-        await chatRoomService.top20Members(_chatRoom.code);
+        await chatRoomService.top20Members(_chatRoom.id);
     List<Person> persons = [];
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
       persons.add(person);
     }
     return persons;
+  }
+
+  Future<void> _addMembers(members) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    for (var official in members) {
+      if(await chatRoomService.existsMember(_chatRoom.id,official)){
+        continue;
+      }
+     await chatRoomService.addMember(
+        RoomMember(
+          MD5Util.MD5(Uuid().v1()),
+          _chatRoom.id,
+          official,
+          widget.context.principal.person,
+          widget.context.principal.person,
+        ),
+      );
+    }
+  }
+
+  Future<void> _removeMember(member) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.removeMember(_chatRoom.id,member.official);
   }
 
   @override
@@ -90,7 +120,16 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () async {
-                          widget.context.forward('/portlet/chat/friends');
+                          var result = await widget.context
+                              .forward('/portlet/chat/friends') as List<String>;
+                          if (result == null || result.isEmpty) {
+                            return;
+                          }
+                          _addMembers(result).then((v) {
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          });
                         },
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -137,40 +176,90 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   if (members == null || members.isEmpty) {
                     return plusMemberButton;
                   }
-                  var items = snapshot.data.map((member) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 2,
-                          ),
-                          child: SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(4),
-                              ),
-                              child: Image.file(
-                                File(member.avatar),
-                                fit: BoxFit.cover,
+                  List<Widget> items = [];
+                  var _items = snapshot.data.map((member) {
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {},
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+//                          child: Text('xx'),
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('是否删除？'),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text(
+                                    '删除',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    widget.context.backward(result: 'delete');
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text(
+                                    '取消',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    widget.context.backward(result: 'cancel');
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ).then((action) {
+                          if (action != 'delete') {
+                            return;
+                          }
+                          _removeMember(member).then((v) {
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          });
+                        });
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 2,
+                            ),
+                            child: SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(4),
+                                ),
+                                child: Image.file(
+                                  File(member.avatar),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Text(
-                          member.nickName,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
+                          Text(
+                            member.nickName,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   }).toList();
+                  items.addAll(_items);
                   items.add(plusMemberButton);
                   return GridView(
                     padding: EdgeInsets.all(0),

@@ -254,26 +254,32 @@ mixin IFriendService {
   Future<Friend> getFriendByOfficial(String official) {}
 }
 mixin IChatRoomService {
-  Future<void> addRoom(ChatRoom chatRoom) {}
+  Future<void> addRoom(ChatRoom chatRoom,{bool isOnlySaveLocal=false}) {}
 
-  Future<void> addMember(RoomMember roomMember) {}
+  Future<void> addMember(RoomMember roomMember,{bool isOnlySaveLocal=false}) {}
 
   Future<List<ChatRoom>> listChatRoom() {}
 
   Future<List<RoomMember>> topMember10(String code) {}
 
-  Future<void> removeChatRoomById(String id) {}
+  Future<void> removeChatRoom(String id,{bool isOnlySaveLocal=false}) {}
 
   Future<List<Friend>> listWhoAddMember(String roomCode, String creator) {}
 
   Future<void> updateRoomLeading(String roomid, String file) {}
 
   Future<List<RoomMember>> top20Members(String code) {}
+
+  Future<void>  removeMember(String code, official,{bool isOnlySaveLocal=false}) {}
+
+  Future<bool>  existsMember(String code, official) {}
+
+
 }
 mixin IP2PMessageService {
-  Future<void> addMessage(P2PMessage message);
+  Future<void> addMessage(ChatMessage message);
 
-  Future<List<P2PMessage>> pageMessage(
+  Future<List<ChatMessage>> pageMessage(
       String roomCode, int limit, int offset) {}
 }
 mixin IPrincipalService {

@@ -113,6 +113,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/wy.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
+import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
@@ -161,6 +162,7 @@ class GberaPortal {
           '/chat/rooms': ChatRoomService(),
           '/chat/p2p/messages': P2PMessageService(),
           '/remote/channels': ChannelRemote(),
+          '/remote/chat/rooms':ChatRoomRemote(),
           '/remote/geo/categories': GeoCategoryRemote(),
           '/remote/geo/receptors': GeoReceptorRemote(),
           '/geosphere/receptors': GeoReceptorService(),

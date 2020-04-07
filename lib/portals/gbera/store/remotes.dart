@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 mixin IChannelRemote {
-  Future<void> createChannel(String channel, {
+  Future<void> createChannel(
+    String channel, {
     @required String title,
     @required String leading,
 
@@ -33,30 +34,32 @@ mixin IChannelRemote {
 
   Future<List<Channel>> fetchChannelsOfPerson(String official) {}
 
-  Future<List<Person>> pageOutputPersonOf(String channel, String person,
-      int limit, int offset) {}
+  Future<List<Person>> pageOutputPersonOf(
+      String channel, String person, int limit, int offset) {}
 
-  Future<List<Person>> pageInputPersonOf(String channel, String person,
-      int limit, int offset) {}
+  Future<List<Person>> pageInputPersonOf(
+      String channel, String person, int limit, int offset) {}
 
-  Future<void> unlike(String msgid, String channel,String creator) {}
+  Future<void> unlike(String msgid, String channel, String creator) {}
 
-  Future<void> like(String msgid, String channel,String creator);
+  Future<void> like(String msgid, String channel, String creator);
 
-  Future<void> addComment(String msgid, String channel, String creator, String text, String id) {}
+  Future<void> addComment(
+      String msgid, String channel, String creator, String text, String id) {}
 
-  Future<void> removeComment(String msgid, String channel, String creator, String commentid) {}
+  Future<void> removeComment(
+      String msgid, String channel, String creator, String commentid) {}
 
-  Future<void> pageLikeTask(String docCreator,String docid,String channel, int limit,
-      int offset);
+  Future<void> pageLikeTask(
+      String docCreator, String docid, String channel, int limit, int offset);
 
-  Future<void> pageCommentTask(String docCreator,String docid,String channel, int limit,
-      int offset);
+  Future<void> pageCommentTask(
+      String docCreator, String docid, String channel, int limit, int offset);
 
-  Future<void> listMediaTask(String docCreator,String docid,String channel);
+  Future<void> listMediaTask(String docCreator, String docid, String channel);
 
-  Future<void> pageActivityTask(ChannelMessage channelMessage, int limit,
-      int offset);
+  Future<void> pageActivityTask(
+      ChannelMessage channelMessage, int limit, int offset);
 
   void listenLikeTaskCallback(Function(List likes) callback);
 
@@ -66,6 +69,22 @@ mixin IChannelRemote {
 
   void listenActivityTaskCallback(Function(List activities) callback);
 
-  Future<void> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) {}
+  Future<void> setCurrentActivityTask(
+      {String creator,
+      String docid,
+      String channel,
+      String action,
+      String attach}) {}
+}
+mixin IChatRoomRemote {
+  Future<void> removeMember(String code, official) {}
+
+  Future<void>  createRoom(ChatRoom chatRoom) {}
+
+  Future<void> addMember(RoomMember roomMember) {}
+
+  Future<void> removeChatRoom(String code) {}
+
+  Future<void> pushMessage(ChatMessage message) {}
 
 }

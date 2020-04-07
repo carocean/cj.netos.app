@@ -20,14 +20,13 @@ class FriendPage extends StatefulWidget {
 class _FriendPageState extends State<FriendPage> {
   String _query;
   TextEditingController _controller;
-  List<String> _selected_friends;
+  List<String> _selected_friends=[];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _controller = TextEditingController();
-    _selected_friends = [];
   }
 
   @override
@@ -91,7 +90,7 @@ class _FriendPageState extends State<FriendPage> {
           ),
           IconButton(
             onPressed: () {
-              widget.context.backward(result: _selected_friends);
+              widget.context.backward(result: _selected_friends.toList());
             },
             icon: Icon(
               Icons.check,
@@ -141,6 +140,7 @@ class _FriendListState extends State<FriendList> {
   @override
   void didUpdateWidget(FriendList oldWidget) {
     if (oldWidget.query != widget.query) {
+      oldWidget.query=widget.query;
       _offset = 0;
       _friends.clear();
       _onLoad().then((v) {

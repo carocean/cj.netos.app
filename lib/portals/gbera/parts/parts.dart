@@ -12,6 +12,7 @@ import 'package:netos_app/common/voice_widget.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:uuid/uuid.dart';
 
 ///简单的卡片头：图 标题              折叠按钮
 class _CardHeaderBase extends StatelessWidget {

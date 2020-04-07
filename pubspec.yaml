@@ -64,6 +64,9 @@ dependencies:
   flutter_animation_progress_bar: ^1.0.0
   framework:
     path: framework
+  #九宫格头像
+  nineold:
+    path: flutter_nineold
 dev_dependencies:
   flutter_test:
     sdk: flutter

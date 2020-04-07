@@ -31,7 +31,7 @@ class _ChatTalkState extends State<ChatTalk> {
   EasyRefreshController _controller;
   ScrollController _scrollController;
   _RoomMode _roomMode;
-  List<P2PMessage> _p2pMessages;
+  List<ChatMessage> _p2pMessages;
   int _limit = 12, _offset = 0;
   String _displayRoomTitle;
 
@@ -77,8 +77,8 @@ class _ChatTalkState extends State<ChatTalk> {
   Future<void> _onRefresh() async {
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
-    List<P2PMessage> messages =
-        await messageService.pageMessage(_chatRoom.code, _limit, _offset);
+    List<ChatMessage> messages =
+        await messageService.pageMessage(_chatRoom.id, _limit, _offset);
     if (messages.isEmpty) {
       _controller.finishRefresh(success: true, noMore: true);
       return;
@@ -93,11 +93,10 @@ class _ChatTalkState extends State<ChatTalk> {
     switch (cmd.cmd) {
       case 'sendText':
         await messageService.addMessage(
-          P2PMessage(
-            Uuid().v1(),
+          ChatMessage(
+            MD5Util.MD5(Uuid().v1()),
             widget.context.principal.person,
-            null,
-            _chatRoom.code,
+            _chatRoom.id,
             'text',
             cmd.message,
             'sended',
@@ -114,11 +113,10 @@ class _ChatTalkState extends State<ChatTalk> {
         var map = {'path': msg['path'], 'timelength': msg['timelength']};
         String text = jsonEncode(map);
         await messageService.addMessage(
-          P2PMessage(
-            Uuid().v1(),
+          ChatMessage(
+            MD5Util.MD5(Uuid().v1()),
             widget.context.principal.person,
-            null,
-            _chatRoom.code,
+            _chatRoom.id,
             'audio',
             text,
             'sended',
@@ -617,7 +615,7 @@ class __ChatSenderState extends State<_ChatSender> {
 }
 
 class _ReceiveMessageItem extends StatefulWidget {
-  P2PMessage p2pMessage;
+  ChatMessage p2pMessage;
 
   _ReceiveMessageItem({this.p2pMessage});
 
@@ -694,7 +692,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 }
 
 class _SendMessageItem extends StatefulWidget {
-  P2PMessage p2pMessage;
+  ChatMessage p2pMessage;
   PageContext context;
 
   _SendMessageItem({this.p2pMessage, this.context});
@@ -741,7 +739,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   @override
   Widget build(BuildContext context) {
     var display;
-    switch (widget.p2pMessage.type) {
+    switch (widget.p2pMessage.contentType) {
       case 'text':
         display = Text.rich(
           TextSpan(
@@ -765,7 +763,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         );
         break;
       default:
-        print('未识别的消息类型:${widget.p2pMessage.type}');
+        print('未识别的消息类型:${widget.p2pMessage.contentType}');
         display = Container(
           width: 0,
           height: 0,

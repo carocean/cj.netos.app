@@ -363,7 +363,6 @@ class Friend {
 class ChatRoom {
   @primaryKey
   final String id;
-  final String code;
   final String title;
   final String leading;
   final String creator;
@@ -376,7 +375,6 @@ class ChatRoom {
 
   ChatRoom(
     this.id,
-    this.code,
     this.title,
     this.leading,
     this.creator,
@@ -420,13 +418,12 @@ class RoomNick {
 }
 
 @entity
-class P2PMessage {
+class ChatMessage {
   @primaryKey
   final String id;
   final String sender;
-  final String receiver;
   final String room;
-  final String type;
+  final String contentType;
   final String content;
   final String state;
   final int ctime;
@@ -435,12 +432,11 @@ class P2PMessage {
   final int dtime;
   final String sandbox;
 
-  P2PMessage(
+  ChatMessage(
       this.id,
       this.sender,
-      this.receiver,
       this.room,
-      this.type,
+      this.contentType,
       this.content,
       this.state,
       this.ctime,
