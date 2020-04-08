@@ -18,19 +18,26 @@ class EntryPoint extends StatefulWidget {
 class _EntryPointState extends State<EntryPoint> {
   IPlatformLocalPrincipalManager _localPrincipalManager;
   Future<void> _future_refreshToken;
+  bool isSetCurrentDone = false;
+
   @override
   void initState() {
     super.initState();
     _localPrincipalManager =
         widget.context.site.getService('/local/principals');
-    if(!_localPrincipalManager.isEmpty()) {
-      _localPrincipalManager.setCurrent(_localPrincipalManager.list()[0]);
+    if (!_localPrincipalManager.isEmpty()) {
+      _localPrincipalManager
+          .setCurrent(_localPrincipalManager.list()[0])
+          .then((v) {
+        isSetCurrentDone = true;
+        setState(() {});
+      });
     }
   }
 
   @override
   void dispose() {
-    _localPrincipalManager=null;
+    _localPrincipalManager = null;
     super.dispose();
   }
 
@@ -46,7 +53,13 @@ class _EntryPointState extends State<EntryPoint> {
       );
       return body;
     }
-//    _localPrincipalManager.setCurrent(_localPrincipalManager.list()[0]);
+
+    if (!isSetCurrentDone) {
+      return Container(
+        height: 0,
+        width: 0,
+      );
+    }
 
     var localPrincipal =
         _localPrincipalManager.get(_localPrincipalManager.current()); //以此作为登录用户
@@ -57,8 +70,8 @@ class _EntryPointState extends State<EntryPoint> {
       );
       return body;
     }
-    if(_future_refreshToken==null) {
-      _future_refreshToken=_refreshToken();
+    if (_future_refreshToken == null) {
+      _future_refreshToken = _refreshToken();
 //      print('~~~~~~~~');
     }
     //有刷新令牌自动登录
@@ -89,9 +102,12 @@ class _EntryPointState extends State<EntryPoint> {
 //      });
     }, (v) {
       //成功则到桌面
-      WidgetsBinding.instance.addPostFrameCallback((d){
-        widget.context.forward("/scaffold/withbottombar",
-            clearHistoryByPagePath: '/',scene: 'gbera',);
+      WidgetsBinding.instance.addPostFrameCallback((d) {
+        widget.context.forward(
+          "/scaffold/withbottombar",
+          clearHistoryByPagePath: '/',
+          scene: 'gbera',
+        );
       });
 //      Future.delayed(
 //          Duration(

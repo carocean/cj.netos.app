@@ -132,7 +132,7 @@ class DefaultPumpWell implements IPumpWell {
     _outputListenItemChange?.send(
         _ListenItem(person: principal.person, path: path, action: 'listen'));
     //有侦听则通知拉取一次
-    _outputTask.send({});
+    _outputTask?.send({});
   }
 
   @override

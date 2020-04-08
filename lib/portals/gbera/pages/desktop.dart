@@ -327,8 +327,9 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
         var _portlets = snapshot.data;
         if (_portlets != null) {
           for (Portlet portlet in _portlets) {
+            var pump = widget.context.site.getService('@.pump');
             var desklet = portlet.build(
-              context: widget.context,
+              context: widget.context
             );
             widgets.add(desklet);
           }

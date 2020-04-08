@@ -27,10 +27,8 @@ class ChatRoomsPortlet extends StatefulWidget {
 class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   @override
   void initState() {
-    print('---!---');
-
-    if(!widget.context.isListening(matchPath: '/chat/room/message')){
-      widget.context.listenNetwork(_onmessage,matchPath: '/chat/room/message');
+    if (!widget.context.isListening(matchPath: '/chat/room/message')) {
+      widget.context.listenNetwork(_onmessage, matchPath: '/chat/room/message');
     }
     super.initState();
   }
@@ -40,9 +38,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     widget.context.unlistenNetwork(matchPath: '/chat/room/message');
     super.dispose();
   }
-  Future<void> _onmessage(Frame frame){
+
+  Future<void> _onmessage(Frame frame) {
     print(frame);
   }
+
   Future<void> _createChatroom(List<String> members) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
