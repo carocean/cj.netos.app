@@ -35,6 +35,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
   @override
   void dispose() {
+    //进入桌面后竞然释放了
     widget.context.unlistenNetwork(matchPath: '/chat/room/message');
     super.dispose();
   }

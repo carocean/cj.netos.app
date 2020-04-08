@@ -67,7 +67,6 @@ class DefaultPeerManager implements IPeerManager {
   Future<void> start(ShareServiceContainer site) async {
     UserPrincipal principal = site.getService('@.principal');
     String accessToken = principal.accessToken;
-
     List<dynamic> nameservers = await _getNameservers(site, accessToken);
     if (nameservers.isEmpty) {
       throw new FlutterError('未发现网络节点服务!');

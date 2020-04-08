@@ -19,10 +19,10 @@ class _EntryPointState extends State<EntryPoint> {
   IPlatformLocalPrincipalManager _localPrincipalManager;
   Future<void> _future_refreshToken;
   bool isSetCurrentDone = false;
+  bool isRefreshed = false;
 
   @override
   void initState() {
-    super.initState();
     _localPrincipalManager =
         widget.context.site.getService('/local/principals');
     if (!_localPrincipalManager.isEmpty()) {
@@ -33,6 +33,8 @@ class _EntryPointState extends State<EntryPoint> {
         setState(() {});
       });
     }
+    super.initState();
+
   }
 
   @override
@@ -70,14 +72,23 @@ class _EntryPointState extends State<EntryPoint> {
       );
       return body;
     }
-    if (_future_refreshToken == null) {
+    if(_future_refreshToken==null) {
       _future_refreshToken = _refreshToken();
-//      print('~~~~~~~~');
     }
     //有刷新令牌自动登录
     return FutureBuilder(
       future: _future_refreshToken,
       builder: (ctx, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done&&isRefreshed) {
+          //成功则到桌面
+          WidgetsBinding.instance.addPostFrameCallback((d) {
+            widget.context.forward(
+              "/scaffold/withbottombar",
+              clearHistoryByPagePath: '/',
+              scene: 'gbera',
+            );
+          });
+        }
         return Container(
           decoration: BoxDecoration(
             image: DecorationImage(
@@ -92,30 +103,14 @@ class _EntryPointState extends State<EntryPoint> {
 
   Future<void> _refreshToken() async {
     await _localPrincipalManager.doRefreshToken((map) async {
+      isRefreshed=false;
       //失败则重新登录
       await _localPrincipalManager.emptyRefreshToken();
-//      Future.delayed(
-//          Duration(
-//            milliseconds: 300,
-//          ), () {
-//        widget.context.forward('/entrypoint');
-//      });
+      if (mounted) {
+        setState(() {});
+      }
     }, (v) {
-      //成功则到桌面
-      WidgetsBinding.instance.addPostFrameCallback((d) {
-        widget.context.forward(
-          "/scaffold/withbottombar",
-          clearHistoryByPagePath: '/',
-          scene: 'gbera',
-        );
-      });
-//      Future.delayed(
-//          Duration(
-//            milliseconds: 300,
-//          ), () {
-//        widget.context.forward("/scaffold/withbottombar",
-//            clearHistoryByPagePath: '/',scene: 'gbera',);
-//      });
+      isRefreshed=true;
     });
   }
 }
