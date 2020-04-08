@@ -44,6 +44,8 @@ PODS:
     - Flutter
   - just_audio (0.0.1):
     - Flutter
+  - nineold (0.0.1):
+    - Flutter
   - path_provider (0.0.1):
     - Flutter
   - path_provider_macos (0.0.1):
@@ -87,6 +89,7 @@ DEPENDENCIES:
   - image_crop (from `.symlinks/plugins/image_crop/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
+  - nineold (from `.symlinks/plugins/nineold/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - path_provider_macos (from `.symlinks/plugins/path_provider_macos/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
@@ -135,6 +138,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/ios"
+  nineold:
+    :path: ".symlinks/plugins/nineold/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
   path_provider_macos:
@@ -182,6 +187,7 @@ SPEC CHECKSUMS:
   image_crop: e0a67085d3ebf3cf46ca46d61c53a082507b0bc3
   image_picker: e3eacd46b94694dde7cf2705955cece853aa1a8f
   just_audio: c695d6e7e37f9e96672dd84039d7530e7fd5c205
+  nineold: d0d68a3226a2b819ab0c25617ec667fec71797dd
   path_provider: fb74bd0465e96b594bb3b5088ee4a4e7bb1f2a9d
   path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
   permission_handler: 8278954f2382902f63f00dd8828769c0bd6d511b

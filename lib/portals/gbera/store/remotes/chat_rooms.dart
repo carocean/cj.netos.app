@@ -49,6 +49,42 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
+  Future<ChatRoom> getRoom(String creator, String room) async {
+    var map = await remotePorts.portGET(
+      chatPortsUrl,
+      'getRoomOfPerson',
+      parameters: {
+        'room': room,
+        'person': creator,
+      },
+    );
+    if (map == null) {
+      return null;
+    }
+    return ChatRoom.fromMap(map, principal.person);
+  }
+
+  @override
+  Future<List<RoomMember>> pageRoomMember(
+      String creator, String room, int i, int j) async {
+    print(principal.accessToken);
+    var list = await remotePorts.portGET(
+      chatPortsUrl,
+      'pageRoomMembersOfPerson',
+      parameters: {
+        'room': room,
+        'creator': creator,
+        'limit': i,
+        'offset': j,
+      },
+    );
+    List<RoomMember> members=[];
+    for(var obj in list) {
+      members.add(RoomMember.formMap(obj,principal.person));
+    }
+    return members;
+  }
+  @override
   Future<void> removeChatRoom(String code) async {
     remotePorts.portTask.addPortGETTask(
       chatPortsUrl,

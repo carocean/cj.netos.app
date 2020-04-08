@@ -193,6 +193,7 @@ class _ChatTalkState extends State<ChatTalk> {
                   } else {
                     item = _ReceiveMessageItem(
                       p2pMessage: msg,
+                      context: widget.context,
                     );
                   }
                   return SliverToBoxAdapter(
@@ -616,16 +617,89 @@ class __ChatSenderState extends State<_ChatSender> {
 
 class _ReceiveMessageItem extends StatefulWidget {
   ChatMessage p2pMessage;
+  PageContext context;
 
-  _ReceiveMessageItem({this.p2pMessage});
+  _ReceiveMessageItem({
+    this.p2pMessage,
+    this.context,
+  });
 
   @override
   _ReceiveMessageItemState createState() => _ReceiveMessageItemState();
 }
 
 class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
+  Friend _sender;
+  bool _isloaded = false;
+
+  @override
+  void initState() {
+    _load().then((v) {
+      if (mounted) {
+        _isloaded = true;
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ReceiveMessageItem oldWidget) {
+    if (widget.p2pMessage == oldWidget.p2pMessage) {
+      oldWidget.p2pMessage = widget.p2pMessage;
+      _load().then((v) {
+        if (mounted) {
+          _isloaded = true;
+          setState(() {});
+        }
+      });
+      setState(() {});
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
+    _sender = await friendService.getFriend(widget.p2pMessage.sender);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_isloaded) {
+      return Center(
+        child: Text('加载中...'),
+      );
+    }
+    var avatar;
+    if (_sender.avatar == null) {
+      avatar = Container(
+        width: 0,
+        height: 0,
+      );
+    } else {
+      if (_sender.avatar.startsWith('/')) {
+        avatar = Image.file(
+          File(
+            _sender.avatar,
+          ),
+          fit: BoxFit.fill,
+        );
+      } else {
+        avatar = FadeInImage.assetNetwork(
+          placeholder: 'lib/portals/gbera/images/netflow.png',
+          image:
+              '${_sender.avatar}?accessToken=${widget.context.principal.accessToken}',
+        );
+      }
+    }
+
     return Container(
       margin: EdgeInsets.only(
         top: 10,
@@ -649,10 +723,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                 borderRadius: BorderRadius.all(
                   Radius.circular(5),
                 ),
-                child: Image.network(
-                  'http://47.105.165.186:7100/public/avatar/24f8e8d3f423d40b5b390691fbbfb5d7.jpg',
-                  fit: BoxFit.cover,
-                ),
+                child: avatar,
               ),
             ),
           ),

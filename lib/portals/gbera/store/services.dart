@@ -18,7 +18,7 @@ mixin IPersonService {
 
   Future<Person> fetchPerson(official, {bool isDownloadAvatar = false});
 
-  Future<void> addPerson(Person person);
+  Future<void> addPerson(Person person, {bool isOnlyLocal = false});
 
   Future<List<Person>> getAllPerson();
 
@@ -252,29 +252,40 @@ mixin IFriendService {
   Future<void> removeFriendByOfficial(String id) {}
 
   Future<Friend> getFriendByOfficial(String official) {}
+
+  Future<Friend>  getFriend(String official,{bool isOnlyLocal=false}) {}
+
 }
 mixin IChatRoomService {
-  Future<void> addRoom(ChatRoom chatRoom,{bool isOnlySaveLocal=false}) {}
+  Future<void> addRoom(ChatRoom chatRoom, {bool isOnlySaveLocal = false}) {}
 
-  Future<void> addMember(RoomMember roomMember,{bool isOnlySaveLocal=false}) {}
+  Future<void> addMember(RoomMember roomMember,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<List<ChatRoom>> listChatRoom() {}
 
   Future<List<RoomMember>> topMember10(String code) {}
 
-  Future<void> removeChatRoom(String id,{bool isOnlySaveLocal=false}) {}
+  Future<void> removeChatRoom(String id, {bool isOnlySaveLocal = false}) {}
 
   Future<List<Friend>> listWhoAddMember(String roomCode, String creator) {}
+
+  Future<List<Friend>> listdMember(String id) {}
 
   Future<void> updateRoomLeading(String roomid, String file) {}
 
   Future<List<RoomMember>> top20Members(String code) {}
 
-  Future<void>  removeMember(String code, official,{bool isOnlySaveLocal=false}) {}
+  Future<void> removeMember(String code, official,
+      {bool isOnlySaveLocal = false}) {}
 
-  Future<bool>  existsMember(String code, official) {}
+  Future<bool> existsMember(String code, official) {}
 
+  Future<ChatRoom> get(String room, {bool isOnlyLocal}) {}
 
+  Future<ChatRoom> fetchAndSaveRoom(String creator, String room) {}
+
+  Future<void>  loadAndSaveRoomMembers(String room, String sender) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(ChatMessage message);
@@ -302,18 +313,19 @@ mixin IPrincipalService {
 
   Future<void> updateSignature(String person, String signature) {}
 }
-mixin IGeoReceptorCache{
+mixin IGeoReceptorCache {
   Future<void> add(GeoReceptor receptor);
-  Future<GeoReceptor> get(String category,String receptorid);
+
+  Future<GeoReceptor> get(String category, String receptorid);
 }
 mixin IGeoReceptorService {
   Future<bool> init(Location location, {Function() done});
 
-  Future<void> add(GeoReceptor receptor,{bool isOnlySaveLocal=false});
+  Future<void> add(GeoReceptor receptor, {bool isOnlySaveLocal = false});
 
   Future<void> remove(String category, String id);
 
-  Future<GeoReceptor> get(String category,String receptorid);
+  Future<GeoReceptor> get(String category, String receptorid);
 
   Future<GeoReceptor> getMobileReceptor(String person, String device);
 
@@ -337,8 +349,6 @@ mixin IGeoReceptorService {
   Future<void> setAutoScrollMessage(String id, bool isAutoScrollMessage) {}
 
   Future<bool> existsLocal(String category, String receptor) {}
-
-
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
@@ -354,12 +364,14 @@ mixin IGeoCategoryLocal {
 }
 
 mixin IGeosphereMessageService {
-  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,{bool isOnlySaveLocal=false}) {}
+  Future<void> addMessage(GeosphereMessageOL geosphereMessageOL,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<List<GeosphereMessageOL>> pageMessage(
-      String receptor,int limit, int offset) {}
+      String receptor, int limit, int offset) {}
+
   Future<List<GeosphereMessageOL>> pageFilterMessage(
-      String receptor,String filterCategory, int limit, int offset) {}
+      String receptor, String filterCategory, int limit, int offset) {}
 
   Future<List<GeosphereMessageOL>> pageMyMessage(
       String id, String creator, int limit, int offset) {}
@@ -368,18 +380,22 @@ mixin IGeosphereMessageService {
 
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
 
-  Future<void> like(GeosphereLikePersonOL likePerson,{bool isOnlySaveLocal=false}) {}
+  Future<void> like(GeosphereLikePersonOL likePerson,
+      {bool isOnlySaveLocal = false}) {}
 
-  Future<void> unlike(String receptor, String msgid, String person,{bool isOnlySaveLocal=false}) {}
+  Future<void> unlike(String receptor, String msgid, String person,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<bool> isLiked(String receptor, String msgid, String person) {}
 
   Future<List<GeosphereLikePersonOL>> pageLikePersons(
       String receptor, String id, int i, int j) {}
 
-  Future<void> addComment(GeosphereCommentOL geosphereCommentOL,{bool isOnlySaveLocal=false}) {}
+  Future<void> addComment(GeosphereCommentOL geosphereCommentOL,
+      {bool isOnlySaveLocal = false}) {}
 
-  Future<void> removeComment(String receptor, String msgid, String commentid,{bool isOnlySaveLocal=false}) {}
+  Future<void> removeComment(String receptor, String msgid, String commentid,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<List<GeosphereCommentOL>> pageComments(
       String receptor, String msgid, int limit, int offset) {}
@@ -389,12 +405,10 @@ mixin IGeosphereMessageService {
   Future<int> countUnreadMessage(String receptor) {}
 
   Future<void> flagMessagesReaded(String id) {}
-
-
-
 }
 mixin IGeosphereMediaService {
-  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,{bool isOnlySaveLocal=false}) {}
+  Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<List<GeosphereMediaOL>> listMedia(String receptor, String messageid) {}
 }

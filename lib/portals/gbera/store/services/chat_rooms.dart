@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:floor/floor.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
@@ -14,12 +15,14 @@ class FriendService implements IFriendService, IServiceBuilder {
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
+  IPersonService personService;
 
   @override
   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     friendDAO = db.friendDAO;
+    personService = site.getService('/gbera/persons');
   }
 
   @override
@@ -28,6 +31,19 @@ class FriendService implements IFriendService, IServiceBuilder {
       principal.person,
       official,
     );
+  }
+
+  @override
+  Future<Friend> getFriend(String official, {bool isOnlyLocal = false}) async {
+    var friend = await friendDAO.getFriendByOfficial(
+      principal.person,
+      official,
+    );
+    if (friend != null) {
+      return friend;
+    }
+    var person = await personService.getPerson(official);
+    return Friend.formPerson(person);
   }
 
   @override
@@ -66,13 +82,14 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   UserPrincipal get principal => site.getService('@.principal');
   IChatRoomRemote chatRoomRemote;
+
   @override
   builder(IServiceProvider site) {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     chatRoomDAO = db.chatRoomDAO;
     roomMemberDAO = db.roomMemberDAO;
-    chatRoomRemote=site.getService('/remote/chat/rooms');
+    chatRoomRemote = site.getService('/remote/chat/rooms');
   }
 
   @override
@@ -81,10 +98,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeMember(String code, official,{bool isOnlySaveLocal=false}) async {
+  Future<Function> removeMember(String code, official,
+      {bool isOnlySaveLocal = false}) async {
     await roomMemberDAO.removeMember(code, official, principal.person);
-    if(!isOnlySaveLocal) {
-      await chatRoomRemote.removeMember(code,official);
+    if (!isOnlySaveLocal) {
+      await chatRoomRemote.removeMember(code, official);
     }
   }
 
@@ -114,17 +132,63 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addRoom(ChatRoom chatRoom,{bool isOnlySaveLocal=false}) async {
+  Future<List<Friend>> listdMember(String roomCode) async {
+    return await roomMemberDAO.listdMember(principal.person, roomCode);
+  }
+
+  @override
+  Future<Function> addRoom(ChatRoom chatRoom,
+      {bool isOnlySaveLocal = false}) async {
     await chatRoomDAO.addRoom(chatRoom);
-    if(!isOnlySaveLocal) {
+    if (!isOnlySaveLocal) {
       await chatRoomRemote.createRoom(chatRoom);
     }
   }
 
   @override
-  Future<Function> addMember(RoomMember roomMember,{bool isOnlySaveLocal=false}) async {
+  Future<ChatRoom> fetchAndSaveRoom(String creator, String room) async {
+    var cr = await this.chatRoomRemote.getRoom(creator, room);
+    if (cr == null) {
+      throw FlutterError('$creator不存在聊天室$room');
+    }
+    await chatRoomDAO.addRoom(cr);
+    return cr;
+  }
+
+  @override
+  Future<void> loadAndSaveRoomMembers(String room, String creator) async {
+    var limit = 1000;
+    var skip = 0;
+    var read = 0;
+    var added = [];
+    while (true) {
+      var list =
+          await this.chatRoomRemote.pageRoomMember(creator, room, limit, skip);
+      read = list.length;
+      if(read<1) {
+        break;
+      }
+      skip+=read;
+      for (var m in list) {
+        if (added.contains(m.person)) {
+          continue;
+        }
+        await roomMemberDAO.addMember(m);
+        added.add(m.person);
+      }
+    }
+  }
+
+  @override
+  Future<ChatRoom> get(String room, {bool isOnlyLocal = false}) async {
+    return await chatRoomDAO.getChatRoomById(room, principal.person);
+  }
+
+  @override
+  Future<Function> addMember(RoomMember roomMember,
+      {bool isOnlySaveLocal = false}) async {
     await roomMemberDAO.addMember(roomMember);
-    if(!isOnlySaveLocal) {
+    if (!isOnlySaveLocal) {
       await chatRoomRemote.addMember(roomMember);
     }
   }
@@ -141,14 +205,15 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   @transaction
   @override
-  Future<Function> removeChatRoom(String id,{bool isOnlySaveLocal=false}) async {
+  Future<Function> removeChatRoom(String id,
+      {bool isOnlySaveLocal = false}) async {
     var room = await chatRoomDAO.getChatRoomById(id, principal.person);
     if (room == null) {
       return null;
     }
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
-    if(!isOnlySaveLocal) {
+    if (!isOnlySaveLocal) {
       await chatRoomRemote.removeChatRoom(room.id);
     }
   }
@@ -158,6 +223,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   IP2PMessageDAO p2pMessageDAO;
   IServiceProvider site;
   IChatRoomRemote chatRoomRemote;
+
   UserPrincipal get principal => site.getService('@.principal');
 
   @override
@@ -165,7 +231,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     p2pMessageDAO = db.p2pMessageDAO;
-    chatRoomRemote=site.getService('/remote/chat/rooms');
+    chatRoomRemote = site.getService('/remote/chat/rooms');
   }
 
   @override
@@ -175,7 +241,8 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
-  Future<List<ChatMessage>> pageMessage(String roomCode, int limit, int offset) {
+  Future<List<ChatMessage>> pageMessage(
+      String roomCode, int limit, int offset) {
     return p2pMessageDAO.pageMessage(principal.person, roomCode, limit, offset);
   }
 }

@@ -2453,6 +2453,14 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   }
 
   @override
+  Future<List<Friend>> listdMember(String person, String roomCode) async {
+    return _queryAdapter.queryList(
+        'SELECT f.* FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=? and m.room=?',
+        arguments: <dynamic>[person, roomCode],
+        mapper: _friendMapper);
+  }
+
+  @override
   Future<void> removeMember(String code, dynamic person, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'delete FROM RoomMember WHERE room = ? and person=? AND sandbox=?',

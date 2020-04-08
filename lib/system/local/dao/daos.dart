@@ -511,6 +511,10 @@ abstract class IRoomMemberDAO {
       String sandbox, String roomCode, String whoAdd) {}
 
   @Query(
+      'SELECT f.*  FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=:sandbox and m.room=:roomCode')
+  Future<List<Friend>> listdMember(String person, String roomCode) {}
+
+  @Query(
       'delete FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox')
   Future<void> removeMember(String code, person, String sandbox) {}
 

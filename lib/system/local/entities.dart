@@ -333,17 +333,17 @@ enum PinPersonsSettingsStrategy {
 
 @Entity(primaryKeys: ['official', 'sandbox'])
 class Friend {
-  final String official;
-  final String source;
-  final String uid;
-  final String accountName;
-  final String appid;
-  final String avatar;
-  final String rights;
-  final String nickName;
-  final String signature;
-  final String pyname;
-  final String sandbox;
+  String official;
+  String source;
+  String uid;
+  String accountName;
+  String appid;
+  String avatar;
+  String rights;
+  String nickName;
+  String signature;
+  String pyname;
+  String sandbox;
 
   Friend(
       this.official,
@@ -357,21 +357,35 @@ class Friend {
       this.signature,
       this.pyname,
       this.sandbox);
+
+  Friend.formPerson(Person person) {
+    this.official = person.official;
+    this.source = null;
+    this.uid = person.uid;
+    this.accountName = person.accountCode;
+    this.appid = person.appid;
+    this.avatar = person.avatar;
+    this.rights = person.rights;
+    this.nickName = person.nickName;
+    this.signature = person.signature;
+    this.pyname = person.pyname;
+    this.sandbox = person.sandbox;
+  }
 }
 
 @entity
 class ChatRoom {
   @primaryKey
-  final String id;
-  final String title;
-  final String leading;
-  final String creator;
-  final int ctime;
-  final String notice;
-  final String p2pBackground;
-  final String isDisplayNick;
-  final String microsite;
-  final String sandbox;
+  String id;
+  String title;
+  String leading;
+  String creator;
+  int ctime;
+  String notice;
+  String p2pBackground;
+  String isDisplayNick;
+  String microsite;
+  String sandbox;
 
   ChatRoom(
     this.id,
@@ -385,16 +399,29 @@ class ChatRoom {
     this.microsite,
     this.sandbox,
   );
+
+  ChatRoom.fromMap(map, sandbox) {
+    this.id = map['room'];
+    this.title = map['title'];
+    this.leading = map['leading'];
+    this.creator = map['creator'];
+    this.ctime = map['ctime'];
+    this.notice = map['notice'];
+    this.p2pBackground = map['p2pBackground'];
+    this.isDisplayNick = map['isDisplayNick'];
+    this.microsite = map['microsite'];
+    this.sandbox = sandbox;
+  }
 }
 
 @entity
 class RoomMember {
   @primaryKey
-  final String id;
-  final String room;
-  final String person;
-  final String whoAdd;
-  final String sandbox;
+  String id;
+  String room;
+  String person;
+  String whoAdd;
+  String sandbox;
 
   RoomMember(
     this.id,
@@ -403,6 +430,14 @@ class RoomMember {
     this.whoAdd,
     this.sandbox,
   );
+
+  RoomMember.formMap(map, String sandbox) {
+    this.id = map['id'];
+    this.room = map['room'];
+    this.person = map['person'];
+    this.whoAdd = map['owner'];
+    this.sandbox = sandbox;
+  }
 }
 
 @entity
@@ -432,18 +467,8 @@ class ChatMessage {
   final int dtime;
   final String sandbox;
 
-  ChatMessage(
-      this.id,
-      this.sender,
-      this.room,
-      this.contentType,
-      this.content,
-      this.state,
-      this.ctime,
-      this.atime,
-      this.rtime,
-      this.dtime,
-      this.sandbox);
+  ChatMessage(this.id, this.sender, this.room, this.contentType, this.content,
+      this.state, this.ctime, this.atime, this.rtime, this.dtime, this.sandbox);
 }
 
 @entity
@@ -539,12 +564,12 @@ class GeoReceptor {
   }
 
   GeoReceptor.load(map, String sandbox) {
-    var loc=map['location'];
+    var loc = map['location'];
     var locStr;
-    if(loc is String) {
-      locStr=loc;
-    }else{
-      locStr=jsonEncode(loc);
+    if (loc is String) {
+      locStr = loc;
+    } else {
+      locStr = jsonEncode(loc);
     }
     id = map['id'];
     title = map['title'];

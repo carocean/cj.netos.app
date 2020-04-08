@@ -79,7 +79,7 @@ mixin IChannelRemote {
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}
 
-  Future<void>  createRoom(ChatRoom chatRoom) {}
+  Future<void> createRoom(ChatRoom chatRoom) {}
 
   Future<void> addMember(RoomMember roomMember) {}
 
@@ -87,4 +87,8 @@ mixin IChatRoomRemote {
 
   Future<void> pushMessage(ChatMessage message) {}
 
+  Future<ChatRoom> getRoom(String creator, String room) {}
+
+  Future<List<RoomMember>> pageRoomMember(
+      String creator, String room, int i, int j) {}
 }

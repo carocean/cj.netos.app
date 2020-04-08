@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:badges/badges.dart';
@@ -35,13 +36,76 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
   @override
   void dispose() {
-    //进入桌面后竞然释放了
-    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
+    //进入桌面后竞然释放了,因此得把取消侦听注释掉
+//    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
     super.dispose();
   }
 
-  Future<void> _onmessage(Frame frame) {
-    print(frame);
+  Future<void> _onmessage(Frame frame) async {
+    if (!frame.url.startsWith('/chat/room/message')) {
+      return;
+    }
+    switch (frame.command) {
+      case 'pushMessage':
+        _arrivePushMessageCommand(frame).then((message) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+        break;
+    }
+  }
+
+  Future<void> _arrivePushMessageCommand(Frame frame) async {
+    var text = frame.contentText;
+    if (StringUtil.isEmpty(text)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    if (frame.head("sender") == widget.context.principal.person) {
+      print('自已的消息又发给自己，被丢弃。');
+      return null;
+    }
+    var room = frame.parameter('room');
+    var contentType = frame.parameter('contentType');
+    var msgid = frame.parameter('msgid');
+    var ctime = frame.parameter('ctime');
+    var sender = frame.head('sender');
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    IFriendService friendService =
+    widget.context.site.getService("/gbera/friends");
+    if (!await friendService.exists(sender)) {
+      var person =
+          await friendService.getFriend(sender);
+      await friendService.addFriend(person);
+    }
+
+    var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = await chatRoomService.fetchAndSaveRoom(
+        sender,
+        room,
+      );
+      await chatRoomService.loadAndSaveRoomMembers(room,sender);
+    }
+    var message = ChatMessage(
+      msgid,
+      sender,
+      room,
+      contentType,
+      text,
+      'arrived',
+      StringUtil.isEmpty(ctime) ? null : int.parse(ctime),
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      widget.context.principal.person,
+    );
+    await messageService.addMessage(message);
   }
 
   Future<void> _createChatroom(List<String> members) async {
@@ -84,7 +148,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     List<_ChatRoomModel> models = [];
     for (var room in rooms) {
       List<Friend> friends =
-          await chatRoomService.listWhoAddMember(room.id, room.creator);
+          await chatRoomService.listdMember(room.id);
       models.add(
         _ChatRoomModel(
           chatRoom: room,
@@ -251,7 +315,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                             isBottomItem: false,
                             context: widget.context,
                             title: model.displayRoomTitle,
-                            leading: model.leading,
+                            leading: model.leading(widget.context.principal.accessToken),
                             time: model.unreadMessage == null
                                 ? ''
                                 : TimelineUtil.format(
@@ -474,7 +538,7 @@ class __MessagesExpansionPanelState extends State<_MessagesExpansionPanel> {
                         _expandRoomsIndex >= widget.expandRooms.length,
                     context: widget.context,
                     title: model.displayRoomTitle,
-                    leading: model.leading,
+                    leading: model.leading(widget.context.principal.accessToken),
                     time: model.unreadMessage == null
                         ? ''
                         : TimelineUtil.format(
@@ -816,7 +880,7 @@ class _ChatRoomModel {
     return name;
   }
 
-  Widget get leading {
+  Widget  leading(String accessToken) {
     if (!StringUtil.isEmpty(this.chatRoom.leading)) {
       if (this.chatRoom.leading.startsWith('/')) {
         return Image.file(
@@ -838,7 +902,11 @@ class _ChatRoomModel {
         break;
       }
       var m = members[i];
-      list.add(m.avatar);
+      if(m.avatar.startsWith('/')) {
+        list.add(m.avatar);
+      }else{
+        list.add('${m.avatar}?accessToken=$accessToken');
+      }
     }
     return NineOldWidget(list);
   }
