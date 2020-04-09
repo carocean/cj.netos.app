@@ -141,7 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
           expiretime: 0,
           device: appKeyPair.device,
         );
-        widget.context.forward('/login');
+        widget.context.forward('/public/login');
         _buttonEnabled = false;
       },
     );

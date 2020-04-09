@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
-import 'package:netos_app/portals/gbera/desklets/chats/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -1439,16 +1438,6 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/portlet/chat/friends',
           buildPage: (PageContext pageContext) => FriendPage(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '聊天室头像',
-          subtitle: '',
-          desc: '',
-          icon: GalleryIcons.shrine,
-          url: '/portlet/chat/room/avatar',
-          buildPage: (PageContext pageContext) => ChatRoomAvatar(
             context: pageContext,
           ),
         ),

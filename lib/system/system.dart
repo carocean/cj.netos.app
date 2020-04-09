@@ -97,7 +97,7 @@ List<Page> buildPages(site) {
       title: '入口检测',
       subtitle: '',
       icon: null,
-      url: '/entrypoint',
+      url: '/public/entrypoint',
       buildPage: (PageContext pageContext) => EntryPoint(
         context: pageContext,
       ),
@@ -106,7 +106,7 @@ List<Page> buildPages(site) {
       title: '登录',
       subtitle: '',
       icon: null,
-      url: '/login',
+      url: '/public/login',
       buildPage: (PageContext pageContext) => LoginPage(
         context: pageContext,
       ),
@@ -115,7 +115,7 @@ List<Page> buildPages(site) {
       title: '注册',
       subtitle: '',
       icon: null,
-      url: '/register',
+      url: '/public/register',
       buildPage: (PageContext pageContext) => RegisterPage(
         context: pageContext,
       ),

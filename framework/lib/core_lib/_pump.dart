@@ -138,7 +138,7 @@ class DefaultPumpWell implements IPumpWell {
   @override
   void unlisten(UserPrincipal principal, String url) {
     var path = getPath(url);
-    _outputListenItemChange.send(
+    _outputListenItemChange?.send(
         _ListenItem(person: principal.person, path: path, action: 'unlisten'));
     String itemKey = '${principal.person}:/$path';
     _listenItems.remove(itemKey);

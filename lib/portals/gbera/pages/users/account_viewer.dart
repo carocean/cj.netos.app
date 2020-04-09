@@ -39,7 +39,7 @@ class _AccountViewerState extends State<AccountViewer> {
         widget.context.site.getService('/local/principals');
     var account = widget.context.parameters['account'];
     await manager.remove(account['person']);
-    widget.context.forward('/entrypoint');
+    widget.context.forward('/public/entrypoint');
   }
 
   @override

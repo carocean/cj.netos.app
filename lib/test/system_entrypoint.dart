@@ -31,7 +31,7 @@ class _SystemEntrypointState extends State<SystemEntrypoint> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/entrypoint', scene: 'gbera',onFinishedSwitchScene: (v){
+                widget.context.forward('/public/entrypoint', scene: 'gbera',onFinishedSwitchScene: (v){
                   print(v);
                 });
               },
@@ -40,7 +40,7 @@ class _SystemEntrypointState extends State<SystemEntrypoint> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () async {
-                widget.context.forward('/entrypoint', scene: 'business',onFinishedSwitchScene: (v){
+                widget.context.forward('/public/entrypoint', scene: 'business',onFinishedSwitchScene: (v){
                   print(v);
                 });
               },

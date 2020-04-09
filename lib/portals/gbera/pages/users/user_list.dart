@@ -227,7 +227,7 @@ class UserAndAccountList extends StatelessWidget {
             onTap: (){
               lp.IPlatformLocalPrincipalManager manager=this.context.site.getService('/local/principals');
               manager.emptyRefreshToken().then((v){
-                this.context.forward('/entrypoint',scene: '/',clearHistoryByPagePath: '/');
+                this.context.forward('/public/entrypoint',scene: '/',clearHistoryByPagePath: '/');
               });
 
             },

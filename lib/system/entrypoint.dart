@@ -16,79 +16,73 @@ class EntryPoint extends StatefulWidget {
 }
 
 class _EntryPointState extends State<EntryPoint> {
-  IPlatformLocalPrincipalManager _localPrincipalManager;
-  Future<void> _future_refreshToken;
-  bool isSetCurrentDone = false;
-  bool isRefreshed = false;
-
+  int _entrymode = 0; //0为背景；1登录主页；2为登录密码页；3为进入桌面
   @override
   void initState() {
-    _localPrincipalManager =
-        widget.context.site.getService('/local/principals');
-    if (!_localPrincipalManager.isEmpty()) {
-      _localPrincipalManager
-          .setCurrent(_localPrincipalManager.list()[0])
-          .then((v) {
-        isSetCurrentDone = true;
+    _checkEntrypoint().then((v) {
+      if (mounted) {
         setState(() {});
-      });
-    }
-    super.initState();
+      }
+    });
 
+    super.initState();
   }
 
   @override
   void dispose() {
-    _localPrincipalManager = null;
+    _entrymode=0;
     super.dispose();
+  }
+
+  Future<void> _checkEntrypoint() async {
+    IPlatformLocalPrincipalManager _localPrincipalManager =
+        widget.context.site.getService('/local/principals');
+    if (_localPrincipalManager.isEmpty()) {
+      _entrymode = 1;
+      return;
+    }
+    await _localPrincipalManager.setCurrent(_localPrincipalManager.list()[0]);
+    var localPrincipal =
+        _localPrincipalManager.get(_localPrincipalManager.current()); //以此作为登录用户
+    if (localPrincipal?.refreshToken == null) {
+      //如果刷新令牌为空则必须登录
+      _entrymode = 2;
+      return;
+    }
+    //有刷新令牌是否过期
+    await _localPrincipalManager.doRefreshToken((map) async {
+      //失败则重新登录
+      await _localPrincipalManager.emptyRefreshToken();
+      _entrymode = 2;
+    }, (v) {
+      _entrymode = 3;
+    });
+    if (_entrymode != 3) {
+      return;
+    }
+    //成功则到桌面
+    WidgetsBinding.instance.addPostFrameCallback((d) {
+      widget.context.forward(
+        "/scaffold/withbottombar",
+        clearHistoryByPagePath: '/public/',
+        scene: 'gbera',
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var body;
-
-    //没有本地登录历史则进去入口索引页
-    if (_localPrincipalManager.isEmpty()) {
-      //加载主入口部件（有登录和注册选项）
-      body = _EntryPointIndex(
-        context: widget.context,
-      );
-      return body;
-    }
-
-    if (!isSetCurrentDone) {
-      return Container(
-        height: 0,
-        width: 0,
-      );
-    }
-
-    var localPrincipal =
-        _localPrincipalManager.get(_localPrincipalManager.current()); //以此作为登录用户
-    //如果刷新令牌为空则必须登录
-    if (localPrincipal?.refreshToken == null) {
-      body = LoginPage(
-        context: widget.context,
-      );
-      return body;
-    }
-    if(_future_refreshToken==null) {
-      _future_refreshToken = _refreshToken();
-    }
-    //有刷新令牌自动登录
-    return FutureBuilder(
-      future: _future_refreshToken,
-      builder: (ctx, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done&&isRefreshed) {
-          //成功则到桌面
-          WidgetsBinding.instance.addPostFrameCallback((d) {
-            widget.context.forward(
-              "/scaffold/withbottombar",
-              clearHistoryByPagePath: '/',
-              scene: 'gbera',
-            );
-          });
-        }
+    print(_entrymode);
+    switch (_entrymode) {
+      case 1:
+        return _EntryPointIndex(
+          context: widget.context,
+        );
+      case 2:
+        return LoginPage(
+          context: widget.context,
+        );
+      default:
         return Container(
           decoration: BoxDecoration(
             image: DecorationImage(
@@ -97,21 +91,7 @@ class _EntryPointState extends State<EntryPoint> {
             ),
           ),
         );
-      },
-    );
-  }
-
-  Future<void> _refreshToken() async {
-    await _localPrincipalManager.doRefreshToken((map) async {
-      isRefreshed=false;
-      //失败则重新登录
-      await _localPrincipalManager.emptyRefreshToken();
-      if (mounted) {
-        setState(() {});
-      }
-    }, (v) {
-      isRefreshed=true;
-    });
+    }
   }
 }
 
@@ -157,7 +137,7 @@ class _EntryPointIndex extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  this.context.forward('/login');
+                  this.context.forward('/public/login');
                 },
               ),
               FlatButton(
@@ -175,7 +155,7 @@ class _EntryPointIndex extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  this.context.forward('/register');
+                  this.context.forward('/public/register');
                 },
               ),
             ],

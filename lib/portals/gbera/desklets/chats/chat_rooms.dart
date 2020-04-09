@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,8 +6,10 @@ import 'package:badges/badges.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:nineold/nine_old_frame.dart';
@@ -26,19 +29,48 @@ class ChatRoomsPortlet extends StatefulWidget {
 }
 
 class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
+  bool _isloaded = false;
+  StreamController<dynamic> _notifyStreamController;
+  List<_ChatRoomModel> _models = [];
+
   @override
   void initState() {
+    _notifyStreamController = StreamController.broadcast();
     if (!widget.context.isListening(matchPath: '/chat/room/message')) {
       widget.context.listenNetwork(_onmessage, matchPath: '/chat/room/message');
     }
+    _load().then((v) {
+      if (mounted) {
+        _isloaded = true;
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    //进入桌面后竞然释放了,因此得把取消侦听注释掉
-//    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
+    _notifyStreamController.close();
+    _models.clear();
+    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(ChatRoomsPortlet oldWidget) {
+    var changed = oldWidget.portlet != widget.portlet ||
+        oldWidget.desklet != widget.desklet ||
+        oldWidget.runtimeType != widget.runtimeType;
+    if (changed) {
+      _models.clear();
+      _load().then((v) {
+        if (mounted) {
+          _isloaded = true;
+          setState(() {});
+        }
+      });
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   Future<void> _onmessage(Frame frame) async {
@@ -76,10 +108,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
     IFriendService friendService =
-    widget.context.site.getService("/gbera/friends");
+        widget.context.site.getService("/gbera/friends");
     if (!await friendService.exists(sender)) {
-      var person =
-          await friendService.getFriend(sender);
+      var person = await friendService.getFriend(sender);
       await friendService.addFriend(person);
     }
 
@@ -90,7 +121,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         sender,
         room,
       );
-      await chatRoomService.loadAndSaveRoomMembers(room,sender);
+      await chatRoomService.loadAndSaveRoomMembers(room, sender);
+      _models.clear();
+      await _loadChatroom();
     }
     var message = ChatMessage(
       msgid,
@@ -106,6 +139,28 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       widget.context.principal.person,
     );
     await messageService.addMessage(message);
+
+    _notifyStreamController
+        .add({'action': 'arrivePushMessageCommand', 'message': message});
+  }
+
+  Future<void> _load() async {
+    await _loadChatroom();
+  }
+
+  Future<void> _loadChatroom() async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    List<ChatRoom> rooms = await chatRoomService.listChatRoom();
+    for (var room in rooms) {
+      List<Friend> friends = await chatRoomService.listdMember(room.id);
+      _models.add(
+        _ChatRoomModel(
+          chatRoom: room,
+          members: friends,
+        ),
+      );
+    }
   }
 
   Future<void> _createChatroom(List<String> members) async {
@@ -141,24 +196,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     return;
   }
 
-  Future<List<_ChatRoomModel>> _loadChatroom() async {
-    IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
-    List<ChatRoom> rooms = await chatRoomService.listChatRoom();
-    List<_ChatRoomModel> models = [];
-    for (var room in rooms) {
-      List<Friend> friends =
-          await chatRoomService.listdMember(room.id);
-      models.add(
-        _ChatRoomModel(
-          chatRoom: room,
-          members: friends,
-        ),
-      );
-    }
-    return models;
-  }
-
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -174,501 +211,189 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<_ChatRoomModel>>(
-      future: _loadChatroom(),
-      builder: (ctx, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Center(
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              '${snapshot.error}',
+    if (!_isloaded) {
+      return Center(
+        child: Text('加载中...'),
+      );
+    }
+    var content;
+
+    if (_models.isEmpty) {
+      content = Padding(
+        padding: EdgeInsets.only(
+          bottom: 20,
+          top: 20,
+        ),
+        child: Center(
+          child: Text.rich(
+            TextSpan(
+              text: '没有聊天室！ ',
               style: TextStyle(
-                color: Colors.red,
+                color: Colors.grey[400],
               ),
-            ),
-          );
-        }
-        List<_ChatRoomModel> topFives;
-        List<_ChatRoomModel> expandRooms;
-        if (snapshot.data.length > 5) {
-          topFives = snapshot.data.sublist(0, 5);
-          expandRooms = snapshot.data.sublist(5, snapshot.data.length);
-        } else {
-          topFives = snapshot.data;
-          expandRooms = [];
-        }
-        return ConstrainedBox(
-          constraints: BoxConstraints.tightForFinite(
-            width: double.maxFinite,
-          ),
-          child: Card(
-            margin: EdgeInsets.only(
-              bottom: 10,
-              left: 0,
-              right: 0,
-              top: 0,
-            ),
-            elevation: 0,
-            child: ListView(
-              padding: EdgeInsets.all(0),
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 10,
-                    top: 10,
-                    right: 15,
-                    bottom: 10,
+              children: [
+                TextSpan(
+                  text: '点击此处建立',
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                    fontWeight: FontWeight.w500,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 5,
-                            ),
-                            child: Icon(
-                              Icons.chat_bubble_outline,
-                              size: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                          Text('平聊'),
-                        ],
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () async {
-                          var result = await widget.context
-                              .forward('/portlet/chat/friends') as List<String>;
-                          if (result == null || result.isEmpty) {
-                            return;
-                          }
-                          _createChatroom(result).then((v) {
-                            setState(() {});
-                          });
-                        },
-                        child: Icon(
-                          Icons.add_circle_outline,
-                          size: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                topFives.isEmpty
-                    ? Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 20,
-                        ),
-                        child: Center(
-                          child: Text.rich(
-                            TextSpan(
-                              text: '没有聊天室！ ',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: '点击此处建立',
-                                  style: TextStyle(
-                                    color: Colors.blueGrey,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
-                                      var result = await widget.context
-                                              .forward('/portlet/chat/friends')
-                                          as List<String>;
-                                      if (result == null || result.isEmpty) {
-                                        return;
-                                      }
-                                      _createChatroom(result).then((v) {
-                                        setState(() {});
-                                      });
-                                    },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    : ListView(
-                        padding: EdgeInsets.all(0),
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        children: topFives.map((model) {
-                          return _ChatRoomItem(
-                            isBottomItem: false,
-                            context: widget.context,
-                            title: model.displayRoomTitle,
-                            leading: model.leading(widget.context.principal.accessToken),
-                            time: model.unreadMessage == null
-                                ? ''
-                                : TimelineUtil.format(
-                                    model.unreadMessage.atime,
-                                    dayFormat: DayFormat.Simple,
-                                  ),
-                            unreadMsgCount: model.unreadMsgCount ?? 0,
-                            showNewest: model.unreadMsgCount ?? 0 > 0,
-                            subtitle: '${model.unreadMessage?.content ?? ''}',
-                            who: '',
-                            onOpenRoom: () {
-                              widget.context
-                                  .forward('/portlet/chat/talk', arguments: {
-                                'chatRoom': model.chatRoom,
-                                'displayRoomTitle': model.displayRoomTitle,
-                              });
-                            },
-                            onOpenAvatar: () {
-                              widget.context
-                                  .forward(
-                                '/portlet/chat/room/avatar',
-                              )
-                                  .then((v) {
-                                if (v == null) {
-                                  return;
-                                }
-                                var result = v as Map<String, Object>;
-                                if (StringUtil.isEmpty(result['image'])) {
-                                  return;
-                                }
-                                String fileName = result['image'];
-                                _updateRoomLeading(model.chatRoom.id, fileName)
-                                    .then((v) {
-                                  setState(() {});
-                                });
-                              });
-                            },
-                            onRemoveAction: () {
-                              _removeChatRoom(model.chatRoom).then((v) {
-                                snapshot.data.remove(model);
-                                setState(() {});
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                if (!expandRooms.isEmpty)
-                  _MessagesExpansionPanel(
-                    updateRoomLeading: _updateRoomLeading,
-                    context: widget.context,
-                    expandRooms: expandRooms,
-                    onRemoveChatRoom: (ChatRoom room) {
-                      _removeChatRoom(room).then((v) {
-                        snapshot.data.remove(room);
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      var result = await widget.context
+                          .forward('/portlet/chat/friends') as List<String>;
+                      if (result == null || result.isEmpty) {
+                        return;
+                      }
+                      _createChatroom(result).then((v) {
                         setState(() {});
                       });
                     },
-                  ),
+                ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-class _MessagesExpansionPanel extends StatefulWidget {
-  PageContext context;
-  List<_ChatRoomModel> expandRooms;
-  Function(ChatRoom) onRemoveChatRoom;
-  Function(String, String) updateRoomLeading;
-
-  _MessagesExpansionPanel({
-    this.context,
-    this.expandRooms,
-    this.onRemoveChatRoom,
-    this.updateRoomLeading,
-  });
-
-  @override
-  __MessagesExpansionPanelState createState() =>
-      __MessagesExpansionPanelState();
-}
-
-class __MessagesExpansionPanelState extends State<_MessagesExpansionPanel> {
-  bool _isExpaned = false;
-
-  @override
-  Widget build(BuildContext context) {
-    List<_ChatRoomModel> topTwo = [];
-    for (var i = 0; i < widget.expandRooms.length; i++) {
-      var model = widget.expandRooms[i];
-      if (StringUtil.isEmpty(model.unreadMessage?.content)) {
-        continue;
-      }
-      if (topTwo.length > 2) {
-        break;
-      }
-      topTwo.add(model);
+        ),
+      );
+    } else {
+      var index = 0;
+      content = ListView(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+        ),
+        children: _models.map((_ChatRoomModel model) {
+          index++;
+          return _ChatroomItem(
+            context: widget.context,
+            model: model,
+            isBottom: index == _models.length,
+            notify: _notifyStreamController.stream,
+            onDelete: () {
+              _removeChatRoom(model.chatRoom).then((v) {
+                _models.removeWhere((m) {
+                  return m.chatRoom.id == model.chatRoom.id;
+                });
+                if (mounted) {
+                  setState(() {});
+                }
+              });
+            },
+          );
+        }).toList(),
+      );
     }
-    int _expandRoomsIndex = 0;
-    return ListView(
-      padding: EdgeInsets.all(0),
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      children: <Widget>[
-        _isExpaned
-            ? GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  _isExpaned = false;
-                  setState(() {});
-                },
-                child: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(
-                    right: 10,
-                    top: 10,
-                  ),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 24,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              )
-            : GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  _isExpaned = true;
-                  setState(() {});
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: topTwo.map((model) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              left: 20,
-                              right: 10,
-                              top: 1,
-                              bottom: 1,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                text: '李修缘:',
-                                style: TextStyle(
-                                  color: Colors.blueGrey,
-                                  fontSize: 12,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: TimelineUtil.format(
-                                      model.unreadMessage?.atime,
-                                      dayFormat: DayFormat.Simple,
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '${model.unreadMessage?.content ?? ''}',
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
-                      ),
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 10,
+      ),
+      child: Column(
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 5,
                     ),
-                    Badge(
-                      position: BadgePosition.topLeft(
-                        left: 19,
-                        top: 2,
-                      ),
-                      elevation: 0,
-                      showBadge: true,
-                      badgeContent: Text(
-                        '',
-                      ),
-                      child: IconButton(
-                        onPressed: () {
-                          _isExpaned = true;
-                          setState(() {});
-                        },
-                        icon: Icon(
-                          Icons.more_horiz,
-                          size: 24,
-                          color: Colors.grey[500],
-                        ),
-                      ),
+                    child: Icon(
+                      Icons.chat_bubble_outline,
+                      size: 14,
+                      color: Colors.grey[500],
                     ),
-                  ],
-                ),
+                  ),
+                  Text('平聊'),
+                ],
               ),
-        !_isExpaned
-            ? Container(
-                width: 0,
-                height: 0,
-              )
-            : Column(
-                children: widget.expandRooms.map((model) {
-                  _expandRoomsIndex++;
-                  return _ChatRoomItem(
-                    isBottomItem:
-                        _expandRoomsIndex >= widget.expandRooms.length,
-                    context: widget.context,
-                    title: model.displayRoomTitle,
-                    leading: model.leading(widget.context.principal.accessToken),
-                    time: model.unreadMessage == null
-                        ? ''
-                        : TimelineUtil.format(
-                            model.unreadMessage?.atime,
-                            dayFormat: DayFormat.Simple,
-                          ),
-                    unreadMsgCount: model.unreadMsgCount ?? 0,
-                    showNewest: model.unreadMsgCount ?? 0 > 0,
-                    subtitle: '${model.unreadMessage?.content ?? ''}',
-                    who: '',
-                    onOpenRoom: () {
-                      widget.context.forward('/portlet/chat/talk', arguments: {
-                        'chatRoom': model.chatRoom,
-                        'displayRoomTitle': model.displayRoomTitle,
-                      });
-                    },
-                    onOpenAvatar: () {
-                      widget.context
-                          .forward(
-                        '/portlet/chat/room/avatar',
-                      )
-                          .then((v) {
-                        if (v == null) {
-                          return;
-                        }
-                        var result = v as Map<String, Object>;
-                        if (StringUtil.isEmpty(result['image'])) {
-                          return;
-                        }
-                        String fileName = result['image'];
-                        widget
-                            .updateRoomLeading(model.chatRoom.id, fileName)
-                            .then((v) {
-                          setState(() {});
-                        });
-                      });
-                    },
-                    onRemoveAction: () {
-                      if (widget.onRemoveChatRoom == null) {
-                        return;
-                      }
-                      widget.onRemoveChatRoom(model.chatRoom).then((v) {
-                        widget.expandRooms.remove(model);
-                        setState(() {});
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-        !_isExpaned
-            ? Container(
-                width: 0,
-                height: 0,
-              )
-            : GestureDetector(
+              GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  _isExpaned = false;
-                  setState(() {});
+                onTap: () async {
+                  var result = await widget.context
+                      .forward('/portlet/chat/friends') as List<String>;
+                  if (result == null || result.isEmpty) {
+                    return;
+                  }
+                  _createChatroom(result).then((v) {
+                    setState(() {});
+                  });
                 },
-                child: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(
-                    bottom: 10,
-                    right: 10,
-                    top: 10,
-                  ),
-                  child: Icon(
-                    Icons.keyboard_arrow_up,
-                    size: 24,
-                    color: Colors.grey[500],
-                  ),
+                child: Icon(
+                  Icons.add_circle_outline,
+                  size: 14,
+                  color: Colors.grey[600],
                 ),
               ),
-      ],
+            ],
+          ),
+          content,
+        ],
+      ),
     );
   }
 }
 
-class _ChatRoomItem extends StatefulWidget {
+class _ChatroomItem extends StatefulWidget {
   PageContext context;
-  Widget leading;
-  String title;
-  String who;
-  String subtitle;
-  String time;
-  bool showNewest;
-  int unreadMsgCount;
-  Function() onOpenRoom;
-  Function() onRemoveAction;
-  Function() onOpenAvatar;
-  bool isBottomItem;
+  _ChatRoomModel model;
+  Stream notify;
+  Function() onDelete;
+  bool isBottom;
 
-  _ChatRoomItem({
-    this.context,
-    this.leading,
-    this.title,
-    this.who,
-    this.subtitle,
-    this.unreadMsgCount,
-    this.time,
-    this.showNewest,
-    this.onOpenRoom,
-    this.onRemoveAction,
-    this.onOpenAvatar,
-    this.isBottomItem,
-  });
+  _ChatroomItem(
+      {this.context, this.model, this.notify, this.onDelete, this.isBottom});
 
   @override
-  State createState() {
-    return __ChatRoomItem();
-  }
+  __ChatroomItemState createState() => __ChatroomItemState();
 }
 
-class __ChatRoomItem extends State<_ChatRoomItem> {
+class __ChatroomItemState extends State<_ChatroomItem> {
+  double _percentage = 0.0;
+  _ChatroomItemStateBar _stateBar;
+  StreamSubscription<dynamic> _streamSubscription;
+
+  @override
+  void initState() {
+    _stateBar = _ChatroomItemStateBar();
+    widget.notify.listen((command) {
+      print(command);
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ChatroomItem oldWidget) {
+    if (oldWidget.model != widget.model) {
+      oldWidget.model = widget.model;
+      oldWidget.isBottom = widget.isBottom;
+      oldWidget.onDelete = widget.onDelete;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget imgSrc = widget.leading;
-//    if (widget.leading == null) {
-//      imgSrc = Icon(
-//        IconData(
-//          0xe606,
-//          fontFamily: 'netflow',
-//        ),
-//        size: 32,
-//        color: Colors.grey[500],
-//      );
-//    } else {
-//      imgSrc = widget.leading;
-//    }
+    var imgSrc = widget.model.leading(widget.context.principal.accessToken);
+
     var item = Container(
       decoration: new BoxDecoration(
         color: Colors.white,
@@ -684,7 +409,7 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: widget.showNewest
+              crossAxisAlignment: _stateBar.isShow
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -697,9 +422,28 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      if (widget.onOpenAvatar != null) {
-                        widget.onOpenAvatar();
+                      //如果不是自己的管道则不能改图标
+                      if (widget.context.principal.person !=
+                          widget.model.chatRoom.creator) {
+                        Scaffold.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('不可修改图标！原因：不是您创建的感知器'),
+                          ),
+                        );
+                        return;
                       }
+                      widget.context
+                          .forward(
+                        '/widgets/avatar',
+                      )
+                          .then((path) {
+                        if (StringUtil.isEmpty(path)) {
+                          return;
+                        }
+//                        widget.model.leading = path;
+//                        setState(() {});
+//                        _updateLeading();
+                      });
                     },
                     child: Stack(
                       overflow: Overflow.visible,
@@ -715,118 +459,130 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
                         Positioned(
                           top: -10,
                           right: -3,
-                          child: Badge(
-                            position: BadgePosition.topRight(
-                              right: -3,
-                              top: 3,
-                            ),
-                            elevation: 0,
-                            showBadge: widget.unreadMsgCount != 0,
-                            badgeContent: Text(
-                              '',
-                            ),
-                            child: null,
-                          ),
+                          child: !_stateBar.isShow
+                              ? Container(
+                                  width: 0,
+                                  height: 0,
+                                )
+                              : Badge(
+                                  position: BadgePosition.topRight(
+                                    right: -3,
+                                    top: 3,
+                                  ),
+                                  elevation: 0,
+                                  showBadge: (_stateBar.count ?? 0) != 0,
+                                  badgeContent: Text(
+                                    '',
+                                  ),
+                                  child: null,
+                                ),
                         ),
+                        _percentage > 0 && _percentage < 1.0
+                            ? Positioned(
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                child: LinearProgressIndicator(
+                                  value: _percentage,
+                                ),
+                              )
+                            : Container(
+                                width: 0,
+                                height: 0,
+                              ),
                       ],
                     ),
                   ),
                 ),
                 Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (widget.onOpenRoom != null) {
-                        widget.onOpenRoom();
-                      }
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 5,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text.rich(
-                                TextSpan(
-                                  text: widget.title,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text.rich(
+                            TextSpan(
+                              text: widget.model.displayRoomTitle,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
                               ),
-                              Text(
-                                '${widget.time}',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (widget.showNewest)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 5,
                             ),
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              alignment: WrapAlignment.start,
-                              spacing: 5,
-                              runSpacing: 3,
-                              children: <Widget>[
-                                Text.rich(
-                                  TextSpan(
-                                    text: '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                    children: [
-                                      if (widget.unreadMsgCount > 0)
+                          ),
+                        ],
+                      ),
+                      !_stateBar.isShow
+                          ? Container(
+                              width: 0,
+                              height: 0,
+                            )
+                          : Padding(
+                              padding: EdgeInsets.only(
+                                top: 5,
+                              ),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                alignment: WrapAlignment.start,
+                                spacing: 5,
+                                runSpacing: 3,
+                                children: <Widget>[
+                                  Text.rich(
+                                    TextSpan(
+                                      text: '[${_stateBar.brackets}]',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                      children: [
                                         TextSpan(
-                                            text:
-                                                '[${widget.unreadMsgCount != 0 ? widget.unreadMsgCount : ''}条]'),
-                                      TextSpan(
-                                        text: ' ',
-                                      ),
-//                                      TextSpan(
-//                                        text: '${this.who}: ',
-//                                      ),
-                                      TextSpan(
-                                        text: '${widget.subtitle}',
-                                        style: TextStyle(
-                                          color: Colors.black54,
+                                          text: ' ',
                                         ),
-                                      ),
-                                    ],
+                                        TextSpan(
+                                          text: _stateBar.tips,
+                                          style: TextStyle(
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                                  Text(
+                                    _stateBar?.atime != null
+                                        ? '${TimelineUtil.format(
+                                            _stateBar?.atime,
+                                            locale: 'zh',
+                                            dayFormat: DayFormat.Simple,
+                                          )}'
+                                        : '',
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          if (!widget.isBottomItem)
-            Divider(
-              height: 1,
-              indent: 60,
-            ),
+          widget.isBottom
+              ? Container(
+                  width: 0,
+                  height: 0,
+                )
+              : Divider(
+                  height: 1,
+                  indent: 60,
+                ),
         ],
       ),
     );
@@ -838,15 +594,33 @@ class __ChatRoomItem extends State<_ChatRoomItem> {
           foregroundColor: Colors.grey[500],
           icon: Icons.delete,
           onTap: () {
-            if (widget.onRemoveAction != null) {
-              widget.onRemoveAction();
+            if (widget.onDelete != null) {
+              widget.onDelete();
             }
           },
         ),
       ],
-      child: item,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          //打开聊天室
+        },
+        child: item,
+      ),
     );
   }
+}
+
+class _ChatroomItemStateBar {
+  String brackets; //括号
+  String tips; //提示栏
+  int atime; //时间
+  int count = 0; //消息数提示，0表示无提示
+  bool isShow = false; //是否显示提供
+  _ChatroomItemStateBar(
+      {this.brackets, this.tips, this.atime, this.count, this.isShow = false});
+
+  Future<void> update(String command, dynamic args) async {}
 }
 
 class _ChatRoomModel {
@@ -880,7 +654,7 @@ class _ChatRoomModel {
     return name;
   }
 
-  Widget  leading(String accessToken) {
+  Widget leading(String accessToken) {
     if (!StringUtil.isEmpty(this.chatRoom.leading)) {
       if (this.chatRoom.leading.startsWith('/')) {
         return Image.file(
@@ -902,9 +676,9 @@ class _ChatRoomModel {
         break;
       }
       var m = members[i];
-      if(m.avatar.startsWith('/')) {
+      if (m.avatar.startsWith('/')) {
         list.add(m.avatar);
-      }else{
+      } else {
         list.add('${m.avatar}?accessToken=$accessToken');
       }
     }
