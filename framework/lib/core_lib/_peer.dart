@@ -68,15 +68,12 @@ class Peer implements IPeer {
     Onmessage onmessage,
     Onerror onerror,
     Onreconnect onreconnect,
-        ///如果为0表示断开不重连,超出此设定值则会报连接异常退出
-    int reconnectTimes=0,
     Duration reconnectDelayed,
   }) async {
-    Peer peer = Peer._(reconnectTimes > 0);
+    Peer peer = Peer._(true);
     peer._connection = await Connection.connect(
       url,
       reconnectDelayed: reconnectDelayed,
-      reconnectTimes: reconnectTimes,
       onreconnect: onreconnect,
       onopen: peer._isSupportsReconnect
           ? peer._createOnopenEventHandler(onopen)

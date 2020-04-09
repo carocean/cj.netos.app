@@ -119,8 +119,7 @@ class DefaultPeerManager implements IPeerManager {
     IPeer peer = await Peer.connect(
       nameServer,
       pingInterval: Duration(seconds: 5),
-      reconnectDelayed: Duration(seconds: 15),
-      reconnectTimes: 10,
+      reconnectDelayed: Duration(seconds: 10),
       onreconnect: (trytimes) {
         if (appCreator.peerOnreconnect != null)
           appCreator.peerOnreconnect(trytimes);

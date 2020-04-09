@@ -286,7 +286,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     _slivers.add(lets_region);
 
     var myarea = CustomScrollView(
-      shrinkWrap: true,
       slivers: _slivers,
     );
     return myarea;

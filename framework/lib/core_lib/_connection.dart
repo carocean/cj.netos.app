@@ -10,7 +10,7 @@ typedef Onopen = void Function();
 typedef Onclose = void Function();
 typedef Onerror = void Function(dynamic e);
 typedef Onreconnect = void Function(int tryTimes);
-typedef Online=void Function();
+typedef Online = void Function();
 
 mixin IConnection {
   String get host;
@@ -29,8 +29,116 @@ mixin IConnection {
 class Connection implements IConnection {
   WebSocket _webSocket;
   bool _isConnected = false;
+  Timer _timer;
+  bool _isDone = false;
+  String _url;
+  Onreconnect _onreconnect;
+  Duration _pingInterval;
+  Onopen _onopen;
+  Onclose _onclose;
+  Onmessage _onmessage;
+  Onerror _onerror;
+  Duration _reconnectDelayed;
+  int _conntimes = 0;
 
   Connection._();
+
+  _doReconnect(Timer timer) async {
+    if (_isConnected || _isDone) {
+      timer.cancel();
+      return;
+    }
+    if (_onreconnect != null) {
+      _onreconnect(_conntimes);
+    }
+    _conntimes++;
+    try {
+      _webSocket = await WebSocket.connect(_url);
+      _isConnected = true;
+      if(_timer!=null&&_timer.isActive) {
+        _timer.cancel();
+        _timer=null;
+      }
+      print('连接成功。$_url');
+      _afterInit();
+    } catch (e) {
+      _isConnected = false;
+      print('连接失败。$e');
+    }
+  }
+
+  Future<void> _init(
+    String url,
+    Duration pingInterval,
+    Onopen onopen,
+    Onclose onclose,
+    Onmessage onmessage,
+    Onerror onerror,
+    Onreconnect onreconnect,
+    Duration reconnectDelayed,
+  ) async {
+    _url = url;
+    _isDone = false;
+    _onreconnect = onreconnect;
+    _pingInterval = pingInterval;
+    _onopen = onopen;
+    _onclose = onclose;
+    _onmessage = onmessage;
+    _onerror = onerror;
+    _reconnectDelayed = reconnectDelayed;
+
+    try {
+      _webSocket = await WebSocket.connect(url);
+      _isConnected = true;
+      if(_timer!=null&&_timer.isActive) {
+        _timer.cancel();
+        _timer=null;
+      }
+      print('连接成功。$url');
+      _afterInit();
+    } catch (e) {
+      _isConnected = false;
+      print('连接失败。$e');
+      if (_timer != null && _timer.isActive) {
+        return;
+      }
+      _timer = Timer.periodic(reconnectDelayed, _doReconnect);
+      return;
+    }
+  }
+
+  _afterInit() {
+    if (_pingInterval != null) {
+      _webSocket.pingInterval = _pingInterval;
+    }
+    _parseUrl(_url, this);
+    _webSocket.listen(
+      (frameRaw) {
+        if (_onmessage != null) {
+//          print(utf8.decode(frameRaw));
+          _onmessage(Frame.load(frameRaw));
+        }
+      },
+      onError: (e) {
+        if (_onerror != null) {
+          _onerror(e);
+        }
+      },
+      cancelOnError: false,
+      onDone: () async {
+        _isConnected = false;
+        if (!_isDone && (_timer == null || !_timer.isActive)) {
+          _timer = Timer.periodic(_reconnectDelayed, _doReconnect);
+        }
+        if (_onclose != null) {
+          _onclose();
+        }
+      },
+    );
+    if (_onopen != null) {
+      _onopen();
+    }
+  }
 
   /// 连接
   static Future<IConnection> connect(
@@ -41,89 +149,11 @@ class Connection implements IConnection {
     Onmessage onmessage,
     Onerror onerror,
     Onreconnect onreconnect,
-    int reconnectTimes,
     Duration reconnectDelayed,
   }) async {
-    return _connect(
-      url,
-      onopen: onopen,
-      onreconnect: onreconnect,
-      onmessage: onmessage,
-      pingInterval: pingInterval,
-      onerror: onerror,
-      onclose: onclose,
-      reconnectTimes: reconnectTimes,
-      reconnectDelayed: reconnectDelayed,
-      preconn: null,
-    );
-  }
-
-  static Future<IConnection> _connect(
-    String url, {
-    Duration pingInterval,
-    Onopen onopen,
-    Onclose onclose,
-    Onmessage onmessage,
-    Onerror onerror,
-    Onreconnect onreconnect,
-    int reconnectTimes,
-    Duration reconnectDelayed,
-    Connection preconn,
-  }) async {
-    var websocket = await _waitConnectComplated(
-      url: url,
-      reconnectTimes: reconnectTimes,
-      currentTryTimes: 0,
-      onreconnect: onreconnect,
-      delayed: reconnectDelayed ?? Duration(seconds: 15),
-      onopen: onopen,
-    );
-
-    Connection conn = preconn == null ? Connection._() : preconn;
-    conn._webSocket = websocket;
-    if (pingInterval != null) {
-      conn._webSocket.pingInterval = pingInterval;
-    }
-    conn._isConnected = true;
-    _parseUrl(url, conn);
-    conn._webSocket.listen(
-      (frameRaw) {
-        if (onmessage != null) {
-//          print(utf8.decode(frameRaw));
-          onmessage(Frame.load(frameRaw));
-        }
-      },
-      onError: (e) {
-        if (onerror != null) {
-          onerror(e);
-        }
-      },
-      cancelOnError: false,
-      onDone: () async {
-        conn._isConnected = false;
-        if (reconnectTimes > 0) {
-          await _connect(
-            url,
-            onopen: onopen,
-            onreconnect: onreconnect,
-            onmessage: onmessage,
-            pingInterval: pingInterval,
-            onerror: onerror,
-            onclose: onclose,
-            reconnectTimes: reconnectTimes,
-            reconnectDelayed: reconnectDelayed,
-            preconn: conn,
-          );
-          return;
-        }
-        if (onclose != null) {
-          onclose();
-        }
-      },
-    );
-    if (onopen != null) {
-      onopen();
-    }
+    Connection conn = Connection._();
+    await conn._init(url, pingInterval, onopen, onclose, onmessage, onerror,
+        onreconnect, reconnectDelayed);
     return conn;
   }
 
@@ -147,6 +177,7 @@ class Connection implements IConnection {
   @override
   void close() {
     _webSocket.close();
+    _isDone = true;
   }
 
   static void _parseUrl(String url, Connection conn) {
@@ -188,44 +219,5 @@ class Connection implements IConnection {
   @override
   void send(Frame frame) {
     _webSocket.add(frame.toBytes());
-  }
-
-  static Future<WebSocket> _waitConnectComplated({
-    String url,
-    int reconnectTimes = 0,
-    Duration delayed,
-    int currentTryTimes = 0,
-    Onreconnect onreconnect,
-    Onopen onopen,
-  }) async {
-    if (reconnectTimes < 1) {
-      var ws = await WebSocket.connect(url);
-      print('连接成功。$url');
-      return ws;
-    }
-    var ws = await _delayedGet(
-        delayed, currentTryTimes, reconnectTimes, url, onreconnect);
-    print('连接成功。$url');
-    return ws;
-  }
-
-  static Future<WebSocket> _delayedGet(Duration delayed, int currentTryTimes,
-      int reconnectTimes, String url, Onreconnect onreconnect) async {
-    try {
-      return await WebSocket.connect(url);
-    } catch (e) {
-      if (currentTryTimes >= reconnectTimes) {
-        throw e;
-      }
-      ++currentTryTimes;
-      return await Future.delayed(delayed, () async {
-        print('连接失败，原因:$e。重连第$currentTryTimes次');
-        if (onreconnect != null) {
-          onreconnect(currentTryTimes);
-        }
-        return await _delayedGet(
-            delayed, currentTryTimes, reconnectTimes, url, onreconnect);
-      });
-    }
   }
 }
