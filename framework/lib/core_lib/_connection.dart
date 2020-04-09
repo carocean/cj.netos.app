@@ -21,14 +21,17 @@ mixin IConnection {
 
   int get port;
 
+  bool get isActived;
+
   void close();
 
   void send(Frame frame);
 }
+IConnection _currentConnection;
 
 class Connection implements IConnection {
+
   WebSocket _webSocket;
-  bool _isConnected = false;
   Timer _timer;
   bool _isDone = false;
   String _url;
@@ -41,11 +44,15 @@ class Connection implements IConnection {
   Duration _reconnectDelayed;
   int _conntimes = 0;
 
+  @override
+  bool get isActived => _webSocket.readyState == WebSocket.open;
+
   Connection._();
 
   _doReconnect(Timer timer) async {
-    if (_isConnected || _isDone) {
+    if (isActived || _isDone) {
       timer.cancel();
+      timer=null;
       return;
     }
     if (_onreconnect != null) {
@@ -54,15 +61,13 @@ class Connection implements IConnection {
     _conntimes++;
     try {
       _webSocket = await WebSocket.connect(_url);
-      _isConnected = true;
-      if(_timer!=null&&_timer.isActive) {
+      if (_isDone||(_timer != null && _timer.isActive)) {
         _timer.cancel();
-        _timer=null;
+        _timer = null;
       }
       print('连接成功。$_url');
       _afterInit();
     } catch (e) {
-      _isConnected = false;
       print('连接失败。$e');
     }
   }
@@ -89,17 +94,15 @@ class Connection implements IConnection {
 
     try {
       _webSocket = await WebSocket.connect(url);
-      _isConnected = true;
-      if(_timer!=null&&_timer.isActive) {
+      if (_timer != null && _timer.isActive) {
         _timer.cancel();
-        _timer=null;
+        _timer = null;
       }
       print('连接成功。$url');
       _afterInit();
     } catch (e) {
-      _isConnected = false;
       print('连接失败。$e');
-      if (_timer != null && _timer.isActive) {
+      if (_isDone||(_timer != null && _timer.isActive)) {
         return;
       }
       _timer = Timer.periodic(reconnectDelayed, _doReconnect);
@@ -126,12 +129,15 @@ class Connection implements IConnection {
       },
       cancelOnError: false,
       onDone: () async {
-        _isConnected = false;
-        if (!_isDone && (_timer == null || !_timer.isActive)) {
-          _timer = Timer.periodic(_reconnectDelayed, _doReconnect);
-        }
-        if (_onclose != null) {
-          _onclose();
+        print(
+            '连接完成状态:${_webSocket.readyState}');
+        if (_webSocket.readyState==WebSocket.closed) {
+          if (_onclose != null) {
+            _onclose();
+          }
+          if (!_isDone && (_timer == null || !_timer.isActive)) {
+            _timer = Timer.periodic(_reconnectDelayed, _doReconnect);
+          }
         }
       },
     );
@@ -151,9 +157,13 @@ class Connection implements IConnection {
     Onreconnect onreconnect,
     Duration reconnectDelayed,
   }) async {
+    if(_currentConnection!=null) {
+      _currentConnection.close();
+    }
     Connection conn = Connection._();
     await conn._init(url, pingInterval, onopen, onclose, onmessage, onerror,
         onreconnect, reconnectDelayed);
+    _currentConnection=conn;
     return conn;
   }
 
@@ -176,8 +186,9 @@ class Connection implements IConnection {
 
   @override
   void close() {
-    _webSocket.close();
     _isDone = true;
+    _webSocket.close();
+    _currentConnection=null;
   }
 
   static void _parseUrl(String url, Connection conn) {

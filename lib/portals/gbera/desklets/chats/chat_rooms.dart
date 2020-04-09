@@ -107,12 +107,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.site.getService('/chat/rooms');
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
-    IFriendService friendService =
-        widget.context.site.getService("/gbera/friends");
-    if (!await friendService.exists(sender)) {
-      var person = await friendService.getFriend(sender);
-      await friendService.addFriend(person);
-    }
 
     var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
     if (chatRoom == null) {
@@ -616,6 +610,11 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           //打开聊天室
+          widget.context
+              .forward('/portlet/chat/talk', arguments: {
+            'chatRoom': widget.model.chatRoom,
+            'displayRoomTitle': widget.model.displayRoomTitle,
+          });
         },
         child: item,
       ),

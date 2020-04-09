@@ -30,7 +30,7 @@ class _EntryPointState extends State<EntryPoint> {
 
   @override
   void dispose() {
-    _entrymode=0;
+    _entrymode = 0;
     super.dispose();
   }
 
@@ -57,9 +57,11 @@ class _EntryPointState extends State<EntryPoint> {
     }, (v) {
       _entrymode = 3;
     });
+
     if (_entrymode != 3) {
       return;
     }
+    await _localPrincipalManager.online();
     //成功则到桌面
     WidgetsBinding.instance.addPostFrameCallback((d) {
       widget.context.forward(

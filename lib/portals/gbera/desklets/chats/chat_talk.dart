@@ -642,7 +642,6 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
     });
     super.initState();
   }
-
   @override
   void dispose() {
     // TODO: implement dispose
@@ -747,7 +746,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                     children: [
                       TextSpan(
                         text:
-                            '新京报快讯 据贵州省卫生健康委员会官方微博消息，1月26日晚，贵州省疫情防控工作领导小组接报，泰国亚洲航空公司FD428航班将于当晚22时50分落地贵阳，机上一名有武汉旅行史的福建旅客林某某（男，44岁）和一名贵州省六盘水市旅客康某某（女，7岁）出现发热状况。',
+                            widget.p2pMessage.content??'',
                       ),
                     ],
                   ),

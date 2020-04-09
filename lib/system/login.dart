@@ -944,6 +944,7 @@ class PasswordLoginAction {
         subject['person'],
       ));
     }
+    await manager.online();
     context.forward("/scaffold/withbottombar",
         clearHistoryByPagePath: '/', scene: 'gbera');
   }

@@ -32,7 +32,6 @@ mixin IPeer {
       String networkName, EndOrientation endOrientation, ListenMode mode);
 
   void close();
-
   bool get isAuthed;
 
   bool get isSupportsReconnect;

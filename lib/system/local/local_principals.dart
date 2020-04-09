@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:framework/core_lib/_app_keypair.dart';
+import 'package:framework/core_lib/_scene.dart';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,7 +21,8 @@ mixin IPlatformLocalPrincipalManager implements ILocalPrincipalVisitor {
   String current();
 
   Future<void> setCurrent(String person) {}
-
+  ///上线
+  Future<void> online();
   bool isEmpty();
 
   //请求远程刷新token并存储
@@ -134,15 +136,18 @@ class DefaultLocalPrincipalManager
     Principal principal = await _principalService.get(person);
     //如果令牌还能用半个小时就不刷新，半个小时会导致用户在使用中间令牌失效
     //非常操蛋，entrypoint会一次性调用两次doRefreshToken，而且第二次传入的是旧的refreshToken，因此第二次会验证失败，故计是一次进入该方法两个处理，都拿的是旧的。之后再找原因
-    if (principal?.pubtime + principal?.expiretime >
+    if (principal?.pubtime + principal?.expiretime <=
         DateTime.now().millisecondsSinceEpoch - 1800000) {
       if (susseed != null) {
         susseed(principal);
       }
       return;
     }
+    var appid=principal.appid;
     Dio dio = _site.getService('@.http');
     AppKeyPair appKeyPair = _site.getService('@.appKeyPair');
+    var sceneAppKeyPair=await appKeyPair.getAppKeyPair(appid, _site);
+
     //强制刷新所有账户的访问令牌
     var appNonce = MD5Util.MD5(Uuid().v1()).toUpperCase();
     var response = await dio
@@ -154,18 +159,21 @@ class DefaultLocalPrincipalManager
       options: Options(
         headers: {
           'rest-command': 'refreshToken',
-          'app-id': appKeyPair.appid,
-          'app-key': appKeyPair.appKey,
+          'app-id': sceneAppKeyPair.appid,
+          'app-key': sceneAppKeyPair.appKey,
           'app-nonce': appNonce,
-          'app-sign': appKeyPair.appSign(appNonce),
+          'app-sign': sceneAppKeyPair.appSign(appNonce),
         },
       ),
     )
-        .catchError((e) {
+        .catchError((e) async{
       print(e);
     });
     if (response.statusCode >= 400) {
       print('刷新失败：${response.statusCode} ${response.statusMessage}');
+      if (error != null) {
+        await error({'status':response.statusCode,'message':response.statusMessage});
+      }
       return;
     }
     var data = response.data;
@@ -173,7 +181,7 @@ class DefaultLocalPrincipalManager
     if (map['status'] as int >= 400) {
       print('刷新失败：${map['status']} ${map['message']}');
       if (error != null) {
-        error(map);
+       await error(map);
       }
       return;
     }
@@ -186,7 +194,7 @@ class DefaultLocalPrincipalManager
     Principal one = await _principalService.get(person);
     _cached[person] = one;
     if (susseed != null) {
-      susseed(one);
+     await susseed(one);
     }
   }
 
@@ -260,6 +268,10 @@ class DefaultLocalPrincipalManager
   @override
   Future<void> setCurrent(String person) async {
     _current = person;
+  }
+
+  @override
+  Future<Function> online() async{
     IPeerManager peerManager = _site.getService('@.peer.manager');
     if (peerManager != null) {
       await peerManager.start(_site);
