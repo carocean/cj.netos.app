@@ -63,10 +63,9 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       }
      await chatRoomService.addMember(
         RoomMember(
-          MD5Util.MD5(Uuid().v1()),
           _chatRoom.id,
           official,
-          widget.context.principal.person,
+          DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
       );

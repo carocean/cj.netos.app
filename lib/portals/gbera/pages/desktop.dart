@@ -19,11 +19,16 @@ class Desktop extends StatefulWidget {
   _DesktopState createState() => _DesktopState();
 }
 
-class _DesktopState extends State<Desktop>  {
+class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
   List<Widget> _desklets = [];
   bool _isloaded = false;
 
+
+  @override
+  bool get wantKeepAlive {
+    return true;
+  }
 
   @override
   void initState() {
@@ -132,8 +137,8 @@ class _DesktopState extends State<Desktop>  {
                     'back_button': true,
                   },
                 ).then((v) {
+                  _desklets.clear();
                   _load().then((v) {
-                    _desklets.clear();
                     if (mounted) {
                       setState(() {});
                     }

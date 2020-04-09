@@ -414,42 +414,36 @@ class ChatRoom {
   }
 }
 
-@entity
+@Entity(primaryKeys: ['person','room','sandbox'])
 class RoomMember {
-  @primaryKey
-  String id;
   String room;
   String person;
-  String whoAdd;
+  int atime;
   String sandbox;
 
   RoomMember(
-    this.id,
     this.room,
     this.person,
-    this.whoAdd,
+    this.atime,
     this.sandbox,
   );
 
   RoomMember.formMap(map, String sandbox) {
-    this.id = map['id'];
     this.room = map['room'];
     this.person = map['person'];
-    this.whoAdd = map['owner'];
+    this.atime = map['atime'];
     this.sandbox = sandbox;
   }
 }
 
-@entity
+@Entity(primaryKeys: ['person','room','sandbox'])
 class RoomNick {
-  @primaryKey
-  final String id;
   final String person;
   final String room;
   final String nickName;
   final String sandbox;
 
-  RoomNick(this.id, this.person, this.room, this.nickName, this.sandbox);
+  RoomNick(this.person, this.room, this.nickName, this.sandbox);
 }
 
 @entity

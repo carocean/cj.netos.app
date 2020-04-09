@@ -125,14 +125,9 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     );
   }
 
-  @override
-  Future<List<Friend>> listWhoAddMember(String roomCode, String whoAdd) async {
-    return await roomMemberDAO.listWhoAddMember(
-        principal.person, roomCode, whoAdd);
-  }
 
   @override
-  Future<List<Friend>> listdMember(String roomCode) async {
+  Future<List<RoomMember>> listdMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
   }
 

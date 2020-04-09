@@ -268,9 +268,8 @@ mixin IChatRoomService {
 
   Future<void> removeChatRoom(String id, {bool isOnlySaveLocal = false}) {}
 
-  Future<List<Friend>> listWhoAddMember(String roomCode, String creator) {}
 
-  Future<List<Friend>> listdMember(String id) {}
+  Future<List<RoomMember>> listdMember(String id) {}
 
   Future<void> updateRoomLeading(String roomid, String file) {}
 

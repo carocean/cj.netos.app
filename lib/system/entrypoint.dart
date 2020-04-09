@@ -72,7 +72,6 @@ class _EntryPointState extends State<EntryPoint> {
 
   @override
   Widget build(BuildContext context) {
-    print(_entrymode);
     switch (_entrymode) {
       case 1:
         return _EntryPointIndex(

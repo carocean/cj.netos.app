@@ -151,9 +151,19 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Future<void> _loadChatroom() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
     List<ChatRoom> rooms = await chatRoomService.listChatRoom();
     for (var room in rooms) {
-      List<Friend> friends = await chatRoomService.listdMember(room.id);
+      List<RoomMember> members = await chatRoomService.listdMember(room.id);
+      List<Friend> friends = [];
+      for (var member in members) {
+        var f = await friendService.getFriend(member.person);
+        if (f == null) {
+          continue;
+        }
+        friends.add(f);
+      }
       _models.add(
         _ChatRoomModel(
           chatRoom: room,
@@ -185,10 +195,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       var official = members[i];
       await chatRoomService.addMember(
         RoomMember(
-          MD5Util.MD5(Uuid().v1()),
           roomCode,
           official,
-          widget.context.principal.person,
+          DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
       );
@@ -289,11 +298,14 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
     return Container(
       color: Colors.white,
+      margin: EdgeInsets.only(
+        bottom: 5,
+      ),
       padding: EdgeInsets.only(
         left: 10,
         right: 10,
         top: 10,
-        bottom: 10,
+        bottom: 0,
       ),
       child: Column(
         children: <Widget>[

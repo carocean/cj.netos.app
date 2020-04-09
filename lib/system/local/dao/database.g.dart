@@ -156,9 +156,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomMember` (`id` TEXT, `room` TEXT, `person` TEXT, `whoAdd` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomNick` (`id` TEXT, `person` TEXT, `room` TEXT, `nickName` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `RoomNick` (`person` TEXT, `room` TEXT, `nickName` TEXT, `sandbox` TEXT, PRIMARY KEY (`person`, `room`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -2329,10 +2329,9 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['sandbox'] as String);
 
   static final _roomMemberMapper = (Map<String, dynamic> row) => RoomMember(
-      row['id'] as String,
       row['room'] as String,
       row['person'] as String,
-      row['whoAdd'] as String,
+      row['atime'] as int,
       row['sandbox'] as String);
 
   final InsertionAdapter<ChatRoom> _chatRoomInsertionAdapter;
@@ -2390,10 +2389,9 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
             database,
             'RoomMember',
             (RoomMember item) => <String, dynamic>{
-                  'id': item.id,
                   'room': item.room,
                   'person': item.person,
-                  'whoAdd': item.whoAdd,
+                  'atime': item.atime,
                   'sandbox': item.sandbox
                 });
 
@@ -2404,23 +2402,9 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   final QueryAdapter _queryAdapter;
 
   static final _roomMemberMapper = (Map<String, dynamic> row) => RoomMember(
-      row['id'] as String,
       row['room'] as String,
       row['person'] as String,
-      row['whoAdd'] as String,
-      row['sandbox'] as String);
-
-  static final _friendMapper = (Map<String, dynamic> row) => Friend(
-      row['official'] as String,
-      row['source'] as String,
-      row['uid'] as String,
-      row['accountName'] as String,
-      row['appid'] as String,
-      row['avatar'] as String,
-      row['rights'] as String,
-      row['nickName'] as String,
-      row['signature'] as String,
-      row['pyname'] as String,
+      row['atime'] as int,
       row['sandbox'] as String);
 
   static final _countValueMapper =
@@ -2444,20 +2428,11 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   }
 
   @override
-  Future<List<Friend>> listWhoAddMember(
-      String sandbox, String roomCode, String whoAdd) async {
+  Future<List<RoomMember>> listdMember(String sandbox, String roomCode) async {
     return _queryAdapter.queryList(
-        'SELECT f.* FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=? and m.room=? and m.whoAdd=?',
-        arguments: <dynamic>[sandbox, roomCode, whoAdd],
-        mapper: _friendMapper);
-  }
-
-  @override
-  Future<List<Friend>> listdMember(String person, String roomCode) async {
-    return _queryAdapter.queryList(
-        'SELECT f.* FROM RoomMember m,Friend f where m.person=f.official and m.sandbox=? and m.room=?',
-        arguments: <dynamic>[person, roomCode],
-        mapper: _friendMapper);
+        'SELECT * FROM RoomMember where sandbox=? and room=?',
+        arguments: <dynamic>[sandbox, roomCode],
+        mapper: _roomMemberMapper);
   }
 
   @override
