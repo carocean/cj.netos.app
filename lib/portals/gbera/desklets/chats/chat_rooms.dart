@@ -107,6 +107,15 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.site.getService('/chat/rooms');
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    if (!(await personService.existsPerson(sender))) {
+      var sendPerson =
+          await personService.getPerson(sender, isDownloadAvatar: true);
+      if (sendPerson != null) {
+        personService.addPerson(sendPerson, isOnlyLocal: true);
+      }
+    }
 
     var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
     if (chatRoom == null) {
@@ -249,7 +258,12 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                         return;
                       }
                       _createChatroom(result).then((v) {
-                        setState(() {});
+                        _models.clear();
+                        _loadChatroom().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                     },
                 ),
@@ -331,7 +345,12 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                     return;
                   }
                   _createChatroom(result).then((v) {
-                    setState(() {});
+                    _models.clear();
+                    _loadChatroom().then((v) {
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    });
                   });
                 },
                 child: Icon(
@@ -371,18 +390,34 @@ class __ChatroomItemState extends State<_ChatroomItem> {
   @override
   void initState() {
     _stateBar = _ChatroomItemStateBar();
-    widget.notify.listen((command) {
-      print(command);
+    _streamSubscription = widget.notify.listen((command) {
+      ChatMessage message=command['message'];
+      if(message==null||message.room!=widget.model.chatRoom.id) {
+        return;
+      }
+      switch (command['action']) {
+        case 'arrivePushMessageCommand':
+          _loadUnreadMessage().then((v) {
+            setState(() {});
+          });
+          break;
+        default:
+          print('不支持指令：${command['action']}');
+          break;
+      }
       if (mounted) {
         setState(() {});
       }
+    });
+    _loadUnreadMessage().then((v) {
+      setState(() {});
     });
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _streamSubscription.cancel();
     super.dispose();
   }
 
@@ -396,9 +431,34 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     super.didUpdateWidget(oldWidget);
   }
 
+  Future<void> _loadUnreadMessage() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    ChatMessage message =
+        await messageService.firstUnreadMessage(widget.model.chatRoom.id);
+    if (message == null) {
+      _stateBar.count = 0;
+      _stateBar.atime = null;
+      _stateBar.isShow = false;
+      _stateBar.brackets = null;
+      _stateBar.tips = null;
+      return;
+    }
+    var count =
+        await messageService.countUnreadMessage(widget.model.chatRoom.id);
+    _stateBar.count = count;
+    _stateBar.atime = message?.atime;
+    var person = await personService.getPerson(message.sender);
+    _stateBar.brackets = '${count > 0 ? '$count条' : '${person.nickName}'}';
+    _stateBar.tips = '${person.nickName}:${message?.content}';
+    _stateBar.isShow = true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    var imgSrc = widget.model.leading(widget.context.principal.accessToken);
+    var imgSrc = widget.model.leading(widget.context.principal);
 
     var item = Container(
       decoration: new BoxDecoration(
@@ -433,7 +493,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
                           widget.model.chatRoom.creator) {
                         Scaffold.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('不可修改图标！原因：不是您创建的感知器'),
+                            content: Text('不可修改图标！原因：不是您创建的聊天室'),
                           ),
                         );
                         return;
@@ -511,7 +571,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
                         children: <Widget>[
                           Text.rich(
                             TextSpan(
-                              text: widget.model.displayRoomTitle,
+                              text: widget.model.displayRoomTitle(widget.context.principal),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -610,10 +670,13 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           //打开聊天室
-          widget.context
-              .forward('/portlet/chat/talk', arguments: {
+          widget.context.forward('/portlet/chat/talk', arguments: {
             'chatRoom': widget.model.chatRoom,
             'displayRoomTitle': widget.model.displayRoomTitle,
+          }).then((v){
+            _loadUnreadMessage().then((v) {
+              setState(() {});
+            });
           });
         },
         child: item,
@@ -644,7 +707,7 @@ class _ChatRoomModel {
       {this.chatRoom, this.members, this.unreadMessage, this.unreadMsgCount});
 
   ///创建者添加的成员,当聊天室无标题和头像时根据创建者添加的成员生成它
-  String get displayRoomTitle {
+  String  displayRoomTitle(UserPrincipal principal) {
     if (!StringUtil.isEmpty(chatRoom.title)) {
       return chatRoom.title;
     }
@@ -654,6 +717,9 @@ class _ChatRoomModel {
     String name = '';
     for (int i = 0; i < members.length; i++) {
       var f = members[i];
+      if(f.official==principal.person){
+        continue;
+      }
       name += '${f.nickName ?? f.accountName},';
       if (i >= 6) {
         break;
@@ -665,7 +731,7 @@ class _ChatRoomModel {
     return name;
   }
 
-  Widget leading(String accessToken) {
+  Widget leading(UserPrincipal principal) {
     if (!StringUtil.isEmpty(this.chatRoom.leading)) {
       if (this.chatRoom.leading.startsWith('/')) {
         return Image.file(
@@ -683,14 +749,17 @@ class _ChatRoomModel {
     //九宫格
     var list = <String>[];
     for (var i = 0; i < members.length; i++) {
-      if (i >= 9) {
+      if (list.length == 9) {
         break;
       }
       var m = members[i];
+      if(m.official==principal.person){
+        continue;
+      }
       if (m.avatar.startsWith('/')) {
         list.add(m.avatar);
       } else {
-        list.add('${m.avatar}?accessToken=$accessToken');
+        list.add('${m.avatar}?accessToken=${principal.accessToken}');
       }
     }
     return NineOldWidget(list);

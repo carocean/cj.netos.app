@@ -125,7 +125,6 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     );
   }
 
-
   @override
   Future<List<RoomMember>> listdMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
@@ -160,10 +159,10 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
       var list =
           await this.chatRoomRemote.pageRoomMember(creator, room, limit, skip);
       read = list.length;
-      if(read<1) {
+      if (read < 1) {
         break;
       }
-      skip+=read;
+      skip += read;
       for (var m in list) {
         if (added.contains(m.person)) {
           continue;
@@ -239,5 +238,21 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   Future<List<ChatMessage>> pageMessage(
       String roomCode, int limit, int offset) {
     return p2pMessageDAO.pageMessage(principal.person, roomCode, limit, offset);
+  }
+
+  @override
+  Future<int> countUnreadMessage(String room) async {
+    CountValue value = await p2pMessageDAO.countUnreadMessage(
+        room, principal.person, 'arrived');
+    if (value == null) {
+      return 0;
+    }
+    return value.value;
+  }
+
+  @override
+  Future<ChatMessage> firstUnreadMessage(String room) async {
+    return await p2pMessageDAO.firstUnreadMessage(
+        room, principal.person, 'arrived');
   }
 }

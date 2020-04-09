@@ -171,6 +171,9 @@ class DefaultPumpWell implements IPumpWell {
     _unlisten(String person, String path) {
       var count = _listenItems.length;
       for (var i = 0; i < count; i++) {
+        if(_listenItems==null) {
+          continue;
+        }
         var item = _listenItems[i];
         if (item == null) {
           continue;

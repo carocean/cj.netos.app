@@ -2505,6 +2505,9 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
       row['dtime'] as int,
       row['sandbox'] as String);
 
+  static final _countValueMapper =
+      (Map<String, dynamic> row) => CountValue(row['value'] as int);
+
   final InsertionAdapter<ChatMessage> _chatMessageInsertionAdapter;
 
   @override
@@ -2513,6 +2516,24 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
     return _queryAdapter.queryList(
         'SELECT * FROM ChatMessage where sandbox=? and room=? ORDER BY ctime DESC LIMIT ? OFFSET ?',
         arguments: <dynamic>[sandbox, roomCode, limit, offset],
+        mapper: _chatMessageMapper);
+  }
+
+  @override
+  Future<CountValue> countUnreadMessage(
+      String room, String sandbox, String state) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM ChatMessage where room=? and sandbox=? and state=?',
+        arguments: <dynamic>[room, sandbox, state],
+        mapper: _countValueMapper);
+  }
+
+  @override
+  Future<ChatMessage> firstUnreadMessage(
+      String room, String person, String state) async {
+    return _queryAdapter.query(
+        'SELECT * FROM ChatMessage where room=? and sandbox=? and state=? ORDER BY atime DESC LIMIT 1',
+        arguments: <dynamic>[room, person, state],
         mapper: _chatMessageMapper);
   }
 
