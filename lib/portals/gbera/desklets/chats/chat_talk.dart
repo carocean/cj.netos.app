@@ -34,44 +34,94 @@ class _ChatTalkState extends State<ChatTalk> {
   List<ChatMessage> _p2pMessages;
   int _limit = 12, _offset = 0;
   String _displayRoomTitle;
+  StreamSubscription _streamSubscription;
+  bool _isloaded = false;
 
   @override
   void initState() {
+    _controller = EasyRefreshController();
+    _scrollController = ScrollController();
     _p2pMessages = [];
     _chatRoom = widget.context.parameters['chatRoom'];
     _displayRoomTitle = widget.context.parameters['displayRoomTitle'];
-    _onRefresh().then((v) {
-      setState(() {
-        _goEnd();
+    _flagReadMessages().then((v) {
+      _onRefresh().then((v) {
+        if (mounted) {
+          _goEnd(500);
+          _isloaded = true;
+          setState(() {});
+        }
       });
     });
-    super.initState();
-    _controller = EasyRefreshController();
-    _scrollController = ScrollController();
-  }
-
-  void _goEnd([int milliseconds = 300]) {
-    Timer(
-        Duration(
-          milliseconds: milliseconds,
-        ), () {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    Stream notify = widget.context.parameters['notify'];
+    _streamSubscription = notify.listen((command) {
+      ChatMessage message = command['message'];
+      if (message == null||message.sender==widget.context.principal.person || message.room != _chatRoom.id) {
+        return;
+      }
+      switch (command['action']) {
+        case 'arrivePushMessageCommand':
+          _arrivePushMessageCommand(message);
+          break;
+        default:
+          print('不支持的命令:${command['action']}');
+          break;
+      }
     });
+    super.initState();
   }
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _p2pMessages.clear();
     _chatRoom = null;
     _controller.dispose();
     _scrollController.dispose();
+    _isloaded = false;
     super.dispose();
+  }
+
+  void _goEnd([int milliseconds = 10]) {
+    Future.delayed(
+        Duration(
+          milliseconds: milliseconds,
+        ), () {
+      if (_scrollController == null) {
+        return;
+      }
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  Future<void> _arrivePushMessageCommand(message) async {
+    //为了去除屏动效果
+    //加载未读的消息并添加到_p2pMessages
+    //然后标记为已读
+    //再定位为结尾
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    var unreadMessages = await messageService.listUnreadMessages(_chatRoom.id);
+    if (unreadMessages.length == null) {
+      return;
+    }
+    await _flagReadMessages();
+    _p2pMessages.insertAll(0, unreadMessages);
+    setState(() {
+      _goEnd(300);
+    });
   }
 
   _resetMessages() {
     _p2pMessages.clear();
     _offset = 0;
     _controller.resetRefreshState();
+  }
+
+  Future<void> _flagReadMessages() async {
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    await messageService.flatReadMessages(_chatRoom.id);
   }
 
   Future<void> _onRefresh() async {
@@ -90,49 +140,61 @@ class _ChatTalkState extends State<ChatTalk> {
   Future<void> _doCommand(_ChatCommand cmd) async {
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
+    var message;
     switch (cmd.cmd) {
       case 'sendText':
-        await messageService.addMessage(
-          ChatMessage(
-            MD5Util.MD5(Uuid().v1()),
-            widget.context.principal.person,
-            _chatRoom.id,
-            'text',
-            cmd.message,
-            'sended',
-            DateTime.now().millisecondsSinceEpoch,
-            null,
-            null,
-            null,
-            widget.context.principal.person,
-          ),
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'text',
+          cmd.message,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
         );
         break;
       case 'sendAudio':
         var msg = cmd.message as Map;
         var map = {'path': msg['path'], 'timelength': msg['timelength']};
         String text = jsonEncode(map);
-        await messageService.addMessage(
-          ChatMessage(
-            MD5Util.MD5(Uuid().v1()),
-            widget.context.principal.person,
-            _chatRoom.id,
-            'audio',
-            text,
-            'sended',
-            DateTime.now().millisecondsSinceEpoch,
-            null,
-            null,
-            null,
-            widget.context.principal.person,
-          ),
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'audio',
+          text,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
         );
         break;
     }
+    if (message == null) {
+      return;
+    }
+    await messageService.addMessage(_chatRoom.creator,message);
+    _p2pMessages.insert(0, message);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isloaded) {
+      return Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          height: 40,
+          width: 40,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text.rich(
@@ -203,9 +265,16 @@ class _ChatTalkState extends State<ChatTalk> {
               ),
             ),
           ),
-          _ChatSender(
+          _ChatSendPannel(
             context: widget.context,
             onTapEvents: _onTapEvents,
+            onFocus: () {
+              if (mounted) {
+                setState(() {
+                  _goEnd(300);
+                });
+              }
+            },
             plusPanel: _PlusPannel(),
             stickerPanel: _StickerPanel(),
             textRegionController: _scrollController,
@@ -215,10 +284,10 @@ class _ChatTalkState extends State<ChatTalk> {
             },
             onCommand: (cmd) async {
               await _doCommand(cmd);
-              _resetMessages();
-              await _onRefresh();
+//              _resetMessages();
+//              await _onRefresh();
               setState(() {
-                _goEnd(500);
+                _goEnd(100);
               });
             },
           ),
@@ -363,20 +432,22 @@ class _ChatCommand {
   _ChatCommand({this.cmd, this.message});
 }
 
-class _ChatSender extends StatefulWidget {
+class _ChatSendPannel extends StatefulWidget {
   PageContext context;
   Widget plusPanel;
   Widget stickerPanel;
   ScrollController textRegionController;
   Function(_RoomMode roomMode) onRoomModeChanged;
   Function(_ChatCommand cmd) onCommand;
+  Function() onFocus;
 
   List<Function()> onTapEvents;
 
-  _ChatSender({
+  _ChatSendPannel({
     this.context,
     this.onTapEvents,
     this.plusPanel,
+    this.onFocus,
     this.stickerPanel,
     this.textRegionController,
     this.onRoomModeChanged,
@@ -384,10 +455,10 @@ class _ChatSender extends StatefulWidget {
   });
 
   @override
-  __ChatSenderState createState() => __ChatSenderState();
+  _ChatSendPannelState createState() => _ChatSendPannelState();
 }
 
-class __ChatSenderState extends State<_ChatSender> {
+class _ChatSendPannelState extends State<_ChatSendPannel> {
   _Action _action;
   TextEditingController _controller;
   FocusNode _contentFocusNode;
@@ -397,6 +468,7 @@ class __ChatSenderState extends State<_ChatSender> {
   void initState() {
     _contentFocusNode = FocusNode();
     _controller = TextEditingController();
+    _contentFocusNode.addListener(widget.onFocus);
     widget.onTapEvents.add(() {
       _action = null;
       _contentFocusNode.unfocus();
@@ -642,6 +714,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
     });
     super.initState();
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -672,8 +745,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   @override
   Widget build(BuildContext context) {
     if (!_isloaded) {
-      return Center(
-        child: Text('加载中...'),
+      return Container(
+        height: 0,
+        width: 0,
       );
     }
     var avatar;
@@ -701,8 +775,8 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 
     return Container(
       margin: EdgeInsets.only(
-        top: 10,
-        bottom: 10,
+        top: 15,
+        bottom: 15,
       ),
       padding: EdgeInsets.only(
         left: 10,
@@ -714,10 +788,11 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           Padding(
             padding: EdgeInsets.only(
               right: 10,
+              top: 5,
             ),
             child: SizedBox(
-              width: 40,
-              height: 40,
+              width: 35,
+              height: 35,
               child: ClipRRect(
                 borderRadius: BorderRadius.all(
                   Radius.circular(5),
@@ -727,30 +802,57 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ),
           ),
           Expanded(
-            child: Wrap(
-              runSpacing: 5,
-              direction: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  TimelineUtil.format(
-                    DateTime.now().millisecondsSinceEpoch,
-                  ),
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
                 Text.rich(
                   TextSpan(
-                    text: '',
-                    children: [
-                      TextSpan(
-                        text:
-                            widget.p2pMessage.content??'',
-                      ),
-                    ],
+                    text: widget.p2pMessage.content ?? '',
+                    children: [],
                   ),
                   softWrap: true,
+                  strutStyle: StrutStyle(
+                    height: 1.8,
+                  ),
+                  overflow: TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[800],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        right: 5,
+                      ),
+                      child: Text(
+                        _sender.nickName ?? '',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w600,
+                        ),
+                        strutStyle: StrutStyle(
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      TimelineUtil.format(
+                        widget.p2pMessage.atime,
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w600,
+                      ),
+                      strutStyle: StrutStyle(
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -813,15 +915,19 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       case 'text':
         display = Text.rich(
           TextSpan(
-            text: '',
-            children: [
-              TextSpan(
-                text: '${widget.p2pMessage.content ?? ''}',
-              ),
-            ],
+            text: widget.p2pMessage.content ?? '',
+            children: [],
           ),
           softWrap: true,
+          strutStyle: StrutStyle(
+            height: 1.8,
+          ),
           overflow: TextOverflow.visible,
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
+          ),
         );
         break;
       case 'audio':
@@ -842,8 +948,8 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     }
     return Container(
       margin: EdgeInsets.only(
-        top: 10,
-        bottom: 10,
+        top: 15,
+        bottom: 15,
       ),
       padding: EdgeInsets.only(
         left: 60,
@@ -857,26 +963,52 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  TimelineUtil.format(
-                    widget.p2pMessage.ctime,
-                  ),
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
                 display,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        right: 5,
+                      ),
+                      child: Text(
+                        _sender?.nickName ?? '',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w600,
+                        ),
+                        strutStyle: StrutStyle(
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      TimelineUtil.format(
+                        widget.p2pMessage.ctime,
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w600,
+                      ),
+                      strutStyle: StrutStyle(
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
               left: 10,
+              top: 5,
             ),
             child: SizedBox(
-              width: 40,
-              height: 40,
+              width: 35,
+              height: 35,
               child: ClipRRect(
                 borderRadius: BorderRadius.all(
                   Radius.circular(5),

@@ -285,7 +285,7 @@ mixin IChatRoomService {
   Future<void> loadAndSaveRoomMembers(String room, String sender) {}
 }
 mixin IP2PMessageService {
-  Future<void> addMessage(ChatMessage message);
+  Future<void> addMessage(String creator,ChatMessage message,{bool isOnlySaveLocal=false});
 
   Future<List<ChatMessage>> pageMessage(
       String roomCode, int limit, int offset) {}
@@ -293,6 +293,15 @@ mixin IP2PMessageService {
   Future<ChatMessage> firstUnreadMessage(String id) {}
 
   Future<int> countUnreadMessage(String id) {}
+
+  Future<void> flatReadMessages(String id) {}
+
+  Future<List<ChatMessage>> listUnreadMessages(String id) {}
+
+  Future<bool> existsMessage(String msgid) {}
+
+
+
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);

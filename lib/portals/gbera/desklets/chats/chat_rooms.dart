@@ -89,13 +89,13 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   }
 
   Future<void> _arrivePushMessageCommand(Frame frame) async {
-    var text = frame.contentText;
+    var text = frame. contentText;
     if (StringUtil.isEmpty(text)) {
       print('消息为空，被丢弃。');
       return null;
     }
     if (frame.head("sender") == widget.context.principal.person) {
-      print('自已的消息又发给自己，被丢弃。');
+//      print('自已的消息又发给自己，被丢弃。');
       return null;
     }
     var room = frame.parameter('room');
@@ -128,6 +128,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       _models.clear();
       await _loadChatroom();
     }
+    if (await messageService.existsMessage(msgid)) {
+      //消息已存在
+      return;
+    }
     var message = ChatMessage(
       msgid,
       sender,
@@ -135,13 +139,15 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       contentType,
       text,
       'arrived',
-      StringUtil.isEmpty(ctime) ? null : int.parse(ctime),
+      StringUtil.isEmpty(ctime)
+          ? DateTime.now().millisecondsSinceEpoch
+          : int.parse(ctime),
       DateTime.now().millisecondsSinceEpoch,
       null,
       null,
       widget.context.principal.person,
     );
-    await messageService.addMessage(message);
+    await messageService.addMessage(sender, message, isOnlySaveLocal: true);
 
     _notifyStreamController
         .add({'action': 'arrivePushMessageCommand', 'message': message});
@@ -391,8 +397,8 @@ class __ChatroomItemState extends State<_ChatroomItem> {
   void initState() {
     _stateBar = _ChatroomItemStateBar();
     _streamSubscription = widget.notify.listen((command) {
-      ChatMessage message=command['message'];
-      if(message==null||message.room!=widget.model.chatRoom.id) {
+      ChatMessage message = command['message'];
+      if (message == null || message.room != widget.model.chatRoom.id) {
         return;
       }
       switch (command['action']) {
@@ -571,7 +577,8 @@ class __ChatroomItemState extends State<_ChatroomItem> {
                         children: <Widget>[
                           Text.rich(
                             TextSpan(
-                              text: widget.model.displayRoomTitle(widget.context.principal),
+                              text: widget.model
+                                  .displayRoomTitle(widget.context.principal),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -672,8 +679,10 @@ class __ChatroomItemState extends State<_ChatroomItem> {
           //打开聊天室
           widget.context.forward('/portlet/chat/talk', arguments: {
             'chatRoom': widget.model.chatRoom,
-            'displayRoomTitle': widget.model.displayRoomTitle,
-          }).then((v){
+            'displayRoomTitle':
+                widget.model.displayRoomTitle(widget.context.principal),
+            'notify': widget.notify,
+          }).then((v) {
             _loadUnreadMessage().then((v) {
               setState(() {});
             });
@@ -707,7 +716,7 @@ class _ChatRoomModel {
       {this.chatRoom, this.members, this.unreadMessage, this.unreadMsgCount});
 
   ///创建者添加的成员,当聊天室无标题和头像时根据创建者添加的成员生成它
-  String  displayRoomTitle(UserPrincipal principal) {
+  String displayRoomTitle(UserPrincipal principal) {
     if (!StringUtil.isEmpty(chatRoom.title)) {
       return chatRoom.title;
     }
@@ -717,7 +726,7 @@ class _ChatRoomModel {
     String name = '';
     for (int i = 0; i < members.length; i++) {
       var f = members[i];
-      if(f.official==principal.person){
+      if (f.official == principal.person) {
         continue;
       }
       name += '${f.nickName ?? f.accountName},';
@@ -753,7 +762,7 @@ class _ChatRoomModel {
         break;
       }
       var m = members[i];
-      if(m.official==principal.person){
+      if (m.official == principal.person) {
         continue;
       }
       if (m.avatar.startsWith('/')) {

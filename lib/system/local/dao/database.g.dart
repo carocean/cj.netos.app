@@ -2520,6 +2520,15 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
   }
 
   @override
+  Future<List<ChatMessage>> listUnreadMessages(
+      String room, String state, String sandbox) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM ChatMessage where room=? and state=? and sandbox=? ORDER BY ctime DESC',
+        arguments: <dynamic>[room, state, sandbox],
+        mapper: _chatMessageMapper);
+  }
+
+  @override
   Future<CountValue> countUnreadMessage(
       String room, String sandbox, String state) async {
     return _queryAdapter.query(
@@ -2535,6 +2544,22 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
         'SELECT * FROM ChatMessage where room=? and sandbox=? and state=? ORDER BY atime DESC LIMIT 1',
         arguments: <dynamic>[room, person, state],
         mapper: _chatMessageMapper);
+  }
+
+  @override
+  Future<void> updateMessagesState(String state, int rtime, String room,
+      String wherestate, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatMessage SET state=? , rtime=? WHERE room=? and state=? and sandbox=?',
+        arguments: <dynamic>[state, rtime, room, wherestate, sandbox]);
+  }
+
+  @override
+  Future<CountValue> countMessageWhere(String msgid, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM ChatMessage where id=? and sandbox=?',
+        arguments: <dynamic>[msgid, sandbox],
+        mapper: _countValueMapper);
   }
 
   @override

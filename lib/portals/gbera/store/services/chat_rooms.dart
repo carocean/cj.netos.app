@@ -229,9 +229,12 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
-  Future<Function> addMessage(ChatMessage message) async {
+  Future<Function> addMessage(String creator, ChatMessage message,
+      {bool isOnlySaveLocal = false}) async {
     await p2pMessageDAO.addMessage(message);
-    await chatRoomRemote.pushMessage(message);
+    if (!isOnlySaveLocal) {
+      await chatRoomRemote.pushMessage(creator, message);
+    }
   }
 
   @override
@@ -254,5 +257,31 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   Future<ChatMessage> firstUnreadMessage(String room) async {
     return await p2pMessageDAO.firstUnreadMessage(
         room, principal.person, 'arrived');
+  }
+
+  @override
+  Future<List<ChatMessage>> listUnreadMessages(String room) async {
+    return await p2pMessageDAO.listUnreadMessages(
+        room, 'arrived', principal.person);
+  }
+
+  @override
+  Future<Function> flatReadMessages(String room) async {
+    await p2pMessageDAO.updateMessagesState(
+        'readed',
+        DateTime.now().millisecondsSinceEpoch,
+        room,
+        'arrived',
+        principal.person);
+  }
+
+  @override
+  Future<bool> existsMessage(String msgid) async{
+    CountValue value =await
+        p2pMessageDAO.countMessageWhere(msgid, principal.person);
+    if (value == null) {
+      return false;
+    }
+    return value.value > 0;
   }
 }

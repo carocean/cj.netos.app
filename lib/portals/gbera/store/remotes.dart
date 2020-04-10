@@ -85,7 +85,7 @@ mixin IChatRoomRemote {
 
   Future<void> removeChatRoom(String code) {}
 
-  Future<void> pushMessage(ChatMessage message) {}
+  Future<void> pushMessage(String creator,ChatMessage message) {}
 
   Future<ChatRoom> getRoom(String creator, String room) {}
 

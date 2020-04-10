@@ -109,7 +109,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> pushMessage(ChatMessage message) {
+  Future<Function> pushMessage(String creator,ChatMessage message) {
     var taskbarProgress = site.getService('@.prop.taskbar.progress');
     switch (message.contentType) {
       case 'text':
@@ -117,6 +117,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           chatFlowPortsUrl,
           'pushMessage',
           parameters: {
+            'creator':creator,
             'room': message.room,
             'msgid': message.id,
             'contentType ': message.contentType,
