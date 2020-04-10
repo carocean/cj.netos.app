@@ -136,10 +136,15 @@ class DefaultLocalPrincipalManager
     Principal principal = await _principalService.get(person);
     //如果令牌还能用半个小时就不刷新，半个小时会导致用户在使用中间令牌失效
     //非常操蛋，entrypoint会一次性调用两次doRefreshToken，而且第二次传入的是旧的refreshToken，因此第二次会验证失败，故计是一次进入该方法两个处理，都拿的是旧的。之后再找原因
-    if (principal?.pubtime + principal?.expiretime <=
-        DateTime.now().millisecondsSinceEpoch - 1800000) {
+
+    bool isExpired=DateTime.now().millisecondsSinceEpoch>=(principal?.pubtime + principal?.expiretime-1800000);
+    print('${DateTime.fromMillisecondsSinceEpoch(principal.pubtime)} '
+        '${DateTime.fromMillisecondsSinceEpoch(principal?.pubtime + principal?.expiretime)} '
+        '${DateTime.fromMillisecondsSinceEpoch(principal?.pubtime + principal?.expiretime-1800000)} '
+        '${DateTime.now()}');
+    if (!isExpired) {
       if (susseed != null) {
-        susseed(principal);
+        await susseed(principal);
       }
       return;
     }
