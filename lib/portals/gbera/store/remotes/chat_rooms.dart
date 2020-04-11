@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/main.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 import '../remotes.dart';
@@ -78,12 +81,13 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'offset': j,
       },
     );
-    List<RoomMember> members=[];
-    for(var obj in list) {
-      members.add(RoomMember.formMap(obj,principal.person));
+    List<RoomMember> members = [];
+    for (var obj in list) {
+      members.add(RoomMember.formMap(obj, principal.person));
     }
     return members;
   }
+
   @override
   Future<void> removeChatRoom(String code) async {
     remotePorts.portTask.addPortGETTask(
@@ -109,21 +113,69 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> pushMessage(String creator,ChatMessage message) {
-    var taskbarProgress = site.getService('@.prop.taskbar.progress');
+  Future<Function> pushMessage(String creator, ChatMessage message) {
+    ProgressTaskBar taskbarProgress =
+        site.getService('@.prop.taskbar.progress');
     switch (message.contentType) {
       case 'text':
         remotePorts.portTask.addPortGETTask(
           chatFlowPortsUrl,
           'pushMessage',
           parameters: {
-            'creator':creator,
+            'creator': creator,
             'room': message.room,
             'msgid': message.id,
-            'contentType ': message.contentType,
+            'contentType': 'text',
             'content': message.content,
             'interval': 10,
           },
+        );
+        break;
+      case 'audio':
+        var listenPath = '/chatroom/talk/${message.id}/audio.upload';
+        remotePorts.portTask.listener(listenPath, (Frame frame) {
+          if(frame.command!='upload'){
+            return;
+          }
+          var subcmd = frame.head('sub-command');
+          switch (subcmd) {
+            case 'begin':
+              break;
+            case 'done':
+              var json = frame.contentText;
+              var files = jsonDecode(json);
+              var remoteFile = files[frame.parameter('localPath')];
+              var content=jsonDecode(frame.parameter('content'));
+              content['path']=remoteFile;
+              remotePorts.portTask.addPortGETTask(
+                chatFlowPortsUrl,
+                'pushMessage',
+                parameters: {
+                  'creator': frame.parameter('creator'),
+                  'room': frame.parameter('room'),
+                  'msgid': frame.parameter('msgid'),
+                  'contentType': 'audio',
+                  'content': jsonEncode(content),
+                  'interval': 10,
+                },
+              );
+              remotePorts.portTask.unlistener(listenPath);
+              break;
+            case 'sendProgress':
+              var count = frame.head('count');
+              var total = frame.head('total');
+              var percent = double.parse(count) / double.parse(total);
+              taskbarProgress.update(percent);
+              break;
+          }
+        });
+        var content = jsonDecode(message.content);
+        var localPath = content['path'];
+        remotePorts.portTask.addUploadTask(
+          '/app/chatroom/',
+          [localPath],
+          callbackUrl:
+              '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
         );
         break;
     }

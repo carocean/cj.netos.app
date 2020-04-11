@@ -13,8 +13,10 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:nineold/nine_old_frame.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../main.dart';
 import 'friend_page.dart';
 
 class ChatRoomsPortlet extends StatefulWidget {
@@ -32,9 +34,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   bool _isloaded = false;
   StreamController<dynamic> _notifyStreamController;
   List<_ChatRoomModel> _models = [];
+  ProgressTaskBar taskbarProgress;
 
   @override
   void initState() {
+    taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
     _notifyStreamController = StreamController.broadcast();
     if (!widget.context.isListening(matchPath: '/chat/room/message')) {
       widget.context.listenNetwork(_onmessage, matchPath: '/chat/room/message');
@@ -50,6 +54,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
   @override
   void dispose() {
+    taskbarProgress = null;
     _notifyStreamController.close();
     _models.clear();
     widget.context.unlistenNetwork(matchPath: '/chat/room/message');
@@ -89,8 +94,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   }
 
   Future<void> _arrivePushMessageCommand(Frame frame) async {
-    var text = frame. contentText;
-    if (StringUtil.isEmpty(text)) {
+    var content = frame.contentText;
+    if (StringUtil.isEmpty(content)) {
       print('消息为空，被丢弃。');
       return null;
     }
@@ -132,25 +137,102 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       //消息已存在
       return;
     }
-    var message = ChatMessage(
-      msgid,
-      sender,
-      room,
-      contentType,
-      text,
-      'arrived',
-      StringUtil.isEmpty(ctime)
-          ? DateTime.now().millisecondsSinceEpoch
-          : int.parse(ctime),
-      DateTime.now().millisecondsSinceEpoch,
-      null,
-      null,
-      widget.context.principal.person,
-    );
-    await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+    switch (contentType ?? '') {
+      case '':
+      case 'text':
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          StringUtil.isEmpty(ctime)
+              ? DateTime.now().millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        _notifyStreamController
+            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        break;
+      case 'audio':
+        var contentmap = jsonDecode(content);
+        String path = contentmap['path'];
+        var home = await getApplicationDocumentsDirectory();
+        var dir = '${home.path}/audios';
+        var dirFile = Directory(dir);
+        if (!dirFile.existsSync()) {
+          dirFile.createSync();
+        }
+        var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(path)}';
+        var localFile = '$dir/$fn';
+        var listenPath = '/chatroom/message/$msgid/audio.download';
+        widget.context.ports.portTask.listener(listenPath, _downloadAudio);
+        widget.context.ports.portTask.addDownloadTask(
+          '${path}?accessToken=${widget.context.principal.accessToken}',
+          localFile,
+          callbackUrl:
+              '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
+        );
+        break;
+      default:
+        print('收到未知的消息类型：$contentType');
+        break;
+    }
+  }
 
-    _notifyStreamController
-        .add({'action': 'arrivePushMessageCommand', 'message': message});
+  Future<void> _downloadAudio(Frame frame) async {
+    var subcmd = frame.head('sub-command');
+    switch (subcmd) {
+      case 'begin':
+        break;
+      case 'done':
+        var ctime = frame.parameter('ctime');
+        var msgid = frame.parameter('msgid');
+        var sender = frame.parameter('sender');
+        var room = frame.parameter('room');
+        var contentType = frame.parameter('contentType');
+        var contentmap = jsonDecode(frame.parameter('content'));
+        var localFile = frame.head('localFile');
+        contentmap['path'] = localFile;
+        var content = jsonEncode(contentmap);
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          StringUtil.isEmpty(ctime)
+              ? DateTime.now().millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        IP2PMessageService messageService =
+            widget.context.site.getService('/chat/p2p/messages');
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        _notifyStreamController
+            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        break;
+      case 'error':
+        print('下载失败');
+        break;
+      case 'receiveProgress':
+        var count = frame.head('count');
+        var total = frame.head('total');
+        var percent = double.parse(count) / double.parse(total);
+        if (mounted) {
+          taskbarProgress.update(percent);
+        }
+        break;
+    }
   }
 
   Future<void> _load() async {
@@ -458,8 +540,23 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     _stateBar.atime = message?.atime;
     var person = await personService.getPerson(message.sender);
     _stateBar.brackets = '${count > 0 ? '$count条' : '${person.nickName}'}';
-    _stateBar.tips = '${person.nickName}:${message?.content}';
     _stateBar.isShow = true;
+    switch (message?.contentType ?? '') {
+      case '':
+      case 'text':
+        _stateBar.tips = '${person.nickName}:${message?.content}';
+        break;
+      case 'audio':
+        var cnt = message?.content;
+        var map = jsonDecode(cnt);
+        double timelength = map['timelength'];
+        _stateBar.tips =
+            '${person.nickName}: 发来语音, 长度:${timelength.toStringAsFixed(0)}秒';
+        break;
+      default:
+        print('收到不支持的消息类型:${message.contentType}');
+        break;
+    }
   }
 
   @override

@@ -77,7 +77,7 @@ class FriendService implements IFriendService, IServiceBuilder {
 class ChatRoomService implements IChatRoomService, IServiceBuilder {
   IChatRoomDAO chatRoomDAO;
   IRoomMemberDAO roomMemberDAO;
-
+  IP2PMessageDAO messageDAO;
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
@@ -89,7 +89,9 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     chatRoomDAO = db.chatRoomDAO;
     roomMemberDAO = db.roomMemberDAO;
+    messageDAO=db.p2pMessageDAO;
     chatRoomRemote = site.getService('/remote/chat/rooms');
+
   }
 
   @override
@@ -207,6 +209,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     }
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
+    await messageDAO.emptyRoomMessages(room.id,principal.person);
     if (!isOnlySaveLocal) {
       await chatRoomRemote.removeChatRoom(room.id);
     }
@@ -284,4 +287,5 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
     }
     return value.value > 0;
   }
+
 }

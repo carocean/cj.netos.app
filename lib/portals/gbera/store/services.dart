@@ -300,8 +300,6 @@ mixin IP2PMessageService {
 
   Future<bool> existsMessage(String msgid) {}
 
-
-
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);

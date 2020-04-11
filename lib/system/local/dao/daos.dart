@@ -552,6 +552,9 @@ abstract class IP2PMessageDAO {
   @Query(
       'SELECT count(*) as value  FROM ChatMessage where id=:msgid and sandbox=:sandbox')
  Future<CountValue> countMessageWhere(String msgid, String sandbox) {}
+  @Query('delete FROM ChatMessage WHERE room=:room and sandbox = :sandbox')
+ Future<void> emptyRoomMessages(String room, String sandbox) {}
+
 
 }
 

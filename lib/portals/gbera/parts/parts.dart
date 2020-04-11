@@ -145,8 +145,11 @@ class _PageSelectorState extends State<PageSelector> {
   @override
   Widget build(BuildContext context) {
     var _controller = DefaultTabController.of(context);
-    if(widget.medias.isEmpty) {
-      return Container(height: 0,width: 0,);
+    if (widget.medias.isEmpty) {
+      return Container(
+        height: 0,
+        width: 0,
+      );
     }
     return Stack(
       children: <Widget>[
@@ -235,7 +238,6 @@ class _PageSelectorState extends State<PageSelector> {
     );
   }
 }
-
 
 class VoiceFloatingButton extends StatefulWidget {
   PageContext context;
@@ -427,18 +429,28 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
 //                      ),
                         ],
                       ),
-                      if (widget.timeLength != null)
-                        Positioned(
-                          right: 22,
-                          bottom: 8,
-                          child: Text(
-                            '${widget.timeLength}秒',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 10,
+                      widget.timeLength == null
+                          ? Positioned(
+                              left: 0,
+                              top: 0,
+                              child: Container(
+                                width: 0,
+                                height: 0,
+                              ),
+                              width: 0,
+                              height: 0,
+                            )
+                          : Positioned(
+                              right: 22,
+                              bottom: 8,
+                              child: Text(
+                                '${widget.timeLength.toStringAsFixed(0)}秒',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 10,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                     ],
                   );
                 },
@@ -452,10 +464,10 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
 }
 
 class SeekBar extends StatefulWidget {
-  final Duration duration;
-  final Duration position;
-  final ValueChanged<Duration> onChanged;
-  final ValueChanged<Duration> onChangeEnd;
+  Duration duration;
+  Duration position;
+  ValueChanged<Duration> onChanged;
+  ValueChanged<Duration> onChangeEnd;
 
   SeekBar({
     @required this.duration,
@@ -472,15 +484,39 @@ class _SeekBarState extends State<SeekBar> {
   double _dragValue;
 
   @override
+  void didUpdateWidget(SeekBar oldWidget) {
+    if (oldWidget.position != widget.position ||
+        oldWidget.duration != widget.duration ||
+        oldWidget.onChanged != widget.onChanged ||
+        oldWidget.onChangeEnd != widget.onChangeEnd) {
+      oldWidget.position = widget.position;
+      oldWidget.duration = widget.duration;
+      oldWidget.onChangeEnd = widget.onChangeEnd;
+      oldWidget.onChanged = widget.onChanged;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var max = widget.duration.inMilliseconds.toDouble();
+    var v = _dragValue ?? widget.position.inMilliseconds.toDouble();
+    if (v < 0 || v > max) {
+      return Slider(
+        min: 0.0,
+        max: 0,
+        value: 0,
+        inactiveColor: Colors.green,
+        activeColor: Colors.green,
+      );
+    }
     return Slider(
       min: 0.0,
-      max: widget.duration.inMilliseconds.toDouble(),
-      value: _dragValue ?? widget.position.inMilliseconds.toDouble(),
+      max: max,
+      value: v,
       onChanged: (value) {
-        setState(() {
-          _dragValue = value;
-        });
+        _dragValue = value;
+        setState(() {});
         if (widget.onChanged != null) {
           widget.onChanged(Duration(milliseconds: value.round()));
         }

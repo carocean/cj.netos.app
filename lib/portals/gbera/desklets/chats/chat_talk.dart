@@ -13,6 +13,7 @@ import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:objectdb/objectdb.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatTalk extends StatefulWidget {
@@ -56,7 +57,9 @@ class _ChatTalkState extends State<ChatTalk> {
     Stream notify = widget.context.parameters['notify'];
     _streamSubscription = notify.listen((command) {
       ChatMessage message = command['message'];
-      if (message == null||message.sender==widget.context.principal.person || message.room != _chatRoom.id) {
+      if (message == null ||
+          message.sender == widget.context.principal.person ||
+          message.room != _chatRoom.id) {
         return;
       }
       switch (command['action']) {
@@ -87,10 +90,9 @@ class _ChatTalkState extends State<ChatTalk> {
         Duration(
           milliseconds: milliseconds,
         ), () {
-      if (_scrollController == null) {
-        return;
+      if (mounted) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     });
   }
 
@@ -179,7 +181,7 @@ class _ChatTalkState extends State<ChatTalk> {
     if (message == null) {
       return;
     }
-    await messageService.addMessage(_chatRoom.creator,message);
+    await messageService.addMessage(_chatRoom.creator, message);
     _p2pMessages.insert(0, message);
   }
 
@@ -805,22 +807,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text.rich(
-                  TextSpan(
-                    text: widget.p2pMessage.content ?? '',
-                    children: [],
-                  ),
-                  softWrap: true,
-                  strutStyle: StrutStyle(
-                    height: 1.8,
-                  ),
-                  overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[800],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                _getContentDisplay(),
                 Row(
                   children: <Widget>[
                     Padding(
@@ -860,6 +847,41 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
         ],
       ),
     );
+  }
+
+  Widget _getContentDisplay() {
+    switch (widget.p2pMessage.contentType ?? '') {
+      case '':
+      case 'text':
+        return Text.rich(
+          TextSpan(
+            text: widget.p2pMessage.content ?? '',
+            children: [],
+          ),
+          softWrap: true,
+          strutStyle: StrutStyle(
+            height: 1.8,
+          ),
+          overflow: TextOverflow.visible,
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      case 'audio':
+        var content = jsonDecode(widget.p2pMessage.content);
+        String path = content['path'];
+        return MyAudioWidget(
+          audioFile: path,
+          timeLength: content['timelength'],
+        );
+      default:
+        return Container(
+          width: 0,
+          height: 0,
+        );
+    }
   }
 }
 
