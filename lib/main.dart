@@ -43,13 +43,13 @@ void main() => platformRun(
             ///默认应用，即终端未指定应用号时登录或注册的目标应用
             '@.prop.entrypoint.app': 'gbera.netos',
             '@.prop.ports.link.chatroom':
-            'http://47.105.165.186/link/chatroom/self.service',
+                'http://47.105.165.186/link/chatroom/self.service',
             '@.prop.ports.flow.chatroom':
-            'http://47.105.165.186/flow/chat.service',
+                'http://47.105.165.186/flow/chat.service',
             '@.prop.ports.link.netflow':
                 'http://47.105.165.186/link/netflow/self.service',
             '@.prop.ports.link.geosphere':
-            'http://47.105.165.186/link/geosphere/self.service',
+                'http://47.105.165.186/link/geosphere/self.service',
             '@.prop.ports.uc.auth': 'http://47.105.165.186/uc/auth.service',
             '@.prop.ports.uc.register':
                 'http://47.105.165.186/uc/register.service',
@@ -69,10 +69,12 @@ void main() => platformRun(
             '@.prop.ports.flow.channel':
                 'http://47.105.165.186/flow/channel.service',
             '@.prop.ports.flow.geosphere':
-            'http://47.105.165.186/flow/geosphere.service',
+                'http://47.105.165.186/flow/geosphere.service',
             '@.prop.taskbar.progress': _progressTaskBar,
-            '@.prop.ports.document.geo.category':'http://47.105.165.186/document/geo/category.service',
-            '@.prop.ports.document.geo.receptor':'http://47.105.165.186/document/geo/receptor.service',
+            '@.prop.ports.document.geo.category':
+                'http://47.105.165.186/document/geo/category.service',
+            '@.prop.ports.document.geo.receptor':
+                'http://47.105.165.186/document/geo/receptor.service',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
@@ -141,17 +143,17 @@ class Window extends StatelessWidget {
       children: <Widget>[
         this.viewport,
         Positioned(
-          top: Platform.isAndroid?5:13,
-          left: Platform.isAndroid? 78:5,
+          top: Platform.isAndroid ? 6 : 14,
+          left: Platform.isAndroid ? 90 : 30,
           right: 0,
           child: StatusBar(),
         ),
         Positioned(
-          top: Platform.isAndroid?22:30,
-          left: Platform.isAndroid? 78:5,
+          top: Platform.isAndroid ? 23 : 31,
+          left: Platform.isAndroid ? 90 : 30,
           height: 1,
           width: 30,
-          child: TaskBar(site,_progressTaskBar),
+          child: TaskBar(site, _progressTaskBar),
         ),
       ],
     );

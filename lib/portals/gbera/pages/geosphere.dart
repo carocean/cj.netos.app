@@ -567,7 +567,7 @@ class _GeosphereState extends State<Geosphere>
   }
 
   Future<void> _checkMobileReceptor() async {
-    if (_offset > 0) {
+    if (_offset > 0||!mounted) {
       return;
     }
     IGeoReceptorService receptorService =
