@@ -116,9 +116,10 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   Future<Function> pushMessage(String creator, ChatMessage message) {
     ProgressTaskBar taskbarProgress =
         site.getService('@.prop.taskbar.progress');
-    switch (message.contentType) {
+    switch (message.contentType ?? '') {
+      case '':
       case 'text':
-        remotePorts.portTask.addPortGETTask(
+        remotePorts.portTask.addPortPOSTTask(
           chatFlowPortsUrl,
           'pushMessage',
           parameters: {
@@ -126,15 +127,17 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
             'room': message.room,
             'msgid': message.id,
             'contentType': 'text',
-            'content': message.content,
             'interval': 10,
+          },
+          data: {
+            'content': message.content,
           },
         );
         break;
       case 'audio':
         var listenPath = '/chatroom/talk/${message.id}/audio.upload';
         remotePorts.portTask.listener(listenPath, (Frame frame) {
-          if(frame.command!='upload'){
+          if (frame.command != 'upload') {
             return;
           }
           var subcmd = frame.head('sub-command');
@@ -145,9 +148,9 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
               var json = frame.contentText;
               var files = jsonDecode(json);
               var remoteFile = files[frame.parameter('localPath')];
-              var content=jsonDecode(frame.parameter('content'));
-              content['path']=remoteFile;
-              remotePorts.portTask.addPortGETTask(
+              var content = jsonDecode(frame.parameter('content'));
+              content['path'] = remoteFile;
+              remotePorts.portTask.addPortPOSTTask(
                 chatFlowPortsUrl,
                 'pushMessage',
                 parameters: {
@@ -157,6 +160,9 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
                   'contentType': 'audio',
                   'content': jsonEncode(content),
                   'interval': 10,
+                },
+                data: {
+                  'content': jsonEncode(content),
                 },
               );
               remotePorts.portTask.unlistener(listenPath);
@@ -177,6 +183,111 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           callbackUrl:
               '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
         );
+        break;
+      case 'image':
+      case 'takePhoto':
+        var listenPath = '/chatroom/talk/${message.id}/image.upload';
+        remotePorts.portTask.listener(listenPath, (Frame frame) {
+          if (frame.command != 'upload') {
+            return;
+          }
+          var subcmd = frame.head('sub-command');
+          switch (subcmd) {
+            case 'begin':
+              break;
+            case 'done':
+              var json = frame.contentText;
+              var files = jsonDecode(json);
+              var remoteFile = files[frame.parameter('localPath')];
+              var content = {
+                'path': remoteFile,
+              };
+              remotePorts.portTask.addPortPOSTTask(
+                chatFlowPortsUrl,
+                'pushMessage',
+                parameters: {
+                  'creator': frame.parameter('creator'),
+                  'room': frame.parameter('room'),
+                  'msgid': frame.parameter('msgid'),
+                  'contentType': 'image',
+                  'interval': 10,
+                },
+                data: {
+                  'content': jsonEncode(content),
+                },
+              );
+              remotePorts.portTask.unlistener(listenPath);
+              break;
+            case 'sendProgress':
+              var count = frame.head('count');
+              var total = frame.head('total');
+              var percent = double.parse(count) / double.parse(total);
+              taskbarProgress.update(percent);
+              break;
+          }
+        });
+        var content = jsonDecode(message.content);
+        var localPath = content['path'];
+        remotePorts.portTask.addUploadTask(
+          '/app/chatroom/',
+          [localPath],
+          callbackUrl:
+              '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
+        );
+        break;
+      case 'video':
+      case 'recordVideo':
+        var listenPath = '/chatroom/talk/${message.id}/video.upload';
+        remotePorts.portTask.listener(listenPath, (Frame frame) {
+          if (frame.command != 'upload') {
+            return;
+          }
+          var subcmd = frame.head('sub-command');
+          switch (subcmd) {
+            case 'begin':
+              break;
+            case 'done':
+              var json = frame.contentText;
+              var files = jsonDecode(json);
+              var remoteFile = files[frame.parameter('localPath')];
+              var content = {
+                'path': remoteFile,
+              };
+              remotePorts.portTask.addPortPOSTTask(
+                chatFlowPortsUrl,
+                'pushMessage',
+                parameters: {
+                  'creator': frame.parameter('creator'),
+                  'room': frame.parameter('room'),
+                  'msgid': frame.parameter('msgid'),
+                  'contentType': 'video',
+                  'interval': 10,
+                },
+                data: {
+                  'content': jsonEncode(content),
+                },
+              );
+              remotePorts.portTask.unlistener(listenPath);
+              break;
+            case 'sendProgress':
+              var count = frame.head('count');
+              var total = frame.head('total');
+              var percent = double.parse(count) / double.parse(total);
+              taskbarProgress.update(percent);
+              break;
+          }
+        });
+        var content = jsonDecode(message.content);
+        var localPath = content['path'];
+        remotePorts.portTask.addUploadTask(
+          '/app/chatroom/',
+          [localPath],
+          callbackUrl:
+          '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
+        );
+        break;
+      default:
+        print('不支持的消息类型:${message.contentType}');
         break;
     }
   }

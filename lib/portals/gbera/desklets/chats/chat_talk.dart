@@ -9,6 +9,9 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -28,6 +31,7 @@ class ChatTalk extends StatefulWidget {
 class _ChatTalkState extends State<ChatTalk> {
   List<Function()> _onTapEvents = [];
 
+  TextEditingController _sendTextEditingController;
   ChatRoom _chatRoom;
   EasyRefreshController _controller;
   ScrollController _scrollController;
@@ -40,6 +44,7 @@ class _ChatTalkState extends State<ChatTalk> {
 
   @override
   void initState() {
+    _sendTextEditingController = TextEditingController();
     _controller = EasyRefreshController();
     _scrollController = ScrollController();
     _p2pMessages = [];
@@ -76,11 +81,12 @@ class _ChatTalkState extends State<ChatTalk> {
 
   @override
   void dispose() {
+    _sendTextEditingController?.dispose();
     _streamSubscription?.cancel();
-    _p2pMessages.clear();
+    _p2pMessages?.clear();
     _chatRoom = null;
-    _controller.dispose();
-    _scrollController.dispose();
+    _controller?.dispose();
+    _scrollController?.dispose();
     _isloaded = false;
     super.dispose();
   }
@@ -109,9 +115,11 @@ class _ChatTalkState extends State<ChatTalk> {
     }
     await _flagReadMessages();
     _p2pMessages.insertAll(0, unreadMessages);
-    setState(() {
-      _goEnd(300);
-    });
+    if (mounted) {
+      setState(() {
+        _goEnd(300);
+      });
+    }
   }
 
   _resetMessages() {
@@ -162,13 +170,13 @@ class _ChatTalkState extends State<ChatTalk> {
       case 'sendAudio':
         var msg = cmd.message as Map;
         var map = {'path': msg['path'], 'timelength': msg['timelength']};
-        String text = jsonEncode(map);
+        String content = jsonEncode(map);
         message = ChatMessage(
           MD5Util.MD5(Uuid().v1()),
           widget.context.principal.person,
           _chatRoom.id,
           'audio',
-          text,
+          content,
           'sended',
           DateTime.now().millisecondsSinceEpoch,
           null,
@@ -177,6 +185,81 @@ class _ChatTalkState extends State<ChatTalk> {
           widget.context.principal.person,
         );
         break;
+      case 'image':
+        var image = cmd.message;
+        var map = {'path': image};
+        var content = jsonEncode(map);
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'image',
+          content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      case 'video':
+        var image = cmd.message;
+        var map = {'path': image};
+        var content = jsonEncode(map);
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'video',
+          content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      case 'takePhoto':
+        var image = cmd.message;
+        var map = {'path': image};
+        var content = jsonEncode(map);
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'image',
+          content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      case 'recordVideo':
+        var image = cmd.message;
+        var map = {'path': image};
+        var content = jsonEncode(map);
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'video',
+          content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      default:
+        print('不支持的发布命令：${cmd.cmd}');
+        return;
     }
     if (message == null) {
       return;
@@ -277,9 +360,24 @@ class _ChatTalkState extends State<ChatTalk> {
                 });
               }
             },
-            plusPanel: _PlusPannel(),
-            stickerPanel: _StickerPanel(),
+            plusPanel: _PlusPannel(
+              pluginTap: (cmd) {
+                _doCommand(cmd).then((v) {
+                  if (mounted) {
+                    setState(() {
+                      _goEnd(100);
+                    });
+                  }
+                });
+              },
+            ),
+            emojiPanel: _EmojiPanel(
+              onselected: (text, emoji) {
+                _sendTextEditingController.text += text;
+              },
+            ),
             textRegionController: _scrollController,
+            controller: _sendTextEditingController,
             onRoomModeChanged: (m) {
               _roomMode = m;
               setState(() {});
@@ -288,9 +386,11 @@ class _ChatTalkState extends State<ChatTalk> {
               await _doCommand(cmd);
 //              _resetMessages();
 //              await _onRefresh();
-              setState(() {
-                _goEnd(100);
-              });
+              if (mounted) {
+                setState(() {
+                  _goEnd(100);
+                });
+              }
             },
           ),
         ],
@@ -299,34 +399,48 @@ class _ChatTalkState extends State<ChatTalk> {
   }
 }
 
-class _StickerPanel extends StatefulWidget {
+class _EmojiPanel extends StatefulWidget {
+  Function(String emojiText, dynamic emoji) onselected;
+
+  _EmojiPanel({this.onselected});
+
   @override
-  __StickerPanelState createState() => __StickerPanelState();
+  _EmojiPanelState createState() => _EmojiPanelState();
 }
 
-class __StickerPanelState extends State<_StickerPanel> {
+class _EmojiPanelState extends State<_EmojiPanel> {
   @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
-    for (var i = 0; i < 50; i++) {
+    for (var emoji in emojiList) {
+      var emojiText = String.fromCharCode(emoji['unicode']);
       items.add(
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(
-              Radius.circular(15),
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Wrap(
-            direction: Axis.vertical,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: <Widget>[
-              Icon(
-                Icons.face,
-                size: 30,
-                color: Colors.grey[700],
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (mounted && widget.onselected != null) {
+              widget.onselected(emojiText, emoji);
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(
+                Radius.circular(15),
               ),
-            ],
+            ),
+            alignment: Alignment.center,
+            child: Wrap(
+              direction: Axis.vertical,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                Text(
+                  emojiText,
+                  style: TextStyle(
+                    fontSize: 25,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -348,6 +462,10 @@ class __StickerPanelState extends State<_StickerPanel> {
 }
 
 class _PlusPannel extends StatefulWidget {
+  Function(_ChatCommand command) pluginTap;
+
+  _PlusPannel({this.pluginTap});
+
   @override
   _PlusPannelState createState() => _PlusPannelState();
 }
@@ -364,37 +482,103 @@ class _PlusPannelState extends State<_PlusPannel> {
   }
 
   @override
+  void didUpdateWidget(_PlusPannel oldWidget) {
+    if (oldWidget.pluginTap != widget.pluginTap) {
+      oldWidget.pluginTap = widget.pluginTap;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _tapPlugin(TalkPlugin plugin) async {
+    switch (plugin.id) {
+      case 'image':
+        var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+        if (image == null) {
+          break;
+        }
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: image.path,
+          ),
+        );
+        break;
+      case 'video':
+        var image = await ImagePicker.pickVideo(source: ImageSource.gallery);
+        if (image == null) {
+          break;
+        }
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: image.path,
+          ),
+        );
+        break;
+      case 'takePhoto':
+        var image = await ImagePicker.pickImage(source: ImageSource.camera);
+        if (image == null) {
+          break;
+        }
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: image.path,
+          ),
+        );
+        break;
+      case 'recordVideo':
+        var image = await ImagePicker.pickVideo(
+          source: ImageSource.camera,
+        );
+        if (image == null) {
+          break;
+        }
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: image.path,
+          ),
+        );
+        break;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
-    for (var i = 0; i < 13; i++) {
+    var plugins = _getPlugins();
+    for (var plugin in plugins) {
       items.add(
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(
-              Radius.circular(15),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _tapPlugin(plugin);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(15),
+              ),
             ),
-          ),
-          alignment: Alignment.center,
-          child: Wrap(
-            direction: Axis.vertical,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: <Widget>[
-              Icon(
-                Icons.camera_enhance,
-                size: 35,
-                color: Colors.grey[700],
-              ),
-              Text(
-                '拍照',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[500],
+            alignment: Alignment.center,
+            child: Wrap(
+              direction: Axis.vertical,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                plugin.leading,
+                Text(
+                  plugin.title,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
@@ -413,6 +597,55 @@ class _PlusPannelState extends State<_PlusPannel> {
       }).toList(),
     );
   }
+
+  List<TalkPlugin> _getPlugins() {
+    return [
+      TalkPlugin(
+        id: 'image',
+        title: '图片',
+        leading: Icon(
+          Icons.image,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+      TalkPlugin(
+        id: 'video',
+        title: '视频',
+        leading: Icon(
+          Icons.movie,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+      TalkPlugin(
+        id: 'takePhoto',
+        title: '拍照',
+        leading: Icon(
+          Icons.camera_enhance,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+      TalkPlugin(
+        id: 'recordVideo',
+        title: '录像',
+        leading: Icon(
+          Icons.videocam,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+    ];
+  }
+}
+
+class TalkPlugin {
+  String id;
+  String title;
+  Widget leading;
+
+  TalkPlugin({this.id, this.title, this.leading});
 }
 
 enum _Action {
@@ -437,11 +670,12 @@ class _ChatCommand {
 class _ChatSendPannel extends StatefulWidget {
   PageContext context;
   Widget plusPanel;
-  Widget stickerPanel;
+  Widget emojiPanel;
   ScrollController textRegionController;
   Function(_RoomMode roomMode) onRoomModeChanged;
   Function(_ChatCommand cmd) onCommand;
   Function() onFocus;
+  TextEditingController controller;
 
   List<Function()> onTapEvents;
 
@@ -450,10 +684,11 @@ class _ChatSendPannel extends StatefulWidget {
     this.onTapEvents,
     this.plusPanel,
     this.onFocus,
-    this.stickerPanel,
+    this.emojiPanel,
     this.textRegionController,
     this.onRoomModeChanged,
     this.onCommand,
+    this.controller,
   });
 
   @override
@@ -462,14 +697,16 @@ class _ChatSendPannel extends StatefulWidget {
 
 class _ChatSendPannelState extends State<_ChatSendPannel> {
   _Action _action;
-  TextEditingController _controller;
   FocusNode _contentFocusNode;
   _RoomMode _roomMode = _RoomMode.p2p;
+  bool _isShowSendButton = false;
+  TextEditingController _controller;
 
   @override
   void initState() {
+    _controller = widget.controller;
+    _controller.addListener(_textListener);
     _contentFocusNode = FocusNode();
-    _controller = TextEditingController();
     _contentFocusNode.addListener(widget.onFocus);
     widget.onTapEvents.add(() {
       _action = null;
@@ -482,11 +719,22 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
 
   @override
   void dispose() {
+    _controller.removeListener(_textListener);
+    _controller = null;
     _roomMode = _RoomMode.p2p;
     _contentFocusNode.dispose();
-    _controller.dispose();
     widget.onTapEvents.clear();
     super.dispose();
+  }
+
+  _textListener() {
+    var old = _isShowSendButton;
+    var text=_controller.text??'';
+    text=text.trim();
+    _isShowSendButton = !StringUtil.isEmpty(text);
+    if (mounted && old != _isShowSendButton) {
+      setState(() {});
+    }
   }
 
   @override
@@ -497,7 +745,7 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
         panel = widget.plusPanel;
         break;
       case _Action.sticker:
-        panel = widget.stickerPanel;
+        panel = widget.emojiPanel;
         break;
     }
     return Container(
@@ -512,22 +760,12 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
                     ExtendedTextField(
                       controller: _controller,
                       focusNode: _contentFocusNode,
-                      maxLines: 1,
+                      maxLines: 6,
                       minLines: 1,
-                      keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (v) {
-                        _controller.clear();
-                        if (widget.onCommand != null) {
-                          widget.onCommand(
-                            _ChatCommand(
-                              cmd: 'sendText',
-                              message: v,
-                            ),
-                          );
-                          _contentFocusNode.requestFocus();
-                        }
-                      },
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+//                      onSubmitted: (v) {
+//                      },
                       autofocus: false,
                       onTap: () {
                         _action = null;
@@ -587,27 +825,62 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
                       child: SizedBox(
                         width: 30,
                         height: 30,
-                        child: VoiceFloatingButton(
-                          context: widget.context,
-                          iconSize: 18,
-                          onStopRecord: (a, b, FlutterPluginRecord c, d) {
-                            if (d != 'send') {
-                              return;
-                            }
-                            if (widget.onCommand != null) {
-                              widget.onCommand(
-                                _ChatCommand(
-                                  cmd: 'sendAudio',
-                                  message: {
-                                    'path': a,
-                                    'timelength': b,
-                                    'action': d,
-                                  },
+                        child: _isShowSendButton
+                            ? GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  var text = _controller.text??'';
+                                  text=text.trim();
+                                  if (StringUtil.isEmpty(text)) {
+                                    return;
+                                  }
+                                  _controller.clear();
+                                  if (widget.onCommand != null) {
+                                    widget.onCommand(
+                                      _ChatCommand(
+                                        cmd: 'sendText',
+                                        message: text,
+                                      ),
+                                    );
+                                    _contentFocusNode.requestFocus();
+                                  }
+                                },
+                                child: Container(
+                                  width: 18,
+                                  height: 18,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(18)),
+                                  ),
+                                  child: Icon(
+                                    Icons.send,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              );
-                            }
-                          },
-                        ),
+                              )
+                            : VoiceFloatingButton(
+                                context: widget.context,
+                                iconSize: 18,
+                                onStopRecord: (a, b, FlutterPluginRecord c, d) {
+                                  if (d != 'send') {
+                                    return;
+                                  }
+                                  if (widget.onCommand != null) {
+                                    widget.onCommand(
+                                      _ChatCommand(
+                                        cmd: 'sendAudio',
+                                        message: {
+                                          'path': a,
+                                          'timelength': b,
+                                          'action': d,
+                                        },
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
                       ),
                     ),
                   ],
@@ -876,7 +1149,39 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           audioFile: path,
           timeLength: content['timelength'],
         );
+      case 'image':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var file = map['path'];
+        return Container(
+          padding: EdgeInsets.only(
+            top: 5,
+          ),
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: Image.file(
+            File(file),
+            fit: BoxFit.fitWidth,
+          ),
+        );
+      case 'video':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var file = map['path'];
+        return Container(
+          padding: EdgeInsets.only(
+            top: 5,
+          ),
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: VideoView(
+            src: File(file),
+          ),
+        );
       default:
+        print('不支持的消息类型:${widget.p2pMessage.contentType}');
         return Container(
           width: 0,
           height: 0,
@@ -932,42 +1237,6 @@ class __SendMessageItemState extends State<_SendMessageItem> {
 
   @override
   Widget build(BuildContext context) {
-    var display;
-    switch (widget.p2pMessage.contentType) {
-      case 'text':
-        display = Text.rich(
-          TextSpan(
-            text: widget.p2pMessage.content ?? '',
-            children: [],
-          ),
-          softWrap: true,
-          strutStyle: StrutStyle(
-            height: 1.8,
-          ),
-          overflow: TextOverflow.visible,
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey[800],
-            fontWeight: FontWeight.w500,
-          ),
-        );
-        break;
-      case 'audio':
-        var json = widget.p2pMessage.content;
-        Map<String, dynamic> map = jsonDecode(json);
-        display = MyAudioWidget(
-          audioFile: map['path'],
-          timeLength: map['timelength'],
-        );
-        break;
-      default:
-        print('未识别的消息类型:${widget.p2pMessage.contentType}');
-        display = Container(
-          width: 0,
-          height: 0,
-        );
-        break;
-    }
     return Container(
       margin: EdgeInsets.only(
         top: 15,
@@ -985,7 +1254,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                display,
+                _getContentDisplay(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -1050,5 +1319,78 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         ],
       ),
     );
+  }
+
+  Widget _getContentDisplay() {
+    var display;
+    switch (widget.p2pMessage.contentType) {
+      case 'text':
+        display = Text.rich(
+          TextSpan(
+            text: widget.p2pMessage.content ?? '',
+            children: [],
+          ),
+          softWrap: true,
+          strutStyle: StrutStyle(
+            height: 1.8,
+          ),
+          overflow: TextOverflow.visible,
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
+          ),
+        );
+        break;
+      case 'audio':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        display = MyAudioWidget(
+          audioFile: map['path'],
+          timeLength: map['timelength'],
+        );
+        break;
+      case 'image':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var file = map['path'];
+        display = Container(
+          padding: EdgeInsets.only(
+            top: 5,
+          ),
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: Image.file(
+            File(file),
+            fit: BoxFit.fitWidth,
+          ),
+        );
+        break;
+      case 'video':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var file = map['path'];
+        display = Container(
+          padding: EdgeInsets.only(
+            top: 5,
+          ),
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: VideoView(
+            src: File(file),
+          ),
+        );
+        break;
+      default:
+        print('未识别的消息类型:${widget.p2pMessage.contentType}');
+        display = Container(
+          width: 0,
+          height: 0,
+        );
+        break;
+    }
+    return display;
   }
 }

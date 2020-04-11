@@ -107,6 +107,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var contentType = frame.parameter('contentType');
     var msgid = frame.parameter('msgid');
     var ctime = frame.parameter('ctime');
+    var roomCreator=frame.parameter('roomCreator');
     var sender = frame.head('sender');
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -126,10 +127,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     if (chatRoom == null) {
       //添加聊天室
       chatRoom = await chatRoomService.fetchAndSaveRoom(
-        sender,
+        roomCreator,
         room,
       );
-      await chatRoomService.loadAndSaveRoomMembers(room, sender);
+      await chatRoomService.loadAndSaveRoomMembers(room, roomCreator);
       _models.clear();
       await _loadChatroom();
     }
@@ -171,12 +172,52 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(path)}';
         var localFile = '$dir/$fn';
         var listenPath = '/chatroom/message/$msgid/audio.download';
-        widget.context.ports.portTask.listener(listenPath, _downloadAudio);
+        widget.context.ports.portTask.listener(listenPath, _downloadMedia);
         widget.context.ports.portTask.addDownloadTask(
           '${path}?accessToken=${widget.context.principal.accessToken}',
           localFile,
           callbackUrl:
               '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
+        );
+        break;
+      case 'image':
+        var contentmap = jsonDecode(content);
+        String path = contentmap['path'];
+        var home = await getApplicationDocumentsDirectory();
+        var dir = '${home.path}/images';
+        var dirFile = Directory(dir);
+        if (!dirFile.existsSync()) {
+          dirFile.createSync();
+        }
+        var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(path)}';
+        var localFile = '$dir/$fn';
+        var listenPath = '/chatroom/message/$msgid/image.download';
+        widget.context.ports.portTask.listener(listenPath, _downloadMedia);
+        widget.context.ports.portTask.addDownloadTask(
+          '${path}?accessToken=${widget.context.principal.accessToken}',
+          localFile,
+          callbackUrl:
+          '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
+        );
+        break;
+      case 'video':
+        var contentmap = jsonDecode(content);
+        String path = contentmap['path'];
+        var home = await getApplicationDocumentsDirectory();
+        var dir = '${home.path}/videos';
+        var dirFile = Directory(dir);
+        if (!dirFile.existsSync()) {
+          dirFile.createSync();
+        }
+        var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(path)}';
+        var localFile = '$dir/$fn';
+        var listenPath = '/chatroom/message/$msgid/video.download';
+        widget.context.ports.portTask.listener(listenPath, _downloadMedia);
+        widget.context.ports.portTask.addDownloadTask(
+          '${path}?accessToken=${widget.context.principal.accessToken}',
+          localFile,
+          callbackUrl:
+          '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
         );
         break;
       default:
@@ -185,12 +226,13 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
-  Future<void> _downloadAudio(Frame frame) async {
+  Future<void> _downloadMedia(Frame frame) async {
     var subcmd = frame.head('sub-command');
     switch (subcmd) {
       case 'begin':
         break;
       case 'done':
+        widget.context.ports.portTask.unlistener(frame.path);
         var ctime = frame.parameter('ctime');
         var msgid = frame.parameter('msgid');
         var sender = frame.parameter('sender');
@@ -218,8 +260,12 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         IP2PMessageService messageService =
             widget.context.site.getService('/chat/p2p/messages');
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
-        _notifyStreamController
-            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        try {
+          _notifyStreamController
+              .add({'action': 'arrivePushMessageCommand', 'message': message});
+        }catch(e){
+          print('流已关闭:$e');
+        }
         break;
       case 'error':
         print('下载失败');
@@ -553,6 +599,18 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         _stateBar.tips =
             '${person.nickName}: 发来语音, 长度:${timelength.toStringAsFixed(0)}秒';
         break;
+      case 'image':
+//        var cnt = message?.content;
+//        var map = jsonDecode(cnt);
+        _stateBar.tips =
+        '${person.nickName}: 发来图片';
+        break;
+      case 'video':
+//        var cnt = message?.content;
+//        var map = jsonDecode(cnt);
+        _stateBar.tips =
+        '${person.nickName}: 发来视频';
+        break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
         break;
@@ -778,7 +836,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
             'chatRoom': widget.model.chatRoom,
             'displayRoomTitle':
                 widget.model.displayRoomTitle(widget.context.principal),
-            'notify': widget.notify,
+            'notify': widget.notify.asBroadcastStream(),
           }).then((v) {
             _loadUnreadMessage().then((v) {
               setState(() {});
