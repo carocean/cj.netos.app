@@ -169,19 +169,9 @@ class DefaultPumpWell implements IPumpWell {
     List<_ListenItem> _listenItems = [];
 
     _unlisten(String person, String path) {
-      var count = _listenItems.length;
-      for (var i = 0; i < count; i++) {
-        if(_listenItems==null) {
-          continue;
-        }
-        var item = _listenItems[i];
-        if (item == null) {
-          continue;
-        }
-        if (item.path == path && item.person == person) {
-          _listenItems.removeAt(i);
-        }
-      }
+      _listenItems.removeWhere((e){
+        return e.path == path && e.person == person;
+      });
     }
 
     _listen(_item) {

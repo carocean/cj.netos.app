@@ -306,7 +306,9 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
   void initState() {
     _player = AudioPlayer();
     _player.setFilePath(widget.audioFile).then((v) {
-      setState(() {});
+      if(mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }

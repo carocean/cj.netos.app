@@ -107,7 +107,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var contentType = frame.parameter('contentType');
     var msgid = frame.parameter('msgid');
     var ctime = frame.parameter('ctime');
-    var roomCreator=frame.parameter('roomCreator');
+    var roomCreator = frame.parameter('roomCreator');
     var sender = frame.head('sender');
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -197,7 +197,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           '${path}?accessToken=${widget.context.principal.accessToken}',
           localFile,
           callbackUrl:
-          '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
+              '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
         );
         break;
       case 'video':
@@ -217,7 +217,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           '${path}?accessToken=${widget.context.principal.accessToken}',
           localFile,
           callbackUrl:
-          '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
+              '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
         );
         break;
       default:
@@ -263,7 +263,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         try {
           _notifyStreamController
               .add({'action': 'arrivePushMessageCommand', 'message': message});
-        }catch(e){
+        } catch (e) {
           print('流已关闭:$e');
         }
         break;
@@ -292,7 +292,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.site.getService("/gbera/friends");
     List<ChatRoom> rooms = await chatRoomService.listChatRoom();
     for (var room in rooms) {
-      List<RoomMember> members = await chatRoomService.listdMember(room.id);
+      List<RoomMember> members = await chatRoomService.listMember(room.id);
       List<Friend> friends = [];
       for (var member in members) {
         var f = await friendService.getFriend(member.person);
@@ -347,12 +347,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.site.getService('/chat/rooms');
     await chatRoomService.removeChatRoom(room.id);
     return;
-  }
-
-  Future<void> _updateRoomLeading(String roomid, String file) async {
-    IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
-    await chatRoomService.updateRoomLeading(roomid, file);
   }
 
   @override
@@ -602,19 +596,26 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       case 'image':
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
-        _stateBar.tips =
-        '${person.nickName}: 发来图片';
+        _stateBar.tips = '${person.nickName}: 发来图片';
         break;
       case 'video':
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
-        _stateBar.tips =
-        '${person.nickName}: 发来视频';
+        _stateBar.tips = '${person.nickName}: 发来视频';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
         break;
     }
+  }
+
+  Future<void> _updateRoomLeading(String file) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.updateRoomLeading(
+      widget.model.chatRoom.id,
+      file,
+    );
   }
 
   @override
@@ -659,17 +660,18 @@ class __ChatroomItemState extends State<_ChatroomItem> {
                         );
                         return;
                       }
-                      widget.context
-                          .forward(
+                      widget.context.forward(
                         '/widgets/avatar',
-                      )
-                          .then((path) {
+                        arguments: {
+                          'file': widget.model.chatRoom.leading,
+                        },
+                      ).then((path) {
                         if (StringUtil.isEmpty(path)) {
                           return;
                         }
-//                        widget.model.leading = path;
-//                        setState(() {});
-//                        _updateLeading();
+                        widget.model.chatRoom.leading = path;
+                        setState(() {});
+                        _updateRoomLeading(path);
                       });
                     },
                     child: Stack(
@@ -864,11 +866,11 @@ class _ChatroomItemStateBar {
 class _ChatRoomModel {
   ChatRoom chatRoom;
   List<Friend> members;
-  ChatMessage unreadMessage;
-  int unreadMsgCount = 0;
 
-  _ChatRoomModel(
-      {this.chatRoom, this.members, this.unreadMessage, this.unreadMsgCount});
+  _ChatRoomModel({
+    this.chatRoom,
+    this.members,
+  });
 
   ///创建者添加的成员,当聊天室无标题和头像时根据创建者添加的成员生成它
   String displayRoomTitle(UserPrincipal principal) {
@@ -905,7 +907,7 @@ class _ChatRoomModel {
         );
       }
       return Image.network(
-        this.chatRoom.leading,
+        '${this.chatRoom.leading}?accessToken=${principal.accessToken}',
         height: 40,
         width: 40,
       );

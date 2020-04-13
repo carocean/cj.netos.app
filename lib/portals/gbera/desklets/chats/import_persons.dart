@@ -199,7 +199,8 @@ class _PersonListState extends State<PersonList> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return ListView(
+      shrinkWrap: true,
       children: <Widget>[
         Container(
           color: Colors.white,

@@ -26,7 +26,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
 
   @override
   Future<void> addMember(RoomMember roomMember) async {
-    remotePorts.portTask.addPortGETTask(
+    await remotePorts.portGET(
       chatPortsUrl,
       'addMember',
       parameters: {
@@ -39,7 +39,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
 
   @override
   Future<void> createRoom(ChatRoom chatRoom) async {
-    remotePorts.portTask.addPortGETTask(
+    await remotePorts.portGET(
       chatPortsUrl,
       'createRoom',
       parameters: {
@@ -109,6 +109,52 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'room': code,
         'person': official,
       },
+    );
+  }
+
+  @override
+  Future<Function> updateRoomLeading(String roomid, String leading) {
+    ProgressTaskBar taskbarProgress =
+        site.getService('@.prop.taskbar.progress');
+    var listenPath = '/chatroom/$roomid/leading.upload';
+    remotePorts.portTask.listener(listenPath, (Frame frame) async {
+      if (frame.command != 'upload') {
+        return;
+      }
+      var subcmd = frame.head('sub-command');
+      switch (subcmd) {
+        case 'begin':
+          break;
+        case 'done':
+          var json = frame.contentText;
+          var files = jsonDecode(json);
+          var localFile=frame.parameter('localFile');
+          var remoteFile = files[localFile];
+          var room = frame.parameter('room');
+
+          await remotePorts.portGET(
+            chatPortsUrl,
+            'updateLeading',
+            parameters: {
+              'room': room,
+              'leading': remoteFile,
+            },
+          );
+          print('成功上传leading:$localFile > $remoteFile');
+          remotePorts.portTask.unlistener(listenPath);
+          break;
+        case 'receiveProgress':
+          var count = frame.head('count');
+          var total = frame.head('total');
+          var percent = double.parse(count) / double.parse(total);
+          taskbarProgress.update(percent);
+          break;
+      }
+    });
+    remotePorts.portTask.addUploadTask(
+      '/app/chatroom',
+      [leading],
+      callbackUrl: '$listenPath?room=$roomid&localFile=$leading',
     );
   }
 
@@ -283,7 +329,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           '/app/chatroom/',
           [localPath],
           callbackUrl:
-          '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
+              '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
         );
         break;
       default:

@@ -91,4 +91,7 @@ mixin IChatRoomRemote {
 
   Future<List<RoomMember>> pageRoomMember(
       String creator, String room, int i, int j) {}
+
+  Future<void> updateRoomLeading(String roomid, String file) {}
+
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
@@ -21,10 +22,12 @@ class ChatRoomSettings extends StatefulWidget {
 class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   bool _showNickName = false;
   ChatRoom _chatRoom;
+  bool _isRoomCreator = false;
 
   @override
   void initState() {
     _chatRoom = widget.context.parameters['chatRoom'];
+    _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadTop20Members().then((v) {
       if (mounted) {
@@ -39,13 +42,21 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     super.dispose();
   }
 
+  Future<void> _updateRoomLeading(String file) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.updateRoomLeading(
+      _chatRoom.id,
+      file,
+    );
+  }
+
   Future<List<Person>> _loadTop20Members() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    List<RoomMember> members =
-        await chatRoomService.top20Members(_chatRoom.id);
+    List<RoomMember> members = await chatRoomService.top20Members(_chatRoom.id);
     List<Person> persons = [];
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
@@ -58,10 +69,10 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     for (var official in members) {
-      if(await chatRoomService.existsMember(_chatRoom.id,official)){
+      if (await chatRoomService.existsMember(_chatRoom.id, official)) {
         continue;
       }
-     await chatRoomService.addMember(
+      await chatRoomService.addMember(
         RoomMember(
           _chatRoom.id,
           official,
@@ -75,7 +86,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   Future<void> _removeMember(member) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeMember(_chatRoom.id,member.official);
+    await chatRoomService.removeMember(_chatRoom.id, member.official);
   }
 
   @override
@@ -326,7 +337,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   CardItem(
                     paddingLeft: 15,
                     paddingRight: 15,
-                    title: '聊天室名称',
+                    title: '名称',
                     tipsText: '未命名',
                   ),
                   Divider(
@@ -336,7 +347,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   CardItem(
                     paddingLeft: 15,
                     paddingRight: 15,
-                    title: '群二维码',
+                    title: '二维码',
                     tipsIconData: FontAwesomeIcons.qrcode,
                   ),
                   Divider(
@@ -361,10 +372,46 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
               ),
               child: Column(
                 children: <Widget>[
+                  !_isRoomCreator
+                      ? Container(
+                          width: 0,
+                          height: 0,
+                        )
+                      : GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            widget.context.forward(
+                              '/widgets/avatar',
+                              arguments: {'file': _chatRoom.leading},
+                            ).then((path) {
+                              if (StringUtil.isEmpty(path)) {
+                                return;
+                              }
+                              _chatRoom.leading = path;
+                              setState(() {});
+                              _updateRoomLeading(path);
+                            });
+                          },
+                          child: CardItem(
+                            paddingLeft: 15,
+                            paddingRight: 15,
+                            title: '设置聊天室头像',
+                            tail: _getTailWidget(),
+                          ),
+                        ),
+                  !_isRoomCreator
+                      ? Container(
+                          width: 0,
+                          height: 0,
+                        )
+                      : Divider(
+                          height: 1,
+                          indent: 15,
+                        ),
                   CardItem(
                     paddingLeft: 15,
                     paddingRight: 15,
-                    title: '我在本群的昵称',
+                    title: '我在本聊天室的昵称',
                     tipsText: 'cj',
                   ),
                   Divider(
@@ -468,6 +515,31 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
           ),
         ],
       ),
+    );
+  }
+
+  _getTailWidget() {
+    if (StringUtil.isEmpty(_chatRoom.leading)) {
+      return Icon(
+        Icons.arrow_forward_ios,
+        size: 30,
+        color: Colors.grey[500],
+      );
+    }
+    if (_chatRoom.leading.startsWith('/')) {
+      return Image.file(
+        File(_chatRoom.leading),
+        width: 30,
+        height: 30,
+        fit: BoxFit.fill,
+      );
+    }
+    return FadeInImage.assetNetwork(
+      placeholder: null,
+      image: _chatRoom.leading,
+      width: 30,
+      height: 30,
+      fit: BoxFit.fill,
     );
   }
 }

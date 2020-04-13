@@ -89,9 +89,8 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     chatRoomDAO = db.chatRoomDAO;
     roomMemberDAO = db.roomMemberDAO;
-    messageDAO=db.p2pMessageDAO;
+    messageDAO = db.p2pMessageDAO;
     chatRoomRemote = site.getService('/remote/chat/rooms');
-
   }
 
   @override
@@ -119,16 +118,20 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoomLeading(String roomid, String file) async {
+  Future<Function> updateRoomLeading(String roomid, String file,
+      {bool isOnlyLocal = false}) async {
     await chatRoomDAO.updateRoomLeading(
       file,
       principal.person,
       roomid,
     );
+    if (!isOnlyLocal) {
+      await chatRoomRemote.updateRoomLeading(roomid, file);
+    }
   }
 
   @override
-  Future<List<RoomMember>> listdMember(String roomCode) async {
+  Future<List<RoomMember>> listMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
   }
 
@@ -209,7 +212,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     }
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
-    await messageDAO.emptyRoomMessages(room.id,principal.person);
+    await messageDAO.emptyRoomMessages(room.id, principal.person);
     if (!isOnlySaveLocal) {
       await chatRoomRemote.removeChatRoom(room.id);
     }
@@ -279,13 +282,12 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
-  Future<bool> existsMessage(String msgid) async{
-    CountValue value =await
-        p2pMessageDAO.countMessageWhere(msgid, principal.person);
+  Future<bool> existsMessage(String msgid) async {
+    CountValue value =
+        await p2pMessageDAO.countMessageWhere(msgid, principal.person);
     if (value == null) {
       return false;
     }
     return value.value > 0;
   }
-
 }
