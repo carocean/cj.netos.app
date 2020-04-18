@@ -94,4 +94,11 @@ mixin IChatRoomRemote {
 
   Future<void> updateRoomLeading(String roomid, String file) {}
 
+  Future<void>  updateRoomTitle(String room, String title) {}
+
+  Future<void>   updateRoomNickname(String creator,String room, String nickName) {}
+
+
+
+
 }

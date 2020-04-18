@@ -10,6 +10,8 @@ import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
 
+import 'chat_rooms.dart';
+
 class ChatRoomSettings extends StatefulWidget {
   PageContext context;
 
@@ -22,11 +24,13 @@ class ChatRoomSettings extends StatefulWidget {
 class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   bool _showNickName = false;
   ChatRoom _chatRoom;
+  ChatRoomModel _model;
   bool _isRoomCreator = false;
 
   @override
   void initState() {
-    _chatRoom = widget.context.parameters['chatRoom'];
+    _model = widget.context.parameters['model'];
+    _chatRoom = _model.chatRoom;
     _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadTop20Members().then((v) {
@@ -43,14 +47,17 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   }
 
   Future<void> _updateRoomLeading(String file) async {
-    IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
+    IChatRoomService chatRoomService = widget.context.site.getService(
+      '/chat/rooms',
+    );
     await chatRoomService.updateRoomLeading(
       _chatRoom.id,
       file,
     );
   }
+  Future<void> _reloadNickName(){
 
+  }
   Future<List<Person>> _loadTop20Members() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -76,6 +83,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         RoomMember(
           _chatRoom.id,
           official,
+          null,
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
@@ -249,10 +257,17 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(4),
                                 ),
-                                child: Image.file(
-                                  File(member.avatar),
-                                  fit: BoxFit.cover,
-                                ),
+                                child: member.avatar.startsWith("/")
+                                    ? Image.file(
+                                        File(member.avatar),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : FadeInImage.assetNetwork(
+                                        placeholder: 'lib/portals/gbera/images/default_avatar.png',
+                                        image:
+                                            '${member.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                           ),
@@ -333,34 +348,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                 bottom: 10,
               ),
               child: Column(
-                children: <Widget>[
-                  CardItem(
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    title: '名称',
-                    tipsText: '未命名',
-                  ),
-                  Divider(
-                    height: 1,
-                    indent: 15,
-                  ),
-                  CardItem(
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    title: '二维码',
-                    tipsIconData: FontAwesomeIcons.qrcode,
-                  ),
-                  Divider(
-                    height: 1,
-                    indent: 15,
-                  ),
-                  CardItem(
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    title: '公告',
-                    tipsText: '未设置',
-                  ),
-                ],
+                children: _mainSettings(),
               ),
             ),
           ),
@@ -377,33 +365,6 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                           width: 0,
                           height: 0,
                         )
-                      : GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            widget.context.forward(
-                              '/widgets/avatar',
-                              arguments: {'file': _chatRoom.leading},
-                            ).then((path) {
-                              if (StringUtil.isEmpty(path)) {
-                                return;
-                              }
-                              _chatRoom.leading = path;
-                              setState(() {});
-                              _updateRoomLeading(path);
-                            });
-                          },
-                          child: CardItem(
-                            paddingLeft: 15,
-                            paddingRight: 15,
-                            title: '设置聊天室头像',
-                            tail: _getTailWidget(),
-                          ),
-                        ),
-                  !_isRoomCreator
-                      ? Container(
-                          width: 0,
-                          height: 0,
-                        )
                       : Divider(
                           height: 1,
                           indent: 15,
@@ -412,6 +373,14 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                     paddingLeft: 15,
                     paddingRight: 15,
                     title: '我在本聊天室的昵称',
+                    onItemTap: () {
+                      widget.context.forward(
+                        '/portlet/chat/room/setNickName',
+                        arguments: {
+                          'chatroom': _chatRoom,
+                        },
+                      ).then((args) {});
+                    },
                     tipsText: 'cj',
                   ),
                   Divider(
@@ -421,7 +390,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   CardItem(
                     paddingLeft: 15,
                     paddingRight: 15,
-                    title: '显示聊天室成员昵称',
+                    title: '成员显示为昵称',
                     tail: SizedBox(
                       height: 25,
                       child: Switch.adaptive(
@@ -449,7 +418,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   CardItem(
                     paddingLeft: 15,
                     paddingRight: 15,
-                    title: '设置当前聊天背景',
+                    title: '聊天室背景',
                     tipsText: '',
                   ),
                 ],
@@ -541,5 +510,83 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       height: 30,
       fit: BoxFit.fill,
     );
+  }
+
+  List<Widget> _mainSettings() {
+    var list = <Widget>[];
+    var isMineRoom = widget.context.principal.person == _chatRoom.creator;
+    if (isMineRoom) {
+      list.add(
+        CardItem(
+          paddingLeft: 15,
+          paddingRight: 15,
+          onItemTap: () {
+            widget.context.forward(
+              '/portlet/chat/room/settings/setTitle',
+              arguments: {
+                'chatroom': _chatRoom,
+              },
+            ).then((args) {});
+          },
+          title: '名称',
+          tipsText: _chatRoom?.title ?? '未命名',
+        ),
+      );
+      list.add(
+        Divider(
+          height: 1,
+          indent: 15,
+        ),
+      );
+    }
+    if (isMineRoom) {
+      list.add(
+        CardItem(
+          paddingLeft: 15,
+          paddingRight: 15,
+          title: '图标',
+          tail: _getTailWidget(),
+          onItemTap: () {
+            widget.context.forward(
+              '/widgets/avatar',
+              arguments: {'file': _chatRoom.leading},
+            ).then((path) {
+              if (StringUtil.isEmpty(path)) {
+                return;
+              }
+              _chatRoom.leading = path;
+              setState(() {});
+              _updateRoomLeading(path);
+            });
+          },
+        ),
+      );
+    }
+    list.add(
+      CardItem(
+        paddingLeft: 15,
+        paddingRight: 15,
+        title: '二维码',
+        tipsIconData: FontAwesomeIcons.qrcode,
+      ),
+    );
+    list.add(
+      Divider(
+        height: 1,
+        indent: 15,
+      ),
+    );
+    if (isMineRoom) {
+      list.add(
+        CardItem(
+          paddingLeft: 15,
+          paddingRight: 15,
+          title: '公告',
+          tipsText: '未设置',
+        ),
+      );
+    }
+
+    return list;
   }
 }

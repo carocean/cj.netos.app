@@ -28,7 +28,6 @@ part 'database.g.dart';
   Friend,
   ChatRoom,
   RoomMember,
-  RoomNick,
   ChatMessage,
   Principal,
   GeoReceptor,

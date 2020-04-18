@@ -490,8 +490,14 @@ abstract class IChatRoomDAO {
   ) {}
 
   @Query(
+      'UPDATE ChatRoom SET title = :title WHERE sandbox=:sandbox and id = :room')
+  Future<void> updateRoomTitle(String title, String sandbox, String room) {}
+
+
+  @Query(
       'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room LIMIT 20')
   Future<List<RoomMember>> top20Members(String sandbox, String room) {}
+
 }
 
 @dao
@@ -515,6 +521,10 @@ abstract class IRoomMemberDAO {
   @Query(
       'SELECT count(*) as value  FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox ')
   Future<CountValue> countMember(String code, person, String sandbox) {}
+
+  @Query(
+      'UPDATE RoomMember SET nickName = :nickName WHERE sandbox=:sandbox and room = :room and person=:member')
+  Future<void>  updateRoomNickname(String nickName, String sandbox, String room,String member) {}
 }
 
 @dao
@@ -549,13 +559,13 @@ abstract class IP2PMessageDAO {
       'UPDATE ChatMessage SET state=:state , rtime=:rtime WHERE room=:room and state=:wherestate and sandbox=:sandbox')
   Future<void> updateMessagesState(String state, int rtime, String room,
       String wherestate, String sandbox) {}
+
   @Query(
       'SELECT count(*) as value  FROM ChatMessage where id=:msgid and sandbox=:sandbox')
- Future<CountValue> countMessageWhere(String msgid, String sandbox) {}
+  Future<CountValue> countMessageWhere(String msgid, String sandbox) {}
+
   @Query('delete FROM ChatMessage WHERE room=:room and sandbox = :sandbox')
- Future<void> emptyRoomMessages(String room, String sandbox) {}
-
-
+  Future<void> emptyRoomMessages(String room, String sandbox) {}
 }
 
 @dao

@@ -11,6 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -33,12 +34,13 @@ class _ChatTalkState extends State<ChatTalk> {
 
   TextEditingController _sendTextEditingController;
   ChatRoom _chatRoom;
+  ChatRoomModel _model;
+
   EasyRefreshController _controller;
   ScrollController _scrollController;
   _RoomMode _roomMode;
   List<ChatMessage> _p2pMessages;
   int _limit = 12, _offset = 0;
-  String _displayRoomTitle;
   StreamSubscription _streamSubscription;
   bool _isloaded = false;
 
@@ -48,8 +50,10 @@ class _ChatTalkState extends State<ChatTalk> {
     _controller = EasyRefreshController();
     _scrollController = ScrollController();
     _p2pMessages = [];
-    _chatRoom = widget.context.parameters['chatRoom'];
-    _displayRoomTitle = widget.context.parameters['displayRoomTitle'];
+
+    _model = widget.context.parameters['model'];
+    _chatRoom = _model.chatRoom;
+
     _flagReadMessages().then((v) {
       _onRefresh().then((v) {
         if (mounted) {
@@ -284,7 +288,7 @@ class _ChatTalkState extends State<ChatTalk> {
       appBar: AppBar(
         title: Text.rich(
           TextSpan(
-            text: '$_displayRoomTitle',
+            text: '${_model.displayRoomTitle(widget.context.principal)}',
             children: [
 //              TextSpan(
 //                text: _roomMode == null || _roomMode == _RoomMode.p2p
@@ -303,7 +307,9 @@ class _ChatTalkState extends State<ChatTalk> {
           IconButton(
             onPressed: () {
               widget.context.forward('/portlet/chat/room/settings',
-                  arguments: {'chatRoom': _chatRoom});
+                  arguments: {'model': _model}).then((v) {
+                setState(() {});
+              });
             },
             icon: Icon(
               Icons.more_vert,
@@ -729,8 +735,8 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
 
   _textListener() {
     var old = _isShowSendButton;
-    var text=_controller.text??'';
-    text=text.trim();
+    var text = _controller.text ?? '';
+    text = text.trim();
     _isShowSendButton = !StringUtil.isEmpty(text);
     if (mounted && old != _isShowSendButton) {
       setState(() {});
@@ -829,8 +835,8 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
                             ? GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {
-                                  var text = _controller.text??'';
-                                  text=text.trim();
+                                  var text = _controller.text ?? '';
+                                  text = text.trim();
                                   if (StringUtil.isEmpty(text)) {
                                     return;
                                   }

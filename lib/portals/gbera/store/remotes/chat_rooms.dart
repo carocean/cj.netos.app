@@ -113,6 +113,31 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomTitle(String room, String title) async{
+    remotePorts.portTask.addPortGETTask(
+      chatPortsUrl,
+      'updateTitle',
+      parameters: {
+        'room': room,
+        'title': title,
+      },
+    );
+  }
+
+  @override
+  Future<Function> updateRoomNickname(String creator,String room, String nickName) {
+    remotePorts.portTask.addPortGETTask(
+      chatPortsUrl,
+      'updateNickName',
+      parameters: {
+        'creator':creator,
+        'room': room,
+        'nickName': nickName,
+      },
+    );
+  }
+
+  @override
   Future<Function> updateRoomLeading(String roomid, String leading) {
     ProgressTaskBar taskbarProgress =
         site.getService('@.prop.taskbar.progress');

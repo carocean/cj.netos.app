@@ -125,6 +125,7 @@ flutter:
     - lib/portals/gbera/images/penquan.png
     - lib/portals/gbera/images/yuanbao.png
     - lib/portals/gbera/images/avatar.png
+    - lib/portals/gbera/images/default_avatar.png
     - lib/portals/gbera/data/user_constract
     - lib/portals/gbera/data/portlets.json
     - lib/portals/gbera/data/portlet_defaults.json

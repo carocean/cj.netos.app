@@ -131,6 +131,34 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomTitle(String room, String title,
+      {bool isOnlyLocal = false}) async {
+    await chatRoomDAO.updateRoomTitle(
+      title,
+      principal.person,
+      room,
+    );
+    if (!isOnlyLocal) {
+      await chatRoomRemote.updateRoomTitle(room, title);
+    }
+  }
+
+  @override
+  Future<Function> updateRoomNickname(
+      String creator, String room, String nickName,
+      {bool isOnlyLocal = false}) async {
+    await roomMemberDAO.updateRoomNickname(
+      nickName,
+      principal.person,
+      room,
+      principal.person,
+    );
+    if (!isOnlyLocal) {
+      await chatRoomRemote.updateRoomNickname(creator, room, nickName);
+    }
+  }
+
+  @override
   Future<List<RoomMember>> listMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
   }

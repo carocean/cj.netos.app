@@ -418,12 +418,14 @@ class ChatRoom {
 class RoomMember {
   String room;
   String person;
+  String nickName;
   int atime;
   String sandbox;
 
   RoomMember(
     this.room,
     this.person,
+    this.nickName,
     this.atime,
     this.sandbox,
   );
@@ -431,20 +433,12 @@ class RoomMember {
   RoomMember.formMap(map, String sandbox) {
     this.room = map['room'];
     this.person = map['person'];
+    this.nickName=map['nickName'];
     this.atime = map['atime'];
     this.sandbox = sandbox;
   }
 }
 
-@Entity(primaryKeys: ['person','room','sandbox'])
-class RoomNick {
-  final String person;
-  final String room;
-  final String nickName;
-  final String sandbox;
-
-  RoomNick(this.person, this.room, this.nickName, this.sandbox);
-}
 
 @entity
 class ChatMessage {

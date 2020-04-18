@@ -33,7 +33,7 @@ class ChatRoomsPortlet extends StatefulWidget {
 class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   bool _isloaded = false;
   StreamController<dynamic> _notifyStreamController;
-  List<_ChatRoomModel> _models = [];
+  List<ChatRoomModel> _models = [];
   ProgressTaskBar taskbarProgress;
 
   @override
@@ -302,7 +302,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         friends.add(f);
       }
       _models.add(
-        _ChatRoomModel(
+        ChatRoomModel(
           chatRoom: room,
           members: friends,
         ),
@@ -334,6 +334,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         RoomMember(
           roomCode,
           official,
+          null,
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
@@ -411,7 +412,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           top: 0,
           bottom: 0,
         ),
-        children: _models.map((_ChatRoomModel model) {
+        children: _models.map((ChatRoomModel model) {
           index++;
           return _ChatroomItem(
             context: widget.context,
@@ -498,7 +499,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
 class _ChatroomItem extends StatefulWidget {
   PageContext context;
-  _ChatRoomModel model;
+  ChatRoomModel model;
   Stream notify;
   Function() onDelete;
   bool isBottom;
@@ -835,9 +836,8 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         onTap: () {
           //打开聊天室
           widget.context.forward('/portlet/chat/talk', arguments: {
-            'chatRoom': widget.model.chatRoom,
-            'displayRoomTitle':
-                widget.model.displayRoomTitle(widget.context.principal),
+            'model':
+                widget.model,
             'notify': widget.notify.asBroadcastStream(),
           }).then((v) {
             _loadUnreadMessage().then((v) {
@@ -863,11 +863,11 @@ class _ChatroomItemStateBar {
   Future<void> update(String command, dynamic args) async {}
 }
 
-class _ChatRoomModel {
+class ChatRoomModel {
   ChatRoom chatRoom;
   List<Friend> members;
 
-  _ChatRoomModel({
+  ChatRoomModel({
     this.chatRoom,
     this.members,
   });

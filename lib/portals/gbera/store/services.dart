@@ -269,7 +269,14 @@ mixin IChatRoomService {
 
   Future<List<RoomMember>> listMember(String id) {}
 
-  Future<void> updateRoomLeading(String roomid, String file,{bool isOnlyLocal=false}) {}
+  Future<void> updateRoomLeading(String roomid, String file,
+      {bool isOnlyLocal = false}) {}
+
+  Future<void> updateRoomTitle(String room, String title,
+      {bool isOnlyLocal = false}) {}
+
+  Future<void> updateRoomNickname(String creator,String room, String nickname,
+      {bool isOnlyLocal = false}) {}
 
   Future<List<RoomMember>> top20Members(String code) {}
 
@@ -285,7 +292,8 @@ mixin IChatRoomService {
   Future<void> loadAndSaveRoomMembers(String room, String sender) {}
 }
 mixin IP2PMessageService {
-  Future<void> addMessage(String creator,ChatMessage message,{bool isOnlySaveLocal=false});
+  Future<void> addMessage(String creator, ChatMessage message,
+      {bool isOnlySaveLocal = false});
 
   Future<List<ChatMessage>> pageMessage(
       String roomCode, int limit, int offset) {}
@@ -299,7 +307,6 @@ mixin IP2PMessageService {
   Future<List<ChatMessage>> listUnreadMessages(String id) {}
 
   Future<bool> existsMessage(String msgid) {}
-
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);

@@ -156,9 +156,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomNick` (`person` TEXT, `room` TEXT, `nickName` TEXT, `sandbox` TEXT, PRIMARY KEY (`person`, `room`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -2331,6 +2329,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
   static final _roomMemberMapper = (Map<String, dynamic> row) => RoomMember(
       row['room'] as String,
       row['person'] as String,
+      row['nickName'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 
@@ -2368,6 +2367,14 @@ class _$IChatRoomDAO extends IChatRoomDAO {
   }
 
   @override
+  Future<void> updateRoomTitle(
+      String title, String sandbox, String room) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET title = ? WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[title, sandbox, room]);
+  }
+
+  @override
   Future<List<RoomMember>> top20Members(String sandbox, String room) async {
     return _queryAdapter.queryList(
         'SELECT * FROM RoomMember where sandbox=? and room=? LIMIT 20',
@@ -2391,6 +2398,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
             (RoomMember item) => <String, dynamic>{
                   'room': item.room,
                   'person': item.person,
+                  'nickName': item.nickName,
                   'atime': item.atime,
                   'sandbox': item.sandbox
                 });
@@ -2404,6 +2412,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   static final _roomMemberMapper = (Map<String, dynamic> row) => RoomMember(
       row['room'] as String,
       row['person'] as String,
+      row['nickName'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 
@@ -2449,6 +2458,14 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
         'SELECT count(*) as value FROM RoomMember WHERE room = ? and person=? AND sandbox=?',
         arguments: <dynamic>[code, person, sandbox],
         mapper: _countValueMapper);
+  }
+
+  @override
+  Future<void> updateRoomNickname(
+      String nickName, String sandbox, String room, String member) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE RoomMember SET nickName = ? WHERE sandbox=? and room = ? and person=?',
+        arguments: <dynamic>[nickName, sandbox, room, member]);
   }
 
   @override

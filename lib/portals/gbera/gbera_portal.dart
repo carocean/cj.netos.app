@@ -131,6 +131,12 @@ import 'desklets/chats/chat_talk.dart';
 import 'desklets/chats/friend_page.dart';
 import 'desklets/chats/import_persons.dart';
 import 'desklets/chats/room_settings.dart';
+import 'desklets/chats/settings_background.dart';
+import 'desklets/chats/settings_nickname.dart';
+import 'desklets/chats/settings_notice.dart';
+import 'desklets/chats/settings_qrcode.dart';
+import 'desklets/chats/settings_show_nickname.dart';
+import 'desklets/chats/settings_title.dart';
 import 'desklets/desklets.dart';
 import 'pages/desktop/wallpappers.dart';
 import 'pages/system/gbera_settings.dart';
@@ -1438,6 +1444,66 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/portlet/chat/friends',
           buildPage: (PageContext pageContext) => FriendPage(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '设置聊天室名',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/settings/setTitle',
+          buildPage: (PageContext pageContext) => ChatroomSetTitle(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '设置聊天室公告',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/settings/setNotice',
+          buildPage: (PageContext pageContext) => ChatroomSetNotice(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '显示聊天室二维码',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/qrcode',
+          buildPage: (PageContext pageContext) => ChatroomQrcode(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '设置在聊天室的昵称',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/setNickName',
+          buildPage: (PageContext pageContext) => ChatroomSetNickName(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '显示聊天室成员昵称',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/showNickName',
+          buildPage: (PageContext pageContext) => ChatroomShowNickName(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '显示聊天室背景',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/setBackground',
+          buildPage: (PageContext pageContext) => ChatroomSetBackground(
             context: pageContext,
           ),
         ),
