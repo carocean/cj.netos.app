@@ -99,6 +99,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<List<RoomMember>> pageMember(String room, int limit, int offset) {
+    return chatRoomDAO.pageMembers(room, principal.person, limit, offset);
+  }
+
+  @override
   Future<Function> removeMember(String code, official,
       {bool isOnlySaveLocal = false}) async {
     await roomMemberDAO.removeMember(code, official, principal.person);
@@ -159,8 +164,39 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomBackground(ChatRoom chatRoom, path,{bool isOnlyLocal=false}) async{
+    await chatRoomDAO.updateRoomBackground(path,chatRoom.id,principal.person);
+    if(!isOnlyLocal) {
+      await chatRoomRemote.updateRoomBackground(chatRoom.id, path);
+    }
+  }
+
+  @override
   Future<List<RoomMember>> listMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
+  }
+
+  @override
+  Future<RoomMember> getMember(String creator, String room) async {
+    return await getMemberOfPerson(creator, room, principal.person);
+  }
+
+  @override
+  Future<RoomMember> getMemberOfPerson(
+      String creator, String room, String official) async{
+    var member =
+    await roomMemberDAO.getMember(room, official, principal.person);
+    if (member == null) {
+      member = await chatRoomRemote.getMemberOfPerson(creator, room,official);
+    }
+    return member;
+  }
+
+  @override
+  Future<Function> switchNick(
+      String creator, String room, bool showNick) async {
+    await roomMemberDAO.switchNick(showNick?'true':'false', room, principal.person);
+    await chatRoomRemote.switchNick(creator, room, showNick);
   }
 
   @override
@@ -317,5 +353,10 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
       return false;
     }
     return value.value > 0;
+  }
+
+  @override
+  Future<Function> empty(ChatRoom chatRoom) async{
+    await p2pMessageDAO.emptyRoomMessages(chatRoom.id, principal.person);
   }
 }

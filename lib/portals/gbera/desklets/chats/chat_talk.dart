@@ -14,6 +14,7 @@ import 'package:netos_app/common/emoji.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:objectdb/objectdb.dart';
@@ -53,7 +54,12 @@ class _ChatTalkState extends State<ChatTalk> {
 
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
-
+    if (!StringUtil.isEmpty(_chatRoom.p2pBackground) &&
+        _chatRoom.p2pBackground.startsWith('http')) {
+      _updateRoomBackground().then((v) {
+        setState(() {});
+      });
+    }
     _flagReadMessages().then((v) {
       _onRefresh().then((v) {
         if (mounted) {
@@ -104,6 +110,16 @@ class _ChatTalkState extends State<ChatTalk> {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
+  }
+
+  Future<void> _updateRoomBackground() async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IChatRoomRemote chatRoomRemote =
+        widget.context.site.getService('/remote/chat/rooms');
+    var path = await chatRoomRemote.downloadBackground(_chatRoom.p2pBackground);
+    await chatRoomService.updateRoomBackground(_chatRoom, path);
+    _chatRoom.p2pBackground = path;
   }
 
   Future<void> _arrivePushMessageCommand(message) async {
@@ -308,7 +324,15 @@ class _ChatTalkState extends State<ChatTalk> {
             onPressed: () {
               widget.context.forward('/portlet/chat/room/settings',
                   arguments: {'model': _model}).then((v) {
-                setState(() {});
+                if (v == 'empty') {
+                  _p2pMessages.clear();
+                  _offset = 0;
+                  setState(() {});
+                }else if(v=='remove') {
+                  widget.context.backward(result: v);
+                }else{
+                  setState(() {});
+                }
               });
             },
             icon: Icon(
@@ -317,89 +341,104 @@ class _ChatTalkState extends State<ChatTalk> {
           ),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                _onTapEvents.forEach((cb) {
-                  cb();
-                });
-              },
-              behavior: HitTestBehavior.opaque,
-              child: EasyRefresh.custom(
-                shrinkWrap: true,
-                scrollController: _scrollController,
-                controller: _controller,
-                onRefresh: () async {
-                  _onRefresh().then((v) {
-                    setState(() {});
+      body: Container(
+        constraints: BoxConstraints.expand(),
+        decoration: StringUtil.isEmpty(_chatRoom.p2pBackground)
+            ? null
+            : BoxDecoration(
+                image: DecorationImage(
+                  image: FileImage(
+                    File(
+                      _chatRoom.p2pBackground,
+                    ),
+                  ),
+                  fit: BoxFit.fill,
+                ),
+              ),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  _onTapEvents.forEach((cb) {
+                    cb();
                   });
                 },
-                slivers: _p2pMessages.reversed.map((msg) {
-                  var item;
-                  if (msg.sender == widget.context.principal.person) {
-                    item = _SendMessageItem(
-                      p2pMessage: msg,
-                      context: widget.context,
+                behavior: HitTestBehavior.opaque,
+                child: EasyRefresh.custom(
+                  shrinkWrap: true,
+                  scrollController: _scrollController,
+                  controller: _controller,
+                  onRefresh: () async {
+                    _onRefresh().then((v) {
+                      setState(() {});
+                    });
+                  },
+                  slivers: _p2pMessages.reversed.map((msg) {
+                    var item;
+                    if (msg.sender == widget.context.principal.person) {
+                      item = _SendMessageItem(
+                        p2pMessage: msg,
+                        context: widget.context,
+                      );
+                    } else {
+                      item = _ReceiveMessageItem(
+                        p2pMessage: msg,
+                        context: widget.context,
+                      );
+                    }
+                    return SliverToBoxAdapter(
+                      child: item,
                     );
-                  } else {
-                    item = _ReceiveMessageItem(
-                      p2pMessage: msg,
-                      context: widget.context,
-                    );
-                  }
-                  return SliverToBoxAdapter(
-                    child: item,
-                  );
-                }).toList(),
+                  }).toList(),
+                ),
               ),
             ),
-          ),
-          _ChatSendPannel(
-            context: widget.context,
-            onTapEvents: _onTapEvents,
-            onFocus: () {
-              if (mounted) {
-                setState(() {
-                  _goEnd(300);
-                });
-              }
-            },
-            plusPanel: _PlusPannel(
-              pluginTap: (cmd) {
-                _doCommand(cmd).then((v) {
-                  if (mounted) {
-                    setState(() {
-                      _goEnd(100);
-                    });
-                  }
-                });
+            _ChatSendPannel(
+              context: widget.context,
+              onTapEvents: _onTapEvents,
+              onFocus: () {
+                if (mounted) {
+                  setState(() {
+                    _goEnd(300);
+                  });
+                }
               },
-            ),
-            emojiPanel: _EmojiPanel(
-              onselected: (text, emoji) {
-                _sendTextEditingController.text += text;
+              plusPanel: _PlusPannel(
+                pluginTap: (cmd) {
+                  _doCommand(cmd).then((v) {
+                    if (mounted) {
+                      setState(() {
+                        _goEnd(100);
+                      });
+                    }
+                  });
+                },
+              ),
+              emojiPanel: _EmojiPanel(
+                onselected: (text, emoji) {
+                  _sendTextEditingController.text += text;
+                },
+              ),
+              textRegionController: _scrollController,
+              controller: _sendTextEditingController,
+              onRoomModeChanged: (m) {
+                _roomMode = m;
+                setState(() {});
               },
-            ),
-            textRegionController: _scrollController,
-            controller: _sendTextEditingController,
-            onRoomModeChanged: (m) {
-              _roomMode = m;
-              setState(() {});
-            },
-            onCommand: (cmd) async {
-              await _doCommand(cmd);
+              onCommand: (cmd) async {
+                await _doCommand(cmd);
 //              _resetMessages();
 //              await _onRefresh();
-              if (mounted) {
-                setState(() {
-                  _goEnd(100);
-                });
-              }
-            },
-          ),
-        ],
+                if (mounted) {
+                  setState(() {
+                    _goEnd(100);
+                  });
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -984,6 +1023,8 @@ class _ReceiveMessageItem extends StatefulWidget {
 class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   Friend _sender;
   bool _isloaded = false;
+  RoomMember _member;
+  bool isShowNick = false;
 
   @override
   void initState() {
@@ -1021,6 +1062,14 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");
     _sender = await friendService.getFriend(widget.p2pMessage.sender);
+
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    ChatRoomModel _model = widget.context.parameters['model'];
+    ChatRoom _chatRoom = _model.chatRoom;
+    _member = await chatRoomService.getMemberOfPerson(
+        _chatRoom.creator, _chatRoom.id, _sender.official);
+    isShowNick = _member.isShowNick == 'true' ? true : false;
   }
 
   @override
@@ -1094,7 +1143,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                         right: 5,
                       ),
                       child: Text(
-                        _sender.nickName ?? '',
+                        isShowNick
+                            ? _member.nickName ?? _sender.nickName ?? ''
+                            : _sender.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[400],
@@ -1208,6 +1259,8 @@ class _SendMessageItem extends StatefulWidget {
 
 class __SendMessageItemState extends State<_SendMessageItem> {
   Person _sender;
+  RoomMember _member;
+  bool isShowNick = false;
 
   @override
   void initState() {
@@ -1221,6 +1274,13 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     _sender = await personService.getPerson(widget.p2pMessage.sender);
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+
+    ChatRoomModel _model = widget.context.parameters['model'];
+    ChatRoom _chatRoom = _model.chatRoom;
+    _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
+    isShowNick = _member.isShowNick == 'true' ? true : false;
   }
 
   @override
@@ -1269,7 +1329,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                         right: 5,
                       ),
                       child: Text(
-                        _sender?.nickName ?? '',
+                        isShowNick
+                            ? _member.nickName ?? _sender?.nickName ?? ''
+                            : _sender?.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[400],

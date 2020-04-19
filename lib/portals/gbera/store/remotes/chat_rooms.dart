@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/main.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../remotes.dart';
 
@@ -113,7 +116,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoomTitle(String room, String title) async{
+  Future<Function> updateRoomTitle(String room, String title) async {
     remotePorts.portTask.addPortGETTask(
       chatPortsUrl,
       'updateTitle',
@@ -125,15 +128,128 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoomNickname(String creator,String room, String nickName) {
+  Future<Function> updateRoomNickname(
+      String creator, String room, String nickName) {
     remotePorts.portTask.addPortGETTask(
       chatPortsUrl,
       'updateNickName',
       parameters: {
-        'creator':creator,
+        'creator': creator,
         'room': room,
         'nickName': nickName,
       },
+    );
+  }
+
+  @override
+  Future<RoomMember> getMember(String creator, String room) async {
+    var map = await remotePorts.portGET(
+      chatPortsUrl,
+      'getRoomMember',
+      parameters: {
+        'creator': creator,
+        'room': room,
+      },
+    );
+    return RoomMember.formMap(map, principal.person);
+  }
+
+  @override
+  Future<RoomMember> getMemberOfPerson(
+      String creator, String room, String member) async {
+    var map = await remotePorts.portGET(
+      chatPortsUrl,
+      'getHisRoomMember',
+      parameters: {
+        'creator': creator,
+        'room': room,
+        'person': member,
+      },
+    );
+    return RoomMember.formMap(map, principal.person);
+  }
+
+  @override
+  Future<Function> switchNick(
+      String creator, String room, bool showNick) async {
+    await remotePorts.portGET(
+      chatPortsUrl,
+      'setShowNick',
+      parameters: {
+        'creator': creator,
+        'room': room,
+        'isShowNick': showNick,
+      },
+    );
+  }
+
+  @override
+  Future<String> downloadBackground(String background) async {
+    var home = await getApplicationDocumentsDirectory();
+    var dir = '${home.path}/images';
+    var dirFile = Directory(dir);
+    if (!dirFile.existsSync()) {
+      dirFile.createSync();
+    }
+    var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(background)}';
+    var localFile = '$dir/$fn';
+
+    ProgressTaskBar taskbarProgress =
+        site.getService('@.prop.taskbar.progress');
+    await remotePorts.download(
+      '$background?accessToken=${principal.accessToken}',
+      localFile,
+      onReceiveProgress: (i, j) {
+        var percent = i / j * 1.0;
+        taskbarProgress.update(percent);
+      },
+    );
+    return localFile;
+  }
+
+  @override
+  Future<Function> updateRoomBackground(String room, background) async {
+    ProgressTaskBar taskbarProgress =
+        site.getService('@.prop.taskbar.progress');
+    var listenPath = '/chatroom/$room/background.upload';
+    remotePorts.portTask.listener(listenPath, (Frame frame) async {
+      if (frame.command != 'upload') {
+        return;
+      }
+      var subcmd = frame.head('sub-command');
+      switch (subcmd) {
+        case 'begin':
+          break;
+        case 'done':
+          var json = frame.contentText;
+          var files = jsonDecode(json);
+          var localFile = frame.parameter('localFile');
+          var remoteFile = files[localFile];
+          var room = frame.parameter('room');
+
+          await remotePorts.portGET(
+            chatPortsUrl,
+            'updateBackground',
+            parameters: {
+              'room': room,
+              'background': remoteFile,
+            },
+          );
+          print('成功上传leading:$localFile > $remoteFile');
+          remotePorts.portTask.unlistener(listenPath);
+          break;
+        case 'receiveProgress':
+          var count = frame.head('count');
+          var total = frame.head('total');
+          var percent = double.parse(count) / double.parse(total);
+          taskbarProgress.update(percent);
+          break;
+      }
+    });
+    remotePorts.portTask.addUploadTask(
+      '/app/chatroom',
+      [background],
+      callbackUrl: '$listenPath?room=$room&localFile=$background',
     );
   }
 
@@ -153,7 +269,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         case 'done':
           var json = frame.contentText;
           var files = jsonDecode(json);
-          var localFile=frame.parameter('localFile');
+          var localFile = frame.parameter('localFile');
           var remoteFile = files[localFile];
           var room = frame.parameter('room');
 

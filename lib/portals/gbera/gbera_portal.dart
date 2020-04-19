@@ -131,7 +131,6 @@ import 'desklets/chats/chat_talk.dart';
 import 'desklets/chats/friend_page.dart';
 import 'desklets/chats/import_persons.dart';
 import 'desklets/chats/room_settings.dart';
-import 'desklets/chats/settings_background.dart';
 import 'desklets/chats/settings_nickname.dart';
 import 'desklets/chats/settings_notice.dart';
 import 'desklets/chats/settings_qrcode.dart';
@@ -1494,16 +1493,6 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/portlet/chat/room/showNickName',
           buildPage: (PageContext pageContext) => ChatroomShowNickName(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '显示聊天室背景',
-          subtitle: '',
-          desc: '',
-          icon: GalleryIcons.shrine,
-          url: '/portlet/chat/room/setBackground',
-          buildPage: (PageContext pageContext) => ChatroomSetBackground(
             context: pageContext,
           ),
         ),

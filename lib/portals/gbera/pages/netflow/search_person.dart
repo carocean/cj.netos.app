@@ -508,7 +508,9 @@ class _PersonCardState extends State<_PersonCard> {
     await personService.addPerson(person);
     _hitsGz = false;
     _hitsQx = false;
-    setState(() {});
+    if(mounted) {
+      setState(() {});
+    }
   }
 
   _removePerson() async {
@@ -517,6 +519,8 @@ class _PersonCardState extends State<_PersonCard> {
     await personService.removePerson(_person.person);
     _hitsGz = false;
     _hitsQx = false;
-    setState(() {});
+    if(mounted) {
+      setState(() {});
+    }
   }
 }

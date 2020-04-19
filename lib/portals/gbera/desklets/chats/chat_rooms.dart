@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:nineold/nine_old_frame.dart';
@@ -49,6 +51,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         setState(() {});
       }
     });
+    qrcodeScanner.actions['chatroom'] = QrcodeAction(
+      doit: _qrcode_doit,
+      parse: _qrcode_parse,
+    );
     super.initState();
   }
 
@@ -76,6 +82,87 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       });
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  Future<QrcodeInfo> _qrcode_parse(String itis, String data) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    var pos = data.indexOf('/');
+    var creator = data.substring(0, pos);
+    var room = data.substring(pos + 1);
+    var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = await chatRoomService.fetchAndSaveRoom(
+        creator,
+        room,
+      );
+      await chatRoomService.loadAndSaveRoomMembers(room, creator);
+    }
+    List<RoomMember> members = await chatRoomService.listMember(chatRoom.id);
+    List<Friend> friends = [];
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
+    for (var member in members) {
+      var f = await friendService.getFriend(member.person);
+      if (f == null) {
+        continue;
+      }
+      friends.add(f);
+    }
+    var model = ChatRoomModel(
+      chatRoom: chatRoom,
+      members: friends,
+    );
+    return QrcodeInfo(
+      itis: 'chatroom',
+      title: '加入聊天室',
+      tips: Wrap(
+        direction: Axis.vertical,
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runAlignment: WrapAlignment.center,
+        spacing: 10,
+        children: <Widget>[
+          SizedBox(
+            width: 80,
+            child: model.leading(widget.context.principal),
+          ),
+          Text(
+            model.displayRoomTitle(widget.context.principal),
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+      props: {
+        'creator': creator,
+        'room': room,
+      },
+    );
+  }
+
+  Future<Function> _qrcode_doit(QrcodeInfo info) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    var creator = info.props['creator'];
+    var room = info.props['room'];
+    var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = await chatRoomService.fetchAndSaveRoom(
+        creator,
+        room,
+      );
+      await chatRoomService.loadAndSaveRoomMembers(room, creator);
+    }
+    _models.clear();
+    await _loadChatrooms();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _onmessage(Frame frame) async {
@@ -132,8 +219,27 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       );
       await chatRoomService.loadAndSaveRoomMembers(room, roomCreator);
       _models.clear();
-      await _loadChatroom();
+      await _loadChatrooms();
     }
+
+    if (!(await chatRoomService.existsMember(room, sender))) {
+      var member =
+          await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
+      await chatRoomService.addMember(member, isOnlySaveLocal: true);
+    } else {
+      IChatRoomRemote chatRoomRemote =
+          widget.context.site.getService('/remote/chat/rooms');
+      var member =
+          await chatRoomRemote.getMemberOfPerson(roomCreator, room, sender);
+      var exists =
+          await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
+      if (exists.nickName != member.nickName ||
+          exists.isShowNick != member.isShowNick) {
+        await chatRoomService.removeMember(room, sender, isOnlySaveLocal: true);
+        await chatRoomService.addMember(member, isOnlySaveLocal: true);
+      }
+    }
+
     if (await messageService.existsMessage(msgid)) {
       //消息已存在
       return;
@@ -282,10 +388,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   }
 
   Future<void> _load() async {
-    await _loadChatroom();
+    await _loadChatrooms();
   }
 
-  Future<void> _loadChatroom() async {
+  Future<void> _loadChatrooms() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IFriendService friendService =
@@ -328,6 +434,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.principal.person,
       ),
     );
+
+    bool hasCreator = false;
     for (var i = 0; i < members.length; i++) {
       var official = members[i];
       await chatRoomService.addMember(
@@ -335,9 +443,27 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           roomCode,
           official,
           null,
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
+      );
+      if (official == widget.context.principal.person) {
+        hasCreator = true;
+      }
+    }
+    if (!hasCreator) {
+      //自己为创建者也应加入
+      await chatRoomService.addMember(
+        RoomMember(
+          roomCode,
+          widget.context.principal.person,
+          null,
+          'false',
+          DateTime.now().millisecondsSinceEpoch,
+          widget.context.principal.person,
+        ),
+        isOnlySaveLocal: true,
       );
     }
     return;
@@ -388,7 +514,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                       }
                       _createChatroom(result).then((v) {
                         _models.clear();
-                        _loadChatroom().then((v) {
+                        _loadChatrooms().then((v) {
                           if (mounted) {
                             setState(() {});
                           }
@@ -475,7 +601,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                   }
                   _createChatroom(result).then((v) {
                     _models.clear();
-                    _loadChatroom().then((v) {
+                    _loadChatrooms().then((v) {
                       if (mounted) {
                         setState(() {});
                       }
@@ -490,7 +616,20 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
               ),
             ],
           ),
-          content,
+          NotificationListener(
+            child: content,
+            onNotification: (notification) {
+              if (notification is _NotifyRoomListRefresh) {
+                _models.clear();
+                _load().then((v) {
+                  if (mounted) {
+                    setState(() {});
+                  }
+                });
+              }
+              return false;
+            },
+          ),
         ],
       ),
     );
@@ -567,6 +706,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         widget.context.site.getService('/chat/p2p/messages');
     ChatMessage message =
         await messageService.firstUnreadMessage(widget.model.chatRoom.id);
+
     if (message == null) {
       _stateBar.count = 0;
       _stateBar.atime = null;
@@ -575,34 +715,48 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       _stateBar.tips = null;
       return;
     }
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+
     var count =
         await messageService.countUnreadMessage(widget.model.chatRoom.id);
     _stateBar.count = count;
     _stateBar.atime = message?.atime;
     var person = await personService.getPerson(message.sender);
-    _stateBar.brackets = '${count > 0 ? '$count条' : '${person.nickName}'}';
+    var member = await chatRoomService.getMemberOfPerson(
+        widget.model.chatRoom.creator,
+        widget.model.chatRoom.id,
+        message.sender);
+    var whois;
+    if (member != null &&
+        member.isShowNick == 'true' &&
+        !StringUtil.isEmpty(member.nickName)) {
+      whois = member.nickName;
+    } else {
+      whois = person.nickName;
+    }
+    _stateBar.brackets = '${count > 0 ? '$count条' : '$whois'}';
     _stateBar.isShow = true;
     switch (message?.contentType ?? '') {
       case '':
       case 'text':
-        _stateBar.tips = '${person.nickName}:${message?.content}';
+        _stateBar.tips = '$whois:${message?.content}';
         break;
       case 'audio':
         var cnt = message?.content;
         var map = jsonDecode(cnt);
         double timelength = map['timelength'];
-        _stateBar.tips =
-            '${person.nickName}: 发来语音, 长度:${timelength.toStringAsFixed(0)}秒';
+        _stateBar.tips = '$whois: 发来语音, 长度:${timelength.toStringAsFixed(0)}秒';
         break;
       case 'image':
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
-        _stateBar.tips = '${person.nickName}: 发来图片';
+        _stateBar.tips = '$whois: 发来图片';
         break;
       case 'video':
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
-        _stateBar.tips = '${person.nickName}: 发来视频';
+        _stateBar.tips = '$whois: 发来视频';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
@@ -836,10 +990,13 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         onTap: () {
           //打开聊天室
           widget.context.forward('/portlet/chat/talk', arguments: {
-            'model':
-                widget.model,
+            'model': widget.model,
             'notify': widget.notify.asBroadcastStream(),
           }).then((v) {
+            if (v == 'remove') {
+              _NotifyRoomListRefresh().dispatch(context);
+              return;
+            }
             _loadUnreadMessage().then((v) {
               setState(() {});
             });
@@ -931,3 +1088,5 @@ class ChatRoomModel {
     return NineOldWidget(list);
   }
 }
+
+class _NotifyRoomListRefresh extends Notification {}

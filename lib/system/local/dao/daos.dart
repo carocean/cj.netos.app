@@ -493,11 +493,18 @@ abstract class IChatRoomDAO {
       'UPDATE ChatRoom SET title = :title WHERE sandbox=:sandbox and id = :room')
   Future<void> updateRoomTitle(String title, String sandbox, String room) {}
 
-
   @Query(
       'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room LIMIT 20')
   Future<List<RoomMember>> top20Members(String sandbox, String room) {}
 
+  @Query(
+      'SELECT *  FROM RoomMember where room=:room and sandbox=:sandbox LIMIT :limit OFFSET :offset')
+  Future<List<RoomMember>> pageMembers(
+      String room, String sandbox, int limit, int offset) {}
+
+  @Query(
+      'UPDATE ChatRoom SET p2pBackground = :p2pBackground WHERE id = :room and sandbox=:sandbox')
+  Future<void> updateRoomBackground(p2pBackground, String room, String sandbox) {}
 }
 
 @dao
@@ -524,7 +531,16 @@ abstract class IRoomMemberDAO {
 
   @Query(
       'UPDATE RoomMember SET nickName = :nickName WHERE sandbox=:sandbox and room = :room and person=:member')
-  Future<void>  updateRoomNickname(String nickName, String sandbox, String room,String member) {}
+  Future<void> updateRoomNickname(
+      String nickName, String sandbox, String room, String member) {}
+
+  @Query(
+      'SELECT *  FROM RoomMember where room=:room and person=:member and sandbox=:sandbox LIMIT 1')
+  Future<RoomMember> getMember(String room, String member, String sandbox) {}
+
+  @Query(
+      'UPDATE RoomMember SET isShowNick = :isShowNick WHERE room = :room and sandbox=:sandbox ')
+  Future<void> switchNick(String isShowNick, String room, String sandbox) {}
 }
 
 @dao

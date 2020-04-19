@@ -6,7 +6,8 @@ import 'package:framework/framework.dart';
 
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/portlet_market.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 
 class Desktop extends StatefulWidget {
   PageContext context;
@@ -23,7 +24,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
   List<Widget> _desklets = [];
   bool _isloaded = false;
-
 
   @override
   bool get wantKeepAlive {
@@ -90,39 +90,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
               // Use the FontAwesomeIcons class for the IconData
               icon: new Icon(Icons.crop_free),
               onPressed: () async {
-                String cameraScanResult = await scanner.scan();
-                showDialog(
-                  context: context,
-                  barrierDismissible: true, // user must tap button!
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('扫好友、扫地物、支付、收款等'),
-                      content: Text(cameraScanResult),
-                      actions: <Widget>[
-                        FlatButton(
-                          child: Text('YES'),
-                          onPressed: () {
-                            print('yes...');
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        FlatButton(
-                          child: Text('NO'),
-                          onPressed: () {
-                            print('no...');
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                      backgroundColor: Colors.yellowAccent,
-                      elevation: 20,
-                      semanticLabel: '哈哈哈哈',
-                      // 设置成 圆角
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    );
-                  },
-                );
+                await qrcodeScanner.scan(context, widget.context);
               },
             ),
             IconButton(

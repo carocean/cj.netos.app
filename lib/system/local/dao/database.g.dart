@@ -156,7 +156,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -2330,6 +2330,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['room'] as String,
       row['person'] as String,
       row['nickName'] as String,
+      row['isShowNick'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 
@@ -2383,6 +2384,23 @@ class _$IChatRoomDAO extends IChatRoomDAO {
   }
 
   @override
+  Future<List<RoomMember>> pageMembers(
+      String room, String sandbox, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM RoomMember where room=? and sandbox=? LIMIT ? OFFSET ?',
+        arguments: <dynamic>[room, sandbox, limit, offset],
+        mapper: _roomMemberMapper);
+  }
+
+  @override
+  Future<void> updateRoomBackground(
+      dynamic p2pBackground, String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET p2pBackground = ? WHERE id = ? and sandbox=?',
+        arguments: <dynamic>[p2pBackground, room, sandbox]);
+  }
+
+  @override
   Future<void> addRoom(ChatRoom chatRoom) async {
     await _chatRoomInsertionAdapter.insert(
         chatRoom, sqflite.ConflictAlgorithm.abort);
@@ -2399,6 +2417,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
                   'room': item.room,
                   'person': item.person,
                   'nickName': item.nickName,
+                  'isShowNick': item.isShowNick,
                   'atime': item.atime,
                   'sandbox': item.sandbox
                 });
@@ -2413,6 +2432,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
       row['room'] as String,
       row['person'] as String,
       row['nickName'] as String,
+      row['isShowNick'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 
@@ -2466,6 +2486,23 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE RoomMember SET nickName = ? WHERE sandbox=? and room = ? and person=?',
         arguments: <dynamic>[nickName, sandbox, room, member]);
+  }
+
+  @override
+  Future<RoomMember> getMember(
+      String room, String member, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM RoomMember where room=? and person=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[room, member, sandbox],
+        mapper: _roomMemberMapper);
+  }
+
+  @override
+  Future<void> switchNick(
+      String isShowNick, String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE RoomMember SET isShowNick = ? WHERE room = ? and sandbox=?',
+        arguments: <dynamic>[isShowNick, room, sandbox]);
   }
 
   @override

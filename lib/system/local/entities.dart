@@ -407,7 +407,7 @@ class ChatRoom {
     this.creator = map['creator'];
     this.ctime = map['ctime'];
     this.notice = map['notice'];
-    this.p2pBackground = map['p2pBackground'];
+    this.p2pBackground = map['background'];
     this.isDisplayNick = map['isDisplayNick'];
     this.microsite = map['microsite'];
     this.sandbox = sandbox;
@@ -419,6 +419,7 @@ class RoomMember {
   String room;
   String person;
   String nickName;
+  String isShowNick;
   int atime;
   String sandbox;
 
@@ -426,6 +427,7 @@ class RoomMember {
     this.room,
     this.person,
     this.nickName,
+    this.isShowNick,
     this.atime,
     this.sandbox,
   );
@@ -434,6 +436,7 @@ class RoomMember {
     this.room = map['room'];
     this.person = map['person'];
     this.nickName=map['nickName'];
+    this.isShowNick=map['isShowNick']==true?'true':'false';
     this.atime = map['atime'];
     this.sandbox = sandbox;
   }

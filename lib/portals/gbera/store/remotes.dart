@@ -85,7 +85,7 @@ mixin IChatRoomRemote {
 
   Future<void> removeChatRoom(String code) {}
 
-  Future<void> pushMessage(String creator,ChatMessage message) {}
+  Future<void> pushMessage(String creator, ChatMessage message) {}
 
   Future<ChatRoom> getRoom(String creator, String room) {}
 
@@ -94,11 +94,23 @@ mixin IChatRoomRemote {
 
   Future<void> updateRoomLeading(String roomid, String file) {}
 
-  Future<void>  updateRoomTitle(String room, String title) {}
+  Future<void> updateRoomTitle(String room, String title) {}
 
-  Future<void>   updateRoomNickname(String creator,String room, String nickName) {}
+  Future<void> updateRoomNickname(
+      String creator, String room, String nickName) {}
 
+  Future<RoomMember> getMember(
+    String creator,
+    String room,
+  ) {}
 
+  Future<void> switchNick(String creator, String room, bool showNick) {}
 
+  Future<RoomMember> getMemberOfPerson(
+      String creator, String room, String member) {}
+
+  Future<void> updateRoomBackground(String room, path) {}
+
+  Future<String> downloadBackground(String background) {}
 
 }
