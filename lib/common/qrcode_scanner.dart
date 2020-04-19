@@ -39,15 +39,14 @@ class QrcodeScanner {
       print('未处理的二维码扫描策略:$itis');
       return;
     }
-    QrcodeInfo info=await action.parse(itis,data);
+    QrcodeInfo info = await action.parse(itis, data);
     showDialog(
       context: buildContext,
       barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(info.title),
-          content: info.tips,
-          actions: <Widget>[
+        var actions = <Widget>[];
+        if (!info.isHidenYesButton) {
+          actions.add(
             FlatButton(
               child: Text(
                 '是',
@@ -59,6 +58,10 @@ class QrcodeScanner {
                 Navigator.of(context).pop(['yes', action]);
               },
             ),
+          );
+        }
+        if (!info.isHidenNoButton) {
+          actions.add(
             FlatButton(
               child: Text(
                 '否',
@@ -70,7 +73,12 @@ class QrcodeScanner {
                 Navigator.of(context).pop(['no', action]);
               },
             ),
-          ],
+          );
+        }
+        return AlertDialog(
+          title: Text(info.title),
+          content: info.tips,
+          actions: actions,
           elevation: 20,
           semanticLabel: '',
           // 设置成 圆角
@@ -83,7 +91,7 @@ class QrcodeScanner {
       QrcodeAction action = v[1];
       switch (selected) {
         case 'yes':
-          if(action.doit!=null) {
+          if (action.doit != null) {
             action.doit(info);
           }
           break;
@@ -105,6 +113,15 @@ class QrcodeInfo {
   String title;
   String itis;
   Widget tips;
-  Map<String,dynamic> props;
-  QrcodeInfo({this.itis, this.title, this.tips,this.props});
+  bool isHidenYesButton ;
+  bool isHidenNoButton ;
+  Map<String, dynamic> props;
+
+  QrcodeInfo(
+      {this.itis,
+      this.title,
+      this.tips,
+      this.props,
+      this.isHidenNoButton=false,
+      this.isHidenYesButton=false});
 }

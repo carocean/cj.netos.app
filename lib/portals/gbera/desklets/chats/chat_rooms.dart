@@ -60,6 +60,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
   @override
   void dispose() {
+    qrcodeScanner.actions.remove('chatroom');
     taskbarProgress = null;
     _notifyStreamController.close();
     _models.clear();
@@ -91,15 +92,58 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var creator = data.substring(0, pos);
     var room = data.substring(pos + 1);
     var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
-    if (chatRoom == null) {
-      //添加聊天室
-      chatRoom = await chatRoomService.fetchAndSaveRoom(
-        creator,
-        room,
+    if (chatRoom != null) {
+      List<RoomMember> members = await chatRoomService.listMember(chatRoom.id);
+      List<Friend> friends = [];
+      IFriendService friendService =
+      widget.context.site.getService("/gbera/friends");
+      for (var member in members) {
+        var f = await friendService.getFriend(member.person);
+        if (f == null) {
+          continue;
+        }
+        friends.add(f);
+      }
+      var model = ChatRoomModel(
+        chatRoom: chatRoom,
+        members: friends,
       );
-      await chatRoomService.loadAndSaveRoomMembers(room, creator);
+      return QrcodeInfo(
+        itis: 'chatroom',
+        title: '已加入聊天室',
+        tips: Wrap(
+          direction: Axis.vertical,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runAlignment: WrapAlignment.center,
+          spacing: 10,
+          children: <Widget>[
+            SizedBox(
+              width: 80,
+              child: model.leading(widget.context.principal),
+            ),
+            Text(
+              model.displayRoomTitle(widget.context.principal),
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        props: {
+          'creator': creator,
+          'room': room,
+        },
+        isHidenYesButton: true,
+      );
     }
-    List<RoomMember> members = await chatRoomService.listMember(chatRoom.id);
+    //添加聊天室
+    chatRoom = await chatRoomService.fetchRoom(
+      creator,
+      room,
+    );
+    List<RoomMember> members =await chatRoomService.fetchMembers(room, creator);
     List<Friend> friends = [];
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");

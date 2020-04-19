@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
@@ -11,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -301,46 +303,6 @@ class _ChatTalkState extends State<ChatTalk> {
       );
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text.rich(
-          TextSpan(
-            text: '${_model.displayRoomTitle(widget.context.principal)}',
-            children: [
-//              TextSpan(
-//                text: _roomMode == null || _roomMode == _RoomMode.p2p
-//                    ? ' 聊天'
-//                    : ' 服务',
-//                style: TextStyle(
-//                  fontSize: 12,
-//                ),
-//              ),
-            ],
-          ),
-        ),
-        elevation: 0,
-        centerTitle: true,
-        actions: <Widget>[
-          IconButton(
-            onPressed: () {
-              widget.context.forward('/portlet/chat/room/settings',
-                  arguments: {'model': _model}).then((v) {
-                if (v == 'empty') {
-                  _p2pMessages.clear();
-                  _offset = 0;
-                  setState(() {});
-                }else if(v=='remove') {
-                  widget.context.backward(result: v);
-                }else{
-                  setState(() {});
-                }
-              });
-            },
-            icon: Icon(
-              Icons.more_vert,
-            ),
-          ),
-        ],
-      ),
       body: Container(
         constraints: BoxConstraints.expand(),
         decoration: StringUtil.isEmpty(_chatRoom.p2pBackground)
@@ -356,7 +318,50 @@ class _ChatTalkState extends State<ChatTalk> {
                 ),
               ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            AppBar(
+              title: Text.rich(
+                TextSpan(
+                  text: '${_model.displayRoomTitle(widget.context.principal)}',
+                  children: [
+//              TextSpan(
+//                text: _roomMode == null || _roomMode == _RoomMode.p2p
+//                    ? ' 聊天'
+//                    : ' 服务',
+//                style: TextStyle(
+//                  fontSize: 12,
+//                ),
+//              ),
+                  ],
+                ),
+              ),
+              elevation: 0,
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              toolbarOpacity: 1,
+              actions: <Widget>[
+                IconButton(
+                  onPressed: () {
+                    widget.context.forward('/portlet/chat/room/settings',
+                        arguments: {'model': _model}).then((v) {
+                      if (v == 'empty') {
+                        _p2pMessages.clear();
+                        _offset = 0;
+                        setState(() {});
+                      } else if (v == 'remove') {
+                        widget.context.backward(result: v);
+                      } else {
+                        setState(() {});
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    Icons.more_vert,
+                  ),
+                ),
+              ],
+            ),
             Expanded(
               child: GestureDetector(
                 onTap: () {
@@ -369,28 +374,12 @@ class _ChatTalkState extends State<ChatTalk> {
                   shrinkWrap: true,
                   scrollController: _scrollController,
                   controller: _controller,
-                  onRefresh: () async {
+                  onRefresh:_offset<_limit?null: () async {
                     _onRefresh().then((v) {
                       setState(() {});
                     });
                   },
-                  slivers: _p2pMessages.reversed.map((msg) {
-                    var item;
-                    if (msg.sender == widget.context.principal.person) {
-                      item = _SendMessageItem(
-                        p2pMessage: msg,
-                        context: widget.context,
-                      );
-                    } else {
-                      item = _ReceiveMessageItem(
-                        p2pMessage: msg,
-                        context: widget.context,
-                      );
-                    }
-                    return SliverToBoxAdapter(
-                      child: item,
-                    );
-                  }).toList(),
+                  slivers: _getSlivers(),
                 ),
               ),
             ),
@@ -441,6 +430,31 @@ class _ChatTalkState extends State<ChatTalk> {
         ),
       ),
     );
+  }
+
+  List<Widget> _getSlivers() {
+    List<Widget> widgets = [];
+    var reversed = _p2pMessages.reversed;
+    for (var msg in reversed) {
+      var item;
+      if (msg.sender == widget.context.principal.person) {
+        item = _SendMessageItem(
+          p2pMessage: msg,
+          context: widget.context,
+        );
+      } else {
+        item = _ReceiveMessageItem(
+          p2pMessage: msg,
+          context: widget.context,
+        );
+      }
+      widgets.add(
+        SliverToBoxAdapter(
+          child: item,
+        ),
+      );
+    }
+    return widgets;
   }
 }
 
@@ -874,6 +888,7 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
                             ? GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {
+//                                  _action = null;
                                   var text = _controller.text ?? '';
                                   text = text.trim();
                                   if (StringUtil.isEmpty(text)) {
@@ -887,7 +902,8 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
                                         message: text,
                                       ),
                                     );
-                                    _contentFocusNode.requestFocus();
+//                                    _contentFocusNode.requestFocus();
+//                                    _contentFocusNode.unfocus();
                                   }
                                 },
                                 child: Container(
@@ -1148,7 +1164,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                             : _sender.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[400],
+                          color: Colors.grey[500],
                           fontWeight: FontWeight.w600,
                         ),
                         strutStyle: StrutStyle(
@@ -1162,7 +1178,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                       ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[400],
+                        color: Colors.grey[500],
                         fontWeight: FontWeight.w600,
                       ),
                       strutStyle: StrutStyle(
@@ -1195,7 +1211,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           overflow: TextOverflow.visible,
           style: TextStyle(
             fontSize: 15,
-            color: Colors.grey[800],
+            color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         );
@@ -1334,7 +1350,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                             : _sender?.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[400],
+                          color: Colors.grey[500],
                           fontWeight: FontWeight.w600,
                         ),
                         strutStyle: StrutStyle(
@@ -1348,7 +1364,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                       ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[400],
+                        color: Colors.grey[500],
                         fontWeight: FontWeight.w600,
                       ),
                       strutStyle: StrutStyle(
@@ -1405,7 +1421,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           overflow: TextOverflow.visible,
           style: TextStyle(
             fontSize: 15,
-            color: Colors.grey[800],
+            color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         );

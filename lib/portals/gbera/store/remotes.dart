@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 mixin IChannelRemote {
@@ -113,4 +114,10 @@ mixin IChatRoomRemote {
 
   Future<String> downloadBackground(String background) {}
 
+  Future<List<ChatRoomNotice>> pageNotice(
+      ChatRoom chatRoom, int limit, int offset) {}
+
+  Future<void> publishNotice(ChatRoom chatRoom, String text) {}
+
+  Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
 }

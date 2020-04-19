@@ -302,6 +302,11 @@ mixin IChatRoomService {
 
   Future<void> updateRoomBackground(ChatRoom chatRoom, path,
       {bool isOnlyLocal = false}) {}
+
+  Future<ChatRoom>  fetchRoom(String creator, String room) {}
+
+  Future<List<RoomMember>> fetchMembers(String room, String creator) {}
+
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

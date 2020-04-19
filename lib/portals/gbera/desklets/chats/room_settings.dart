@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +30,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   RoomMember _member;
   List<_MemberModel> _memberModels = [];
   int _limit = 20, _offset = 0;
+  ChatRoomNotice _newestNotice;
 
   @override
   void initState() {
@@ -42,6 +44,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       }
     });
     _reloadNickName().then((v) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _loadNewestNotice().then((v) {
       if (mounted) {
         setState(() {});
       }
@@ -139,9 +146,16 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
 
   Future<void> _removeChatRoom() async {
     IChatRoomService chatRoomService =
-    widget.context.site.getService('/chat/rooms');
+        widget.context.site.getService('/chat/rooms');
     await chatRoomService.removeChatRoom(_chatRoom.id);
   }
+
+  Future<void> _loadNewestNotice() async {
+    IChatRoomRemote chatRoomRemote =
+        widget.context.site.getService('/remote/chat/rooms');
+    _newestNotice = await chatRoomRemote.getNewestNotice(_model.chatRoom);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -391,7 +405,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      _removeChatRoom().then((v){
+                      _removeChatRoom().then((v) {
                         widget.context.backward(result: 'remove');
                       });
                     },
@@ -517,24 +531,32 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         indent: 15,
       ),
     );
-    if (isMineRoom) {
-      list.add(
-        CardItem(
-          paddingLeft: 15,
-          paddingRight: 15,
-          title: '公告',
-          tipsText: '未设置',
-          onItemTap: () {
-            widget.context.forward(
-              '/portlet/chat/room/settings/setNotice',
-              arguments: {
-                'chatroom': _chatRoom,
+    list.add(
+      CardItem(
+        paddingLeft: 15,
+        paddingRight: 15,
+        title: '公告',
+        tipsOverflow: TextOverflow.ellipsis,
+        hiddenSubTitle: true,
+        tipsText: _newestNotice == null ? '无' : _newestNotice.notice ?? '无',
+        onItemTap: _newestNotice == null && !isMineRoom
+            ? null
+            : () {
+                widget.context.forward(
+                  '/portlet/chat/room/settings/setNotice',
+                  arguments: {
+                    'model': _model,
+                  },
+                ).then((v) {
+                  _loadNewestNotice().then((v) {
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  });
+                });
               },
-            );
-          },
-        ),
-      );
-    }
+      ),
+    );
 
     return list;
   }

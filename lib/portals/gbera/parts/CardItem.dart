@@ -4,8 +4,10 @@ import 'package:framework/framework.dart';
 class CardItem extends StatefulWidget {
   String title;
   Widget subtitle;
+  bool hiddenSubTitle;
   Color titleColor;
   double titleSize;
+  TextOverflow tipsOverflow;
   IconData tipsIconData;
   String tipsText;
   double tipsSize;
@@ -17,11 +19,14 @@ class CardItem extends StatefulWidget {
   double paddingRight;
   Function() onItemTap;
   Function() onItemLongPress;
+
   CardItem({
     this.title,
     this.subtitle,
+    this.hiddenSubTitle=false,
     this.titleColor,
     this.titleSize,
+    this.tipsOverflow,
     this.tipsText = '',
     this.tipsIconData,
     this.tipsSize,
@@ -78,37 +83,41 @@ class CardItemState extends State<CardItem> {
                     child: widget.leading,
                   ),
             Flexible(
-                    fit: FlexFit.tight,
-                    child: Container(
+              fit: FlexFit.tight,
+              child: Container(
+                padding: EdgeInsets.only(
+                  right: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
                       padding: EdgeInsets.only(
-                        right: 10,
+                        bottom: 3,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 3,
-                            ),
-                            child: Text(
-                              widget.title,
-                              style: TextStyle(
-                                color: widget.titleColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: widget.titleSize??15,
-                              ),
-                            ),
-                          ),
-                          widget.subtitle == null
-                              ? Container(width: 0,height: 0,):Flexible(
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          color: widget.titleColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: widget.titleSize ?? 15,
+                        ),
+                      ),
+                    ),
+                    widget.subtitle == null||widget.hiddenSubTitle
+                        ? Container(
+                            width: 0,
+                            height: 0,
+                          )
+                        : Flexible(
                             fit: FlexFit.loose,
                             child: widget.subtitle,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  ],
+                ),
+              ),
+            ),
             StringUtil.isEmpty(widget.tipsText) && widget.tipsIconData == null
                 ? Padding(
                     padding: EdgeInsets.only(left: 5),
@@ -133,9 +142,10 @@ class CardItemState extends State<CardItem> {
                                     softWrap: true,
                                     style: TextStyle(
                                       color: Colors.grey[600],
-                                      fontSize: widget.tipsSize??12,
+                                      fontSize: widget.tipsSize ?? 12,
                                     ),
                                     textDirection: TextDirection.rtl,
+                                    overflow: widget.tipsOverflow ?? null,
                                   ),
                                 ),
                         ),

@@ -831,3 +831,19 @@ class CountValue {
 
   CountValue(this.value);
 }
+
+
+class ChatRoomNotice{
+  String room;
+  String creator;
+  String notice;
+  int ctime;
+
+  ChatRoomNotice.fromMap(map,sandbox){
+    this.room=map['room'];
+    this.creator=map['creator'];
+    this.notice=map['notice'];
+    this.ctime=map['ctime'];
+  }
+
+}

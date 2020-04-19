@@ -164,9 +164,10 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoomBackground(ChatRoom chatRoom, path,{bool isOnlyLocal=false}) async{
-    await chatRoomDAO.updateRoomBackground(path,chatRoom.id,principal.person);
-    if(!isOnlyLocal) {
+  Future<Function> updateRoomBackground(ChatRoom chatRoom, path,
+      {bool isOnlyLocal = false}) async {
+    await chatRoomDAO.updateRoomBackground(path, chatRoom.id, principal.person);
+    if (!isOnlyLocal) {
       await chatRoomRemote.updateRoomBackground(chatRoom.id, path);
     }
   }
@@ -183,11 +184,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   @override
   Future<RoomMember> getMemberOfPerson(
-      String creator, String room, String official) async{
+      String creator, String room, String official) async {
     var member =
-    await roomMemberDAO.getMember(room, official, principal.person);
+        await roomMemberDAO.getMember(room, official, principal.person);
     if (member == null) {
-      member = await chatRoomRemote.getMemberOfPerson(creator, room,official);
+      member = await chatRoomRemote.getMemberOfPerson(creator, room, official);
     }
     return member;
   }
@@ -195,7 +196,8 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   @override
   Future<Function> switchNick(
       String creator, String room, bool showNick) async {
-    await roomMemberDAO.switchNick(showNick?'true':'false', room, principal.person);
+    await roomMemberDAO.switchNick(
+        showNick ? 'true' : 'false', room, principal.person);
     await chatRoomRemote.switchNick(creator, room, showNick);
   }
 
@@ -216,6 +218,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     }
     await chatRoomDAO.addRoom(cr);
     return cr;
+  }
+
+  @override
+  Future<ChatRoom> fetchRoom(String creator, String room) async {
+    return await this.chatRoomRemote.getRoom(creator, room);
   }
 
   @override
@@ -240,6 +247,32 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
         added.add(m.person);
       }
     }
+  }
+
+  @override
+  Future<List<RoomMember>> fetchMembers(String room, String creator) async {
+    List<RoomMember> members = [];
+    var limit = 1000;
+    var skip = 0;
+    var read = 0;
+    var added = [];
+    while (true) {
+      var list =
+          await this.chatRoomRemote.pageRoomMember(creator, room, limit, skip);
+      read = list.length;
+      if (read < 1) {
+        break;
+      }
+      skip += read;
+      for (var m in list) {
+        if (added.contains(m.person)) {
+          continue;
+        }
+        members.add(m);
+        added.add(m.person);
+      }
+    }
+    return members;
   }
 
   @override
@@ -356,7 +389,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
-  Future<Function> empty(ChatRoom chatRoom) async{
+  Future<Function> empty(ChatRoom chatRoom) async {
     await p2pMessageDAO.emptyRoomMessages(chatRoom.id, principal.person);
   }
 }
