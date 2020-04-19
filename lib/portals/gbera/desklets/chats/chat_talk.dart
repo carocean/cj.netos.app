@@ -320,47 +320,45 @@ class _ChatTalkState extends State<ChatTalk> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            AppBar(
-              title: Text.rich(
-                TextSpan(
-                  text: '${_model.displayRoomTitle(widget.context.principal)}',
-                  children: [
-//              TextSpan(
-//                text: _roomMode == null || _roomMode == _RoomMode.p2p
-//                    ? ' 聊天'
-//                    : ' 服务',
-//                style: TextStyle(
-//                  fontSize: 12,
-//                ),
-//              ),
-                  ],
-                ),
-              ),
-              elevation: 0,
-              centerTitle: true,
-              backgroundColor: Colors.transparent,
-              toolbarOpacity: 1,
-              actions: <Widget>[
-                IconButton(
-                  onPressed: () {
-                    widget.context.forward('/portlet/chat/room/settings',
-                        arguments: {'model': _model}).then((v) {
-                      if (v == 'empty') {
-                        _p2pMessages.clear();
-                        _offset = 0;
-                        setState(() {});
-                      } else if (v == 'remove') {
-                        widget.context.backward(result: v);
-                      } else {
-                        setState(() {});
-                      }
-                    });
-                  },
-                  icon: Icon(
-                    Icons.more_vert,
+            MediaQuery.removePadding(
+              removeBottom: true,
+              removeLeft: true,
+              removeRight: true,
+              context: context,
+              child: AppBar(
+                title: Text.rich(
+                  TextSpan(
+                    text:
+                        '${_model.displayRoomTitle(widget.context.principal)}',
+                    children: [],
                   ),
                 ),
-              ],
+                elevation: 0,
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                toolbarOpacity: 1,
+                actions: <Widget>[
+                  IconButton(
+                    onPressed: () {
+                      widget.context.forward('/portlet/chat/room/settings',
+                          arguments: {'model': _model}).then((v) {
+                        if (v == 'empty') {
+                          _p2pMessages.clear();
+                          _offset = 0;
+                          setState(() {});
+                        } else if (v == 'remove') {
+                          widget.context.backward(result: v);
+                        } else {
+                          setState(() {});
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      Icons.more_vert,
+                    ),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               child: GestureDetector(
@@ -374,11 +372,13 @@ class _ChatTalkState extends State<ChatTalk> {
                   shrinkWrap: true,
                   scrollController: _scrollController,
                   controller: _controller,
-                  onRefresh:_offset<_limit?null: () async {
-                    _onRefresh().then((v) {
-                      setState(() {});
-                    });
-                  },
+                  onRefresh: _offset < _limit
+                      ? null
+                      : () async {
+                          _onRefresh().then((v) {
+                            setState(() {});
+                          });
+                        },
                   slivers: _getSlivers(),
                 ),
               ),
