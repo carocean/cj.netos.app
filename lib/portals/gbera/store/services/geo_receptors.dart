@@ -36,14 +36,13 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<bool> init(Location location, {Function() done}) async {
+  Future<bool> init(Location location) async {
     var mobileReceptor =
         await getMobileReceptor(principal.person, principal.device);
     if (mobileReceptor == null) {
       var receptor = await receptorRemote.getMyMobilReceptor();
       if (receptor != null) {
         await add(receptor, isOnlySaveLocal: true);
-        receptorRemote.syncTaskRemote(done: done);
         return true;
       }
       var latlng = await location.latLng;
@@ -66,7 +65,6 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           principal.person,
         ),
       );
-      receptorRemote.syncTaskRemote(done: done);
       return true;
     }
     return false;

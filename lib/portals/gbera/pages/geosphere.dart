@@ -23,7 +23,9 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
+import 'package:netos_app/system/local/dao/database.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -110,6 +112,13 @@ class _GeosphereState extends State<Geosphere>
         matchPath: '/geosphere/receptor',
       );
     }
+    syncTaskMananger.tasks['geoshpere'] = SyncTask(
+      doTask: _sync_task,
+    )..run(
+        context: widget.context,
+        checkRemote: _sync_check,
+        forceSync: true,
+      );
     super.initState();
   }
 
@@ -122,6 +131,30 @@ class _GeosphereState extends State<Geosphere>
     _receptorStreamController.close();
     _notifyStreamController.close();
     super.dispose();
+  }
+
+  Future<SyncArgs> _sync_check(PageContext context) async {
+    var portsurl =
+        context.site.getService('@.prop.ports.document.geo.receptor');
+    return SyncArgs(
+      portsUrl: portsurl,
+      restCmd: 'getAllMyReceptor',
+    );
+  }
+
+  Future<void> _sync_task(PageContext context, Frame frame) async {
+    IGeoReceptorRemote receptorRemote =
+        context.site.getService('/remote/geo/receptors');
+    bool issync = await receptorRemote.syncTaskRemote(frame);
+    if (!issync) {
+      return;
+    }
+    _offset = 0;
+    _receptorStreamController.add('refresh');
+    await _loadReceptors();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _listenMeidaFileDownload() async {
@@ -578,15 +611,7 @@ class _GeosphereState extends State<Geosphere>
     _location.listen('checkMobileReceptor', 0, (location) async {
       if (!isInited) {
         isInited = true;
-        if (await receptorService.init(location, done: () {
-          if (mounted) {
-            _offset = 0;
-            _receptorStreamController.add('refresh');
-            _loadReceptors().then((v) {
-              setState(() {});
-            });
-          }
-        })) {
+        if (await receptorService.init(location)) {
           _offset = 0;
           _receptorStreamController.add('refresh');
           _loadReceptors().then((v) {

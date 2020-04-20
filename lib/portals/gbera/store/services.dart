@@ -353,7 +353,7 @@ mixin IGeoReceptorCache {
   Future<GeoReceptor> get(String category, String receptorid);
 }
 mixin IGeoReceptorService {
-  Future<bool> init(Location location, {Function() done});
+  Future<bool> init(Location location);
 
   Future<void> add(GeoReceptor receptor, {bool isOnlySaveLocal = false});
 

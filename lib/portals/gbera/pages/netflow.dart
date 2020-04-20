@@ -163,7 +163,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     )..run(
         context: widget.context,
         checkRemote: _sync_check,
-        forceSync: true,
       );
     super.initState();
   }

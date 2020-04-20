@@ -68,7 +68,7 @@ mixin IGeoReceptorRemote {
 
   Future<GeoReceptor> getReceptor(String category, String receptorid) {}
 
-  void syncTaskRemote({Function() done}) {}
+  Future<bool> syncTaskRemote(Frame frame)async {}
 
   Future<GeoReceptor> getMyMobilReceptor() {}
 
@@ -474,65 +474,46 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   ///远程到本地的同步任务
   @override
-  void syncTaskRemote({Function() done}) {
-    remotePorts.portTask.listener('/geosphere/receptor/getAllMyReceptor',
-        (Frame frame) async {
-      if ('getAllMyReceptor' == frame.command) {
-        return;
+  Future<bool> syncTaskRemote(Frame frame)async {
+    var content = frame.contentText;
+    var list = jsonDecode(content);
+    bool issync=false;
+    for (var item in list) {
+      var receptor = GeoReceptor.load(item, principal.person);
+      CountValue value = await receptorDAO.countReceptor(
+          receptor.id, receptor.category, principal.person);
+      if (value.value < 1) {
+        print('感知器:${receptor.title} 正在下载...');
+        var home = await getApplicationDocumentsDirectory();
+        var dir = '${home.path}/images';
+        var dirFile = Directory(dir);
+        if (!dirFile.existsSync()) {
+          dirFile.createSync();
+        }
+        if (!StringUtil.isEmpty(receptor.leading)) {
+          var fn =
+              '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
+          var localFile = '$dir/$fn';
+          await remotePorts.download(
+              '${receptor.leading}?accessToken=${principal.accessToken}',
+              localFile);
+          receptor.leading = localFile;
+        }
+        if (!StringUtil.isEmpty(receptor.background)) {
+          var fn =
+              '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.background)}';
+          var localFile = '$dir/$fn';
+          await remotePorts.download(
+              '${receptor.background}?accessToken=${principal.accessToken}',
+              localFile);
+          receptor.background = localFile;
+        }
+        await receptorDAO.add(receptor);
+        issync=true;
+        print('感知器:${receptor.title} 成功安装');
       }
-      switch (frame.head('sub-command')) {
-        case 'begin':
-          break;
-        case 'done':
-          remotePorts.portTask
-              .unlistener('/geosphere/receptor/getAllMyReceptor');
-          var content = frame.contentText;
-          var list = jsonDecode(content);
-          for (var item in list) {
-            var receptor = GeoReceptor.load(item, principal.person);
-            CountValue value = await receptorDAO.countReceptor(
-                receptor.id, receptor.category, principal.person);
-            if (value.value < 1) {
-              print('感知器:${receptor.title} 正在下载...');
-              var home = await getApplicationDocumentsDirectory();
-              var dir = '${home.path}/images';
-              var dirFile = Directory(dir);
-              if (!dirFile.existsSync()) {
-                dirFile.createSync();
-              }
-              if (!StringUtil.isEmpty(receptor.leading)) {
-                var fn =
-                    '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
-                var localFile = '$dir/$fn';
-                await remotePorts.download(
-                    '${receptor.leading}?accessToken=${principal.accessToken}',
-                    localFile);
-                receptor.leading = localFile;
-              }
-              if (!StringUtil.isEmpty(receptor.background)) {
-                var fn =
-                    '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.background)}';
-                var localFile = '$dir/$fn';
-                await remotePorts.download(
-                    '${receptor.background}?accessToken=${principal.accessToken}',
-                    localFile);
-                receptor.background = localFile;
-              }
-              await receptorDAO.add(receptor);
-              print('感知器:${receptor.title} 成功安装');
-            }
-          }
-          if (done != null) {
-            done();
-          }
-          break;
-      }
-    });
-    remotePorts.portTask.addPortGETTask(
-      _receptorPortsUrl,
-      'getAllMyReceptor',
-      callbackUrl: '/geosphere/receptor/getAllMyReceptor',
-    );
+    }
+    return issync;
   }
 
   @override
