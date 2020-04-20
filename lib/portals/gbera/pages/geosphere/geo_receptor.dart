@@ -269,7 +269,7 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
                   _showWhiteAppBar(appBar);
                   return;
               }
-            }),
+            },),
       ),
     ];
     if (_isLoaded) {

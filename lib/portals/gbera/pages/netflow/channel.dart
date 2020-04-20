@@ -143,6 +143,8 @@ class _ChannelPageState extends State<ChannelPage> {
         titleSpacing: 0,
         elevation: 0,
         automaticallyImplyLeading: true,
+        backgroundColor: Colors.transparent,
+        toolbarOpacity: 1,
         actions: <Widget>[
           GestureDetector(
             behavior: HitTestBehavior.opaque,
