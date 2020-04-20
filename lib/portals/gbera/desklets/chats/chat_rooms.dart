@@ -12,6 +12,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:nineold/nine_old_frame.dart';
@@ -55,6 +56,13 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       doit: _qrcode_doit,
       parse: _qrcode_parse,
     );
+    syncTaskMananger.tasks['chatroom'] = SyncTask(
+      doTask: _sync_task,
+    )..run(
+        context: widget.context,
+        checkRemote: _sync_check,
+//        forceSync: true,
+      );
     super.initState();
   }
 
@@ -85,6 +93,48 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     super.didUpdateWidget(oldWidget);
   }
 
+  Future<SyncArgs> _sync_check(PageContext context) async {
+    var portsurl = context.site.getService('@.prop.ports.link.chatroom');
+    return SyncArgs(
+      portsUrl: portsurl,
+      restCmd: 'pageRoom',
+      parameters: {
+        'limit': 10000,
+        /*全取出来*/
+        'offset': 0,
+      },
+    );
+  }
+
+  Future<void> _sync_task(PageContext context, Frame frame) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
+
+    var data = frame.contentText;
+    List rooms = jsonDecode(data);
+    if (rooms.isEmpty) {
+      return;
+    }
+    for (var map in rooms) {
+      ChatRoom chatRoom = ChatRoom.fromMap(map, context.principal.person);
+      var exists = await chatRoomService.get(chatRoom.id, isOnlyLocal: true);
+      if (exists != null) {
+        continue;
+      }
+      //添加聊天室
+      await chatRoomService.addRoom(chatRoom, isOnlySaveLocal: true);
+      await chatRoomService.loadAndSaveRoomMembers(
+          chatRoom.id, chatRoom.creator);
+    }
+    _models.clear();
+    await _loadChatrooms();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<QrcodeInfo> _qrcode_parse(String itis, String data) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -96,7 +146,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       List<RoomMember> members = await chatRoomService.listMember(chatRoom.id);
       List<Friend> friends = [];
       IFriendService friendService =
-      widget.context.site.getService("/gbera/friends");
+          widget.context.site.getService("/gbera/friends");
       for (var member in members) {
         var f = await friendService.getFriend(member.person);
         if (f == null) {
@@ -143,7 +193,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       creator,
       room,
     );
-    List<RoomMember> members =await chatRoomService.fetchMembers(room, creator);
+    List<RoomMember> members =
+        await chatRoomService.fetchMembers(room, creator);
     List<Friend> friends = [];
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");
@@ -739,6 +790,11 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       oldWidget.model = widget.model;
       oldWidget.isBottom = widget.isBottom;
       oldWidget.onDelete = widget.onDelete;
+      _loadUnreadMessage().then((v){
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     super.didUpdateWidget(oldWidget);
   }

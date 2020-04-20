@@ -120,4 +120,5 @@ mixin IChatRoomRemote {
   Future<void> publishNotice(ChatRoom chatRoom, String text) {}
 
   Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
+
 }

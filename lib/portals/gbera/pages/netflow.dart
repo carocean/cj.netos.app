@@ -10,10 +10,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -132,13 +134,13 @@ class Netflow extends StatefulWidget {
 class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
 
-  Future<List<_ChannelItem>> _future_loadChannels;
-
   //当前打开的正在工作的管道
   WorkingChannel _workingChannel;
 
   //管道列表项的消息状态条
   final _channelStateBars = <String, _ChannelStateBar>{};
+  EasyRefreshController _controller;
+  List<_ChannelItem> _items = [];
 
   @override
   bool get wantKeepAlive {
@@ -147,26 +149,74 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
+    _controller = EasyRefreshController();
     _workingChannel = WorkingChannel();
-    _future_loadChannels = _loadChannels();
+    _loadChannels().then((v) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    syncTaskMananger.tasks['netflow'] = SyncTask(
+      doTask: _sync_task,
+    )..run(
+        context: widget.context,
+        checkRemote: _sync_check,
+        forceSync: true,
+      );
     super.initState();
   }
 
   @override
   void dispose() {
+    _items.clear();
+    _controller.dispose();
     _channelStateBars.clear();
     _workingChannel = null;
-    _future_loadChannels = null;
     super.dispose();
   }
 
-  //调用方：创建管道，修改管道图标
-  Future<void> _refreshChannels() async {
-    //该方法导致FutureBuilder的重绘
-    _future_loadChannels = _loadChannels();
+  Future<SyncArgs> _sync_check(PageContext context) async {
+    var portsurl = context.site.getService('@.prop.ports.link.netflow');
+    return SyncArgs(
+      portsUrl: portsurl,
+      restCmd: 'pageChannel',
+      parameters: {
+        'limit': 10000,
+        /*全取出来*/
+        'offset': 0,
+      },
+    );
   }
 
-  Future<List<_ChannelItem>> _loadChannels() async {
+  Future<void> _sync_task(PageContext context, Frame frame) async {
+    var source = frame.contentText;
+    List list = jsonDecode(source);
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    IChannelCache channelCache =
+        widget.context.site.getService('/cache/channels');
+
+    for (var map in list) {
+      var ch = Channel.fromMap(map, context.principal.person);
+
+      bool existsChannel = await channelService.existsChannel(ch.id);
+      if (existsChannel) {
+        continue;
+      }
+      //缓冲channel
+      await channelCache.cache(ch);
+      await channelService.addChannel(ch, isOnlyLocal: true);
+      _items.clear();
+      await _loadChannels();
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Future<void> _loadChannels() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
     IChannelMessageService channelMessageService =
@@ -176,7 +226,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       await channelService.initSystemChannel(widget.context.principal);
       list = await channelService.getAllChannel();
     }
-    var items = List<_ChannelItem>();
+    var items = _items;
     for (var ch in list) {
       var statebar = _ChannelStateBar(
         channelid: ch.id,
@@ -197,9 +247,12 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
               '/netflow/channel',
               arguments: {'channel': ch, 'workingChannel': _workingChannel},
             ).then((v) {
-              if (_refreshChannels != null) {
-                _refreshChannels();
-              }
+              _items.clear();
+              _loadChannels().then((v) {
+                if (mounted) {
+                  setState(() {});
+                }
+              });
             });
           },
           isSystemChannel: channelService.isSystemChannel(ch.id),
@@ -214,24 +267,27 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         ),
       );
     }
-    return items;
+    _controller.finishLoad(success: true, noMore: true);
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     use_wallpapper = widget.context.parameters['use_wallpapper'];
 
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverPersistentHeader(
-          floating: false,
-          pinned: true,
-          delegate: GberaPersistentHeaderDelegate(
+    return Column(
+      children: <Widget>[
+        MediaQuery.removePadding(
+          removeBottom: true,
+          removeLeft: true,
+          removeRight: true,
+          context: context,
+          child: AppBar(
             automaticallyImplyLeading: false,
             elevation: 0,
             title: Text('网流'),
             centerTitle: true,
+            backgroundColor: Colors.transparent,
+            toolbarOpacity: 1,
             actions: <Widget>[
               PopupMenuButton<String>(
                 offset: Offset(
@@ -248,9 +304,12 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         value,
                       )
                           .then((v) {
-                        if (_refreshChannels != null) {
-                          _refreshChannels();
-                        }
+                        _items.clear();
+                        _loadChannels().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                       break;
                     case '/netflow/manager/scan_channel':
@@ -260,27 +319,36 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       widget.context
                           .forward(value, arguments: arguments)
                           .then((v) {
-                        if (_refreshChannels != null) {
-                          _refreshChannels();
-                        }
+                        _items.clear();
+                        _loadChannels().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                       break;
                     case '/netflow/manager/search_channel':
                       widget.context
                           .forward(value, arguments: arguments)
                           .then((v) {
-                        if (_refreshChannels != null) {
-                          _refreshChannels();
-                        }
+                        _items.clear();
+                        _loadChannels().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                       break;
                     case '/test/services':
                       widget.context
                           .forward(value, arguments: arguments)
                           .then((v) {
-                        if (_refreshChannels != null) {
-                          _refreshChannels();
-                        }
+                        _items.clear();
+                        _loadChannels().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                       break;
                   }
@@ -395,41 +463,169 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
             ],
           ),
         ),
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.only(
-              left: 10,
-              bottom: 5,
-            ),
-            alignment: Alignment.centerLeft,
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    widget.context.forward('/netflow/manager/settings',
-                        arguments: {'title': '公众活动'});
-                  },
+        Expanded(
+          child: EasyRefresh.custom(
+            controller: _controller,
+            onLoad: _loadChannels,
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 10,
+                    bottom: 5,
+                  ),
+                  alignment: Alignment.centerLeft,
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          right: 5,
-                        ),
-                        child: Icon(
-                          widget.context
-                              .findPage('/netflow/manager/channel_gateway')
-                              ?.icon,
-                          size: 18,
-                          color: Colors.grey[600],
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          widget.context.forward('/netflow/manager/settings',
+                              arguments: {'title': '公众活动'});
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: 5,
+                              ),
+                              child: Icon(
+                                widget.context
+                                    .findPage(
+                                        '/netflow/manager/channel_gateway')
+                                    ?.icon,
+                                size: 18,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              '公众活动',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          showCupertinoModalPopup(
+                              context: context,
+                              builder: (context) {
+                                return CupertinoActionSheet(
+                                  actions: <Widget>[
+                                    CupertinoActionSheetAction(
+                                      child: const Text.rich(
+                                        TextSpan(
+                                          text: '全屏',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black87,
+                                          ),
+                                          children: [
+                                            TextSpan(text: '\r\n'),
+                                            TextSpan(
+                                              text: '长按全屏按钮可直接进入全屏',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        widget.context.backward();
+                                        widget.context.forward(
+                                            '/netflow/publics/activities',
+                                            arguments: {'title': '公众活动'});
+                                      },
+                                    ),
+                                    CupertinoActionSheetAction(
+                                      child: const Text.rich(
+                                        TextSpan(
+                                          text: '取消',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black87,
+                                          ),
+                                          children: [
+                                            TextSpan(text: '\r\n'),
+                                            TextSpan(
+                                              text: '',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context, 'Profiteroles');
+                                      },
+                                    ),
+                                  ],
+                                );
+                              });
+                        },
+                        onLongPress: () {
+                          widget.context.forward('/netflow/publics/activities',
+                              arguments: {'title': '公众活动'});
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            right: 15,
+                          ),
+                          child: Icon(
+                            Icons.open_with,
+                            color: Colors.grey[600],
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: NotificationListener(
+                  onNotification: (e) {
+                    if (e is ChannelsRefresher) {
+                      _items.clear();
+                      _loadChannels().then((v) {
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      });
+                    }
+                    return true;
+                  },
+                  child: _InsiteMessagesRegion(
+                    context: widget.context,
+                    workingChannel: _workingChannel,
+                    channelStateBars: _channelStateBars,
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 10,
+                    bottom: 5,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
                       Text(
-                        '公众活动',
+                        '我的管道',
                         style: TextStyle(
                           fontSize: 18,
                           color: Colors.black,
@@ -438,162 +634,18 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    showCupertinoModalPopup(
-                        context: context,
-                        builder: (context) {
-                          return CupertinoActionSheet(
-                            actions: <Widget>[
-                              CupertinoActionSheetAction(
-                                child: const Text.rich(
-                                  TextSpan(
-                                    text: '全屏',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black87,
-                                    ),
-                                    children: [
-                                      TextSpan(text: '\r\n'),
-                                      TextSpan(
-                                        text: '长按全屏按钮可直接进入全屏',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                onPressed: () {
-                                  widget.context.backward();
-                                  widget.context.forward(
-                                      '/netflow/publics/activities',
-                                      arguments: {'title': '公众活动'});
-                                },
-                              ),
-                              CupertinoActionSheetAction(
-                                child: const Text.rich(
-                                  TextSpan(
-                                    text: '取消',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black87,
-                                    ),
-                                    children: [
-                                      TextSpan(text: '\r\n'),
-                                      TextSpan(
-                                        text: '',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context, 'Profiteroles');
-                                },
-                              ),
-                            ],
-                          );
-                        });
-                  },
-                  onLongPress: () {
-                    widget.context.forward('/netflow/publics/activities',
-                        arguments: {'title': '公众活动'});
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(
-                      right: 15,
-                    ),
-                    child: Icon(
-                      Icons.open_with,
-                      color: Colors.grey[600],
-                      size: 20,
-                    ),
-                  ),
+              ),
+              SliverToBoxAdapter(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.all(0),
+                  physics: NeverScrollableScrollPhysics(),
+                  children: _items.map((item) {
+                    return item;
+                  }).toList(),
                 ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: NotificationListener(
-            onNotification: (e) {
-              if (e is ChannelsRefresher) {
-                _future_loadChannels = _loadChannels();
-                setState(() {});
-              }
-              return true;
-            },
-            child: _InsiteMessagesRegion(
-              context: widget.context,
-              workingChannel: _workingChannel,
-              channelStateBars: _channelStateBars,
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.only(
-              left: 10,
-              bottom: 5,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  '我的管道',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: FutureBuilder<List<_ChannelItem>>(
-            future: _future_loadChannels,
-            builder: (ctx, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: Container(
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                );
-              }
-              if (snapshot.hasError) {
-                print('netflow---${snapshot.error}');
-                return Container(
-                  width: 0,
-                  height: 0,
-                );
-              }
-              if (snapshot.data == null) {
-                return Container(
-                  width: 0,
-                  height: 0,
-                );
-              }
-              return ListView(
-                shrinkWrap: true,
-                padding: EdgeInsets.all(0),
-                physics: NeverScrollableScrollPhysics(),
-                children: snapshot.data.map((item) {
-                  return item;
-                }).toList(),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ],
@@ -673,7 +725,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   @override
   void dispose() {
     _unlistenMeidaFileDownload();
-    _streamSubscription.cancel();
+    _streamSubscription?.cancel();
     widget.context.unlistenNetwork(matchPath: '/netflow/channel');
     _messages.clear();
     super.dispose();

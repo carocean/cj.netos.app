@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -18,65 +19,84 @@ class Market extends StatefulWidget {
 }
 
 class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
+  EasyRefreshController _controller;
   @override
   bool get wantKeepAlive {
     return true;
   }
 
   @override
-  void initState() {}
-
-  @override
-  void dispose() {
-    super.dispose();
+  void initState() {
+    _controller=EasyRefreshController();
+    super.initState();
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  Future<void> _onload()async{
+    _controller.finishLoad(success: true,noMore: true);
+  }
+  @override
   Widget build(BuildContext context) {
-    super.build(context);
-    return CustomScrollView(
-      slivers: [
-        SliverPersistentHeader(
-          floating: false,
-          pinned: true,
-          delegate: GberaPersistentHeaderDelegate(
+    return Column(
+      children: <Widget>[
+        MediaQuery.removePadding(
+          removeBottom: true,
+          removeLeft: true,
+          removeRight: true,
+          context: context,
+          child: AppBar(
             title: Text('市场'),
             centerTitle: true,
             elevation: 0,
             automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            toolbarOpacity: 1,
+            actions: <Widget>[],
           ),
         ),
-        SliverToBoxAdapter(
-          child: _renderDealmarketRegion(),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            height: 10,
-          ),
-        ),
-        SliverList(
-          delegate: SliverChildListDelegate(
-            _shoppingMarket().toList(),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            height: 10,
-          ),
-        ),
-        SliverList(
-          delegate: SliverChildListDelegate(
-            _platformServices().toList(),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            height: 10,
-          ),
-        ),
-        SliverList(
-          delegate: SliverChildListDelegate(
-            _platformNewsDays().toList(),
+        Expanded(
+          child: EasyRefresh.custom(
+            controller: _controller,
+            onLoad: _onload,
+            slivers: [
+              SliverToBoxAdapter(
+                child: _renderDealmarketRegion(),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 10,
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  _shoppingMarket().toList(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 10,
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  _platformServices().toList(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 10,
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  _platformNewsDays().toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ],

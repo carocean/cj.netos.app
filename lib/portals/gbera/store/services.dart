@@ -62,7 +62,7 @@ mixin IChannelService {
   Future<bool> existsChannel(channelid);
 
   Future<void> addChannel(Channel channel,
-      {String localLeading, String remoteLeading});
+      {String localLeading, String remoteLeading,bool isOnlyLocal=false});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 

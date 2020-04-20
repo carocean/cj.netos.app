@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 
 import 'package:netos_app/common/persistent_header_delegate.dart';
@@ -24,6 +25,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
   List<Widget> _desklets = [];
   bool _isloaded = false;
+  EasyRefreshController _controller;
 
   @override
   bool get wantKeepAlive {
@@ -32,6 +34,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
+    _controller = EasyRefreshController();
     _load().then((v) {
       _isloaded = true;
       if (mounted) {
@@ -43,12 +46,17 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    _controller.dispose();
     _desklets.clear();
     _isloaded = false;
     super.dispose();
   }
 
   Future<void> _load() async {
+    if (_isloaded) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
     var portlets = await desktopManager.getInstalledPortlets(widget.context);
     if (portlets != null) {
       for (Portlet portlet in portlets) {
@@ -74,49 +82,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     var scaffold = widget.context.findPage('$url');
 
     var _slivers = <Widget>[
-      SliverPersistentHeader(
-        floating: false,
-        pinned: true,
-        delegate: GberaPersistentHeaderDelegate(
-          title: Text(
-            scaffold?.title ?? '',
-          ),
-          titleSpacing: 10,
-          centerTitle: false,
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          actions: <Widget>[
-            IconButton(
-              // Use the FontAwesomeIcons class for the IconData
-              icon: new Icon(Icons.crop_free),
-              onPressed: () async {
-                await qrcodeScanner.scan(context, widget.context);
-              },
-            ),
-            IconButton(
-              // Use the FontAwesomeIcons class for the IconData
-              icon: new Icon(
-                widget.context.findPage('/desktop/lets/settings')?.icon,
-              ),
-              onPressed: () {
-                widget.context.forward(
-                  '/desktop/lets/settings',
-                  arguments: {
-                    'back_button': true,
-                  },
-                ).then((v) {
-                  _desklets.clear();
-                  _load().then((v) {
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  });
-                });
-              },
-            ),
-          ],
-        ),
-      ),
       SliverToBoxAdapter(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -252,11 +217,65 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
       ),
     );
     _slivers.add(lets_region);
-
-    var myarea = CustomScrollView(
+    var myarea = EasyRefresh.custom(
+      controller: _controller,
+      onLoad: _load,
       slivers: _slivers,
     );
-    return myarea;
+    return Column(
+      children: <Widget>[
+        MediaQuery.removePadding(
+          removeBottom: true,
+          removeLeft: true,
+          removeRight: true,
+          context: context,
+          child: AppBar(
+            title: Text(
+              scaffold?.title ?? '',
+            ),
+            titleSpacing: 10,
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            toolbarOpacity: 1,
+            actions: <Widget>[
+              IconButton(
+                // Use the FontAwesomeIcons class for the IconData
+                icon: new Icon(Icons.crop_free),
+                onPressed: () async {
+                  await qrcodeScanner.scan(context, widget.context);
+                },
+              ),
+              IconButton(
+                // Use the FontAwesomeIcons class for the IconData
+                icon: new Icon(
+                  widget.context.findPage('/desktop/lets/settings')?.icon,
+                ),
+                onPressed: () {
+                  widget.context.forward(
+                    '/desktop/lets/settings',
+                    arguments: {
+                      'back_button': true,
+                    },
+                  ).then((v) {
+                    _desklets.clear();
+                    _load().then((v) {
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    });
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: myarea,
+        ),
+      ],
+    );
   }
 }
 

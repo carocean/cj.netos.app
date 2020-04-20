@@ -73,7 +73,6 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   @override
   Future<List<RoomMember>> pageRoomMember(
       String creator, String room, int i, int j) async {
-    print(principal.accessToken);
     var list = await remotePorts.portGET(
       chatPortsUrl,
       'pageRoomMembersOfPerson',

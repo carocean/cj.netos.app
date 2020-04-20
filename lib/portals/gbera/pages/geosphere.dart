@@ -613,174 +613,180 @@ class _GeosphereState extends State<Geosphere>
   Widget build(BuildContext context) {
     super.build(context);
     use_wallpapper = widget.context.parameters['use_wallpapper'];
-    return EasyRefresh.custom(
-      controller: _refreshController,
-      onLoad: _onload,
-      slivers: <Widget>[
-        SliverPersistentHeader(
-          floating: false,
-          pinned: true,
-          delegate: GberaPersistentHeaderDelegate(
-            title: Text('地圈'),
-            automaticallyImplyLeading: false,
-            elevation: 0,
-            centerTitle: true,
-            actions: <Widget>[
-              PopupMenuButton<String>(
-                offset: Offset(
-                  0,
-                  50,
-                ),
-                onSelected: (value) async {
-                  if (value == null) return;
-                  var arguments = <String, Object>{};
-                  switch (value) {
-                    case '/netflow/manager/create_receptor':
-                      widget.context
-                          .forward(
-                        '/geosphere/category/select',
-                      )
-                          .then((result) {
-                        _offset = 0;
-                        _receptorStreamController.add('refresh');
-                        _loadReceptors().then((v) {
-                          setState(() {});
-                        });
-                      });
-                      break;
-                    case '/netflow/manager/scan_receptor':
-                      break;
-                    case '/netflow/manager/search_receptor':
-                      break;
-                  }
-                },
-                itemBuilder: (context) => <PopupMenuEntry<String>>[
-                  PopupMenuItem(
-                    value: '/netflow/manager/create_receptor',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context
-                                .findPage('/netflow/manager/create_channel')
-                                ?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '新建地理感知器',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: '/netflow/manager/scan_receptor',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context
-                                .findPage('/netflow/manager/scan_receptor')
-                                ?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '扫码以添加',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: '/netflow/manager/search_receptor',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context
-                                .findPage('/netflow/manager/search_receptor')
-                                ?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '搜索以添加',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    return Column(children: <Widget>[
+      MediaQuery.removePadding(
+        removeBottom: true,
+        removeLeft: true,
+        removeRight: true,
+        context: context,
+        child: AppBar(
+          title: Text('地圈'),
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          toolbarOpacity: 1,
+          actions: <Widget>[
+            PopupMenuButton<String>(
+              offset: Offset(
+                0,
+                50,
               ),
-            ],
-          ),
+              onSelected: (value) async {
+                if (value == null) return;
+                var arguments = <String, Object>{};
+                switch (value) {
+                  case '/netflow/manager/create_receptor':
+                    widget.context
+                        .forward(
+                      '/geosphere/category/select',
+                    )
+                        .then((result) {
+                      _offset = 0;
+                      _receptorStreamController.add('refresh');
+                      _loadReceptors().then((v) {
+                        setState(() {});
+                      });
+                    });
+                    break;
+                  case '/netflow/manager/scan_receptor':
+                    break;
+                  case '/netflow/manager/search_receptor':
+                    break;
+                }
+              },
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                PopupMenuItem(
+                  value: '/netflow/manager/create_receptor',
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 10,
+                        ),
+                        child: Icon(
+                          widget.context
+                              .findPage('/netflow/manager/create_channel')
+                              ?.icon,
+                          color: Colors.grey[500],
+                          size: 15,
+                        ),
+                      ),
+                      Text(
+                        '新建地理感知器',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuDivider(),
+                PopupMenuItem(
+                  value: '/netflow/manager/scan_receptor',
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 10,
+                        ),
+                        child: Icon(
+                          widget.context
+                              .findPage('/netflow/manager/scan_receptor')
+                              ?.icon,
+                          color: Colors.grey[500],
+                          size: 15,
+                        ),
+                      ),
+                      Text(
+                        '扫码以添加',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: '/netflow/manager/search_receptor',
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 10,
+                        ),
+                        child: Icon(
+                          widget.context
+                              .findPage('/netflow/manager/search_receptor')
+                              ?.icon,
+                          color: Colors.grey[500],
+                          size: 15,
+                        ),
+                      ),
+                      Text(
+                        '搜索以添加',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        SliverToBoxAdapter(
-          child: _GeoDistrict(
-            context: widget.context,
-            location: _location,
-            onTapFountain: () {
-              widget.context.forward('/geosphere/fountain');
-            },
-            onTapYuanbao: () {
-              widget.context.forward('/geosphere/yuanbao');
-            },
+      ),
+      Expanded(child: EasyRefresh.custom(
+        controller: _refreshController,
+        onLoad: _onload,
+        slivers: <Widget>[
+          SliverToBoxAdapter(
+            child: _GeoDistrict(
+              context: widget.context,
+              location: _location,
+              onTapFountain: () {
+                widget.context.forward('/geosphere/fountain');
+              },
+              onTapYuanbao: () {
+                widget.context.forward('/geosphere/yuanbao');
+              },
+            ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: _GeoReceptors(
-            context: widget.context,
-            stream: _receptorStreamController.stream,
-            notify: _notifyStreamController.stream,
-            onTapMarchant: (value) {
-              widget.context.forward('/site/personal');
-            },
-            onTapFilter: () {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return widget.context.part('/geosphere/filter', context);
-                  }).then((v) {
-                print('----$v');
-              });
-            },
-            onTapGeoCircle: () {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return widget.context.part('/geosphere/settings', context);
-                  }).then((v) {
-                print('----$v');
-              });
-            },
+          SliverToBoxAdapter(
+            child: _GeoReceptors(
+              context: widget.context,
+              stream: _receptorStreamController.stream,
+              notify: _notifyStreamController.stream,
+              onTapMarchant: (value) {
+                widget.context.forward('/site/personal');
+              },
+              onTapFilter: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return widget.context.part('/geosphere/filter', context);
+                    }).then((v) {
+                  print('----$v');
+                });
+              },
+              onTapGeoCircle: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return widget.context.part('/geosphere/settings', context);
+                    }).then((v) {
+                  print('----$v');
+                });
+              },
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      ),),
+    ],);
   }
 }
 

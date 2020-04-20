@@ -66,12 +66,12 @@ class MicroApp {
 @Entity(primaryKeys: ['id', 'sandbox'])
 class Channel {
   String id;
-  final String name;
-  final String owner;
+   String name;
+   String owner;
   String leading;
-  final String site;
+   String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
-  final String sandbox;
+   String sandbox;
 
   Channel(this.id, this.name, this.owner, this.leading, this.site, this.ctime,
       this.sandbox);
@@ -86,6 +86,16 @@ class Channel {
       'ctime': ctime,
       'sandbox': sandbox,
     };
+  }
+
+  Channel.fromMap(map, String person) {
+    id=map['channel'];
+    name=map['title'];
+    owner=map['creator'];
+    leading=map['leading'];
+    site=map['site'];
+    ctime=map['ctime'];
+    sandbox=person;
   }
 }
 

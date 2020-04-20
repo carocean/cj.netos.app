@@ -102,7 +102,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading}) async {
+  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading,bool isOnlyLocal=false}) async {
     if (StringUtil.isEmpty(channel.id)) {
       channel.id = MD5Util.MD5('${Uuid().v1()}');
     }
@@ -114,13 +114,15 @@ class ChannelService implements IChannelService, IServiceBuilder {
     if(!StringUtil.isEmpty(remoteLeading)) {
       channel.leading=remoteLeading;
     }
-    await channelRemote.createChannel(
-      channel.id,
-      title: channel.name,
-      leading: channel.leading,
-      outPersonSelector: 'only_select',
-      outGeoSelector: false,
-    );
+    if(!isOnlyLocal) {
+      await channelRemote.createChannel(
+        channel.id,
+        title: channel.name,
+        leading: channel.leading,
+        outPersonSelector: 'only_select',
+        outGeoSelector: false,
+      );
+    }
   }
 
   @override
