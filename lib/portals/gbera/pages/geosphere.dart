@@ -117,7 +117,6 @@ class _GeosphereState extends State<Geosphere>
     )..run(
         context: widget.context,
         checkRemote: _sync_check,
-        forceSync: true,
       );
     super.initState();
   }

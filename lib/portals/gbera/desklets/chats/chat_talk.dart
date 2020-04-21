@@ -1332,7 +1332,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
-            child: Column(
+            child:  Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[

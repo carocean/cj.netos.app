@@ -125,10 +125,10 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
     List<GeosphereMediaOL> medias =
         await mediaService.listMedia(message.receptor, message.id);
     Person creator =
-        await personService.getPerson(message.sender, isDownloadAvatar: true);
+        await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
-    if (!StringUtil.isEmpty(message.sender)) {
-      upstreamPerson = await personService.getPerson(message.sender,
+    if (!StringUtil.isEmpty(message.upstreamPerson)) {
+      upstreamPerson = await personService.getPerson(message.upstreamPerson,
           isDownloadAvatar: true);
     }
     List<MediaSrc> _medias = [];

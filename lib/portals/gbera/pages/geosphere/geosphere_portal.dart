@@ -22,6 +22,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -102,10 +103,10 @@ class _GeospherePortalState extends State<GeospherePortal> {
     List<GeosphereMediaOL> medias =
         await mediaService.listMedia(message.receptor, message.id);
     Person creator =
-        await personService.getPerson(message.sender, isDownloadAvatar: true);
+        await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
-    if (!StringUtil.isEmpty(message.sender)) {
-      upstreamPerson = await personService.getPerson(message.sender,
+    if (!StringUtil.isEmpty(message.upstreamPerson)) {
+      upstreamPerson = await personService.getPerson(message.upstreamPerson,
           isDownloadAvatar: true);
     }
     List<MediaSrc> _medias = [];
@@ -218,16 +219,12 @@ class _GeospherePortalState extends State<GeospherePortal> {
 
   void _showWhiteAppBar(GberaPersistentHeaderDelegate appBar,
       {bool showTitle = true}) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      );
-    } else {
-      appBar.title = null;
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    );
 
     appBar.iconTheme = IconThemeData(
       color: Colors.white,
@@ -239,16 +236,12 @@ class _GeospherePortalState extends State<GeospherePortal> {
     GberaPersistentHeaderDelegate appBar, {
     bool showTitle = true,
   }) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: null,
-        ),
-      );
-    } else {
-      appBar.title = null;
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: null,
+      ),
+    );
     appBar.iconTheme = IconThemeData(
       color: null,
     );
@@ -289,10 +282,84 @@ class _GeospherePortalState extends State<GeospherePortal> {
     for (var msg in _messageList) {
       list.add(
         SliverToBoxAdapter(
-          child: _MessageCard(
-            context: widget.context,
-            messageWrapper: msg,
-            onDeleted: _deleteMessage,
+          child: rendTimelineListRow(
+            content: _MessageCard(
+              context: widget.context,
+              messageWrapper: msg,
+              onDeleted: _deleteMessage,
+            ),
+            title: Container(
+              child: Wrap(
+                direction: Axis.vertical,
+                spacing: 2,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 0,
+                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        text: '${TimelineUtil.format(
+                          msg.message.ctime,
+                          dayFormat: DayFormat.Simple,
+                        )}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color:  _receptorInfo.backgroundMode == BackgroundMode.vertical
+                              ? Colors.white
+                              : Colors.grey,
+                        ),
+                        children: [
+                          TextSpan(text: '  '),
+                          TextSpan(
+                              text:
+                              '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 0,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text.rich(
+                          TextSpan(
+                            text:
+                            '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color:  _receptorInfo.backgroundMode == BackgroundMode.vertical
+                                  ? Colors.white
+                                  : Colors.grey,
+                            ),
+                            children:
+                            msg.distanceLabel ==
+                                null
+                                ? []
+                                : [
+                              TextSpan(text: ' '),
+                              TextSpan(
+                                text:
+                                '距${msg.distanceLabel}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            lineColor: _receptorInfo.backgroundMode == BackgroundMode.vertical
+                ? Colors.white
+                : Colors.grey,
           ),
         ),
       );
@@ -371,18 +438,27 @@ class _HeaderWidget extends StatefulWidget {
 }
 
 class _HeaderWidgetState extends State<_HeaderWidget> {
-  int _arrivedMessageCount = 5;
-  String _arrivedMessageTips = '';
   var _workingChannel;
   String _poiTitle;
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
-
+  Person _owner;
   @override
   void initState() {
+    _loadOwner().then((v){
+      if(mounted) {
+        setState(() {
+
+        });
+      }
+    });
     _loadLocation().then((v) {
-      setState(() {});
+      if(mounted) {
+        setState(() {
+
+        });
+      }
     });
     geoLocation.listen('receptor.header',
         (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
@@ -392,8 +468,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      setState(() {});
 //    };
     _loadCategoryAllApps().then((v) {
-      setState(() {});
+      if(mounted) {
+        setState(() {
+
+        });
+      }
     });
+
     super.initState();
   }
 
@@ -403,7 +484,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     if (_workingChannel != null) {
       _workingChannel.onRefreshChannelState = null;
     }
-    _arrivedMessageCount = 0;
     super.dispose();
   }
 
@@ -414,7 +494,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     super.didUpdateWidget(oldWidget);
   }
-
+  Future<void>_loadOwner()async{
+    IPersonService personService=widget.context.site.getService('/gbera/persons');
+    _owner=await personService.getPerson(widget.receptorInfo.creator,isDownloadAvatar: true);
+  }
   Future<void> _loadCategoryAllApps() async {
     if (widget.categoryOL == null) {
       return;
@@ -553,21 +636,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Text.rich(
-                              TextSpan(
-                                text: '${widget.receptorInfo.title}',
-                                children: [],
-                              ),
-                              softWrap: true,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w500,
-                                color: widget.isShowWhite
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
                             Flex(
                               direction: Axis.vertical,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,7 +644,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   TextSpan(
                                     text: '${widget.categoryOL?.title ?? ''}',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       color: widget.isShowWhite
                                           ? Colors.white
@@ -648,7 +716,33 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
-                Container(),
+                Container(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      widget.context.forward('/site/marchant');
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.all(1),
+                      child: ClipOval(
+                        child: Image(
+                          image: FileImage(
+                            File(
+                              _owner?.avatar,
+                            ),
+                          ),
+                          height: 30,
+                          width: 30,
+                          fit: BoxFit.fill,
+                        ),
+                      ),
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    color: Colors.white,
+                  ),
+                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -803,8 +897,8 @@ class __MessageCardState extends State<_MessageCard> {
       ),
       margin: EdgeInsets.only(
         bottom: 15,
-        left: 15,
-        right: 15,
+        left: 0,
+        right: 5,
       ),
       child: Container(
         padding: EdgeInsets.only(
@@ -817,76 +911,11 @@ class __MessageCardState extends State<_MessageCard> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context.forward('/site/marchant');
-              },
-              child: Padding(
-                padding: EdgeInsets.only(top: 5, right: 5),
-                child: ClipOval(
-                  child: Image(
-                    image: FileImage(
-                      File(
-                        widget.messageWrapper.sender?.avatar,
-                      ),
-                    ),
-                    height: 35,
-                    width: 35,
-                    fit: BoxFit.fill,
-                  ),
-                ),
-              ),
-            ),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          widget.context.forward('/site/marchant');
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Text(
-                          '${widget.messageWrapper.sender?.nickName}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: IconButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return widget.context.part(
-                                      '/netflow/channel/serviceMenu', context);
-                                }).then((value) {
-                              print('-----$value');
-                              if (value == null) return;
-                              widget.context
-                                  .forward('/micro/app', arguments: value);
-                            });
-                          },
-                          icon: Icon(
-                            Icons.art_track,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                   Container(
                     //内容区
                     padding: EdgeInsets.only(top: 5, bottom: 10),
@@ -930,85 +959,10 @@ class __MessageCardState extends State<_MessageCard> {
                   ),
                   Row(
                     //内容坠
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Container(
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 2,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.messageWrapper.message.ctime,
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(text: '  '),
-                                    TextSpan(
-                                        text:
-                                            '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
-                                  ],
-                                ),
-                              ),
-                            ),
 
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
-//                                  Padding(
-//                                    padding: EdgeInsets.only(
-//                                      right: 2,
-//                                    ),
-//                                    child: Icon(
-//                                      Icons.location_on,
-//                                      size: 12,
-//                                      color: Colors.grey[400],
-//                                    ),
-//                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      text:
-                                          '${poi == null ? '' : '${poi.title}附近'}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                      children:
-                                          widget.messageWrapper.distanceLabel ==
-                                                  null
-                                              ? []
-                                              : [
-                                                  TextSpan(text: ' '),
-                                                  TextSpan(
-                                                    text:
-                                                        '距${widget.messageWrapper.distanceLabel}',
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                    ),
-                                                  ),
-                                                ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       _MessageOperatesPopupMenu(
                         messageWrapper: widget.messageWrapper,
                         context: widget.context,
@@ -1521,9 +1475,9 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(text: '\t'),
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
-                      comment.ctime,
-                      dayFormat: DayFormat.Simple,
-                    ) : ''}\t',
+                        comment.ctime,
+                        dayFormat: DayFormat.Simple,
+                      ) : ''}\t',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

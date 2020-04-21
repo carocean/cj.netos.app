@@ -307,17 +307,6 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       _getMessageCards(),
     );
     return Scaffold(
-//      floatingActionButton: VoiceFloatingButton(
-//        onStartRecord: () {},
-//        onStopRecord: (path, timelength, FlutterPluginRecord c, action) {
-//          if (action != 'send') {
-//            return;
-//          }
-//          _publishVoiceArticle(path, timelength).then((v) {
-//            setState(() {});
-//          });
-//        },
-//      ),
       body: Container(
         constraints: BoxConstraints.expand(),
         decoration: _receptorInfo.backgroundMode != BackgroundMode.vertical
@@ -351,7 +340,12 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
         ),
       );
     } else {
-      appBar.title = null;
+      appBar.title = Text(
+        _receptorInfo.title,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      );
     }
 
     appBar.iconTheme = IconThemeData(
@@ -372,7 +366,12 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
         ),
       );
     } else {
-      appBar.title = null;
+      appBar.title = Text(
+        _receptorInfo.title,
+        style: TextStyle(
+          color: null,
+        ),
+      );
     }
     appBar.iconTheme = IconThemeData(
       color: null,
@@ -766,21 +765,21 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Text.rich(
-                              TextSpan(
-                                text: '${widget.receptorInfo.title}',
-                                children: [],
-                              ),
-                              softWrap: true,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w500,
-                                color: widget.isShowWhite
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
+//                            Text.rich(
+//                              TextSpan(
+//                                text: '${widget.receptorInfo.title}',
+//                                children: [],
+//                              ),
+//                              softWrap: true,
+//                              textAlign: TextAlign.left,
+//                              style: TextStyle(
+//                                fontSize: 25,
+//                                fontWeight: FontWeight.w500,
+//                                color: widget.isShowWhite
+//                                    ? Colors.white
+//                                    : Colors.black,
+//                              ),
+//                            ),
                             Flex(
                               direction: Axis.vertical,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -789,7 +788,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   TextSpan(
                                     text: '${widget.categoryOL?.title ?? ''}',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       color: widget.isShowWhite
                                           ? Colors.white

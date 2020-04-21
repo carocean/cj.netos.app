@@ -1398,6 +1398,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
               ///评论区
               ListView(
                 shrinkWrap: true,
+                padding: EdgeInsets.all(0),
                 physics: NeverScrollableScrollPhysics(),
                 children: commentListWidgets,
               ),

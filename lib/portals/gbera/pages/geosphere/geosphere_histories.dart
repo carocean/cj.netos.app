@@ -227,16 +227,12 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
 
   void _showWhiteAppBar(GberaPersistentHeaderDelegate appBar,
       {bool showTitle = true}) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      );
-    } else {
-      appBar.title = null;
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    );
 
     appBar.iconTheme = IconThemeData(
       color: Colors.white,
@@ -248,16 +244,12 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
     GberaPersistentHeaderDelegate appBar, {
     bool showTitle = true,
   }) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: null,
-        ),
-      );
-    } else {
-      appBar.title = null;
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: null,
+      ),
+    );
     appBar.iconTheme = IconThemeData(
       color: null,
     );
@@ -562,21 +554,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Text.rich(
-                              TextSpan(
-                                text: '${widget.receptorInfo.title}',
-                                children: [],
-                              ),
-                              softWrap: true,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w500,
-                                color: widget.isShowWhite
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
                             Flex(
                               direction: Axis.vertical,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,7 +562,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   TextSpan(
                                     text: '${widget.categoryOL?.title ?? ''}',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       color: widget.isShowWhite
                                           ? Colors.white
