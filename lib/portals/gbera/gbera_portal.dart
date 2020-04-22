@@ -23,7 +23,9 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_mines.dart'
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_fans.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_lord.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_mines.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_discovery.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
@@ -31,8 +33,9 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_person.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
@@ -873,10 +876,19 @@ class GberaPortal {
         ),
         Page(
           title: '地圈动态门户',
-          subtitle: '',
+          subtitle: '感知器创建者的',
           icon: Icons.art_track,
-          url: '/geosphere/portal',
-          buildPage: (PageContext pageContext) => GeospherePortal(
+          url: '/geosphere/portal.owner',
+          buildPage: (PageContext pageContext) => GeospherePortalOfOwner(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地圈动态门户',
+          subtitle: '指定用户',
+          icon: Icons.art_track,
+          url: '/geosphere/portal.person',
+          buildPage: (PageContext pageContext) => GeospherePortalOfPerson(
             context: pageContext,
           ),
         ),
@@ -1303,8 +1315,26 @@ class GberaPortal {
           title: '地圈设置',
           subtitle: '',
           icon: GalleryIcons.shrine,
-          url: '/geosphere/settings',
-          buildPage: (PageContext pageContext) => GeoSettings(
+          url: '/geosphere/settings.lord',
+          buildPage: (PageContext pageContext) => GeoSettingsLord(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地圈设置',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/settings.mines',
+          buildPage: (PageContext pageContext) => GeoSettingsMines(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地圈设置',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/settings.fans',
+          buildPage: (PageContext pageContext) => GeoSettingsFans(
             context: pageContext,
           ),
         ),

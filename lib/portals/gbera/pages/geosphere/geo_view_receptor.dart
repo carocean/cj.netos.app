@@ -475,9 +475,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   var _isFollowed = false;
   var _followCount = 0;
   var _followLabel = '关注';
-
+  bool _isHiddenServiceMenu=false;
   @override
   void initState() {
+    _isHiddenServiceMenu=widget.context.parameters['isHiddenServiceMenu']??false;
     _controller = DefaultTabController.of(context);
     _loadLocation().then((v) {
       if (mounted) {
@@ -921,7 +922,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Widget _renderServiceMenu() {
-    if (_serviceMenu.isEmpty) {
+    if (_serviceMenu.isEmpty||_isHiddenServiceMenu) {
       return Container(
         height: 0,
         width: 0,

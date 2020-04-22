@@ -9,16 +9,16 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
-class GeoSettings extends StatefulWidget {
+class GeoSettingsMines extends StatefulWidget {
   PageContext context;
 
-  GeoSettings({this.context});
+  GeoSettingsMines({this.context});
 
   @override
-  _GeoSettingsState createState() => _GeoSettingsState();
+  _GeoSettingsMinesState createState() => _GeoSettingsMinesState();
 }
 
-class _GeoSettingsState extends State<GeoSettings> {
+class _GeoSettingsMinesState extends State<GeoSettingsMines> {
   ReceptorInfo _receptor;
   String _poiTitle;
   GeoCategoryMoveableMode _moveMode;
@@ -268,7 +268,7 @@ class _GeoSettingsState extends State<GeoSettings> {
                           ),
                           onItemTap: () {
                             widget.context.forward(
-                              '/geosphere/portal',
+                              '/geosphere/portal.owner',
                               arguments: {
                                 'receptor': _receptor,
                               },

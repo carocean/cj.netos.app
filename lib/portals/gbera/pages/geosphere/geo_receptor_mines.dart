@@ -334,21 +334,12 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
 
   void _showWhiteAppBar(GberaPersistentHeaderDelegate appBar,
       {bool showTitle = true}) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      );
-    } else {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      );
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    );
 
     appBar.iconTheme = IconThemeData(
       color: Colors.white,
@@ -360,21 +351,12 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
     GberaPersistentHeaderDelegate appBar, {
     bool showTitle = true,
   }) {
-    if (showTitle) {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: null,
-        ),
-      );
-    } else {
-      appBar.title = Text(
-        _receptorInfo.title,
-        style: TextStyle(
-          color: null,
-        ),
-      );
-    }
+    appBar.title = Text(
+      _receptorInfo.title,
+      style: TextStyle(
+        color: null,
+      ),
+    );
     appBar.iconTheme = IconThemeData(
       color: null,
     );
@@ -745,7 +727,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           context: context,
                           builder: (context) {
                             return widget.context.part(
-                                '/geosphere/settings', context, arguments: {
+                                '/geosphere/settings.mines', context, arguments: {
                               'receptor': widget.receptorInfo,
                               'moveMode': widget.categoryOL?.moveMode
                             });
@@ -1166,7 +1148,7 @@ class __MessageCardState extends State<_MessageCard> {
                 return;
               }
               widget.context.forward(
-                '/geosphere/portal',
+                '/geosphere/portal.owner',
                 arguments: {
                   'receptor': widget.receptor,
                 },
@@ -1201,7 +1183,7 @@ class __MessageCardState extends State<_MessageCard> {
                           return;
                         }
                         widget.context.forward(
-                          '/geosphere/portal',
+                          '/geosphere/portal.owner',
                           arguments: {
                             'receptor': widget.receptor,
                           },

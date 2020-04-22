@@ -95,7 +95,71 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 //        _poi != null && !StringUtil.isEmpty(_contentController.text);
 //    setState(() {});
   }
+  Future<void>_publishMessage()async{
+    UserPrincipal user = widget.context.principal;
+    var content = _contentController.text;
+    var location = jsonEncode(_poi.latLng.toJson());
 
+    ///纹银价格从app的更新管理中心或消息中心获取
+    double wy = 38388.38827772;
+    var images = shower_key.currentState.files;
+    IGeosphereMessageService geoMessageService = widget
+        .context.site
+        .getService('/geosphere/receptor/messages');
+    IGeosphereMediaService mediaService = widget.context.site
+        .getService('/geosphere/receptor/messages/medias');
+    var msgid = MD5Util.MD5(Uuid().v1());
+    await geoMessageService.addMessage(
+      GeosphereMessageOL(
+        msgid,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        _receptor,
+        user.person,
+        DateTime.now().millisecondsSinceEpoch,
+        null,
+        null,
+        null,
+        'sended',
+        content,
+        wy,
+        location,
+        _category,
+        widget.context.principal.person,
+      ),
+    );
+    for (MediaFile file in images) {
+      var type = 'image';
+      switch (file.type) {
+        case MediaFileType.image:
+          break;
+        case MediaFileType.video:
+          type = 'video';
+          break;
+        case MediaFileType.audio:
+          type = 'audio';
+          break;
+      }
+      await mediaService.addMedia(
+        GeosphereMediaOL(
+          MD5Util.MD5(Uuid().v1()),
+          type,
+          '${file.src.path}',
+          null,
+          msgid,
+          null,
+          _receptor,
+          widget.context.principal.person,
+        ),
+      );
+    }
+
+    widget.context.backward(result: msgid);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,70 +182,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
           FlatButton(
             onPressed: !_enablePublishButton
                 ? null
-                : () async {
-                    UserPrincipal user = widget.context.principal;
-                    var content = _contentController.text;
-                    var location = jsonEncode(_poi.latLng.toJson());
-
-                    ///纹银价格从app的更新管理中心或消息中心获取
-                    double wy = 38388.38827772;
-                    var images = shower_key.currentState.files;
-                    IGeosphereMessageService geoMessageService = widget
-                        .context.site
-                        .getService('/geosphere/receptor/messages');
-                    IGeosphereMediaService mediaService = widget.context.site
-                        .getService('/geosphere/receptor/messages/medias');
-                    var msgid = MD5Util.MD5(Uuid().v1());
-                    await geoMessageService.addMessage(
-                      GeosphereMessageOL(
-                        msgid,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        _receptor,
-                        user.person,
-                        DateTime.now().millisecondsSinceEpoch,
-                        null,
-                        null,
-                        null,
-                        'sended',
-                        content,
-                        wy,
-                        location,
-                        _category,
-                        widget.context.principal.person,
-                      ),
-                    );
-                    for (MediaFile file in images) {
-                      var type = 'image';
-                      switch (file.type) {
-                        case MediaFileType.image:
-                          break;
-                        case MediaFileType.video:
-                          type = 'video';
-                          break;
-                        case MediaFileType.audio:
-                          type = 'audio';
-                          break;
-                      }
-                      await mediaService.addMedia(
-                        GeosphereMediaOL(
-                          MD5Util.MD5(Uuid().v1()),
-                          type,
-                          '${file.src.path}',
-                          null,
-                          msgid,
-                          null,
-                          _receptor,
-                          widget.context.principal.person,
-                        ),
-                      );
-                    }
-
-                    widget.context.backward(result: msgid);
+                : ()  {
+                    _publishMessage();
                   },
             child: Container(
               color: null,

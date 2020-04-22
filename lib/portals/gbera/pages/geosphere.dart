@@ -525,6 +525,8 @@ class _GeosphereState extends State<Geosphere>
 
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
+    message.upstreamReceptor = message.receptor;
+    message.upstreamCategory = message.category;
     if (await receptorService.existsLocal(message.category, message.receptor)) {
       //如果关注了感知器，则直接发往感知器
       await messageService.addMessage(message, isOnlySaveLocal: true);
@@ -533,10 +535,6 @@ class _GeosphereState extends State<Geosphere>
       var principal = widget.context.principal;
       var receptor = await receptorService.getMobileReceptor(
           principal.person, principal.device);
-      IGeoReceptorRemote receptorRemote =
-          widget.context.site.getService('/remote/geo/receptors');
-      message.upstreamReceptor = message.receptor;
-      message.upstreamCategory = message.category;
       message.receptor = receptor.id;
       message.category = receptor.category;
       await messageService.addMessage(message, isOnlySaveLocal: true);
@@ -809,7 +807,7 @@ class _GeosphereState extends State<Geosphere>
                         context: context,
                         builder: (context) {
                           return widget.context
-                              .part('/geosphere/settings', context);
+                              .part('/geosphere/settings.lord', context);
                         }).then((v) {
                       print('----$v');
                     });

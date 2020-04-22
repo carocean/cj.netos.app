@@ -745,7 +745,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           context: context,
                           builder: (context) {
                             return widget.context.part(
-                                '/geosphere/settings', context, arguments: {
+                                '/geosphere/settings.lord', context, arguments: {
                               'receptor': widget.receptorInfo,
                               'moveMode': widget.categoryOL?.moveMode
                             });
@@ -1166,7 +1166,7 @@ class __MessageCardState extends State<_MessageCard> {
                 return;
               }
               widget.context.forward(
-                '/geosphere/portal',
+                '/geosphere/portal.owner',
                 arguments: {
                   'receptor': widget.receptor,
                 },
@@ -1201,7 +1201,7 @@ class __MessageCardState extends State<_MessageCard> {
                           return;
                         }
                         widget.context.forward(
-                          '/geosphere/portal',
+                          '/geosphere/portal.owner',
                           arguments: {
                             'receptor': widget.receptor,
                           },

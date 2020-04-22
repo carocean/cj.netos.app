@@ -27,16 +27,16 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
-class GeospherePortal extends StatefulWidget {
+class GeospherePortalOfOwner extends StatefulWidget {
   PageContext context;
 
-  GeospherePortal({this.context});
+  GeospherePortalOfOwner({this.context});
 
   @override
-  _GeospherePortalState createState() => _GeospherePortalState();
+  _GeospherePortalOfOwnerState createState() => _GeospherePortalOfOwnerState();
 }
 
-class _GeospherePortalState extends State<GeospherePortal> {
+class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
   EasyRefreshController _refreshController;
@@ -283,6 +283,8 @@ class _GeospherePortalState extends State<GeospherePortal> {
       list.add(
         SliverToBoxAdapter(
           child: rendTimelineListRow(
+            paddingLeft: 12,
+            paddingContentLeft: 42,
             content: _MessageCard(
               context: widget.context,
               messageWrapper: msg,
@@ -606,15 +608,15 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (context) {
-                            return widget.context.part(
-                                '/geosphere/settings', context, arguments: {
-                              'receptor': widget.receptorInfo,
-                              'moveMode': widget.categoryOL?.moveMode
-                            });
-                          }).then((v) {});
+//                      showModalBottomSheet(
+//                          context: context,
+//                          builder: (context) {
+//                            return widget.context.part(
+//                                '/geosphere/settings', context, arguments: {
+//                              'receptor': widget.receptorInfo,
+//                              'moveMode': widget.categoryOL?.moveMode
+//                            });
+//                          }).then((v) {});
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -717,27 +719,59 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context.forward('/site/marchant');
+//                      widget.context.forward('/site/marchant');
                     },
-                    child: Padding(
-                      padding: EdgeInsets.all(1),
-                      child: ClipOval(
-                        child: Image(
-                          image: FileImage(
-                            File(
-                              _owner?.avatar,
+                    child: Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.all(1),
+                          child: ClipOval(
+                            child: Image(
+                              image: FileImage(
+                                File(
+                                  _owner?.avatar,
+                                ),
+                              ),
+                              height: 30,
+                              width: 30,
+                              fit: BoxFit.fill,
                             ),
                           ),
-                          height: 30,
-                          width: 30,
-                          fit: BoxFit.fill,
                         ),
-                      ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: 5,
+                              ),
+                              child: Text(
+                                _owner.nickName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: 1,
+                                left: 5,
+                              ),
+                              child: Text(
+                                '圈主',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(20)),
-                    color: Colors.white,
                   ),
                 ),
               ],
