@@ -59,6 +59,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     syncTaskMananger.tasks['chatroom'] = SyncTask(
       doTask: _sync_task,
     )..run(
+        syncName: 'chatroom',
         context: widget.context,
         checkRemote: _sync_check,
 //        forceSync: true,
@@ -790,7 +791,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       oldWidget.model = widget.model;
       oldWidget.isBottom = widget.isBottom;
       oldWidget.onDelete = widget.onDelete;
-      _loadUnreadMessage().then((v){
+      _loadUnreadMessage().then((v) {
         if (mounted) {
           setState(() {});
         }

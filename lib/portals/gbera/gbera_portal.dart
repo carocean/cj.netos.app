@@ -13,12 +13,13 @@ import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_fans_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_filter.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_lord.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_background.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_mines.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
@@ -735,11 +736,20 @@ class GberaPortal {
           ),
         ),
         Page(
-          title: '地理感知器',
-          subtitle: '',
+          title: '主地理感知器',
+          subtitle: '即我的地圈',
           icon: GalleryIcons.shrine,
-          url: '/geosphere/receptor',
-          buildPage: (PageContext pageContext) => GeoReceptorWidget(
+          url: '/geosphere/receptor.lord',
+          buildPage: (PageContext pageContext) => GeoReceptorLordWidget(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '我的地理感知器',
+          subtitle: '即非我的地圈的其它类型感知器',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor.mines',
+          buildPage: (PageContext pageContext) => GeoReceptorMineWidget(
             context: pageContext,
           ),
         ),
@@ -748,7 +758,7 @@ class GberaPortal {
           subtitle: '',
           icon: GalleryIcons.shrine,
           url: '/geosphere/receptor.fans',
-          buildPage: (PageContext pageContext) => GeoFansReceptorWidget(
+          buildPage: (PageContext pageContext) => GeoReceptorFansWidget(
             context: pageContext,
           ),
         ),

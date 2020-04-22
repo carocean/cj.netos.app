@@ -115,8 +115,10 @@ class _GeosphereState extends State<Geosphere>
     syncTaskMananger.tasks['geoshpere'] = SyncTask(
       doTask: _sync_task,
     )..run(
+      syncName: 'geoshpere',
         context: widget.context,
         checkRemote: _sync_check,
+//      forceSync: true,
       );
     super.initState();
   }
@@ -1659,7 +1661,12 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         onTap: () {
           var url;
           if(widget.receptor.creator==widget.context.principal.person) {
-            url='/geosphere/receptor';
+            //每人只能有一个手机行人地圈
+            if(widget.receptor.category=='mobiles') {
+              url='/geosphere/receptor.lord';
+            }else{
+              url='/geosphere/receptor.mines';
+            }
           }else{
             url='/geosphere/receptor.fans';
           }

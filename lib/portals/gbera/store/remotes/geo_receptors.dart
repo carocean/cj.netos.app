@@ -508,9 +508,13 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               localFile);
           receptor.background = localFile;
         }
-        await receptorDAO.add(receptor);
-        issync=true;
-        print('感知器:${receptor.title} 成功安装');
+        try {
+          await receptorDAO.add(receptor);
+          issync = true;
+          print('感知器:${receptor.title} 成功安装');
+        }catch(e){
+          print('感知器:${receptor.title} 安装失败，原因:$e');
+        }
       }
     }
     return issync;

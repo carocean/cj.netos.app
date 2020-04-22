@@ -161,6 +161,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     syncTaskMananger.tasks['netflow'] = SyncTask(
       doTask: _sync_task,
     )..run(
+        syncName: 'netflow',
         context: widget.context,
         checkRemote: _sync_check,
       );

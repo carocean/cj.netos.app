@@ -21,6 +21,8 @@ class SyncTask {
   SyncTask({this.doTask});
 
   Future<void> run({
+    ///不能为空
+    String syncName,
     PageContext context,
     bool forceSync = false,
 
@@ -30,11 +32,11 @@ class SyncTask {
     //检测本地属性，判断是否是第一次安装app，如果是则同步
     ISharedPreferences sharedPreferences =
         context.site.getService('@.sharedPreferences');
-    var issync = sharedPreferences.getString('/system/issync');
-    if (!forceSync && 'true' == issync) {
+    var issync = sharedPreferences.getString('/system/${syncName??''}/issync',person: context.principal.person);
+    if ('true' == issync && !forceSync) {
       return;
     }
-    await sharedPreferences.setString('/system/issync', 'true');
+    await sharedPreferences.setString('/system/${syncName??''}/issync', 'true',person: context.principal.person);
     var args = await checkRemote(context);
     if (args == null) {
       return;
@@ -101,7 +103,7 @@ class SyncArgs {
     this.httpMethod = 'get',
     this.parameters,
     this.headers,
-    this.tokenName='cjtoken',
+    this.tokenName = 'cjtoken',
     this.callbackQueryString,
   });
 }

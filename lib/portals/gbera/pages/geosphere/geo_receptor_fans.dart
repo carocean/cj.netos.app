@@ -29,16 +29,16 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
-class GeoFansReceptorWidget extends StatefulWidget {
+class GeoReceptorFansWidget extends StatefulWidget {
   PageContext context;
 
-  GeoFansReceptorWidget({this.context});
+  GeoReceptorFansWidget({this.context});
 
   @override
-  _GeoFansReceptorWidgetState createState() => _GeoFansReceptorWidgetState();
+  _GeoReceptorFansWidgetState createState() => _GeoReceptorFansWidgetState();
 }
 
-class _GeoFansReceptorWidgetState extends State<GeoFansReceptorWidget> {
+class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
   EasyRefreshController _refreshController;
