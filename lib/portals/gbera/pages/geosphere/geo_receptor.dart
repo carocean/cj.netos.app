@@ -145,7 +145,9 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
       msgwrapper.distanceLabel = distanceLabel;
       msgwrapper.poi = _currentPoi;
     }
-    setState(() {});
+    if(mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadCategory() async {
@@ -236,40 +238,40 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
         floating: false,
         pinned: true,
         delegate: GberaPersistentHeaderDelegate(
-            automaticallyImplyLeading: true,
-            elevation: 0,
-            centerTitle: true,
-            expandedHeight:
-                _receptorInfo.backgroundMode != BackgroundMode.horizontal
-                    ? 0
-                    : 200,
-            background:
-                _receptorInfo.backgroundMode != BackgroundMode.horizontal
-                    ? null
-                    : !StringUtil.isEmpty(_receptorInfo.background)
-                        ? FileImage(
-                            File(_receptorInfo.background),
-                          )
-                        : NetworkImage(
-                            'http://47.105.165.186:7100/public/geosphere/wallpapers/e27df176176b9a03bfe72ee5b05f87e4.jpg?accessToken=${widget.context.principal.accessToken}',
-                          ),
-            onRenderAppBar: (appBar, RenderStateAppBar state) {
-              switch (state) {
-                case RenderStateAppBar.origin:
-                  if (_receptorInfo.backgroundMode != BackgroundMode.none) {
-                    _showWhiteAppBar(appBar, showTitle: false);
-                  } else {
-                    _showBlackAppBar(appBar, showTitle: false);
-                  }
-                  return;
-                case RenderStateAppBar.showAppBar:
-                  _showBlackAppBar(appBar);
-                  return;
-                case RenderStateAppBar.expaned:
-                  _showWhiteAppBar(appBar);
-                  return;
-              }
-            },),
+          automaticallyImplyLeading: true,
+          elevation: 0,
+          centerTitle: true,
+          expandedHeight:
+              _receptorInfo.backgroundMode != BackgroundMode.horizontal
+                  ? 0
+                  : 220,
+          background: _receptorInfo.backgroundMode != BackgroundMode.horizontal
+              ? null
+              : !StringUtil.isEmpty(_receptorInfo.background)
+                  ? FileImage(
+                      File(_receptorInfo.background),
+                    )
+                  : NetworkImage(
+                      'http://47.105.165.186:7100/public/geosphere/wallpapers/e27df176176b9a03bfe72ee5b05f87e4.jpg?accessToken=${widget.context.principal.accessToken}',
+                    ),
+          onRenderAppBar: (appBar, RenderStateAppBar state) {
+            switch (state) {
+              case RenderStateAppBar.origin:
+                if (_receptorInfo.backgroundMode != BackgroundMode.none) {
+                  _showWhiteAppBar(appBar, showTitle: false);
+                } else {
+                  _showBlackAppBar(appBar, showTitle: false);
+                }
+                return;
+              case RenderStateAppBar.showAppBar:
+                _showBlackAppBar(appBar);
+                return;
+              case RenderStateAppBar.expaned:
+                _showWhiteAppBar(appBar);
+                return;
+            }
+          },
+        ),
       ),
     ];
     if (_isLoaded) {
@@ -283,10 +285,10 @@ class _GeoReceptorWidgetState extends State<GeoReceptorWidget> {
             filterMessages: (category) async {
               _offset = 0;
               _messageList.clear();
-              if(category!=null) {
+              if (category != null) {
                 _filterCategory = category['category'];
-              }else{
-                _filterCategory=null;
+              } else {
+                _filterCategory = null;
               }
               await _onloadMessages();
               await _flagMessagesReaded();
@@ -621,16 +623,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Future<void> _loadCategoryAllApps() async {
-    if (widget.categoryOL == null||widget.receptorInfo.creator!=widget.context.principal.person) {
+    if (widget.categoryOL == null ||
+        widget.receptorInfo.creator != widget.context.principal.person) {
       return;
     }
     IGeoCategoryRemote categoryRemote =
         widget.context.site.getService('/remote/geo/categories');
-    var on ;
-    if(widget.categoryOL.moveMode == 'moveableSelf') {
-      on='onserved';
-    }else{
-      on='onservice';
+    var on;
+    if (widget.categoryOL.moveMode == 'moveableSelf') {
+      on = 'onserved';
+    } else {
+      on = 'onservice';
     }
     _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
   }
@@ -1099,8 +1102,8 @@ class __MessageCardState extends State<_MessageCard> {
     var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
     var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
     if (StringUtil.isEmpty(upstreamReceptor)) {
-      _upstreamReceptor=null;
-      _upstreamPerson=null;
+      _upstreamReceptor = null;
+      _upstreamPerson = null;
       return;
     }
     IGeoReceptorService receptorService =
@@ -1128,207 +1131,214 @@ class __MessageCardState extends State<_MessageCard> {
   Widget build(BuildContext context) {
     AmapPoi poi = widget.messageWrapper.poi;
 
-    return Card(
-      shape: Border(),
-      elevation: 0,
-      margin: EdgeInsets.only(bottom: 15),
-      child: Container(
-        padding: EdgeInsets.only(
-          top: 10,
-          left: 10,
-          right: 10,
-          bottom: 10,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (!_isMine) {
-                  widget.context.forward(
-                    '/geosphere/view/receptor',
-                    arguments: {
-                      'receptor': ReceptorInfo.create(_upstreamReceptor),
-                    },
-                  );
-                  return;
-                }
+    return Container(
+      padding: EdgeInsets.only(
+        top: 10,
+        left: 10,
+        right: 10,
+        bottom: 10,
+      ),
+      margin: EdgeInsets.only(
+        bottom: 15,
+//        left: 15,
+//        right: 15,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+//        borderRadius: BorderRadius.all(
+//          Radius.circular(5),
+//        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (!_isMine) {
                 widget.context.forward(
-                  '/geosphere/portal',
+                  '/geosphere/view/receptor',
                   arguments: {
-                    'receptor': widget.receptor,
+                    'receptor': ReceptorInfo.create(_upstreamReceptor),
                   },
                 );
-              },
-              child: Padding(
-                padding: EdgeInsets.only(top: 5, right: 5),
-                child: ClipOval(
-                  child: _getleadingImg(),
-                ),
+                return;
+              }
+              widget.context.forward(
+                '/geosphere/portal',
+                arguments: {
+                  'receptor': widget.receptor,
+                },
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.only(top: 5, right: 5),
+              child: ClipOval(
+                child: _getleadingImg(),
               ),
             ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          if (!_isMine) {
-                            widget.context.forward(
-                              '/geosphere/view/receptor',
-                              arguments: {
-                                'receptor':
-                                    ReceptorInfo.create(_upstreamReceptor),
-                              },
-                            );
-                            return;
-                          }
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () {
+                        if (!_isMine) {
                           widget.context.forward(
-                            '/geosphere/portal',
+                            '/geosphere/view/receptor',
                             arguments: {
-                              'receptor': widget.receptor,
+                              'receptor':
+                                  ReceptorInfo.create(_upstreamReceptor),
                             },
                           );
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Text(
-                          '${_titleLabel ?? ''}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: IconButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return widget.context.part(
-                                      '/netflow/channel/serviceMenu', context);
-                                }).then((value) {
-                              print('-----$value');
-                              if (value == null) return;
-                              widget.context
-                                  .forward('/micro/app', arguments: value);
-                            });
-                          },
-                          icon: Icon(
-                            Icons.art_track,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    //内容区
-                    padding: EdgeInsets.only(top: 5, bottom: 10),
-                    alignment: Alignment.topLeft,
-                    child: Text.rich(
-                      TextSpan(
-                        text: '${widget.messageWrapper.message.text}',
-                        style: TextStyle(
-                          fontSize: 15,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            setState(() {
-                              if (maxLines == 4) {
-                                maxLines = 100;
-                              } else {
-                                maxLines = 4;
-                              }
-                            });
-                          },
-                      ),
-                      maxLines: maxLines,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DefaultTabController(
-                    length: widget.messageWrapper.medias.length,
-                    child: PageSelector(
-                      medias: widget.messageWrapper.medias,
-                      context: widget.context,
-                      onMediaLongTap: (media) {
+                          return;
+                        }
                         widget.context.forward(
-                          '/images/viewer',
+                          '/geosphere/portal',
                           arguments: {
-                            'media': media,
-                            'others': widget.messageWrapper.medias,
-                            'autoPlay': true,
+                            'receptor': widget.receptor,
                           },
                         );
                       },
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        '${_titleLabel ?? ''}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
                     ),
+                    SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.all(0),
+                        onPressed: () {
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return widget.context.part(
+                                    '/netflow/channel/serviceMenu', context);
+                              }).then((value) {
+                            print('-----$value');
+                            if (value == null) return;
+                            widget.context
+                                .forward('/micro/app', arguments: value);
+                          });
+                        },
+                        icon: Icon(
+                          Icons.art_track,
+                          size: 20,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  //内容区
+                  padding: EdgeInsets.only(top: 5, bottom: 10),
+                  alignment: Alignment.topLeft,
+                  child: Text.rich(
+                    TextSpan(
+                      text: '${widget.messageWrapper.message.text}',
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          setState(() {
+                            if (maxLines == 4) {
+                              maxLines = 100;
+                            } else {
+                              maxLines = 4;
+                            }
+                          });
+                        },
+                    ),
+                    maxLines: maxLines,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Row(
-                    //内容坠
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 2,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.messageWrapper.message.ctime,
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(text: '  '),
-                                    TextSpan(
-                                        text:
-                                            '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
-                                  ],
+                ),
+                DefaultTabController(
+                  length: widget.messageWrapper.medias.length,
+                  child: PageSelector(
+                    medias: widget.messageWrapper.medias,
+                    context: widget.context,
+                    onMediaLongTap: (media) {
+                      widget.context.forward(
+                        '/images/viewer',
+                        arguments: {
+                          'media': media,
+                          'others': widget.messageWrapper.medias,
+                          'autoPlay': true,
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Row(
+                  //内容坠
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      child: Wrap(
+                        direction: Axis.vertical,
+                        spacing: 2,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 0,
+                            ),
+                            child: Text.rich(
+                              TextSpan(
+                                text: '${TimelineUtil.format(
+                                  widget.messageWrapper.message.ctime,
+                                  dayFormat: DayFormat.Simple,
+                                )}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[400],
                                 ),
+                                children: [
+                                  TextSpan(text: '  '),
+                                  TextSpan(
+                                      text:
+                                          '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
+                                ],
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.only(),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: _getMessageSourceTextSpan(),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(),
+                            child: Text.rich(
+                              TextSpan(
+                                text: '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[400],
                                 ),
-                                softWrap: true,
+                                children: _getMessageSourceTextSpan(),
                               ),
+                              softWrap: true,
                             ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 0,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
 //                                  Padding(
 //                                    padding: EdgeInsets.only(
 //                                      right: 2,
@@ -1339,73 +1349,72 @@ class __MessageCardState extends State<_MessageCard> {
 //                                      color: Colors.grey[400],
 //                                    ),
 //                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      text:
-                                          '${poi == null ? '' : '${poi.title}附近'}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                      children:
-                                          widget.messageWrapper.distanceLabel ==
-                                                  null
-                                              ? []
-                                              : [
-                                                  TextSpan(text: ' '),
-                                                  TextSpan(
-                                                    text:
-                                                        '距${widget.messageWrapper.distanceLabel}',
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                    ),
-                                                  ),
-                                                ],
+                                Text.rich(
+                                  TextSpan(
+                                    text:
+                                        '${poi == null ? '' : '${poi.title}附近'}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[400],
                                     ),
+                                    children:
+                                        widget.messageWrapper.distanceLabel ==
+                                                null
+                                            ? []
+                                            : [
+                                                TextSpan(text: ' '),
+                                                TextSpan(
+                                                  text:
+                                                      '距${widget.messageWrapper.distanceLabel}',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      _MessageOperatesPopupMenu(
-                        messageWrapper: widget.messageWrapper,
-                        context: widget.context,
-                        onDeleted: () {
-                          if (widget.onDeleted != null) {
-                            widget.onDeleted(widget.messageWrapper);
-                          }
-                          setState(() {});
-                        },
-                        onComment: () {
-                          _interactiveRegionRefreshAdapter.refresh('comment');
-                        },
-                        onliked: () {
-                          _interactiveRegionRefreshAdapter.refresh('liked');
-                        },
-                        onUnliked: () {
-                          _interactiveRegionRefreshAdapter.refresh('unliked');
-                        },
-                      ),
-                    ],
-                  ),
-                  Container(
-                    height: 7,
-                  ),
+                    ),
+                    _MessageOperatesPopupMenu(
+                      messageWrapper: widget.messageWrapper,
+                      context: widget.context,
+                      onDeleted: () {
+                        if (widget.onDeleted != null) {
+                          widget.onDeleted(widget.messageWrapper);
+                        }
+                        setState(() {});
+                      },
+                      onComment: () {
+                        _interactiveRegionRefreshAdapter.refresh('comment');
+                      },
+                      onliked: () {
+                        _interactiveRegionRefreshAdapter.refresh('liked');
+                      },
+                      onUnliked: () {
+                        _interactiveRegionRefreshAdapter.refresh('unliked');
+                      },
+                    ),
+                  ],
+                ),
+                Container(
+                  height: 7,
+                ),
 
-                  ///相关交互区
-                  _InteractiveRegion(
-                    messageWrapper: widget.messageWrapper,
-                    context: widget.context,
-                    interactiveRegionRefreshAdapter:
-                        _interactiveRegionRefreshAdapter,
-                  ),
-                ],
-              ),
+                ///相关交互区
+                _InteractiveRegion(
+                  messageWrapper: widget.messageWrapper,
+                  context: widget.context,
+                  interactiveRegionRefreshAdapter:
+                      _interactiveRegionRefreshAdapter,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

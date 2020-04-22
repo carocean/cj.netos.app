@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget rendTimelineListRow({Widget content, Widget title,Color lineColor=Colors.grey}) {
+Widget rendTimelineListRow({Widget content, Widget title,Color lineColor=Colors.grey,double paddingLeft=15,double paddingRight=15,double paddingContentLeft=37}) {
   Widget firstRow;
   Widget contentWidget = SizedBox();
   //跟进记录
@@ -25,8 +25,8 @@ Widget rendTimelineListRow({Widget content, Widget title,Color lineColor=Colors.
 
   return Container(
     padding: EdgeInsets.only(
-      left: 15,
-      right: 15,
+      left: paddingLeft,
+      right: paddingRight,
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +36,7 @@ Widget rendTimelineListRow({Widget content, Widget title,Color lineColor=Colors.
           child: Stack(
             children: <Widget>[
               Container(
-                padding: EdgeInsets.only(left: 37),
+                padding: EdgeInsets.only(left: paddingContentLeft),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[

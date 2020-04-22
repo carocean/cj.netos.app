@@ -305,7 +305,8 @@ class _GeospherePortalState extends State<GeospherePortal> {
                         )}',
                         style: TextStyle(
                           fontSize: 12,
-                          color:  _receptorInfo.backgroundMode == BackgroundMode.vertical
+                          color: _receptorInfo.backgroundMode ==
+                                  BackgroundMode.vertical
                               ? Colors.white
                               : Colors.grey,
                         ),
@@ -313,7 +314,7 @@ class _GeospherePortalState extends State<GeospherePortal> {
                           TextSpan(text: '  '),
                           TextSpan(
                               text:
-                              '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
+                                  '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
                         ],
                       ),
                     ),
@@ -327,28 +328,25 @@ class _GeospherePortalState extends State<GeospherePortal> {
                       children: <Widget>[
                         Text.rich(
                           TextSpan(
-                            text:
-                            '',
+                            text: '',
                             style: TextStyle(
                               fontSize: 12,
-                              color:  _receptorInfo.backgroundMode == BackgroundMode.vertical
+                              color: _receptorInfo.backgroundMode ==
+                                      BackgroundMode.vertical
                                   ? Colors.white
                                   : Colors.grey,
                             ),
-                            children:
-                            msg.distanceLabel ==
-                                null
+                            children: msg.distanceLabel == null
                                 ? []
                                 : [
-                              TextSpan(text: ' '),
-                              TextSpan(
-                                text:
-                                '距${msg.distanceLabel}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
+                                    TextSpan(text: ' '),
+                                    TextSpan(
+                                      text: '距${msg.distanceLabel}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
                           ),
                         ),
                       ],
@@ -444,20 +442,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
   Person _owner;
+
   @override
   void initState() {
-    _loadOwner().then((v){
-      if(mounted) {
-        setState(() {
-
-        });
+    _loadOwner().then((v) {
+      if (mounted) {
+        setState(() {});
       }
     });
     _loadLocation().then((v) {
-      if(mounted) {
-        setState(() {
-
-        });
+      if (mounted) {
+        setState(() {});
       }
     });
     geoLocation.listen('receptor.header',
@@ -468,10 +463,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      setState(() {});
 //    };
     _loadCategoryAllApps().then((v) {
-      if(mounted) {
-        setState(() {
-
-        });
+      if (mounted) {
+        setState(() {});
       }
     });
 
@@ -494,10 +487,14 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     super.didUpdateWidget(oldWidget);
   }
-  Future<void>_loadOwner()async{
-    IPersonService personService=widget.context.site.getService('/gbera/persons');
-    _owner=await personService.getPerson(widget.receptorInfo.creator,isDownloadAvatar: true);
+
+  Future<void> _loadOwner() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    _owner = await personService.getPerson(widget.receptorInfo.creator,
+        isDownloadAvatar: true);
   }
+
   Future<void> _loadCategoryAllApps() async {
     if (widget.categoryOL == null) {
       return;
@@ -743,75 +740,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     color: Colors.white,
                   ),
                 ),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context.part(
-                              '/geosphere/filter', context,
-                              arguments: {'category': widget.categoryOL});
-                        }).then((v) {
-                      if (v == null) {
-                        return;
-                      }
-                      if (v is String && v == 'clear') {
-                        _clearSelectCategory().then((v) {
-                          setState(() {});
-                        });
-                        return;
-                      }
-                      var map = v as Map;
-                      if (widget.categoryOL.moveMode == 'moveableSelf') {
-                        _loadAppsOfCategory(map).then((v) {
-                          setState(() {});
-                        });
-                      } else {
-                        _filterMessages(map).then((v) {
-                          setState(() {});
-                        });
-                      }
-                    });
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          right: 2,
-                        ),
-                        child: Text(
-                          _selectCategory != null
-                              ? _selectCategory['title']
-                              : widget.categoryOL?.moveMode == 'moveableSelf'
-                                  ? '服务'
-                                  : '筛选',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: widget.isShowWhite
-                                ? Colors.white70
-                                : Colors.grey[500],
-                          ),
-                        ),
-                      ),
-                      widget.categoryOL?.moveMode == 'moveableSelf'
-                          ? Icon(
-                              Icons.apps,
-                              size: 18,
-                              color: widget.isShowWhite
-                                  ? Colors.white70
-                                  : Colors.black54,
-                            )
-                          : Icon(
-                              FontAwesomeIcons.filter,
-                              size: 13,
-                              color: widget.isShowWhite
-                                  ? Colors.white70
-                                  : Colors.grey[500],
-                            ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
@@ -962,7 +890,6 @@ class __MessageCardState extends State<_MessageCard> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-
                       _MessageOperatesPopupMenu(
                         messageWrapper: widget.messageWrapper,
                         context: widget.context,

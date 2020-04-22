@@ -32,7 +32,7 @@ var _progressTaskBar = ProgressTaskBar();
 
 void main() => platformRun(
       AppCreator(
-          title: '金证时代',
+          title: '地微',
           entrypoint: '/public/entrypoint',
           appKeyPair: AppKeyPair(
             appid: 'system.netos',

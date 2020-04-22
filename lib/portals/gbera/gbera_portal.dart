@@ -13,6 +13,7 @@ import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_fans_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_filter.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
@@ -152,7 +153,7 @@ class GberaPortal {
     return Portal(
       id: 'gbera',
       icon: GalleryIcons.shrine,
-      title: '金证时代官方框架',
+      title: '地微官方框架',
       defaultTheme: '/grey',
       builderSceneServices: (site) async {
         return <String, dynamic>{
@@ -304,7 +305,7 @@ class GberaPortal {
           ),
         ),
         Page(
-          title: '金证时代',
+          title: '地微',
           subtitle: '',
           icon: GalleryIcons.shrine,
           url: '/scaffold/withbottombar',
@@ -739,6 +740,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/geosphere/receptor',
           buildPage: (PageContext pageContext) => GeoReceptorWidget(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '粉丝的地理感知器',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/receptor.fans',
+          buildPage: (PageContext pageContext) => GeoFansReceptorWidget(
             context: pageContext,
           ),
         ),

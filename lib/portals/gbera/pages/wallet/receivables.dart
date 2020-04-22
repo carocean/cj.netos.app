@@ -67,7 +67,7 @@ class _ReceivablesState extends State<Receivables> {
                 top: 20,
               ),
               child: Text(
-                '金证时代扫一扫，向我付钱',
+                '地微扫一扫，向我付钱',
                 style: TextStyle(
                   color: Colors.grey[500],
                   fontWeight: FontWeight.w400,

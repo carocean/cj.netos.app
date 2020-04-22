@@ -1335,8 +1335,11 @@ class _ReceptorItemState extends State<_ReceptorItem> {
 
   @override
   void didUpdateWidget(_ReceptorItem oldWidget) {
-    if (oldWidget.receptor.leading != widget.receptor.leading) {
-      widget.receptor.leading = oldWidget.receptor.leading;
+//    if (oldWidget.receptor.leading != widget.receptor.leading) {
+//      oldWidget.receptor.leading = widget.receptor.leading;
+//    }
+    if(oldWidget.receptor.id!=widget.receptor.id) {
+      oldWidget.receptor=widget.receptor;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -1654,7 +1657,13 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          widget.context.forward('/geosphere/receptor', arguments: {
+          var url;
+          if(widget.receptor.creator==widget.context.principal.person) {
+            url='/geosphere/receptor';
+          }else{
+            url='/geosphere/receptor.fans';
+          }
+          widget.context.forward(url, arguments: {
             'receptor': widget.receptor,
             'notify': widget.notify,
           }).then((v) {

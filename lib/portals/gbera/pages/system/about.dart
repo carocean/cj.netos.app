@@ -29,7 +29,7 @@ class About extends StatelessWidget {
             padding: EdgeInsets.only(
               bottom: 2,
             ),
-            child: Text('金证时代'),
+            child: Text('地微'),
           ),
           Text(
             '广州金证时代科技有限公司',
