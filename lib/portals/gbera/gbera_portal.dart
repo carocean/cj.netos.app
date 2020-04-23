@@ -29,6 +29,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_mines.dart'
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_discovery.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_person.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
@@ -1335,6 +1336,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/geosphere/settings.fans',
           buildPage: (PageContext pageContext) => GeoSettingsFans(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '地圈设置',
+          subtitle: '感知器查看器的设置',
+          icon: GalleryIcons.shrine,
+          url: '/geosphere/settings.viewer',
+          buildPage: (PageContext pageContext) => GeoSettingsViewer(
             context: pageContext,
           ),
         ),

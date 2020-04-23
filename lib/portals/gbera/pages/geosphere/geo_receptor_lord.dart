@@ -145,7 +145,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
       msgwrapper.distanceLabel = distanceLabel;
       msgwrapper.poi = _currentPoi;
     }
-    if(mounted) {
+    if (mounted) {
       setState(() {});
     }
   }
@@ -745,10 +745,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           context: context,
                           builder: (context) {
                             return widget.context.part(
-                                '/geosphere/settings.lord', context, arguments: {
-                              'receptor': widget.receptorInfo,
-                              'moveMode': widget.categoryOL?.moveMode
-                            });
+                                '/geosphere/settings.lord', context,
+                                arguments: {
+                                  'receptor': widget.receptorInfo,
+                                  'moveMode': widget.categoryOL?.moveMode
+                                });
                           }).then((v) {});
                     },
                     child: Row(
@@ -1216,32 +1217,39 @@ class __MessageCardState extends State<_MessageCard> {
                         ),
                       ),
                     ),
-                    widget.messageWrapper.message.upstreamCategory=='mobiles'||_isMine?Container(width: 0,height: 0,):
-                    SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: IconButton(
-                        padding: EdgeInsets.all(0),
-                        onPressed: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (context) {
-                                return widget.context.part(
-                                    '/netflow/channel/serviceMenu', context);
-                              }).then((value) {
-                            print('-----$value');
-                            if (value == null) return;
-                            widget.context
-                                .forward('/micro/app', arguments: value);
-                          });
-                        },
-                        icon: Icon(
-                          Icons.art_track,
-                          size: 20,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ),
+                    widget.messageWrapper.message.upstreamCategory ==
+                                'mobiles' ||
+                            _isMine
+                        ? Container(
+                            width: 0,
+                            height: 0,
+                          )
+                        : SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: IconButton(
+                              padding: EdgeInsets.all(0),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                    context: context,
+                                    builder: (context) {
+                                      return widget.context.part(
+                                          '/netflow/channel/serviceMenu',
+                                          context);
+                                    }).then((value) {
+                                  print('-----$value');
+                                  if (value == null) return;
+                                  widget.context
+                                      .forward('/micro/app', arguments: value);
+                                });
+                              },
+                              icon: Icon(
+                                Icons.art_track,
+                                size: 20,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ),
                   ],
                 ),
                 Container(
@@ -1285,6 +1293,9 @@ class __MessageCardState extends State<_MessageCard> {
                       );
                     },
                   ),
+                ),
+                Container(
+                  height: 7,
                 ),
                 Row(
                   //内容坠
@@ -1395,6 +1406,7 @@ class __MessageCardState extends State<_MessageCard> {
                 _InteractiveRegion(
                   messageWrapper: widget.messageWrapper,
                   context: widget.context,
+                  receptor: widget.receptor,
                   interactiveRegionRefreshAdapter:
                       _interactiveRegionRefreshAdapter,
                 ),
@@ -1759,10 +1771,12 @@ class _InteractiveRegion extends StatefulWidget {
   _GeosphereMessageWrapper messageWrapper;
   PageContext context;
   _InteractiveRegionRefreshAdapter interactiveRegionRefreshAdapter;
+  ReceptorInfo receptor;
 
   _InteractiveRegion({
     this.messageWrapper,
     this.context,
+    this.receptor,
     this.interactiveRegionRefreshAdapter,
   });
 
@@ -1794,6 +1808,14 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
     _isShowCommentEditor = false;
     widget.interactiveRegionRefreshAdapter = null;
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_InteractiveRegion oldWidget) {
+    if (widget.messageWrapper != oldWidget.messageWrapper) {
+      oldWidget.messageWrapper = widget.messageWrapper;
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
@@ -1885,11 +1907,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-                    var person = await personService.getPerson(comment.person);
-                    widget.context.forward("/site/personal",
-                        arguments: {'person': person});
+                    widget.context.forward(
+                      '/geosphere/portal.person',
+                      arguments: {
+                        'receptor': widget.receptor,
+                        'person': comment.person,
+                      },
+                    );
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -1996,13 +2020,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.official);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+                                      widget.context.forward(
+                                        '/geosphere/portal.person',
+                                        arguments: {
+                                          'receptor': widget.receptor,
+                                          'person': like.person,
+                                        },
+                                      );
                                     },
                                   children: [
                                     TextSpan(

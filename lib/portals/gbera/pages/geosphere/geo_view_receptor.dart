@@ -714,7 +714,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           context: context,
                           builder: (context) {
                             return widget.context.part(
-                                '/geosphere/settings', context, arguments: {
+                                '/geosphere/settings.viewer', context, arguments: {
                               'receptor': widget.receptorInfo,
                               'moveMode': widget.categoryOL?.moveMode
                             });
@@ -849,13 +849,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context.forward(
-                        '/geosphere/portal.person',
-                        arguments: {
-                          'receptor': widget.receptorInfo,
-                          'person': widget.context.principal.person,
-                        },
-                      );
                     },
                     child: Row(
                       children: <Widget>[

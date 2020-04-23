@@ -1029,7 +1029,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                         '/geosphere/portal.person',
                         arguments: {
                           'receptor': widget.receptorInfo,
-                          'person':widget.context.principal.person,
+                          'person': widget.context.principal.person,
                         },
                       );
                     },
@@ -1478,9 +1478,10 @@ class __MessageCardState extends State<_MessageCard> {
                 return;
               }
               widget.context.forward(
-                '/geosphere/portal.owner',
+                '/geosphere/portal.person',
                 arguments: {
                   'receptor': widget.receptor,
+                  'person': widget.context.principal.person,
                 },
               );
             },
@@ -1513,9 +1514,10 @@ class __MessageCardState extends State<_MessageCard> {
                           return;
                         }
                         widget.context.forward(
-                          '/geosphere/portal.owner',
+                          '/geosphere/portal.person',
                           arguments: {
                             'receptor': widget.receptor,
+                            'person': widget.context.principal.person,
                           },
                         );
                       },
@@ -1605,24 +1607,14 @@ class __MessageCardState extends State<_MessageCard> {
                     },
                   ),
                 ),
+                Container(
+                  height: 7,
+                ),
                 Row(
                   //内容坠
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(),
-                      child: Text.rich(
-                        TextSpan(
-                          children:
-                              _getMessageSourceTextSpan(widget.messageWrapper),
-                        ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ),
                     _MessageOperatesPopupMenu(
                       messageWrapper: widget.messageWrapper,
                       context: widget.context,
@@ -1652,6 +1644,7 @@ class __MessageCardState extends State<_MessageCard> {
                 _InteractiveRegion(
                   messageWrapper: widget.messageWrapper,
                   context: widget.context,
+                  receptor: widget.receptor,
                   interactiveRegionRefreshAdapter:
                       _interactiveRegionRefreshAdapter,
                 ),
@@ -1661,36 +1654,6 @@ class __MessageCardState extends State<_MessageCard> {
         ],
       ),
     );
-  }
-
-  List<TextSpan> _getMessageSourceTextSpan(msg) {
-    var list = <TextSpan>[];
-    if (msg.creator.official != widget.context.principal.person) {
-      list.add(
-        TextSpan(text: '发表自 '),
-      );
-      list.add(
-        TextSpan(
-          text: '${msg.creator.nickName}',
-          style: TextStyle(
-            color: Colors.blueGrey,
-            fontWeight: FontWeight.w500,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
-              widget.context.forward(
-                '/geosphere/portal.person',
-                arguments: {
-                  'receptor': widget.receptor,
-                  'person':msg.creator.official,
-                },
-              );
-            },
-        ),
-      );
-    }
-
-    return list;
   }
 
   _getleadingImg() {
@@ -2045,11 +2008,13 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
 class _InteractiveRegion extends StatefulWidget {
   _GeosphereMessageWrapper messageWrapper;
   PageContext context;
+  ReceptorInfo receptor;
   _InteractiveRegionRefreshAdapter interactiveRegionRefreshAdapter;
 
   _InteractiveRegion({
     this.messageWrapper,
     this.context,
+    this.receptor,
     this.interactiveRegionRefreshAdapter,
   });
 
@@ -2081,6 +2046,14 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
     _isShowCommentEditor = false;
     widget.interactiveRegionRefreshAdapter = null;
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_InteractiveRegion oldWidget) {
+    if (oldWidget.messageWrapper == widget.messageWrapper) {
+      oldWidget.messageWrapper = widget.messageWrapper;
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
@@ -2172,11 +2145,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-                    var person = await personService.getPerson(comment.person);
-                    widget.context.forward("/site/personal",
-                        arguments: {'person': person});
+                    widget.context.forward(
+                      '/geosphere/portal.person',
+                      arguments: {
+                        'receptor': widget.receptor,
+                        'person': comment.person,
+                      },
+                    );
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -2283,13 +2258,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.official);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+                                      widget.context.forward(
+                                        '/geosphere/portal.person',
+                                        arguments: {
+                                          'receptor': widget.receptor,
+                                          'person': like.person,
+                                        },
+                                      );
                                     },
                                   children: [
                                     TextSpan(
