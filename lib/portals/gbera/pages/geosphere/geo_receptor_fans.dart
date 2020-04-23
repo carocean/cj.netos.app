@@ -1665,24 +1665,10 @@ class __MessageCardState extends State<_MessageCard> {
 
   List<TextSpan> _getMessageSourceTextSpan(msg) {
     var list = <TextSpan>[];
-    list.add(
-      TextSpan(text: '发表自 '),
-    );
-    if (msg.creator.official == widget.context.principal.person) {
+    if (msg.creator.official != widget.context.principal.person) {
       list.add(
-        TextSpan(
-          text: '我',
-          style: TextStyle(
-            color: Colors.blueGrey,
-            fontWeight: FontWeight.w500,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
-              widget.context.forward('/site/marchant');
-            },
-        ),
+        TextSpan(text: '发表自 '),
       );
-    } else {
       list.add(
         TextSpan(
           text: '${msg.creator.nickName}',
@@ -1692,7 +1678,13 @@ class __MessageCardState extends State<_MessageCard> {
           ),
           recognizer: TapGestureRecognizer()
             ..onTap = () {
-              widget.context.forward('/site/marchant');
+              widget.context.forward(
+                '/geosphere/portal.person',
+                arguments: {
+                  'receptor': widget.receptor,
+                  'person':msg.creator.official,
+                },
+              );
             },
         ),
       );

@@ -463,7 +463,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   String _poiTitle;
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
-  Map<String, String> _selectCategory;
 
   @override
   void initState() {
@@ -517,26 +516,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     var on =
         widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
     _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
-  }
-
-  Future<void> _loadAppsOfCategory(categroyMap) async {
-    _selectCategory = categroyMap.cast<String, String>();
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on = 'onserved';
-    _apps = await categoryRemote.getApps(categroyMap['category'], on);
-    await _filterMessages(categroyMap);
-  }
-
-  Future<void> _clearSelectCategory() async {
-    print('----清除选择');
-    _selectCategory = null;
-    await _loadCategoryAllApps();
-    _filterMessages(null);
-  }
-
-  Future<void> _filterMessages(categroyMap) async {
-    print('----过滤消息');
   }
 
   Future<void> _loadLocation() async {
@@ -766,6 +745,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 widget.person.nickName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
+                                  color: widget.receptorInfo.backgroundMode == BackgroundMode.vertical?Colors.white:Colors.black,
                                 ),
                               ),
                             ),
@@ -780,7 +760,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                     ? '圈主'
                                     : '粉丝',
                                 style: TextStyle(
-                                  color: Colors.grey[500],
+                                  color: widget.receptorInfo.backgroundMode == BackgroundMode.vertical?Colors.white: Colors.grey[500],
                                   fontSize: 12,
                                 ),
                               ),

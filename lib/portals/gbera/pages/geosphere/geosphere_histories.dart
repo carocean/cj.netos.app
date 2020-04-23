@@ -947,44 +947,6 @@ class __MessageCardState extends State<_MessageCard> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '创建自 ' : '来自 '}',
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${widget.context.principal?.person == widget.messageWrapper.creator.official ? '我' : widget.messageWrapper.creator.nickName}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              widget.context.forward(
-                                                  "/site/personal",
-                                                  arguments: {
-                                                    'person': widget
-                                                        .messageWrapper.creator,
-                                                  });
-                                            },
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                softWrap: true,
-                              ),
-                            ),
-                            Padding(
                               padding: EdgeInsets.only(
                                 bottom: 0,
                               ),

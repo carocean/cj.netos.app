@@ -115,7 +115,7 @@ class _GeosphereState extends State<Geosphere>
     syncTaskMananger.tasks['geoshpere'] = SyncTask(
       doTask: _sync_task,
     )..run(
-      syncName: 'geoshpere',
+        syncName: 'geoshpere',
         context: widget.context,
         checkRemote: _sync_check,
 //      forceSync: true,
@@ -1338,8 +1338,8 @@ class _ReceptorItemState extends State<_ReceptorItem> {
 //    if (oldWidget.receptor.leading != widget.receptor.leading) {
 //      oldWidget.receptor.leading = widget.receptor.leading;
 //    }
-    if(oldWidget.receptor.id!=widget.receptor.id) {
-      oldWidget.receptor=widget.receptor;
+    if (oldWidget.receptor.id != widget.receptor.id) {
+      oldWidget.receptor = widget.receptor;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -1643,30 +1643,41 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                   ),
                 ),
               )
-            : IconSlideAction(
-                caption: '删除',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.delete,
-                onTap: () {
-                  if (widget.onDelete != null) {
-                    widget.onDelete();
-                  }
-                },
-              ),
+            : widget.receptor.creator == widget.context.principal.person
+                ? IconSlideAction(
+                    caption: '删除',
+                    foregroundColor: Colors.grey[500],
+                    icon: Icons.delete,
+                    onTap: () {
+                      if (widget.onDelete != null) {
+                        widget.onDelete();
+                      }
+                    },
+                  )
+                : IconSlideAction(
+                    caption: '不再关注',
+                    foregroundColor: Colors.grey[500],
+                    icon: Icons.remove_red_eye,
+                    onTap: () {
+                      if (widget.onDelete != null) {
+                        widget.onDelete();
+                      }
+                    },
+                  ),
       ],
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           var url;
-          if(widget.receptor.creator==widget.context.principal.person) {
+          if (widget.receptor.creator == widget.context.principal.person) {
             //每人只能有一个手机行人地圈
-            if(widget.receptor.category=='mobiles') {
-              url='/geosphere/receptor.lord';
-            }else{
-              url='/geosphere/receptor.mines';
+            if (widget.receptor.category == 'mobiles') {
+              url = '/geosphere/receptor.lord';
+            } else {
+              url = '/geosphere/receptor.mines';
             }
-          }else{
-            url='/geosphere/receptor.fans';
+          } else {
+            url = '/geosphere/receptor.fans';
           }
           widget.context.forward(url, arguments: {
             'receptor': widget.receptor,

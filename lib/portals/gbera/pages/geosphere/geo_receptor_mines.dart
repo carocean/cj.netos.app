@@ -1301,20 +1301,6 @@ class __MessageCardState extends State<_MessageCard> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(),
-                            child: Text.rich(
-                              TextSpan(
-                                text: '',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[400],
-                                ),
-                                children: _getMessageSourceTextSpan(),
-                              ),
-                              softWrap: true,
-                            ),
-                          ),
-                          Padding(
                             padding: EdgeInsets.only(
                               bottom: 0,
                             ),
@@ -1399,44 +1385,6 @@ class __MessageCardState extends State<_MessageCard> {
         ],
       ),
     );
-  }
-
-  List<TextSpan> _getMessageSourceTextSpan() {
-    var list = <TextSpan>[];
-    list.add(
-      TextSpan(text: '发表自 '),
-    );
-    if (_isMine) {
-      list.add(
-        TextSpan(
-          text: '我',
-          style: TextStyle(
-            color: Colors.blueGrey,
-            fontWeight: FontWeight.w500,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
-              widget.context.forward('/site/marchant');
-            },
-        ),
-      );
-    } else {
-      list.add(
-        TextSpan(
-          text: '${widget.messageWrapper.creator.nickName}',
-          style: TextStyle(
-            color: Colors.blueGrey,
-            fontWeight: FontWeight.w500,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
-              widget.context.forward('/site/marchant');
-            },
-        ),
-      );
-    }
-
-    return list;
   }
 
   _getleadingImg() {

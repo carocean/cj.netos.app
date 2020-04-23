@@ -159,6 +159,12 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
 
   @override
   Widget build(BuildContext context) {
+    if (_owner == null) {
+      return Container(
+        height: 0,
+        width: 0,
+      );
+    }
     var slivers = <Widget>[
       SliverPersistentHeader(
         floating: false,
@@ -311,6 +317,8 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
       list.add(
         SliverToBoxAdapter(
           child: rendTimelineListRow(
+            paddingLeft: 12,
+            paddingContentLeft: 40,
             content: _MessageCard(
               context: widget.context,
               messageWrapper: msg,
@@ -475,10 +483,12 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   var _isFollowed = false;
   var _followCount = 0;
   var _followLabel = '关注';
-  bool _isHiddenServiceMenu=false;
+  bool _isHiddenServiceMenu = false;
+
   @override
   void initState() {
-    _isHiddenServiceMenu=widget.context.parameters['isHiddenServiceMenu']??false;
+    _isHiddenServiceMenu =
+        widget.context.parameters['isHiddenServiceMenu'] ?? false;
     _controller = DefaultTabController.of(context);
     _loadLocation().then((v) {
       if (mounted) {
@@ -727,23 +737,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Text.rich(
-                              TextSpan(
-                                text: widget.receptorInfo.category == 'mobiles'
-                                    ? '${widget.owner.nickName}的地圈'
-                                    : widget.receptorInfo.title,
-                                children: [],
-                              ),
-                              softWrap: true,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w500,
-                                color: widget.isShowWhite
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
                             Flex(
                               direction: Axis.vertical,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -752,7 +745,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   TextSpan(
                                     text: '${widget.categoryOL?.title ?? ''}',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       color: widget.isShowWhite
                                           ? Colors.white
@@ -856,7 +849,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context.forward('/site/marchant');
+                      widget.context.forward(
+                        '/geosphere/portal.person',
+                        arguments: {
+                          'receptor': widget.receptorInfo,
+                          'person': widget.context.principal.person,
+                        },
+                      );
                     },
                     child: Row(
                       children: <Widget>[
@@ -885,25 +884,29 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 widget.owner.nickName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white
+                                      : Colors.black,
                                 ),
                               ),
                             ),
-                            StringUtil.isEmpty(widget.owner.signature)
-                                ? Container(
-                                    height: 0,
-                                    width: 0,
-                                  )
-                                : Padding(
-                                    padding: EdgeInsets.only(
-                                      top: 1,
-                                    ),
-                                    child: Text(
-                                      widget.owner.signature ?? '',
-                                      style: TextStyle(
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
-                                  ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: 1,
+                                left: 5,
+                              ),
+                              child: Text(
+                                '圈主',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white70
+                                      : Colors.grey[500],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -922,7 +925,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Widget _renderServiceMenu() {
-    if (_serviceMenu.isEmpty||_isHiddenServiceMenu) {
+    if (_serviceMenu.isEmpty || _isHiddenServiceMenu) {
       return Container(
         height: 0,
         width: 0,

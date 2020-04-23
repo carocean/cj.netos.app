@@ -749,6 +749,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 _owner.nickName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white
+                                      : Colors.black,
                                 ),
                               ),
                             ),
@@ -760,7 +764,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                               child: Text(
                                 '圈主',
                                 style: TextStyle(
-                                  color: Colors.grey[500],
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white70
+                                      : Colors.grey[500],
                                   fontSize: 12,
                                 ),
                               ),
