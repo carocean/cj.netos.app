@@ -701,7 +701,7 @@ class GeoCategoryAppOR {
       this.ctime});
 }
 
-@entity
+@Entity(primaryKeys: ['id', 'receptor', 'category', 'sandbox'])
 class GeosphereMessageOL {
   @primaryKey
   String id;
@@ -788,7 +788,7 @@ class GeosphereLikePersonOL {
       this.ctime, this.nickName, this.receptor, this.sandbox);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'])
+@Entity(primaryKeys: ['id', 'msgid', 'receptor', 'sandbox'])
 class GeosphereCommentOL {
   final String id;
   final String person;
@@ -806,6 +806,8 @@ class GeosphereCommentOL {
 
 @Entity(primaryKeys: [
   'id',
+  'msgid',
+  'receptor',
   'sandbox'
 ], indices: [
   Index(value: ['msgid', 'receptor'])

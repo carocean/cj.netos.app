@@ -370,7 +370,7 @@ mixin IGeoReceptorService {
 
   Future<void> updateTitle(String id, String title);
 
-  Future<void> updateLocation(String id, LatLng location);
+  Future<void> updateLocation(String category,String receptor, LatLng location,{bool isOnlyLocal=false});
 
   Future<void> updateRadius(String id, double radius);
 

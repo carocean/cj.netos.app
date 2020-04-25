@@ -42,7 +42,9 @@ class _GeoSettingsLordState extends State<GeoSettingsLord> {
         break;
     }
     _loadLocation().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     geoLocation.listen('receptor.settings', 1, _updateLocation);
     super.initState();
@@ -68,8 +70,9 @@ class _GeoSettingsLordState extends State<GeoSettingsLord> {
     if (_moveMode == 'unmoveable') {
       return;
     }
-//    _poiAddress = await location.address;
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _updateMessageArrivedMode() async {

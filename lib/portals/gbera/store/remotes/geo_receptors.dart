@@ -81,6 +81,8 @@ mixin IGeoReceptorRemote {
 
   Future<int>countReceptorFans(String category, String id) {}
 
+ Future<void> updateLocation(String category, String receptor, String json) {}
+
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -150,6 +152,19 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateLocation(
+      String category, String receptor, String location)async {
+    await remotePorts.portGET(
+      _receptorPortsUrl,
+      'updateLocation',
+      parameters: {
+        'id': receptor,
+        'category': category,
+        'location': location,
+      },
+    );
+  }
+  @override
   Future<Function> updateLeading(
       String leading, String category, String id) async {
     await remotePorts.portGET(
@@ -199,6 +214,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           '/geosphere/receptor/settings?category=$category&receptor=$receptor&mode=$mode&background=$file',
     );
   }
+
 
   @override
   Future<Function> publishMessage(GeosphereMessageOR geosphereMessageOR) async {

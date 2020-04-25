@@ -52,8 +52,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
     _receptorInfo.onSettingsChanged = _onSettingChanged;
-    geoLocation.listen('geosphere.receptors',
-        (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
+    geoLocation.listen('geosphere.receptors', 1, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
@@ -115,9 +114,13 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
       return;
     }
     //计算文档离我的距离
-    var latLng = await location.latLng;
-    var poiList =
-        await AmapSearch.searchAround(latLng, radius: 500, type: amapPOIType);
+
+    LatLng latLng = await location.latLng;
+    if (latLng == null) {
+      return;
+    }
+    var poiList = await AmapSearch.searchAround(latLng,
+        radius: _receptorInfo.radius?.floor() ?? 5, type: amapPOIType);
     if (poiList.isEmpty) {
       return;
     }
@@ -126,22 +129,33 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     var address = await amapPoi.address;
     var poiId = await amapPoi.poiId;
 
-    var distance = 0;
+    var distance = getDistance(start: latLng, end: _receptorInfo.latLng);
+    if (distance == double.nan) {
+      return;
+    }
     _currentPoi = AmapPoi(
-      distance: distance,
+      distance: distance?.floor(),
       title: title,
       latLng: latLng,
       address: address,
       poiId: poiId,
     );
+    if (distance < _receptorInfo.uDistance) {
+      return;
+    }
+    if (_category?.moveMode == 'unmoveable') {
+      return;
+    }
+    _receptorInfo.latLng = latLng;
+
     for (var msgwrapper in _messageList) {
       String loc = msgwrapper.message.location;
       if (StringUtil.isEmpty(loc)) {
         continue;
       }
       var msglatLng = LatLng.fromJson(jsonDecode(loc));
-      var distanceLabel =
-          getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
+      var distanceLabel = getFriendlyDistance(
+          getDistance(start: _currentPoi.latLng, end: msglatLng));
       msgwrapper.distanceLabel = distanceLabel;
       msgwrapper.poi = _currentPoi;
     }
@@ -821,7 +835,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 Text.rich(
                                   TextSpan(
                                     text:
-                                        '离你 ${getFriendlyDistance(getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))}',
+                                        '离开 ${getFriendlyDistance(getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))} ${getFriendlyDistance(widget.receptorInfo.uDistance - getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))}后更新',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: widget.isShowWhite

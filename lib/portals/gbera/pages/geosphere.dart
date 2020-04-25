@@ -99,32 +99,44 @@ class _GeosphereState extends State<Geosphere>
           switch (frame.command) {
             case 'pushDocument':
               _arrivedPushDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
             case 'likeDocument':
               _arrivedLikeDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
             case 'unlikeDocument':
               _arrivedUnlikeDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
             case 'commentDocument':
               _arrivedCommentDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
             case 'uncommentDocument':
               _arrivedUncommentDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
             case 'mediaDocument':
               _arrivedMediaDocumentCommand(frame).then((message) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               });
               break;
           }
@@ -229,9 +241,9 @@ class _GeosphereState extends State<Geosphere>
 
           var creator = frame.parameter('creator');
           IPersonService personService =
-              widget.context.site.getService('/gbera/persons');
+          widget.context.site.getService('/gbera/persons');
           var mediaPerson =
-              await personService.getPerson(creator, isDownloadAvatar: true);
+          await personService.getPerson(creator, isDownloadAvatar: true);
 
           var media = GeosphereMediaOL(
             mediaid,
@@ -283,26 +295,29 @@ class _GeosphereState extends State<Geosphere>
 
     await _cachePerson(sender);
 
-    var receptorObj = await _getReceptor(category, receptor);
-    receptor = receptorObj.id;
-    category = receptorObj.category;
-    var home = await getApplicationDocumentsDirectory();
-    var dir = '${home.path}/images';
-    var dirFile = Directory(dir);
-    if (!dirFile.existsSync()) {
-      dirFile.createSync();
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var category = receptorkeypare.substring(0, pos);
+      var receptor = receptorkeypare.substring(pos + 1);
+      var home = await getApplicationDocumentsDirectory();
+      var dir = '${home.path}/images';
+      var dirFile = Directory(dir);
+      if (!dirFile.existsSync()) {
+        dirFile.createSync();
+      }
+      var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(docMap['src'])}';
+      var localFile = '$dir/$fn';
+
+      IRemotePorts remotePorts =
+          widget.context.site.getService('@.remote.ports');
+      remotePorts.portTask.addDownloadTask(
+        '${docMap['src']}?accessToken=${widget.context.principal.accessToken}',
+        localFile,
+        callbackUrl:
+            '/geosphere/doc/file.download?creator=$sender&localFile=$localFile&id=${docMap['id']}&type=${docMap['type']}&src=${docMap['src']}&leading=${docMap['leading']}&docid=${docMap['docid']}&text=${docMap['text']}&receptor=${receptor}&category=$category',
+      );
     }
-    var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(docMap['src'])}';
-    var localFile = '$dir/$fn';
-
-    IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
-    remotePorts.portTask.addDownloadTask(
-      '${docMap['src']}?accessToken=${widget.context.principal.accessToken}',
-      localFile,
-      callbackUrl:
-          '/geosphere/doc/file.download?creator=$sender&localFile=$localFile&id=${docMap['id']}&type=${docMap['type']}&src=${docMap['src']}&leading=${docMap['leading']}&docid=${docMap['docid']}&text=${docMap['text']}&receptor=${receptor}&category=$category',
-    );
-
     return null;
   }
 
@@ -328,40 +343,44 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(category, receptor);
-    receptor = receptorObj.id;
-    category = receptorObj.category;
-    var exists = await messageService.getMessage(receptor, docid);
-    if (exists == null) {
-      print('消息不存在，被丢弃。');
-      return null;
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var category = receptorkeypare.substring(0, pos);
+      var receptor = receptorkeypare.substring(pos + 1);
+      var exists = await messageService.getMessage(receptor, docid);
+      if (exists == null) {
+        print('消息不存在，被丢弃。');
+        return null;
+      }
+
+      IPersonService personService =
+          widget.context.site.getService('/gbera/persons');
+      var sendPerson = await personService.getPerson(sender);
+      var like = GeosphereLikePersonOL(
+          MD5Util.MD5(Uuid().v1()),
+          sender,
+          sendPerson.avatar,
+          docid,
+          DateTime.now().millisecondsSinceEpoch,
+          sendPerson.nickName,
+          receptor,
+          widget.context.principal.person);
+      await messageService.like(like, isOnlySaveLocal: true);
+
+      //通知当前工作的管道有新消息到
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
+      _notifyStreamController.add({
+        'command': 'likeDocumentCommand',
+        'sender': frame.head('sender'),
+        'receptor': receptor,
+        'category': category,
+        'like': like,
+        'message': exists,
+      });
     }
 
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var sendPerson = await personService.getPerson(sender);
-    var like = GeosphereLikePersonOL(
-        MD5Util.MD5(Uuid().v1()),
-        sender,
-        sendPerson.avatar,
-        docid,
-        DateTime.now().millisecondsSinceEpoch,
-        sendPerson.nickName,
-        receptor,
-        widget.context.principal.person);
-    await messageService.like(like, isOnlySaveLocal: true);
-
-    //通知当前工作的管道有新消息到
-    //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    _notifyStreamController.add({
-      'command': 'likeDocumentCommand',
-      'sender': frame.head('sender'),
-      'receptor': receptor,
-      'category': category,
-      'like': like,
-      'message': exists,
-    });
-    return exists;
+    return null;
   }
 
   Future<GeosphereMessageOL> _arrivedUnlikeDocumentCommand(Frame frame) async {
@@ -386,27 +405,32 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(category, receptor);
-    receptor = receptorObj.id;
-    category = receptorObj.category;
-    var exists = await messageService.getMessage(receptor, docid);
-    if (exists == null) {
-      print('消息不存在，被丢弃。');
-      return null;
+
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var category = receptorkeypare.substring(0, pos);
+      var receptor = receptorkeypare.substring(pos + 1);
+      var exists = await messageService.getMessage(receptor, docid);
+      if (exists == null) {
+        print('消息不存在，被丢弃。');
+        return null;
+      }
+
+      await messageService.unlike(receptor, docid, sender,
+          isOnlySaveLocal: true);
+
+      //通知当前工作的管道有新消息到
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
+      _notifyStreamController.add({
+        'command': 'unlikeDocumentCommand',
+        'sender': frame.head('sender'),
+        'receptor': receptor,
+        'category': category,
+        'message': exists,
+      });
     }
-
-    await messageService.unlike(receptor, docid, sender, isOnlySaveLocal: true);
-
-    //通知当前工作的管道有新消息到
-    //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    _notifyStreamController.add({
-      'command': 'unlikeDocumentCommand',
-      'sender': frame.head('sender'),
-      'receptor': receptor,
-      'category': category,
-      'message': exists,
-    });
-    return exists;
+    return null;
   }
 
   Future<GeosphereMessageOL> _arrivedCommentDocumentCommand(Frame frame) async {
@@ -433,42 +457,46 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(category, receptor);
-    receptor = receptorObj.id;
-    category = receptorObj.category;
-    var exists = await messageService.getMessage(receptor, docid);
-    if (exists == null) {
-      print('消息不存在，被丢弃。');
-      return null;
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var category = receptorkeypare.substring(0, pos);
+      var receptor = receptorkeypare.substring(pos + 1);
+      var exists = await messageService.getMessage(receptor, docid);
+      if (exists == null) {
+        print('消息不存在，被丢弃。');
+        return null;
+      }
+
+      IPersonService personService =
+          widget.context.site.getService('/gbera/persons');
+      var sendPerson = await personService.getPerson(sender);
+      var comment = GeosphereCommentOL(
+          commentid,
+          sender,
+          sendPerson.avatar,
+          docid,
+          comments,
+          DateTime.now().millisecondsSinceEpoch,
+          sendPerson.nickName,
+          receptor,
+          widget.context.principal.person);
+      await messageService.addComment(comment, isOnlySaveLocal: true);
+
+      //通知当前工作的管道有新消息到
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
+      _notifyStreamController.add({
+        'command': 'commentDocumentCommand',
+        'sender': frame.head('sender'),
+        'receptor': receptor,
+        'category': category,
+        'commentid': commentid,
+        'comment': comment,
+        'message': exists,
+      });
     }
 
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var sendPerson = await personService.getPerson(sender);
-    var comment = GeosphereCommentOL(
-        commentid,
-        sender,
-        sendPerson.avatar,
-        docid,
-        comments,
-        DateTime.now().millisecondsSinceEpoch,
-        sendPerson.nickName,
-        receptor,
-        widget.context.principal.person);
-    await messageService.addComment(comment, isOnlySaveLocal: true);
-
-    //通知当前工作的管道有新消息到
-    //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    _notifyStreamController.add({
-      'command': 'commentDocumentCommand',
-      'sender': frame.head('sender'),
-      'receptor': receptor,
-      'category': category,
-      'commentid': commentid,
-      'comment': comment,
-      'message': exists,
-    });
-    return exists;
+    return null;
   }
 
   Future<GeosphereMessageOL> _arrivedUncommentDocumentCommand(
@@ -495,29 +523,32 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var receptorObj = await _getReceptor(category, receptor);
-    receptor = receptorObj.id;
-    category = receptorObj.category;
-    var exists = await messageService.getMessage(receptor, docid);
-    if (exists == null) {
-      print('消息不存在，被丢弃。');
-      return null;
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var category = receptorkeypare.substring(0, pos);
+      var receptor = receptorkeypare.substring(pos + 1);
+      var exists = await messageService.getMessage(receptor, docid);
+      if (exists == null) {
+        print('消息不存在，被丢弃。');
+        return null;
+      }
+
+      await messageService.removeComment(receptor, docid, commentid,
+          isOnlySaveLocal: true);
+
+      //通知当前工作的管道有新消息到
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
+      _notifyStreamController.add({
+        'command': 'uncommentDocumentCommand',
+        'sender': sender,
+        'receptor': receptor,
+        'category': category,
+        'commentid': commentid,
+        'message': exists,
+      });
     }
-
-    await messageService.removeComment(receptor, docid, commentid,
-        isOnlySaveLocal: true);
-
-    //通知当前工作的管道有新消息到
-    //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    _notifyStreamController.add({
-      'command': 'uncommentDocumentCommand',
-      'sender': sender,
-      'receptor': receptor,
-      'category': category,
-      'commentid': commentid,
-      'message': exists,
-    });
-    return exists;
+    return null;
   }
 
   Future<GeosphereMessageOL> _arrivedPushDocumentCommand(Frame frame) async {
@@ -549,40 +580,37 @@ class _GeosphereState extends State<Geosphere>
 
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    var exists = await messageService.getMessage(message.receptor, message.id);
-    if (exists != null) {
-      print('存在消息，被丢弃。');
-      return null;
-    }
+//    var exists = await messageService.getMessage(message.receptor, message.id);
+//    if (exists != null) {
+//      print('存在消息，被丢弃。');
+//      return null;
+//    }
     //如果是cache则出现在感知器列表，这与关注冲突
     await _cacheReceptor(message.category, message.receptor);
 
-    IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
     message.upstreamReceptor = message.receptor;
     message.upstreamCategory = message.category;
-    if (await receptorService.existsLocal(message.category, message.receptor)) {
-      //如果关注了感知器，则直接发往感知器
+
+    var toReceptors = jsonDecode(frame.head('to-receptors'));
+    for (String receptorkeypare in toReceptors) {
+      int pos = receptorkeypare.indexOf('/');
+      var ocategory = receptorkeypare.substring(0, pos);
+      var receptorid = receptorkeypare.substring(pos + 1);
+      message.receptor = receptorid;
+      message.category = ocategory;
       await messageService.addMessage(message, isOnlySaveLocal: true);
-    } else {
-      //感知器不存在则发往我的地圈
-      var principal = widget.context.principal;
-      var receptor = await receptorService.getMobileReceptor(
-          principal.person, principal.device);
-      message.receptor = receptor.id;
-      message.category = receptor.category;
-      await messageService.addMessage(message, isOnlySaveLocal: true);
+
+      //通知当前工作的管道有新消息到
+      //网流的管道列表中的每个管道的显示消息提醒的状态栏
+      _notifyStreamController.add({
+        'command': 'pushDocumentCommand',
+        'sender': frame.head('sender'),
+        'receptor': message.receptor,
+        'category': message.category,
+        'message': message,
+      });
     }
 
-    //通知当前工作的管道有新消息到
-    //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    _notifyStreamController.add({
-      'command': 'pushDocumentCommand',
-      'sender': frame.head('sender'),
-      'receptor': message.receptor,
-      'category': message.category,
-      'message': message,
-    });
     return message;
   }
 
@@ -602,19 +630,7 @@ class _GeosphereState extends State<Geosphere>
     }
   }
 
-  Future<GeoReceptor> _getReceptor(category, receptorid) async {
-    IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
-    if (await receptorService.existsLocal(category, receptorid)) {
-      return await receptorService.get(category, receptorid);
-      ;
-    }
-    var principal = widget.context.principal;
-    return await receptorService.getMobileReceptor(
-        principal.person, principal.device);
-  }
-
-  //如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢
+//如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢
   Future<void> _cachePerson(String _person) async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -886,17 +902,19 @@ class _GeoDistrictState extends State<_GeoDistrict> {
   }
 
   Future<void> _initDistrictLocation() async {
-    widget.location.listen('district', 1000, (location) async {
+    widget.location.listen('district', 0, (location) async {
       //当坐标偏移一定距离时更新行政区信息
-      await _updateDistrictInfo(location);
-      setState(() {});
+      var city = await location.city;
+      var district = await location.district;
+      if (StringUtil.isEmpty(district)) {
+        return;
+      }
+      widget.location.setOffsetDistance('district', 1000);
+      _locationLabel = '$city·$district';
+      if (mounted) {
+        setState(() {});
+      }
     });
-  }
-
-  _updateDistrictInfo(Location location) async {
-    var city = await location.city;
-    var district = await location.district;
-    _locationLabel = '$city·$district';
   }
 
   @override
@@ -1128,13 +1146,12 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   double _offset = 0.0;
   List<GeoReceptor> _receptors = [];
   Map<String, _ReceptorItemStateBar> _stateBars = {};
+  Map<String, GeoCategoryOL> _cacheCategories = {};
 
   @override
   void initState() {
-    geoLocation.listen('receptors', 5, (location) async {
-      _currentLatLng = await location.latLng;
-      setState(() {});
-    });
+    geoLocation.listen('receptors', 1, _updateLocation);
+
     widget.stream.listen((receptors) {
       if (receptors is String && receptors == 'refresh') {
         _receptors.clear();
@@ -1155,7 +1172,9 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         return;
       }
       _receptors.addAll(receptors);
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -1164,6 +1183,55 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   void dispose() {
     _receptors.clear();
     super.dispose();
+  }
+
+  Future<void> _updateLocation(location) async {
+    _currentLatLng = await location.latLng;
+    if (mounted) {
+      setState(() {});
+    }
+    _receptors.forEach((receptor) async {
+      IGeoCategoryLocal categoryLocal =
+          widget.context.site.getService('/geosphere/categories');
+      var category = _cacheCategories[receptor.category];
+      if (category == null) {
+        category = await categoryLocal.get(receptor.category);
+        if (category != null) {
+          _cacheCategories[receptor.category] = category;
+        }
+      }
+
+      if (category?.moveMode == 'unmoveable') {
+        return;
+      }
+
+      var center = receptor.getLocationLatLng();
+      var uDistance = receptor.uDistance ?? 5;
+      var distance = getDistance(start: _currentLatLng, end: center);
+      if (distance == double.nan) {
+        return;
+      }
+//      print('----${category?.moveMode} ${getDistance(start: _currentLatLng, end: center)} $uDistance');
+      if (distance >= uDistance) {
+//        print('-更新位置---');
+        try {
+          await _updateReceptorCenter(category.id, receptor.id, _currentLatLng);
+          receptor.location = jsonEncode(_currentLatLng.toJson());
+//          print('-更新完毕---');
+        } catch (e) {
+          throw FlutterError('更新感知器位置失败');
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
+  Future<void> _updateReceptorCenter(category, id, location) async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    await receptorService.updateLocation(category, id, location);
   }
 
   Future<void> _deleteReceptor(GeoReceptor receptor) async {
@@ -1679,7 +1747,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         ],
       ),
     );
-    var tapItem=GestureDetector(
+    var tapItem = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
         var url;
@@ -1706,34 +1774,33 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       },
       child: item,
     );
-    if(widget.receptor.origin.canDel == 'false') {
+    if (widget.receptor.origin.canDel == 'false') {
       return tapItem;
     }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
-
-            widget.receptor.creator == widget.context.principal.person
-                ? IconSlideAction(
-                    caption: '删除',
-                    foregroundColor: Colors.grey[500],
-                    icon: Icons.delete,
-                    onTap: () {
-                      if (widget.onDelete != null) {
-                        widget.onDelete();
-                      }
-                    },
-                  )
-                : IconSlideAction(
-                    caption: '不再关注',
-                    foregroundColor: Colors.grey[500],
-                    icon: Icons.remove_red_eye,
-                    onTap: () {
-                      if (widget.onDelete != null) {
-                        widget.onDelete();
-                      }
-                    },
-                  ),
+        widget.receptor.creator == widget.context.principal.person
+            ? IconSlideAction(
+                caption: '删除',
+                foregroundColor: Colors.grey[500],
+                icon: Icons.delete,
+                onTap: () {
+                  if (widget.onDelete != null) {
+                    widget.onDelete();
+                  }
+                },
+              )
+            : IconSlideAction(
+                caption: '不再关注',
+                foregroundColor: Colors.grey[500],
+                icon: Icons.remove_red_eye,
+                onTap: () {
+                  if (widget.onDelete != null) {
+                    widget.onDelete();
+                  }
+                },
+              ),
       ],
       child: tapItem,
     );

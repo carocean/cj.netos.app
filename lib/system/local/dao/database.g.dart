@@ -166,13 +166,13 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `receptor`, `category`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereLikePersonOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereCommentOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereCommentOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `msgid`, `receptor`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereMediaOL` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereMediaOL` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `msgid`, `receptor`, `sandbox`))');
         await database.execute(
             'CREATE INDEX `index_GeosphereMediaOL_msgid_receptor` ON `GeosphereMediaOL` (`msgid`, `receptor`)');
 

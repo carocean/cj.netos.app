@@ -205,9 +205,12 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<void> updateLocation(String id, LatLng location) async {
+  Future<void> updateLocation(String category,String receptor, LatLng location,{bool isOnlyLocal=false}) async {
     var json = jsonEncode(location.toJson());
-    await receptorDAO.updateLocation(json, id, principal.person);
+    await receptorDAO.updateLocation(json, receptor, principal.person);
+    if(!isOnlyLocal) {
+      await receptorRemote.updateLocation(category,receptor,json);
+    }
     return null;
   }
 

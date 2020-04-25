@@ -554,6 +554,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if(_owner==null) {
+      return Container(height: 0,width: 0,);
+    }
     Widget imgSrc = null;
     if (StringUtil.isEmpty(widget.receptorInfo.leading)) {
       imgSrc = Icon(

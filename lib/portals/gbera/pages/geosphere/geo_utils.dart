@@ -69,32 +69,47 @@ class GeoLocation {
       await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High)){
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
-          if (listener.offsetDistance == null || listener.offsetDistance == 0) {
-            await listener.callback(location);
-            continue;
-          }
-          if (listener.current == null) {
-            var latlng = await location.latLng;
-            String city = await location.city;
-            if (StringUtil.isEmpty(city)) {
+          try {
+            if (listener.offsetDistance == null ||
+                listener.offsetDistance == 0) {
+              await listener.callback(location);
               continue;
             }
-            listener.current = latlng;
+            if (listener.current == null) {
+              var latlng = await location.latLng;
+              String city = await location.city;
+              if (StringUtil.isEmpty(city)) {
+                continue;
+              }
+              listener.current = latlng;
+              await listener.callback(location);
+              continue;
+            }
+            var current = await location.latLng;
+            var distance = getDistance(start: current, end: listener.current);
+            if (distance < listener.offsetDistance) {
+              //没到更新边界
+              continue;
+            }
             await listener.callback(location);
+            listener.current = current;
+          }catch(e) {
+            print('地理位置执行失败:$e');
             continue;
           }
-          var current = await location.latLng;
-          var distance = getDistance(start: current, end: listener.current);
-          if (distance < listener.offsetDistance) {
-            //没到更新边界
-            continue;
-          }
-          await listener.callback(location);
-          listener.current = current;
         }
       }
     }
   }
+
+  void setOffsetDistance(String listener,double offsetDistance) {
+    var the=_listens[listener];
+    if(the==null) {
+      return;
+    }
+    the.offsetDistance=offsetDistance;
+  }
+
 }
 
 /*

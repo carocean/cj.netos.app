@@ -1332,7 +1332,9 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
-      setState(() {});
+      if(mounted) {
+        setState(() {});
+      }
     }();
     super.didUpdateWidget(oldWidget);
   }
