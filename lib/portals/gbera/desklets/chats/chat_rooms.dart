@@ -575,9 +575,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   @override
   Widget build(BuildContext context) {
     if (!_isloaded) {
-      return Center(
-        child: Text('加载中...'),
-      );
+      return Container(height: 0,width: 0,);
     }
     var content;
 

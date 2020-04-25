@@ -1400,13 +1400,8 @@ class __MessageCardState extends State<_MessageCard> {
 
   _setTitleLabel() {
     if (_upstreamReceptor != null) {
-      if (_upstreamReceptor.category == 'mobiles') {
-        _titleLabel = '${_upstreamPerson.nickName}的地圈';
-        _leading = _upstreamReceptor.leading;
-      } else {
-        _titleLabel = _upstreamReceptor.title;
-        _leading = _upstreamReceptor.leading;
-      }
+      _titleLabel = _upstreamReceptor.title;
+      _leading = _upstreamReceptor.leading;
     } else {
       _titleLabel = widget.messageWrapper.creator.nickName;
       _leading = widget.messageWrapper.creator.avatar;

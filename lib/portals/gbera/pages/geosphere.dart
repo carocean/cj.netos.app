@@ -36,6 +36,26 @@ import 'geosphere/geo_utils.dart';
 import 'netflow/article_entities.dart';
 import 'netflow/channel.dart';
 
+typedef GeosphereEvent = void Function(String action, dynamic args);
+
+class _GeosphereEvents {
+  final List<GeosphereEvent> listeners = [];
+
+  void onAddReceptor(GeoReceptor receptor) {
+    listeners.forEach((listener) {
+      listener('addReceptor', receptor);
+    });
+  }
+
+  void onRemoveReceptor(GeoReceptor receptor) {
+    listeners.forEach((listener) {
+      listener('removeReceptor', receptor);
+    });
+  }
+}
+
+final geosphereEvents = _GeosphereEvents();
+
 class Geosphere extends StatefulWidget {
   PageContext context;
 
@@ -120,6 +140,19 @@ class _GeosphereState extends State<Geosphere>
         checkRemote: _sync_check,
 //      forceSync: true,
       );
+    geosphereEvents.listeners.add((action, args) {
+      if (!mounted) {
+        return;
+      }
+      switch (action) {
+        case 'addReceptor':
+          _receptorStreamController.add(<GeoReceptor>[args]);
+          break;
+        case 'removeReceptor':
+          _receptorStreamController.add({'action': action, 'args': args});
+          break;
+      }
+    });
     super.initState();
   }
 
@@ -131,6 +164,7 @@ class _GeosphereState extends State<Geosphere>
     _location.stop();
     _receptorStreamController.close();
     _notifyStreamController.close();
+    geosphereEvents.listeners.clear();
     super.dispose();
   }
 
@@ -1106,6 +1140,20 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         _receptors.clear();
         return;
       }
+      if (receptors is Map) {
+        if (receptors['action'] == 'removeReceptor') {
+          var the = receptors['args'] as GeoReceptor;
+          bool isDel = false;
+          _receptors.removeWhere((receptor) {
+            isDel = receptor.id == the.id;
+            return isDel;
+          });
+          if (isDel && mounted) {
+            setState(() {});
+          }
+        }
+        return;
+      }
       _receptors.addAll(receptors);
       setState(() {});
     });
@@ -1121,6 +1169,11 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   Future<void> _deleteReceptor(GeoReceptor receptor) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
+    if (receptor.creator != widget.context.principal.person) {
+      IGeoReceptorRemote receptorRemote =
+          widget.context.site.getService('/remote/geo/receptors');
+      await receptorRemote.unfollow(receptor.category, receptor.id);
+    }
     await receptorService.remove(receptor.category, receptor.id);
     for (var i = 0; i < _receptors.length; i++) {
       if (_receptors[i].id == receptor.id) {
@@ -1204,7 +1257,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   id: receptor.id,
                   leading: receptor.leading,
                   creator: receptor.creator,
-                  isMobileReceptor: receptor.title == '我的地圈',
+                  isMobileReceptor: receptor.category == 'mobiles',
                   offset: offset,
                   category: receptor.category,
                   radius: receptor.radius,
@@ -1626,24 +1679,41 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         ],
       ),
     );
+    var tapItem=GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        var url;
+        if (widget.receptor.creator == widget.context.principal.person) {
+          //每人只能有一个手机行人地圈
+          if (widget.receptor.category == 'mobiles') {
+            url = '/geosphere/receptor.lord';
+          } else {
+            url = '/geosphere/receptor.mines';
+          }
+        } else {
+          url = '/geosphere/receptor.fans';
+        }
+        widget.context.forward(url, arguments: {
+          'receptor': widget.receptor,
+          'notify': widget.notify,
+        }).then((v) {
+          _loadUnreadMessage().then((v) {
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        });
+      },
+      child: item,
+    );
+    if(widget.receptor.origin.canDel == 'false') {
+      return tapItem;
+    }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
-        widget.receptor.isMobileReceptor
-            ? Padding(
-                padding: EdgeInsets.only(
-                  left: 5,
-                  right: 5,
-                ),
-                child: Text(
-                  '不能删除我的地圈',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
-                ),
-              )
-            : widget.receptor.creator == widget.context.principal.person
+
+            widget.receptor.creator == widget.context.principal.person
                 ? IconSlideAction(
                     caption: '删除',
                     foregroundColor: Colors.grey[500],
@@ -1665,31 +1735,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                     },
                   ),
       ],
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          var url;
-          if (widget.receptor.creator == widget.context.principal.person) {
-            //每人只能有一个手机行人地圈
-            if (widget.receptor.category == 'mobiles') {
-              url = '/geosphere/receptor.lord';
-            } else {
-              url = '/geosphere/receptor.mines';
-            }
-          } else {
-            url = '/geosphere/receptor.fans';
-          }
-          widget.context.forward(url, arguments: {
-            'receptor': widget.receptor,
-            'notify': widget.notify,
-          }).then((v) {
-            _loadUnreadMessage().then((v) {
-              setState(() {});
-            });
-          });
-        },
-        child: item,
-      ),
+      child: tapItem,
     );
   }
 }

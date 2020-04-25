@@ -49,7 +49,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
       await add(
         GeoReceptor(
           MD5Util.MD5(Uuid().v1()),
-          '我的地圈',
+          '${principal.nickName}',
           'mobiles',
           null,
           principal.person,
@@ -62,6 +62,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           null,
           'false',
           principal.device,
+          'false',
           principal.person,
         ),
       );

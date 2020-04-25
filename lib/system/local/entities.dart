@@ -533,6 +533,7 @@ class GeoReceptor {
   String background;
   String isAutoScrollMessage;
   String device;
+  String canDel;//
   String sandbox;
 
   GeoReceptor(
@@ -550,6 +551,7 @@ class GeoReceptor {
       this.background,
       this.isAutoScrollMessage,
       this.device,
+      this.canDel,
       this.sandbox);
 
   LatLng getLocationLatLng() {

@@ -1573,7 +1573,7 @@ class __ChannelItemState extends State<_ChannelItem> {
       );
     } else {
       imgSrc = Image.network(
-        widget.leading,
+        '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
         height: 40,
       );

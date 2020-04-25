@@ -12,6 +12,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
@@ -28,6 +29,8 @@ import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+
+import '../geosphere.dart';
 
 class GeoViewReceptor extends StatefulWidget {
   PageContext context;
@@ -251,7 +254,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
       {bool showTitle = true}) {
     appBar.title = Text(
       _receptorInfo.category == 'mobiles'
-          ? '${_owner.nickName}的地圈'
+          ? '${_owner.nickName}'
           : _receptorInfo.title,
       style: TextStyle(
         color: Colors.white,
@@ -269,9 +272,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
     bool showTitle = true,
   }) {
     appBar.title = Text(
-      _receptorInfo.category == 'mobiles'
-          ? '${_owner.nickName}的地圈'
-          : _receptorInfo.title,
+       _receptorInfo.title,
       style: TextStyle(
         color: null,
       ),
@@ -627,8 +628,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   _loadFollow() async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
     var exists = await receptorService.existsLocal(
         widget.receptorInfo.category, widget.receptorInfo.id);
+    _followCount=await receptorRemote.countReceptorFans(widget.receptorInfo.category, widget.receptorInfo.id);
     _isFollowed = exists;
     _followLabel = exists ? '不再关注' : '关注';
   }
@@ -636,20 +640,28 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   Future<void> _follow() async {
     _followLabel = '处理中...';
     setState(() {});
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     if (_isFollowed) {
       //取消
       await receptorService.remove(
           widget.receptorInfo.category, widget.receptorInfo.id);
+      await receptorRemote.unfollow(
+          widget.receptorInfo.category, widget.receptorInfo.id);
+      await _loadFollow();
+      geosphereEvents.onRemoveReceptor(widget.receptorInfo.origin);
       _isFollowed = false;
       _followLabel = '关注';
       return;
     }
     await receptorService.add(widget.receptorInfo.origin,
         isOnlySaveLocal: true);
-    IGeosphereMessageService messageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
+    await receptorRemote.follow(
+        widget.receptorInfo.category, widget.receptorInfo.id);
+    await _loadFollow();
+    geosphereEvents.onAddReceptor(widget.receptorInfo.origin);
     _isFollowed = true;
     _followLabel = '不再关注';
   }
@@ -714,10 +726,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           context: context,
                           builder: (context) {
                             return widget.context.part(
-                                '/geosphere/settings.viewer', context, arguments: {
-                              'receptor': widget.receptorInfo,
-                              'moveMode': widget.categoryOL?.moveMode
-                            });
+                                '/geosphere/settings.viewer', context,
+                                arguments: {
+                                  'receptor': widget.receptorInfo,
+                                  'moveMode': widget.categoryOL?.moveMode
+                                });
                           }).then((v) {});
                     },
                     child: Row(
@@ -848,8 +861,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                 Container(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                    },
+                    onTap: () {},
                     child: Row(
                       children: <Widget>[
                         Padding(
@@ -868,6 +880,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           ),
                         ),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Padding(
                               padding: EdgeInsets.only(

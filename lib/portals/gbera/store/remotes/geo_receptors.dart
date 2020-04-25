@@ -68,12 +68,19 @@ mixin IGeoReceptorRemote {
 
   Future<GeoReceptor> getReceptor(String category, String receptorid) {}
 
-  Future<bool> syncTaskRemote(Frame frame)async {}
+  Future<bool> syncTaskRemote(Frame frame) async {}
 
   Future<GeoReceptor> getMyMobilReceptor() {}
 
   Future<List<GeosphereMessageOL>> pageMessage(String category, String receptor,
       String creator, int limit, int offset) {}
+
+  Future<void> follow(String category, String receptor) {}
+
+  Future<void> unfollow(String category, String receptor) {}
+
+  Future<int>countReceptorFans(String category, String id) {}
+
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -474,10 +481,10 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   ///远程到本地的同步任务
   @override
-  Future<bool> syncTaskRemote(Frame frame)async {
+  Future<bool> syncTaskRemote(Frame frame) async {
     var content = frame.contentText;
     var list = jsonDecode(content);
-    bool issync=false;
+    bool issync = false;
     for (var item in list) {
       var receptor = GeoReceptor.load(item, principal.person);
       CountValue value = await receptorDAO.countReceptor(
@@ -491,8 +498,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           dirFile.createSync();
         }
         if (!StringUtil.isEmpty(receptor.leading)) {
-          var fn =
-              '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
+          var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
           var localFile = '$dir/$fn';
           await remotePorts.download(
               '${receptor.leading}?accessToken=${principal.accessToken}',
@@ -512,7 +518,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           await receptorDAO.add(receptor);
           issync = true;
           print('感知器:${receptor.title} 成功安装');
-        }catch(e){
+        } catch (e) {
           print('感知器:${receptor.title} 安装失败，原因:$e');
         }
       }
@@ -541,5 +547,42 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       );
     }
     return msgs;
+  }
+
+  @override
+  Future<Function> unfollow(String category, String receptor) async{
+    await remotePorts.portGET(
+      _geospherePortsUrl,
+      'unfollowReceptor',
+      parameters: {
+        'category': category,
+        'receptor': receptor,
+      },
+    );
+  }
+
+  @override
+  Future<Function> follow(String category, String receptor) async{
+    await remotePorts.portGET(
+      _geospherePortsUrl,
+      'followReceptor',
+      parameters: {
+        'category': category,
+        'receptor': receptor,
+      },
+    );
+  }
+
+  @override
+  Future<int> countReceptorFans(String category, String receptor) async{
+    var count=await remotePorts.portGET(
+      _geospherePortsUrl,
+      'countReceptorFans',
+      parameters: {
+        'category': category,
+        'receptor': receptor,
+      },
+    );
+    return count;
   }
 }
