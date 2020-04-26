@@ -66,7 +66,7 @@ class GeoLocation {
     }
 // 连续定位
     if (await requestPermission()) {
-      await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High)){
+      await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High,timeout: 120000)){
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
           try {

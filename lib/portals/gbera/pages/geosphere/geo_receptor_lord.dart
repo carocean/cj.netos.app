@@ -47,9 +47,12 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   bool _isLoadedMessages = false;
   AmapPoi _currentPoi;
   String _filterCategory;
+  StreamController _streamController;
+  bool _isUpdateLocation = false;
 
   @override
   void initState() {
+    _streamController = StreamController.broadcast();
     _receptorInfo = widget.context.parameters['receptor'];
     _receptorInfo.onSettingsChanged = _onSettingChanged;
     geoLocation.listen('geosphere.receptors', 1, _updateLocation);
@@ -68,6 +71,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
 
   @override
   void dispose() {
+    _streamController?.close();
     geoLocation.unlisten('geosphere.receptors');
     _messageList.clear();
     _refreshController.dispose();
@@ -119,8 +123,11 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     if (latLng == null) {
       return;
     }
-    var poiList = await AmapSearch.searchAround(latLng,
-        radius: _receptorInfo.radius?.floor() ?? 5, type: amapPOIType);
+
+    _receptorInfo.latLng = latLng;
+    var radius = _receptorInfo.radius?.floor() ?? 5;
+    var poiList =
+        await AmapSearch.searchAround(latLng, radius: radius, type: amapPOIType);
     if (poiList.isEmpty) {
       return;
     }
@@ -141,12 +148,12 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
       poiId: poiId,
     );
     if (distance < _receptorInfo.uDistance) {
-      return;
+      _streamController.add("refresh");
+      if (_isUpdateLocation) {
+        return;
+      }
+      _isUpdateLocation = true;
     }
-    if (_category?.moveMode == 'unmoveable') {
-      return;
-    }
-    _receptorInfo.latLng = latLng;
 
     for (var msgwrapper in _messageList) {
       String loc = msgwrapper.message.location;
@@ -293,6 +300,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
         SliverToBoxAdapter(
           child: _HeaderWidget(
             context: widget.context,
+            streamController: _streamController,
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
@@ -530,10 +538,12 @@ class _HeaderWidget extends StatefulWidget {
   bool isShowWhite;
   Function(Map category) filterMessages;
   GeoCategoryOL categoryOL;
+  StreamController streamController;
 
   _HeaderWidget({
     this.context,
     this.refresh,
+    this.streamController,
     this.filterMessages,
     this.receptorInfo,
     this.isShowWhite,
@@ -552,6 +562,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
   StreamSubscription _streamSubscription;
+  StreamSubscription _refreshSubscreption;
 
   @override
   void initState() {
@@ -607,11 +618,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
           break;
       }
     });
+    _refreshSubscreption = widget.streamController.stream.listen((e) {
+      if (e == 'refresh' && mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _refreshSubscreption?.cancel();
     _streamSubscription.cancel();
     geoLocation.unlisten('receptor.header');
     if (_workingChannel != null) {

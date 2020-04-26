@@ -58,7 +58,6 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     if (StringUtil.isEmpty(city)) {
       return;
     }
-    geoLocation.unlisten('geosphere.recetpor.publish.article');
     String title = await location.poiName;
     String address = await location.address;
     var poiId = await location.adCode;
@@ -70,6 +69,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     );
     _enablePublishButton =
         _poi != null && !StringUtil.isEmpty(_contentController.text);
+    geoLocation.unlisten('geosphere.recetpor.publish.article');
     setState(() {});
 //以下代码在ios上有问题
 //    var list =
@@ -526,11 +526,11 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
-                        if (_poi == null) {
-                          return;
-                        }
                         widget.context.forward('/geosphere/amap/near',
                             arguments: {'poi': _poi}).then((result) {
+                              if(result==null) {
+                                return;
+                              }
                           _poi = (result as Map)['poi'];
                           setState(() {});
                         });
@@ -670,9 +670,9 @@ class _MediaShowerState extends State<_MediaShower> {
               );
               break;
             case MediaFileType.video:
-              mediaRegion = VideoView(
+              mediaRegion = SizedBox(width: 150,child: VideoView(
                 src: mediaFile.src,
-              );
+              ),);
               break;
             case MediaFileType.audio:
               mediaRegion = Container(

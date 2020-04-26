@@ -241,9 +241,9 @@ class _GeosphereState extends State<Geosphere>
 
           var creator = frame.parameter('creator');
           IPersonService personService =
-          widget.context.site.getService('/gbera/persons');
+              widget.context.site.getService('/gbera/persons');
           var mediaPerson =
-          await personService.getPerson(creator, isDownloadAvatar: true);
+              await personService.getPerson(creator, isDownloadAvatar: true);
 
           var media = GeosphereMediaOL(
             mediaid,
@@ -447,8 +447,9 @@ class _GeosphereState extends State<Geosphere>
     var commentid = frame.parameter('commentid');
     var comments = docMap['comments'];
     var sender = frame.head('sender');
+    var toPerson = frame.head('to-person');
 
-    if (sender == widget.context.principal.person) {
+    if (sender == toPerson) {
       print('自已的评论操作又发给自己，被丢弃。');
       return null;
     }
@@ -557,7 +558,8 @@ class _GeosphereState extends State<Geosphere>
       print('消息为空，被丢弃。');
       return null;
     }
-    if (frame.head("sender") == widget.context.principal.person) {
+    var toPerson = frame.head('to-person');
+    if (frame.head("sender") == toPerson) {
       print('自已的消息又发给自己，被丢弃。');
       return null;
     }
@@ -591,11 +593,18 @@ class _GeosphereState extends State<Geosphere>
     message.upstreamReceptor = message.receptor;
     message.upstreamCategory = message.category;
 
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
     var toReceptors = jsonDecode(frame.head('to-receptors'));
     for (String receptorkeypare in toReceptors) {
       int pos = receptorkeypare.indexOf('/');
       var ocategory = receptorkeypare.substring(0, pos);
       var receptorid = receptorkeypare.substring(pos + 1);
+      if (!(await receptorService.existsLocal(ocategory, receptorid))) {
+        var exists = await receptorService.get(ocategory, receptorid);
+        print('不存在感知器:${exists.title} 在分类:$ocategory。感知器创建者:${exists.creator}');
+        continue;
+      }
       message.receptor = receptorid;
       message.category = ocategory;
       await messageService.addMessage(message, isOnlySaveLocal: true);

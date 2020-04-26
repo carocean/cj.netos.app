@@ -228,7 +228,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       await channelService.initSystemChannel(widget.context.principal);
       list = await channelService.getAllChannel();
     }
-    var items = _items;
     for (var ch in list) {
       var statebar = _ChannelStateBar(
         channelid: ch.id,
@@ -236,7 +235,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       );
       _channelStateBars[ch.id] = (statebar);
       await statebar.update('loadChannelsCommand', null);
-      items.add(
+      _items.add(
         _ChannelItem(
           context: widget.context,
           channelid: ch.id,
@@ -259,9 +258,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
           },
           isSystemChannel: channelService.isSystemChannel(ch.id),
           refreshChannels: (channelid) {
-            for (var i = 0; i < items.length; i++) {
-              if (items[i].channelid == channelid) {
-                items.removeAt(i);
+            for (var i = 0; i < _items.length; i++) {
+              if (_items[i].channelid == channelid) {
+                _items.removeAt(i);
               }
             }
             setState(() {});
@@ -1332,7 +1331,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
-      if(mounted) {
+      if (mounted) {
         setState(() {});
       }
     }();
@@ -1574,8 +1573,10 @@ class __ChannelItemState extends State<_ChannelItem> {
         height: 40,
       );
     } else {
-      imgSrc = Image.network(
-        '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
+      imgSrc = FadeInImage.assetNetwork(
+        placeholder: 'lib/portals/gbera/images/netflow.png',
+        image:
+            '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
         height: 40,
       );
