@@ -86,7 +86,7 @@ class MediaWidget extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxWidth: 296,
-        maxHeight: 196,
+        maxHeight: 200,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
