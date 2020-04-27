@@ -79,10 +79,9 @@ mixin IGeoReceptorRemote {
 
   Future<void> unfollow(String category, String receptor) {}
 
-  Future<int>countReceptorFans(String category, String id) {}
+  Future<int> countReceptorFans(String category, String id) {}
 
- Future<void> updateLocation(String category, String receptor, String json) {}
-
+  Future<void> updateLocation(String category, String receptor, String json) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -153,7 +152,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<Function> updateLocation(
-      String category, String receptor, String location)async {
+      String category, String receptor, String location) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'updateLocation',
@@ -164,6 +163,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       },
     );
   }
+
   @override
   Future<Function> updateLeading(
       String leading, String category, String id) async {
@@ -214,7 +214,6 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           '/geosphere/receptor/settings?category=$category&receptor=$receptor&mode=$mode&background=$file',
     );
   }
-
 
   @override
   Future<Function> publishMessage(GeosphereMessageOR geosphereMessageOR) async {
@@ -566,7 +565,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> unfollow(String category, String receptor) async{
+  Future<Function> unfollow(String category, String receptor) async {
     await remotePorts.portGET(
       _geospherePortsUrl,
       'unfollowReceptor',
@@ -578,7 +577,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> follow(String category, String receptor) async{
+  Future<Function> follow(String category, String receptor) async {
     await remotePorts.portGET(
       _geospherePortsUrl,
       'followReceptor',
@@ -590,8 +589,8 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<int> countReceptorFans(String category, String receptor) async{
-    var count=await remotePorts.portGET(
+  Future<int> countReceptorFans(String category, String receptor) async {
+    var count = await remotePorts.portGET(
       _geospherePortsUrl,
       'countReceptorFans',
       parameters: {

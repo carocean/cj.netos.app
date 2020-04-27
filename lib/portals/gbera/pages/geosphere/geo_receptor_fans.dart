@@ -14,6 +14,7 @@ import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
@@ -1585,23 +1586,27 @@ class __MessageCardState extends State<_MessageCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                DefaultTabController(
-                  length: widget.messageWrapper.medias.length,
-                  child: PageSelector(
-                    medias: widget.messageWrapper.medias,
-                    context: widget.context,
-                    onMediaLongTap: (media) {
-                      widget.context.forward(
-                        '/images/viewer',
-                        arguments: {
-                          'media': media,
-                          'others': widget.messageWrapper.medias,
-                          'autoPlay': true,
-                        },
-                      );
-                    },
-                  ),
+                MediaWidget(
+                  widget.messageWrapper.medias,
+                  widget.context,
                 ),
+//                DefaultTabController(
+//                  length: widget.messageWrapper.medias.length,
+//                  child: PageSelector(
+//                    medias: widget.messageWrapper.medias,
+//                    context: widget.context,
+//                    onMediaLongTap: (media) {
+//                      widget.context.forward(
+//                        '/images/viewer',
+//                        arguments: {
+//                          'media': media,
+//                          'others': widget.messageWrapper.medias,
+//                          'autoPlay': true,
+//                        },
+//                      );
+//                    },
+//                  ),
+//                ),
                 Container(
                   height: 7,
                 ),

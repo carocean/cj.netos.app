@@ -22,6 +22,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -193,7 +194,23 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
-            refresh: () {},
+            filterMessages: (category) async {
+              _offset = 0;
+              _messageList.clear();
+              if (category != null) {
+                _selectedGeoType = category['category'];
+              } else {
+                _selectedGeoType = null;
+              }
+              await _onloadMessages();
+              setState(() {});
+            },
+            refresh: () async {
+              _offset = 0;
+              _messageList.clear();
+              await _onloadMessages();
+              setState(() {});
+            },
           ),
         ),
       );
@@ -290,10 +307,88 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
     for (var msg in _messageList) {
       list.add(
         SliverToBoxAdapter(
-          child: _MessageCard(
-            context: widget.context,
-            messageWrapper: msg,
-            onDeleted: _deleteMessage,
+          child: rendTimelineListRow(
+            paddingLeft: 12,
+            paddingContentLeft: 42,
+            content: _MessageCard(
+              context: widget.context,
+              receptor: _receptorInfo,
+              messageWrapper: msg,
+              onDeleted: _deleteMessage,
+            ),
+            title: Container(
+              child: Wrap(
+                direction: Axis.vertical,
+                spacing: 2,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 0,
+                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        text: '距中心${getFriendlyDistance(msg.distance)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _receptorInfo.backgroundMode ==
+                                  BackgroundMode.vertical
+                              ? Colors.white
+                              : Colors.grey,
+                        ),
+                        children: [
+                          TextSpan(text: '  '),
+                          TextSpan(
+                              text: '${TimelineUtil.format(
+                            msg.message.ctime,
+                            dayFormat: DayFormat.Full,
+                          )}'),
+                          TextSpan(text: '  '),
+                          TextSpan(
+                              text:
+                                  '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 0,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text.rich(
+                          TextSpan(
+                            text: '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _receptorInfo.backgroundMode ==
+                                      BackgroundMode.vertical
+                                  ? Colors.white
+                                  : Colors.grey,
+                            ),
+                            children: msg.distanceLabel == null
+                                ? []
+                                : [
+                                    TextSpan(text: ' '),
+                                    TextSpan(
+                                      text: '距${msg.distanceLabel}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            lineColor: _receptorInfo.backgroundMode == BackgroundMode.vertical
+                ? Colors.white
+                : Colors.grey,
           ),
         ),
       );
@@ -356,6 +451,7 @@ class _HeaderWidget extends StatefulWidget {
   PageContext context;
   Function() refresh;
   ReceptorInfo receptorInfo;
+  Function(Map category) filterMessages;
   bool isShowWhite;
   GeoCategoryOL categoryOL;
 
@@ -363,6 +459,7 @@ class _HeaderWidget extends StatefulWidget {
     this.context,
     this.refresh,
     this.receptorInfo,
+    this.filterMessages,
     this.isShowWhite,
     this.categoryOL,
   });
@@ -372,8 +469,6 @@ class _HeaderWidget extends StatefulWidget {
 }
 
 class _HeaderWidgetState extends State<_HeaderWidget> {
-  int _arrivedMessageCount = 5;
-  String _arrivedMessageTips = '';
   var _workingChannel;
   String _poiTitle;
   LatLng _currentLatLng;
@@ -404,7 +499,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     if (_workingChannel != null) {
       _workingChannel.onRefreshChannelState = null;
     }
-    _arrivedMessageCount = 0;
     super.dispose();
   }
 
@@ -437,14 +531,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Future<void> _clearSelectCategory() async {
-    print('----清除选择');
     _selectCategory = null;
     await _loadCategoryAllApps();
     _filterMessages(null);
   }
 
   Future<void> _filterMessages(categroyMap) async {
-    print('----过滤消息');
+    await widget.filterMessages(categroyMap);
   }
 
   Future<void> _loadLocation() async {
@@ -526,17 +619,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   ),
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (context) {
-                            return widget.context.part(
-                                '/geosphere/settings', context, arguments: {
-                              'receptor': widget.receptorInfo,
-                              'moveMode': widget.categoryOL?.moveMode
-                            });
-                          }).then((v) {});
-                    },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -634,7 +716,22 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
-                Container(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: 1,
+                    left: 5,
+                  ),
+                  child: Text(
+                    '本地',
+                    style: TextStyle(
+                      color: widget.receptorInfo.backgroundMode ==
+                              BackgroundMode.vertical
+                          ? Colors.white
+                          : Colors.grey[500],
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -673,11 +770,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           right: 2,
                         ),
                         child: Text(
-                          _selectCategory != null
-                              ? _selectCategory['title']
-                              : widget.categoryOL?.moveMode == 'moveableSelf'
-                                  ? '服务'
-                                  : '筛选',
+                          '筛选',
                           style: TextStyle(
                             fontSize: 10,
                             color: widget.isShowWhite
@@ -752,11 +845,13 @@ class _MessageCard extends StatefulWidget {
   PageContext context;
   _GeosphereMessageWrapper messageWrapper;
   void Function(_GeosphereMessageWrapper message) onDeleted;
+  ReceptorInfo receptor;
 
   _MessageCard({
     this.context,
     this.messageWrapper,
     this.onDeleted,
+    this.receptor,
   });
 
   @override
@@ -766,10 +861,21 @@ class _MessageCard extends StatefulWidget {
 class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
+  GeoReceptor _receptor;
+  String _titleLabel;
+  String _leading;
+  bool _isMine = false;
 
   @override
   void initState() {
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
+    _loadUpstreamReceptor().then((v) {
+      //检查该状态类是否已释放，如果挂在树上则可用
+      _setTitleLabel();
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -780,7 +886,49 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   @override
+  void didUpdateWidget(_MessageCard oldWidget) {
+    if (oldWidget.messageWrapper != widget.messageWrapper) {
+      oldWidget.receptor = widget.receptor;
+      oldWidget.messageWrapper = widget.messageWrapper;
+      _loadUpstreamReceptor().then((v) {
+        //检查该状态类是否已释放，如果挂在树上则可用
+        _setTitleLabel();
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _setTitleLabel() {
+    if (_receptor != null) {
+      _titleLabel = _receptor.title;
+      _leading = _receptor.leading;
+    } else {
+      _titleLabel = widget.receptor.title;
+      _leading = widget.receptor.leading;
+    }
+    _isMine = widget.context.principal?.person ==
+        widget.messageWrapper.creator.official;
+  }
+
+  _loadUpstreamReceptor() async {
+    var msg = widget.messageWrapper.message;
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    _receptor = await receptorService.get(msg.category, msg.receptor);
+    if (_receptor == null) {
+      IGeoReceptorRemote receptorRemote =
+          widget.context.site.getService('/remote/geo/receptors');
+      _receptor = await receptorRemote.getReceptor(msg.category, msg.receptor);
+    }
+//    _upstreamPerson = widget.messageWrapper.creator;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    AmapPoi poi = widget.messageWrapper.poi;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -788,8 +936,8 @@ class __MessageCardState extends State<_MessageCard> {
       ),
       margin: EdgeInsets.only(
         bottom: 15,
-        left: 15,
-        right: 15,
+        left: 0,
+        right: 5,
       ),
       child: Container(
         padding: EdgeInsets.only(
@@ -805,21 +953,26 @@ class __MessageCardState extends State<_MessageCard> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/site/marchant');
+                if (!_isMine) {
+                  widget.context.forward(
+                    '/geosphere/view/receptor',
+                    arguments: {
+                      'receptor': ReceptorInfo.create(_receptor),
+                    },
+                  );
+                  return;
+                }
+                widget.context.forward(
+                  '/geosphere/portal.owner',
+                  arguments: {
+                    'receptor': widget.receptor,
+                  },
+                );
               },
               child: Padding(
                 padding: EdgeInsets.only(top: 5, right: 5),
                 child: ClipOval(
-                  child: Image(
-                    image: FileImage(
-                      File(
-                        widget.messageWrapper.sender?.avatar,
-                      ),
-                    ),
-                    height: 35,
-                    width: 35,
-                    fit: BoxFit.fill,
-                  ),
+                  child: _getleadingImg(),
                 ),
               ),
             ),
@@ -834,42 +987,64 @@ class __MessageCardState extends State<_MessageCard> {
                     children: <Widget>[
                       GestureDetector(
                         onTap: () {
-                          widget.context.forward('/site/marchant');
+                          if (!_isMine) {
+                            widget.context.forward(
+                              '/geosphere/view/receptor',
+                              arguments: {
+                                'receptor': ReceptorInfo.create(_receptor),
+                              },
+                            );
+                            return;
+                          }
+                          widget.context.forward(
+                            '/geosphere/portal.owner',
+                            arguments: {
+                              'receptor': widget.receptor,
+                            },
+                          );
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Text(
-                          '${widget.messageWrapper.sender?.nickName}',
+                          '${_titleLabel ?? ''}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[700],
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: IconButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return widget.context.part(
-                                      '/netflow/channel/serviceMenu', context);
-                                }).then((value) {
-                              print('-----$value');
-                              if (value == null) return;
-                              widget.context
-                                  .forward('/micro/app', arguments: value);
-                            });
-                          },
-                          icon: Icon(
-                            Icons.art_track,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
+                      widget.messageWrapper.message.category ==
+                                  'mobiles' ||
+                              _isMine
+                          ? Container(
+                              width: 0,
+                              height: 0,
+                            )
+                          : SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: IconButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return widget.context.part(
+                                            '/netflow/channel/serviceMenu',
+                                            context);
+                                      }).then((value) {
+                                    print('-----$value');
+                                    if (value == null) return;
+                                    widget.context.forward('/micro/app',
+                                        arguments: value);
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.art_track,
+                                  size: 20,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ),
                     ],
                   ),
                   Container(
@@ -915,79 +1090,9 @@ class __MessageCardState extends State<_MessageCard> {
                   ),
                   Row(
                     //内容坠
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Container(
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 2,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.messageWrapper.message.ctime,
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(text: '  '),
-                                    TextSpan(
-                                        text:
-                                            '¥${(widget.messageWrapper.message.wy * 0.001).toStringAsFixed(2)}'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: 0,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
-//                                  Padding(
-//                                    padding: EdgeInsets.only(
-//                                      right: 2,
-//                                    ),
-//                                    child: Icon(
-//                                      Icons.location_on,
-//                                      size: 12,
-//                                      color: Colors.grey[400],
-//                                    ),
-//                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      text: '',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                      children: [
-                                        TextSpan(text: ' '),
-                                        TextSpan(
-                                          text:
-                                              '距中心${getFriendlyDistance(widget.messageWrapper.distance)}',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       _MessageOperatesPopupMenu(
                         messageWrapper: widget.messageWrapper,
                         context: widget.context,
@@ -1027,6 +1132,43 @@ class __MessageCardState extends State<_MessageCard> {
         ),
       ),
     );
+  }
+
+  _getleadingImg() {
+    var leadingImg;
+    if (StringUtil.isEmpty(_leading)) {
+      leadingImg = Image(
+        image: AssetImage(
+          'lib/portals/gbera/images/netflow.png',
+        ),
+        height: 35,
+        width: 35,
+        fit: BoxFit.fill,
+      );
+    } else {
+      if (_leading.startsWith("/")) {
+        leadingImg = Image(
+          image: FileImage(
+            File(
+              _leading,
+            ),
+          ),
+          height: 35,
+          width: 35,
+          fit: BoxFit.fill,
+        );
+      } else {
+        leadingImg = Image(
+          image: NetworkImage(
+            '${_leading}?accessToken=${widget.context.principal.accessToken}',
+          ),
+          height: 35,
+          width: 35,
+          fit: BoxFit.fill,
+        );
+      }
+    }
+    return leadingImg;
   }
 }
 
@@ -1498,6 +1640,16 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                     ),
                   ),
                   TextSpan(text: '\t'),
+                  TextSpan(
+                    text: '\t${comment.ctime != null ? TimelineUtil.format(
+                        comment.ctime,
+                        dayFormat: DayFormat.Simple,
+                      ) : ''}\t',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
                   isMine
                       ? TextSpan(
                           text: '删除',
@@ -1650,21 +1802,31 @@ class _InteractiveRegionRefreshAdapter {
 
 class _GeosphereMessageWrapper {
   GeosphereMessageOR message;
-  double distance;
   List<MediaSrc> medias;
   Person creator;
   Person upstreamPerson;
   String _distanceLabel;
+  AmapPoi poi;
+  double distance;
 
   _GeosphereMessageWrapper({
     this.message,
     this.medias,
     this.creator,
     this.upstreamPerson,
+    this.poi,
     this.distance,
   });
 
   Person get sender {
     return upstreamPerson == null ? creator : upstreamPerson;
+  }
+
+  set distanceLabel(String distanceLabel) {
+    _distanceLabel = distanceLabel;
+  }
+
+  String get distanceLabel {
+    return _distanceLabel;
   }
 }

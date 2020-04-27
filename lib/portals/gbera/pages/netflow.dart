@@ -340,18 +340,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         });
                       });
                       break;
-                    case '/test/services':
-                      widget.context
-                          .forward(value, arguments: arguments)
-                          .then((v) {
-                        _items.clear();
-                        _loadChannels().then((v) {
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      });
-                      break;
                   }
                 },
                 itemBuilder: (context) => <PopupMenuEntry<String>>[
@@ -427,31 +415,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         ),
                         Text(
                           '搜索以连接',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: '/test/services',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context.findPage('/test/services')?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '测试网流服务',
                           style: TextStyle(
                             fontSize: 14,
                           ),

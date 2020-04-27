@@ -128,7 +128,7 @@ packages:
     source: hosted
     version: "7.0.9"
   cached_network_image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cached_network_image
       url: "https://pub.flutter-io.cn"
@@ -633,7 +633,7 @@ packages:
     source: hosted
     version: "2.4.0"
   photo_view:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: photo_view
       url: "https://pub.flutter-io.cn"
@@ -723,6 +723,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.23.1"
+  share:
+    dependency: "direct main"
+    description:
+      name: share
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.6.4"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -862,7 +869,7 @@ packages:
     source: hosted
     version: "0.1.1+2"
   transparent_image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: transparent_image
       url: "https://pub.flutter-io.cn"

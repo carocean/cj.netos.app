@@ -93,9 +93,6 @@ import 'package:netos_app/portals/gbera/pages/site/site_channelsite.dart';
 import 'package:netos_app/portals/gbera/pages/system/about.dart';
 import 'package:netos_app/portals/gbera/pages/system/contract.dart';
 import 'package:netos_app/portals/gbera/pages/system/themes.dart';
-import 'package:netos_app/portals/gbera/pages/tests/test_insite_messages.dart';
-import 'package:netos_app/portals/gbera/pages/tests/test_persons.dart';
-import 'package:netos_app/portals/gbera/pages/tests/test_services.dart';
 import 'package:netos_app/portals/gbera/pages/users/account_login.dart';
 import 'package:netos_app/portals/gbera/pages/users/accounts.dart';
 import 'package:netos_app/portals/gbera/pages/users/add_account.dart';
@@ -315,33 +312,6 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/scaffold/withbottombar',
           buildPage: (PageContext pageContext) => WithBottomScaffold(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '测试服务',
-          subtitle: '',
-          icon: GalleryIcons.shrine,
-          url: '/test/services',
-          buildPage: (PageContext pageContext) => TestServices(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '测试公众',
-          subtitle: '',
-          icon: GalleryIcons.shrine,
-          url: '/test/services/gbera/persons',
-          buildPage: (PageContext pageContext) => TestUpstreamPersonService(
-            context: pageContext,
-          ),
-        ),
-        Page(
-          title: '摸拟消息入站',
-          subtitle: '',
-          icon: GalleryIcons.shrine,
-          url: '/test/services/insite/messages',
-          buildPage: (PageContext pageContext) => TestInsiteMessages(
             context: pageContext,
           ),
         ),

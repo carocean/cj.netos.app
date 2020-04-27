@@ -14,6 +14,7 @@ import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
@@ -25,6 +26,7 @@ import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 
 class GeoReceptorLordWidget extends StatefulWidget {
@@ -1303,23 +1305,27 @@ class __MessageCardState extends State<_MessageCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                DefaultTabController(
-                  length: widget.messageWrapper.medias.length,
-                  child: PageSelector(
-                    medias: widget.messageWrapper.medias,
-                    context: widget.context,
-                    onMediaLongTap: (media) {
-                      widget.context.forward(
-                        '/images/viewer',
-                        arguments: {
-                          'media': media,
-                          'others': widget.messageWrapper.medias,
-                          'autoPlay': true,
-                        },
-                      );
-                    },
-                  ),
+                MediaWidget(
+                    widget.messageWrapper.medias,
+                    widget.context,
                 ),
+//                DefaultTabController(
+//                  length: widget.messageWrapper.medias.length,
+//                  child: PageSelector(
+//                    medias: widget.messageWrapper.medias,
+//                    context: widget.context,
+//                    onMediaLongTap: (media) {
+//                      widget.context.forward(
+//                        '/images/viewer',
+//                        arguments: {
+//                          'media': media,
+//                          'others': widget.messageWrapper.medias,
+//                          'autoPlay': true,
+//                        },
+//                      );
+//                    },
+//                  ),
+//                ),
                 Container(
                   height: 7,
                 ),
@@ -1404,6 +1410,7 @@ class __MessageCardState extends State<_MessageCard> {
                       ),
                     ),
                     _MessageOperatesPopupMenu(
+                      titleLabel: _titleLabel,
                       messageWrapper: widget.messageWrapper,
                       context: widget.context,
                       onDeleted: () {
@@ -1597,7 +1604,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onComment;
   void Function() onliked;
   void Function() onUnliked;
-
+  String titleLabel;
   _MessageOperatesPopupMenu({
     this.messageWrapper,
     this.context,
@@ -1605,6 +1612,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
     this.onComment,
     this.onliked,
     this.onUnliked,
+    this.titleLabel,
   });
 
   @override
@@ -1715,6 +1723,26 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ),
             ],
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                child: Icon(
+                  Icons.comment,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '分享',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ];
         if (rights['canDelete']) {
           actions.add(
@@ -1779,7 +1807,13 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                     widget.onComment();
                   }
                   break;
-                case 2: //删除
+                case 2: //分享
+                  Share.share(
+                    widget.messageWrapper.message.text ?? '',
+                    subject: widget.titleLabel,
+                  );
+                  break;
+                case 3: //删除
                   if (widget.onDeleted != null) {
                     widget.onDeleted();
                   }
