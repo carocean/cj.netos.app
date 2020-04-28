@@ -57,7 +57,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     _streamController = StreamController.broadcast();
     _receptorInfo = widget.context.parameters['receptor'];
     _receptorInfo.onSettingsChanged = _onSettingChanged;
-    geoLocation.listen('geosphere.receptors', 1, _updateLocation);
+    geoLocation.listen('geosphere.receptors.lord', 0, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
@@ -74,7 +74,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   @override
   void dispose() {
     _streamController?.close();
-    geoLocation.unlisten('geosphere.receptors');
+    geoLocation.unlisten('geosphere.receptors.lord');
     _messageList.clear();
     _refreshController.dispose();
     super.dispose();
@@ -126,21 +126,20 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
       return;
     }
 
-    _receptorInfo.latLng = latLng;
-    var radius = _receptorInfo.radius?.floor() ?? 5;
-    var poiList =
-        await AmapSearch.searchAround(latLng, radius: radius, type: amapPOIType);
-    if (poiList.isEmpty) {
-      return;
-    }
-    var amapPoi = poiList[0];
-    var title = await amapPoi.title;
-    var address = await amapPoi.address;
-    var poiId = await amapPoi.poiId;
+//    var radius = _receptorInfo.radius?.floor() ?? 5;
+//    var poiList =
+//        await AmapSearch.searchAround(latLng, radius: radius, type: amapPOIType);
+//    if (poiList.isEmpty) {
+//      return;
+//    }
+//    var amapPoi = poiList[0];
+    var title = await location.poiName;
+    var address = await location.address;
+    var poiId = await location.adCode;
 
     var distance = getDistance(start: latLng, end: _receptorInfo.latLng);
     if (distance == double.nan) {
-      return;
+      distance = 0;
     }
     _currentPoi = AmapPoi(
       distance: distance?.floor(),
@@ -150,11 +149,13 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
       poiId: poiId,
     );
     if (distance < _receptorInfo.uDistance) {
-      _streamController.add("refresh");
+      _streamController.add(_currentPoi);
       if (_isUpdateLocation) {
         return;
       }
       _isUpdateLocation = true;
+    } else {
+      _receptorInfo.latLng = latLng;
     }
 
     for (var msgwrapper in _messageList) {
@@ -559,25 +560,20 @@ class _HeaderWidget extends StatefulWidget {
 class _HeaderWidgetState extends State<_HeaderWidget> {
   int _arrivedMessageCount = 0;
   var _workingChannel;
-  String _poiTitle;
-  LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
   StreamSubscription _streamSubscription;
   StreamSubscription _refreshSubscreption;
+  AmapPoi _currentPoi;
 
   @override
   void initState() {
-    _loadLocation().then((v) {
-      setState(() {});
+    _refreshSubscreption = widget.streamController.stream.listen((e) {
+      _currentPoi = e;
+      if (mounted) {
+        setState(() {});
+      }
     });
-    geoLocation.listen('receptor.header',
-        (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
-//    _workingChannel = widget.context.parameters['workingChannel'];
-//    _workingChannel.onRefreshChannelState = (command, args) {
-//      _arrivedMessageCount++;
-//      setState(() {});
-//    };
     _loadCategoryAllApps().then((v) {
       setState(() {});
     });
@@ -620,11 +616,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
           break;
       }
     });
-    _refreshSubscreption = widget.streamController.stream.listen((e) {
-      if (e == 'refresh' && mounted) {
-        setState(() {});
-      }
-    });
+
     super.initState();
   }
 
@@ -632,7 +624,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   void dispose() {
     _refreshSubscreption?.cancel();
     _streamSubscription.cancel();
-    geoLocation.unlisten('receptor.header');
     if (_workingChannel != null) {
       _workingChannel.onRefreshChannelState = null;
     }
@@ -690,32 +681,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     await widget.filterMessages(categroyMap);
   }
 
-  Future<void> _loadLocation() async {
-    _currentLatLng = widget.receptorInfo.latLng;
-    var list = await AmapSearch.searchAround(_currentLatLng,
-        radius: 2000, type: amapPOIType);
-    if (list == null || list.isEmpty) {
-      return;
+  String _getPositionLabel() {
+    if (_currentPoi == null || _currentPoi.distance == null) {
+      return '';
     }
-    _poiTitle = await list[0].title;
-  }
-
-  _updateLocation(Location location) async {
-    if (widget.categoryOL == null) {
-      return;
-    }
-    if (widget.categoryOL.moveMode == 'unmoveable') {
-      _currentLatLng = await location.latLng;
-      if (mounted) {
-        setState(() {});
-      }
-      return;
-    }
-    _currentLatLng = await location.latLng;
-    _poiTitle = await location.poiName;
-    if (mounted) {
-      setState(() {});
-    }
+    double distance = _currentPoi.distance * 1.0;
+    double udistance = widget.receptorInfo.uDistance * 1.0;
+    return '离开${getFriendlyDistance(distance)} ${getFriendlyDistance(udistance - distance)}后更新';
   }
 
   @override
@@ -835,7 +807,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 ),
                                 Text.rich(
                                   TextSpan(
-                                    text: '${_poiTitle ?? ''}',
+                                    text: '${_currentPoi?.title ?? ''}',
                                     children: [
                                       TextSpan(
                                         text: '  附近',
@@ -853,8 +825,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 ),
                                 Text.rich(
                                   TextSpan(
-                                    text:
-                                        '离开 ${getFriendlyDistance(getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))} ${getFriendlyDistance(widget.receptorInfo.uDistance - getDistance(start: _currentLatLng, end: widget.receptorInfo.latLng))}后更新',
+                                    text: _getPositionLabel(),
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: widget.isShowWhite
@@ -1306,8 +1277,8 @@ class __MessageCardState extends State<_MessageCard> {
                   ),
                 ),
                 MediaWidget(
-                    widget.messageWrapper.medias,
-                    widget.context,
+                  widget.messageWrapper.medias,
+                  widget.context,
                 ),
 //                DefaultTabController(
 //                  length: widget.messageWrapper.medias.length,
@@ -1605,6 +1576,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onliked;
   void Function() onUnliked;
   String titleLabel;
+
   _MessageOperatesPopupMenu({
     this.messageWrapper,
     this.context,

@@ -54,7 +54,7 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
     _receptorInfo.onSettingsChanged = _onSettingChanged;
-    geoLocation.listen('geosphere.receptors',
+    geoLocation.listen('geosphere.receptors.mines',
         (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
@@ -71,7 +71,7 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
 
   @override
   void dispose() {
-    geoLocation.unlisten('geosphere.receptors');
+    geoLocation.unlisten('geosphere.receptors.mines');
     _messageList.clear();
     _refreshController.dispose();
     super.dispose();

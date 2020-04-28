@@ -61,7 +61,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
       }
     });
     _receptorInfo.onSettingsChanged = _onSettingChanged;
-    geoLocation.listen('geosphere.receptors',
+    geoLocation.listen('geosphere.receptors.fans',
         (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
@@ -78,7 +78,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
 
   @override
   void dispose() {
-    geoLocation.unlisten('geosphere.receptors');
+    geoLocation.unlisten('geosphere.receptors.fans');
     _messageList.clear();
     _refreshController.dispose();
     super.dispose();
