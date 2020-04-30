@@ -31,11 +31,13 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   List<_MemberModel> _memberModels = [];
   int _limit = 20, _offset = 0;
   ChatRoomNotice _newestNotice;
+  bool _isForegroundWhite = false;
 
   @override
   void initState() {
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
+    _isForegroundWhite=_chatRoom.isForegoundWhite=='true'?true:false;
     _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadMembers().then((v) {
@@ -154,6 +156,13 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     IChatRoomRemote chatRoomRemote =
         widget.context.site.getService('/remote/chat/rooms');
     _newestNotice = await chatRoomRemote.getNewestNotice(_model.chatRoom);
+  }
+
+  Future<void> _setForebround() async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.updateRoomForeground(_chatRoom, _isForegroundWhite);
+    _chatRoom.isForegoundWhite = _isForegroundWhite == true ? 'true' : 'false';
   }
 
   @override
@@ -359,6 +368,29 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                                   setState(() {});
                                 }
                               });
+                            });
+                          },
+                        ),
+                        Divider(
+                          height: 1,
+                        ),
+                        CardItem(
+                          paddingLeft: 15,
+                          paddingRight: 15,
+                          title: '聊天室前景色',
+                          tipsText: '是否设为白色',
+                          tail: Switch.adaptive(
+                              value: _isForegroundWhite,
+                              onChanged: (v) {
+                                _isForegroundWhite = v;
+                                setState(() {});
+                              }),
+                          onItemTap: () {
+                            _isForegroundWhite = !_isForegroundWhite;
+                            _setForebround().then((v) {
+                              if (mounted) {
+                                setState(() {});
+                              }
                             });
                           },
                         ),

@@ -441,11 +441,15 @@ class _ChatTalkState extends State<ChatTalk> {
         item = _SendMessageItem(
           p2pMessage: msg,
           context: widget.context,
+          isForegroundWhite:
+              _chatRoom.isForegoundWhite == 'true' ? true : false,
         );
       } else {
         item = _ReceiveMessageItem(
           p2pMessage: msg,
           context: widget.context,
+          isForegroundWhite:
+              _chatRoom.isForegoundWhite == 'true' ? true : false,
         );
       }
       widgets.add(
@@ -1026,10 +1030,12 @@ class _ChatSendPannelState extends State<_ChatSendPannel> {
 class _ReceiveMessageItem extends StatefulWidget {
   ChatMessage p2pMessage;
   PageContext context;
+  bool isForegroundWhite;
 
   _ReceiveMessageItem({
     this.p2pMessage,
     this.context,
+    this.isForegroundWhite,
   });
 
   @override
@@ -1164,7 +1170,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                             : _sender.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[500],
+                          color: widget.isForegroundWhite
+                              ? Colors.white54
+                              : Colors.grey[500],
                           fontWeight: FontWeight.w600,
                         ),
                         strutStyle: StrutStyle(
@@ -1178,7 +1186,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                       ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: widget.isForegroundWhite
+                            ? Colors.white54
+                            : Colors.grey[500],
                         fontWeight: FontWeight.w600,
                       ),
                       strutStyle: StrutStyle(
@@ -1211,7 +1221,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           overflow: TextOverflow.visible,
           style: TextStyle(
             fontSize: 15,
-            color: Colors.black87,
+            color: widget.isForegroundWhite ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         );
@@ -1266,8 +1276,13 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 class _SendMessageItem extends StatefulWidget {
   ChatMessage p2pMessage;
   PageContext context;
+  bool isForegroundWhite;
 
-  _SendMessageItem({this.p2pMessage, this.context});
+  _SendMessageItem({
+    this.p2pMessage,
+    this.context,
+    this.isForegroundWhite,
+  });
 
   @override
   __SendMessageItemState createState() => __SendMessageItemState();
@@ -1332,7 +1347,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
-            child:  Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
@@ -1350,7 +1365,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                             : _sender?.nickName ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[500],
+                          color: widget.isForegroundWhite == true
+                              ? Colors.white54
+                              : Colors.grey[500],
                           fontWeight: FontWeight.w600,
                         ),
                         strutStyle: StrutStyle(
@@ -1364,7 +1381,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                       ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: widget.isForegroundWhite == true
+                            ? Colors.white54
+                            : Colors.grey[500],
                         fontWeight: FontWeight.w600,
                       ),
                       strutStyle: StrutStyle(
@@ -1421,7 +1440,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           overflow: TextOverflow.visible,
           style: TextStyle(
             fontSize: 15,
-            color: Colors.black87,
+            color: widget.isForegroundWhite == true
+                ? Colors.white
+                : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         );

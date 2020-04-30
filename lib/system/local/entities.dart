@@ -393,6 +393,7 @@ class ChatRoom {
   int ctime;
   String notice;
   String p2pBackground;
+  String isForegoundWhite;
   String isDisplayNick;
   String microsite;
   String sandbox;
@@ -405,6 +406,7 @@ class ChatRoom {
     this.ctime,
     this.notice,
     this.p2pBackground,
+    this.isForegoundWhite,
     this.isDisplayNick,
     this.microsite,
     this.sandbox,
@@ -419,6 +421,7 @@ class ChatRoom {
     this.notice = map['notice'];
     this.p2pBackground = map['background'];
     this.isDisplayNick = map['isDisplayNick'];
+    this.isForegoundWhite = map['isForegroundWhite']==true?'true':'false';
     this.microsite = map['microsite'];
     this.sandbox = sandbox;
   }

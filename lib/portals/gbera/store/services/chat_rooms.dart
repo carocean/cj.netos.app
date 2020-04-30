@@ -173,6 +173,16 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomForeground(
+      ChatRoom chatRoom, bool isForegroundWhite,
+      {bool isOnlyLocal = false}) async{
+    await chatRoomDAO.updateRoomForeground(isForegroundWhite?'true':'false', chatRoom.id, principal.person);
+    if (!isOnlyLocal) {
+      await chatRoomRemote.updateRoomForeground(chatRoom.id, isForegroundWhite);
+    }
+  }
+
+  @override
   Future<List<RoomMember>> listMember(String roomCode) async {
     return await roomMemberDAO.listdMember(principal.person, roomCode);
   }

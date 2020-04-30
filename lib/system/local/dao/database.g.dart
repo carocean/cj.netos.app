@@ -154,7 +154,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountName` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
@@ -2305,6 +2305,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
                   'ctime': item.ctime,
                   'notice': item.notice,
                   'p2pBackground': item.p2pBackground,
+                  'isForegoundWhite': item.isForegoundWhite,
                   'isDisplayNick': item.isDisplayNick,
                   'microsite': item.microsite,
                   'sandbox': item.sandbox
@@ -2324,6 +2325,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['ctime'] as int,
       row['notice'] as String,
       row['p2pBackground'] as String,
+      row['isForegoundWhite'] as String,
       row['isDisplayNick'] as String,
       row['microsite'] as String,
       row['sandbox'] as String);
@@ -2400,6 +2402,14 @@ class _$IChatRoomDAO extends IChatRoomDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChatRoom SET p2pBackground = ? WHERE id = ? and sandbox=?',
         arguments: <dynamic>[p2pBackground, room, sandbox]);
+  }
+
+  @override
+  Future<void> updateRoomForeground(
+      String isForegoundWhite, String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET isForegoundWhite = ? WHERE id = ? and sandbox=?',
+        arguments: <dynamic>[isForegoundWhite, room, sandbox]);
   }
 
   @override

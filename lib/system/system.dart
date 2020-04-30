@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
@@ -93,6 +94,15 @@ List<ThemeStyle> buildThemes(site) {
 
 List<Page> buildPages(site) {
   return <Page>[
+    Page(
+      title: '控件，截取头像',
+      subtitle: '',
+      icon: null,
+      url: '/widgets/avatar',
+      buildPage: (PageContext pageContext) => GberaAvatar(
+        context: pageContext,
+      ),
+    ),
     Page(
       title: '入口检测',
       subtitle: '',

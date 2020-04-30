@@ -505,6 +505,10 @@ abstract class IChatRoomDAO {
   @Query(
       'UPDATE ChatRoom SET p2pBackground = :p2pBackground WHERE id = :room and sandbox=:sandbox')
   Future<void> updateRoomBackground(p2pBackground, String room, String sandbox) {}
+  @Query(
+      'UPDATE ChatRoom SET isForegoundWhite = :isForegoundWhite WHERE id = :room and sandbox=:sandbox')
+  Future<void>  updateRoomForeground(String isForegoundWhite, String room, String sandbox) {}
+
 }
 
 @dao

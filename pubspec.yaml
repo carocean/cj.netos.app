@@ -31,6 +31,8 @@ dependencies:
   #生成二维码
   qr_flutter: ^3.2.0
   share: ^0.6.4
+  #接收分享
+  receive_sharing_intent: ^1.4.0+2
   path_provider: ^1.5.1
   lpinyin: ^1.0.7
   #数据持久化

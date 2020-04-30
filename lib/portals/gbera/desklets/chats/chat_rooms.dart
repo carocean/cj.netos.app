@@ -526,6 +526,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         null,
         null,
         'false',
+        'false',
         null,
         widget.context.principal.person,
       ),

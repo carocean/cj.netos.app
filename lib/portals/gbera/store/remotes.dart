@@ -121,4 +121,7 @@ mixin IChatRoomRemote {
 
   Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
 
+  Future<void>updateRoomForeground(String id, bool isForegroundWhite) {}
+
+
 }

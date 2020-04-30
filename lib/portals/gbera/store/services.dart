@@ -307,6 +307,10 @@ mixin IChatRoomService {
 
   Future<List<RoomMember>> fetchMembers(String room, String creator) {}
 
+  Future<void>updateRoomForeground(ChatRoom chatRoom, bool isForegroundWhite,
+      {bool isOnlyLocal = false}) {}
+
+
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

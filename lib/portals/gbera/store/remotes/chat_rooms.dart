@@ -141,6 +141,18 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomForeground(String room, bool isForegroundWhite) async{
+    remotePorts.portTask.addPortGETTask(
+      chatPortsUrl,
+      'updateRoomForeground',
+      parameters: {
+        'room': room,
+        'isForegroundWhite': isForegroundWhite,
+      },
+    );
+  }
+
+  @override
   Future<List<ChatRoomNotice>> pageNotice(
       ChatRoom chatRoom, int limit, int offset) async {
     var list = await remotePorts.portGET(
