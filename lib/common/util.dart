@@ -84,7 +84,6 @@ String formatNum(num, {point: 2}) {
   }
 }
 
-
 Future<String> downloadPersonAvatar({Dio dio, String avatarUrl}) async {
   var home = await getApplicationDocumentsDirectory();
   var dir = Directory('${home.path}/pictures/share/persons');
@@ -169,4 +168,25 @@ Future<Map<String, String>> uploadFile(String fsReaderUrl, String fsWriterUrl,
   }
   _dio.close();
   return remoteFiles;
+}
+
+///年、月、日、时、分、秒、毫秒，共17位
+DateTime parseStrTime(String strTime) {
+  int year=int.parse(strTime.substring(0, 4));
+  int month=int.parse(strTime.substring(4,6));
+  int day=int.parse(strTime.substring(6,8));
+  int hour=int.parse(strTime.substring(8,10));
+  int minut=int.parse(strTime.substring(10,12));
+  int sec=int.parse(strTime.substring(12,14));
+  int microsec=int.parse(strTime.substring(14,17));
+
+  return DateTime(
+    year,//year
+    month,//month
+    day,//day
+    hour,//hour
+    minut,//minits
+    sec,//sec
+    microsec,//mic
+  );
 }

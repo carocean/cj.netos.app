@@ -103,6 +103,7 @@ import 'package:netos_app/portals/gbera/pages/users/user_list.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/amount_settings.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/card_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/cards.dart';
@@ -111,14 +112,17 @@ import 'package:netos_app/portals/gbera/pages/wallet/change.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/wy.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
@@ -170,14 +174,16 @@ class GberaPortal {
           '/chat/rooms': ChatRoomService(),
           '/chat/p2p/messages': P2PMessageService(),
           '/remote/channels': ChannelRemote(),
-          '/remote/chat/rooms':ChatRoomRemote(),
+          '/remote/chat/rooms': ChatRoomRemote(),
           '/remote/geo/categories': GeoCategoryRemote(),
           '/remote/geo/receptors': GeoReceptorRemote(),
           '/geosphere/receptors': GeoReceptorService(),
           '/geosphere/categories': GeoCategoryLocal(),
           '/geosphere/receptor/messages': GeosphereMessageService(),
           '/geosphere/receptor/messages/medias': GeosphereMediaService(),
-          '/cache/geosphere/receptor':GeoReceptorCache(),
+          '/cache/geosphere/receptor': GeoReceptorCache(),
+          '/wallet/accounts': WalletAccountRemote(),
+          '/wallet/records': WalletRecordRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -1028,6 +1034,24 @@ class GberaPortal {
           ),
         ),
         Page(
+          title: '洇金',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/absorb',
+          buildPage: (PageContext pageContext) => Absorb(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '在订单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/onorder',
+          buildPage: (PageContext pageContext) => Onorder(
+            context: pageContext,
+          ),
+        ),
+        Page(
           title: '收款',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1087,8 +1111,8 @@ class GberaPortal {
           title: '纹银',
           subtitle: '',
           icon: GalleryIcons.shrine,
-          url: '/wallet/wy',
-          buildPage: (PageContext pageContext) => WY(
+          url: '/wallet/weny',
+          buildPage: (PageContext pageContext) => Weny(
             context: pageContext,
           ),
         ),

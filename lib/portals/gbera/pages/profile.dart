@@ -209,7 +209,7 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         ///是用户的经营管理后台，如我有店铺就经营店铺，我有xx
                         Text(
-                          '我的生意',
+                          '我是地商',
                           style: widget
                               .context
                               .style('/profile/list/item-title.text'),

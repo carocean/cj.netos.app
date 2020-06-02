@@ -172,6 +172,56 @@ class _NewsPageViewState extends State<NewsPageView> {
           ),
         ],
       ),
+      TimeLife(
+        title: '一周内',
+        newsList: [
+          News(
+            title: '股指：官媒缓虑 股指观望',
+            source: '我的钢铁网',
+            time: '12:02',
+          ),
+          News(
+            title: '德宝投资爱之餐饮集团',
+            source: '德宝新闻',
+            time: '10:34',
+          ),
+          News(
+            title: '股指：官媒缓虑 股指观望',
+            source: '我的钢铁网',
+            time: '12:02',
+          ),
+          News(
+            title: '德宝投资爱之餐饮集团',
+            source: '德宝新闻',
+            time: '10:34',
+          ),
+        ],
+      ),
+      TimeLife(
+        title: '一周内',
+        newsList: [
+          News(
+            title: '股指：官媒缓虑 股指观望',
+            source: '我的钢铁网',
+            time: '12:02',
+          ),
+          News(
+            title: '德宝投资爱之餐饮集团',
+            source: '德宝新闻',
+            time: '10:34',
+          ),
+          News(
+            title: '股指：官媒缓虑 股指观望',
+            source: '我的钢铁网',
+            time: '12:02',
+          ),
+          News(
+            title: '德宝投资爱之餐饮集团',
+            source: '德宝新闻',
+            time: '10:34',
+          ),
+        ],
+      ),
     ];
   }
 }

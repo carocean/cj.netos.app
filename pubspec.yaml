@@ -73,6 +73,8 @@ dependencies:
   #九宫格头像
   nineold:
     path: flutter_nineold
+  #微信分享、支付插件
+  fluwx: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

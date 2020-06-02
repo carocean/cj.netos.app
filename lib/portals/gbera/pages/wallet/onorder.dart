@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 
-class Change extends StatefulWidget {
+class Onorder extends StatefulWidget {
   PageContext context;
 
-  Change({this.context});
+  Onorder({this.context});
 
   @override
-  _ChangeState createState() => _ChangeState();
+  _OnorderState createState() => _OnorderState();
 }
 
-class _ChangeState extends State<Change> {
+class _OnorderState extends State<Onorder> {
   MyWallet _myWallet;
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _ChangeState extends State<Change> {
               bottom: 10,
             ),
             child: Text(
-              '我的零钱',
+              '在订单',
               style: widget.context.style('/wallet/change/mychange.text'),
             ),
           ),
@@ -49,7 +49,7 @@ class _ChangeState extends State<Change> {
                 ),
               ),
               Text(
-                '${_myWallet?.changeYan??'0.00'}',
+                '${_myWallet?.onorderYan??'0.00'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: widget.context.style('/wallet/change/money.text'),
@@ -70,34 +70,14 @@ class _ChangeState extends State<Change> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                debugPrint('充值');
+                debugPrint('查看明细');
                 widget.context.forward('/wallet/change/deposit');
               },
               textColor: widget.context.style('/wallet/change/deposit.textColor'),
               color: widget.context.style('/wallet/change/deposit.color'),
               highlightColor:
               widget.context.style('/wallet/change/deposit.highlightColor'),
-              child: Text('充值'),
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-            top: 10,
-          ),
-          child: SizedBox(
-            width: 160,
-            height: 36,
-            child: RaisedButton(
-              onPressed: () {
-                debugPrint('提现');
-                widget.context.forward('/wallet/change/cashout');
-              },
-              textColor: widget.context.style('/wallet/change/cashout.textColor'),
-              color: widget.context.style('/wallet/change/cashout.color'),
-              highlightColor:
-              widget.context.style('/wallet/change/cashout.highlightColor'),
-              child: Text('提现'),
+              child: Text('查看明细'),
             ),
           ),
         ),
