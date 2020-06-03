@@ -10,6 +10,7 @@ class CardItem extends StatefulWidget {
   TextOverflow tipsOverflow;
   IconData tipsIconData;
   String tipsText;
+  Color tipsColor;
   double tipsSize;
   Widget tail;
   Widget leading;
@@ -19,7 +20,7 @@ class CardItem extends StatefulWidget {
   double paddingRight;
   Function() onItemTap;
   Function() onItemLongPress;
-
+  TextDirection tipsTextDirection;
   CardItem({
     this.title,
     this.subtitle,
@@ -30,6 +31,7 @@ class CardItem extends StatefulWidget {
     this.tipsText = '',
     this.tipsIconData,
     this.tipsSize,
+    this.tipsColor,
     this.tail,
     this.leading,
     this.paddingBottom,
@@ -38,6 +40,7 @@ class CardItem extends StatefulWidget {
     this.paddingRight,
     this.onItemTap,
     this.onItemLongPress,
+    this.tipsTextDirection,
   }) {
     if (tail == null) {
       this.tail = Icon(
@@ -141,10 +144,10 @@ class CardItemState extends State<CardItem> {
                                     widget.tipsText,
                                     softWrap: true,
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: widget.tipsColor??Colors.grey[600],
                                       fontSize: widget.tipsSize ?? 12,
                                     ),
-                                    textDirection: TextDirection.rtl,
+                                    textDirection: widget.tipsTextDirection??TextDirection.rtl,
                                     overflow: widget.tipsOverflow ?? null,
                                   ),
                                 ),

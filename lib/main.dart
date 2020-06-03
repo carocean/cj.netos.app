@@ -81,6 +81,7 @@ void main() => platformRun(
             '@.prop.ports.wybank':'http://47.105.165.186/wybank/bank.ports',
             '@.prop.ports.wybank.balance':'http://47.105.165.186/wybank/balance.ports',
             '@.prop.ports.wybank.bill.price':'http://47.105.165.186/wybank/bill/price.ports',
+            '@.prop.ports.wybank.bill.fund':'http://47.105.165.186/wybank/bill/fund.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

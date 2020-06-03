@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_k_chart/entity/k_line_entity.dart';
@@ -16,7 +17,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'mine_exchange.dart';
 import 'mine_purchase.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 class Weny extends StatefulWidget {
   PageContext context;
@@ -31,17 +32,28 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
   WenyBank _bank;
   TabController tabController;
   List<TabPageView> tabPageViews;
+  StreamController<double> _newPriceNotifyController;
+  double _newPrice;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
-
+    _newPrice = _bank.price;
+    _newPriceNotifyController = StreamController.broadcast();
+    _streamSubscription = _newPriceNotifyController.stream.listen((price) {
+      _newPrice = price;
+      if (mounted) {
+        setState(() {});
+      }
+    });
     this.tabPageViews = [
       TabPageView(
         title: '我的申购',
         view: MinePurchases(
           context: widget.context,
           bank: _bank,
+          newPriceNotify:_newPriceNotifyController.stream,
         ),
       ),
       TabPageView(
@@ -59,6 +71,8 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
+    _newPriceNotifyController?.close();
     tabController.dispose();
     tabPageViews.clear();
     super.dispose();
@@ -110,6 +124,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
               child: _PriceCard(
                 bank: _bank,
                 context: widget.context,
+                newPriceNotifyController: _newPriceNotifyController,
               ),
             ),
             SliverToBoxAdapter(
@@ -143,7 +158,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
                 child: Column(
                   children: <Widget>[
                     Text(
-                      '${((_bank?.stock ?? 0.0) * (_bank?.price ?? 0.0) / 100.00)}',
+                      '${((_bank?.stock ?? 0.0) * (_newPrice) / 100.00)}',
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 18,
@@ -213,84 +228,98 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
 class _PriceCard extends StatefulWidget {
   WenyBank bank;
   PageContext context;
+  StreamController<double> newPriceNotifyController;
 
-  _PriceCard({this.bank, this.context});
+  _PriceCard({this.bank, this.context, this.newPriceNotifyController});
 
   @override
   _PriceCardState createState() => _PriceCardState();
 }
 
 class _PriceCardState extends State<_PriceCard> {
-  int _limit = 200, _offset = 0;
+  int _limit = 400, _offset = 0;
   List<KLineEntity> _klineEntities = [];
+  int _purchaseFundOfDay = 0;
+  int _exchangeFundOfDay = 0;
+  double _newPrice;
+
+  ///最后一个价格，向服务器拉取该时间后的价格列表
+  Timer _timer;
 
   @override
   void initState() {
-    _loadMonth(DateTime.now()).then((v) {
+    _newPrice = widget.bank.price;
+    _pagePrices(DateTime.now()).then((v) async {
+      await _updateNewPrice();
       if (mounted) {
         setState(() {});
       }
+    });
+    _loadIndex(DateTime.now()).then((v) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      _loadAfterPricesUpdate().then((list) async {
+        if (list.isEmpty) {
+          return;
+        }
+        //怕内存溢出
+        if (_klineEntities.length > 600) {
+          _klineEntities.clear();
+        }
+        for (var entity in list) {
+          _addLastData(entity);
+          await _updateNewPrice();
+          if (mounted) {
+            setState(() {});
+          }
+        }
+      });
     });
     super.initState();
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _klineEntities.clear();
     super.dispose();
   }
 
-  Future<void> _loadDay(DateTime dateTime) async {
-    _klineEntities.clear();
-    IPriceRemote priceRemote =
-        widget.context.site.getService('/wybank/bill/prices');
-    List<PriceOR> list = await priceRemote.getDay(
-      offset: _offset,
-      limit: _limit,
-      day: dateTime.day,
-      month: dateTime.month,
-      year: dateTime.year,
-      wenyBankID: widget.bank?.bank,
-    );
-    for (var price in list) {
-      _klineEntities.add(
-        KLineEntity(
-          amount: price.price,
-          id: price.sn.hashCode,
-          count: list.length,
-          vol: price.price,
-          close: 0.0,
-          high: 0.0,
-          low: 0.0,
-          open: 0.0,
-        ),
-      );
-    }
+  Future<void> _updateNewPrice() async {
+    _newPrice = _klineEntities.isNotEmpty
+        ? _klineEntities[_klineEntities.length - 1].amount
+        : _newPrice;
+    widget.newPriceNotifyController.add(_newPrice);
+    await _loadIndex(DateTime.now());
   }
 
-  Future<void> _loadMonth(DateTime dateTime) async {
-    _klineEntities.clear();
+  Future<List<KLineEntity>> _loadAfterPricesUpdate() async {
+    if (_klineEntities.isEmpty) {
+      return <KLineEntity>[];
+    }
+
+    ///最后一个是最新的价格
+    var sec = _klineEntities[_klineEntities.length - 1]?.id;
+    var time = DateTime.fromMillisecondsSinceEpoch(sec * 1000);
+    var timeStr = DateUtil.formatDate(time, format: 'yyyyMMddHHmmss');
+
     IPriceRemote priceRemote =
         widget.context.site.getService('/wybank/bill/prices');
-    List<PriceOR> list = await priceRemote.getMonth(
-      offset: _offset,
-      limit: _limit,
-      month: dateTime.month - 1,
-      year: dateTime.year,
-      wenyBankID: widget.bank?.bank,
-    );
-
+    List<PriceOR> list =
+        await priceRemote.getAfterTimePrices(widget.bank.bank, timeStr);
+    var entities = <KLineEntity>[];
     for (var price in list) {
       var time = parseStrTime(price.ctime, len: 14);
-      int id = 0;
-      if (id < 1) {
-        id = (time.millisecondsSinceEpoch / 1000).floor();
-      }
-      _klineEntities.add(
+      var id = (time.millisecondsSinceEpoch / 1000).floor();
+      entities.insert(
+        0,
         KLineEntity(
           amount: price.price,
           id: id,
-          count: list.length,
+          count: _klineEntities.length,
           vol: price.price,
           close: price.price,
           high: price.price,
@@ -298,7 +327,61 @@ class _PriceCardState extends State<_PriceCard> {
           open: price.price,
         ),
       );
-      id += 60 * 60 * 24;
+    }
+    return entities;
+  }
+
+  ///当新价格到时，跑价格，即增加最后一条数据让图走起来
+  _addLastData(KLineEntity entity) async {
+    DataUtil.addLastData(_klineEntities, entity);
+  }
+
+  ///加载指标
+  Future<void> _loadIndex(DateTime dateTime) async {
+    IPriceRemote priceRemote =
+        widget.context.site.getService('/wybank/bill/prices');
+    _purchaseFundOfDay = await priceRemote.totalPurchaseFundOfDay(
+      widget.bank.bank,
+      dateTime.year,
+      dateTime.month - 1,
+      dateTime.day,
+    );
+    _exchangeFundOfDay = await priceRemote.totalExchangeFundOfDay(
+      widget.bank.bank,
+      dateTime.year,
+      dateTime.month - 1,
+      dateTime.day,
+    );
+  }
+
+  Future<void> _pagePrices(DateTime dateTime) async {
+    IPriceRemote priceRemote =
+        widget.context.site.getService('/wybank/bill/prices');
+    List<PriceOR> list = await priceRemote.page(
+      offset: _offset,
+      limit: _limit,
+      wenyBankID: widget.bank?.bank,
+    );
+    if (list.isEmpty) {
+      return;
+    }
+    _offset += list.length;
+    for (var price in list) {
+      var time = parseStrTime(price.ctime, len: 14);
+      var id = (time.millisecondsSinceEpoch / 1000).floor();
+      _klineEntities.insert(
+        0,
+        KLineEntity(
+          amount: price.price,
+          id: id,
+          count: _klineEntities.length,
+          vol: price.price,
+          close: price.price,
+          high: price.price,
+          low: price.price,
+          open: price.price,
+        ),
+      );
     }
     DataUtil.calculate(_klineEntities);
   }
@@ -335,7 +418,7 @@ class _PriceCardState extends State<_PriceCard> {
                         ),
                       ),
                       Text(
-                        '${widget.bank?.price ?? '-'}',
+                        '¥$_newPrice',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
@@ -343,27 +426,55 @@ class _PriceCardState extends State<_PriceCard> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: 5,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Text(
-                        '日成交: ',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 5,
                       ),
-                      Text(
-                        '2323.23',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '今日申购量: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 5,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '今日承兑量: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -391,7 +502,13 @@ class _PriceCardState extends State<_PriceCard> {
                           secondaryState: SecondaryState.NONE,
                           volState: VolState.NONE,
                           onLoadMore: (value) {
-                            print('-----!--$value');
+                            if (!value) {
+                              _pagePrices(DateTime.now()).then((v) {
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              });
+                            }
                           },
                         ),
                 ),
@@ -426,21 +543,25 @@ class __AccountsCardState extends State<_AccountsCard> {
         children: <Widget>[
           CardItem(
             title: '存量',
-            tipsText: '${widget.bank?.stock ?? '-'}',
+            tipsText: '₩${widget.bank?.stock ?? '-'}',
           ),
           Divider(
             height: 1,
           ),
           CardItem(
             title: '冻结',
-            tipsText: '${widget.bank?.freezenYan ?? '-'}',
+            tipsText: '¥${widget.bank?.freezenYan ?? '-'}',
           ),
           Divider(
             height: 1,
           ),
           CardItem(
             title: '收益',
-            tipsText: '${widget.bank?.profitYan ?? '-'}',
+            tipsText: '¥${widget.bank?.profitYan ?? '-'}',
+            tipsColor: widget.bank.profit < 0
+                ? Colors.green
+                : widget.bank.profit > 0 ? Colors.redAccent : null,
+            tipsTextDirection: TextDirection.ltr,
           ),
         ],
       ),

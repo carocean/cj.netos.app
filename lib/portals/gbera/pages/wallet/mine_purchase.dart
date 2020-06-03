@@ -12,10 +12,12 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
 class MinePurchases extends StatefulWidget {
   PageContext context;
   WenyBank bank;
+  Stream<double> newPriceNotify;
 
   MinePurchases({
     this.context,
     this.bank,
+    this.newPriceNotify,
   });
 
   @override
@@ -26,9 +28,17 @@ class _MinePurchasesState extends State<MinePurchases> {
   List<PurchaseOR> _purchases = [];
   EasyRefreshController _controller;
   int _limit = 20, _offset = 0;
-
+  double _newPrice;
+  StreamSubscription _streamSubscription;
   @override
   void initState() {
+    _newPrice = widget.bank.price;
+    _streamSubscription= widget.newPriceNotify.listen((price) {
+      _newPrice = price;
+      if (mounted) {
+        setState(() {});
+      }
+    });
     _controller = EasyRefreshController();
     _onload();
     super.initState();
@@ -36,6 +46,7 @@ class _MinePurchasesState extends State<MinePurchases> {
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -200,9 +211,17 @@ class _MinePurchasesState extends State<MinePurchases> {
                                         ),
                                       ),
                                       Text(
-                                        '${((purch.stock * widget.bank.price) / 100)}',
+                                        '${((purch.stock * _newPrice) / 100)}',
                                         style: TextStyle(
-                                          color: Colors.redAccent,
+                                          color: purch.stock *
+                                                      widget.bank.price <
+                                                  purch.purchAmount
+                                              ? Colors.green
+                                              : purch.stock *
+                                                          widget.bank.price >
+                                                      purch.purchAmount
+                                                  ? Colors.redAccent
+                                                  : null,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
