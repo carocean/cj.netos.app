@@ -5,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_k_chart/flutter_k_chart.dart';
-import 'package:flutter_k_chart/k_chart_widget.dart';
 import 'package:framework/framework.dart';
 
 import 'tab_page.dart';

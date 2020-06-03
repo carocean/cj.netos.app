@@ -123,6 +123,7 @@ import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
@@ -184,6 +185,7 @@ class GberaPortal {
           '/cache/geosphere/receptor': GeoReceptorCache(),
           '/wallet/accounts': WalletAccountRemote(),
           '/wallet/records': WalletRecordRemote(),
+          '/wybank/bill/prices':PriceRemote(),
         };
       },
       builderShareServices: (site) async {

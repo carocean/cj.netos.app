@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_k_chart/entity/k_line_entity.dart';
+import 'package:flutter_k_chart/flutter_k_chart.dart';
+import 'package:flutter_k_chart/k_chart_widget.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/desklets.dart';
@@ -9,9 +12,11 @@ import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
-
+import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'mine_exchange.dart';
 import 'mine_purchase.dart';
+import 'package:intl/intl.dart';
 
 class Weny extends StatefulWidget {
   PageContext context;
@@ -104,6 +109,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
             SliverToBoxAdapter(
               child: _PriceCard(
                 bank: _bank,
+                context: widget.context,
               ),
             ),
             SliverToBoxAdapter(
@@ -206,14 +212,97 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
 
 class _PriceCard extends StatefulWidget {
   WenyBank bank;
+  PageContext context;
 
-  _PriceCard({this.bank});
+  _PriceCard({this.bank, this.context});
 
   @override
   _PriceCardState createState() => _PriceCardState();
 }
 
 class _PriceCardState extends State<_PriceCard> {
+  int _limit = 200, _offset = 0;
+  List<KLineEntity> _klineEntities = [];
+
+  @override
+  void initState() {
+    _loadMonth(DateTime.now()).then((v) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _klineEntities.clear();
+    super.dispose();
+  }
+
+  Future<void> _loadDay(DateTime dateTime) async {
+    _klineEntities.clear();
+    IPriceRemote priceRemote =
+        widget.context.site.getService('/wybank/bill/prices');
+    List<PriceOR> list = await priceRemote.getDay(
+      offset: _offset,
+      limit: _limit,
+      day: dateTime.day,
+      month: dateTime.month,
+      year: dateTime.year,
+      wenyBankID: widget.bank?.bank,
+    );
+    for (var price in list) {
+      _klineEntities.add(
+        KLineEntity(
+          amount: price.price,
+          id: price.sn.hashCode,
+          count: list.length,
+          vol: price.price,
+          close: 0.0,
+          high: 0.0,
+          low: 0.0,
+          open: 0.0,
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadMonth(DateTime dateTime) async {
+    _klineEntities.clear();
+    IPriceRemote priceRemote =
+        widget.context.site.getService('/wybank/bill/prices');
+    List<PriceOR> list = await priceRemote.getMonth(
+      offset: _offset,
+      limit: _limit,
+      month: dateTime.month - 1,
+      year: dateTime.year,
+      wenyBankID: widget.bank?.bank,
+    );
+
+    for (var price in list) {
+      var time = parseStrTime(price.ctime, len: 14);
+      int id = 0;
+      if (id < 1) {
+        id = (time.millisecondsSinceEpoch / 1000).floor();
+      }
+      _klineEntities.add(
+        KLineEntity(
+          amount: price.price,
+          id: id,
+          count: list.length,
+          vol: price.price,
+          close: price.price,
+          high: price.price,
+          low: price.price,
+          open: price.price,
+        ),
+      );
+      id += 60 * 60 * 24;
+    }
+    DataUtil.calculate(_klineEntities);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -290,7 +379,21 @@ class _PriceCardState extends State<_PriceCard> {
                     maxWidth: Adapt.screenW() - Adapt.px(100),
                     maxHeight: 150,
                   ),
-                  child: CustomAxisTickFormatters.withSampleData(),
+                  child: _klineEntities.isEmpty
+                      ? Center(
+                          child: Text('没有数据'),
+                        )
+                      : KChartWidget(
+                          _klineEntities,
+                          isLine: true,
+                          fractionDigits: 14,
+                          mainState: MainState.MA,
+                          secondaryState: SecondaryState.NONE,
+                          volState: VolState.NONE,
+                          onLoadMore: (value) {
+                            print('-----!--$value');
+                          },
+                        ),
                 ),
               ],
             ),

@@ -13,6 +13,9 @@ class KLineEntity extends KEntity {
   int count;
   int id;
 
+  KLineEntity({this.open, this.high, this.low, this.close, this.vol, this.amount,
+      this.count, this.id});
+
   KLineEntity.fromJson(Map<String, dynamic> json) {
     open = (json['open'] as num)?.toDouble();
     high = (json['high'] as num)?.toDouble();

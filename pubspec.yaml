@@ -48,6 +48,7 @@ dependencies:
   video_player: ^0.10.5
   flutter_k_chart:
     path: flutter_k_chart
+#  k_chart: ^0.1.1
   floor: ^0.9.0
   common_utils: ^1.1.3
   uuid: ^2.0.4

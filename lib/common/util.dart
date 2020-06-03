@@ -171,13 +171,24 @@ Future<Map<String, String>> uploadFile(String fsReaderUrl, String fsWriterUrl,
 }
 
 ///年、月、日、时、分、秒、毫秒，共17位
-DateTime parseStrTime(String strTime) {
+DateTime parseStrTime(String strTime,{int len=17}) {
   int year=int.parse(strTime.substring(0, 4));
   int month=int.parse(strTime.substring(4,6));
   int day=int.parse(strTime.substring(6,8));
   int hour=int.parse(strTime.substring(8,10));
   int minut=int.parse(strTime.substring(10,12));
   int sec=int.parse(strTime.substring(12,14));
+  if(len<17){
+    return DateTime(
+      year,//year
+      month,//month
+      day,//day
+      hour,//hour
+      minut,//minits
+      sec,//sec
+    );
+  }
+
   int microsec=int.parse(strTime.substring(14,17));
 
   return DateTime(
