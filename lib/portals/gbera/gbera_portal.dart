@@ -119,6 +119,9 @@ import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_account_profit.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
@@ -189,7 +192,7 @@ class GberaPortal {
           '/wallet/accounts': WalletAccountRemote(),
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
-          '/wybank/bill/prices':PriceRemote(),
+          '/wybank/bill/prices': PriceRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -1146,6 +1149,36 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/change/bill',
           buildPage: (PageContext pageContext) => ChangeBill(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '纹银账户',
+          subtitle: '',
+          desc: '存量账户',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/account/stock',
+          buildPage: (PageContext pageContext) => StockWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '冻结账户',
+          subtitle: '',
+          desc: '纹银冻结账户',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/account/freezen',
+          buildPage: (PageContext pageContext) => FreezenWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '收益账户',
+          subtitle: '',
+          desc: '纹银收益账户',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/account/profit',
+          buildPage: (PageContext pageContext) => ProfitWenyAccount(
             context: pageContext,
           ),
         ),

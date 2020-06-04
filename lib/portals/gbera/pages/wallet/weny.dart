@@ -53,7 +53,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
         view: MinePurchases(
           context: widget.context,
           bank: _bank,
-          newPriceNotify:_newPriceNotifyController.stream,
+          newPriceNotify: _newPriceNotifyController.stream,
         ),
       ),
       TabPageView(
@@ -183,6 +183,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
             SliverToBoxAdapter(
               child: _AccountsCard(
                 bank: _bank,
+                context: widget.context,
               ),
             ),
             SliverToBoxAdapter(
@@ -287,24 +288,27 @@ class _PriceCardState extends State<_PriceCard> {
     _klineEntities.clear();
     super.dispose();
   }
+
   Future<void> _refreshWenyAccount() async {
     IWalletAccountRemote walletAccountService =
-    widget.context.site.getService('/wallet/accounts');
-    WenyBank bank = await walletAccountService.getWenyBankAcount(widget.bank.bank);
-    WenyBank old=widget.bank;
-    old.profit=bank.profit;
-    old.freezen=bank.freezen;
-    old.stock=bank.stock;
+        widget.context.site.getService('/wallet/accounts');
+    WenyBank bank =
+        await walletAccountService.getWenyBankAcount(widget.bank.bank);
+    WenyBank old = widget.bank;
+    old.profit = bank.profit;
+    old.freezen = bank.freezen;
+    old.stock = bank.stock;
   }
+
   Future<void> _updateNewPrice() async {
     _newPrice = _klineEntities.isNotEmpty
         ? _klineEntities[_klineEntities.length - 1].amount
         : _newPrice;
-    if(!widget.newPriceNotifyController.isClosed) {
+    if (!widget.newPriceNotifyController.isClosed) {
       widget.newPriceNotifyController.add(_newPrice);
     }
-    widget.bank.price=_newPrice;
-   await _refreshWenyAccount();
+    widget.bank.price = _newPrice;
+    await _refreshWenyAccount();
     await _loadIndex(DateTime.now());
   }
 
@@ -535,8 +539,9 @@ class _PriceCardState extends State<_PriceCard> {
 
 class _AccountsCard extends StatefulWidget {
   WenyBank bank;
+  PageContext context;
 
-  _AccountsCard({this.bank});
+  _AccountsCard({this.bank, this.context});
 
   @override
   __AccountsCardState createState() => __AccountsCardState();
@@ -556,6 +561,11 @@ class __AccountsCardState extends State<_AccountsCard> {
           CardItem(
             title: '存量',
             tipsText: '₩${widget.bank?.stock ?? '-'}',
+            onItemTap: () {
+              widget.context.forward('/wybank/account/stock', arguments: {
+                'bank': widget.bank,
+              });
+            },
           ),
           Divider(
             height: 1,
@@ -563,6 +573,11 @@ class __AccountsCardState extends State<_AccountsCard> {
           CardItem(
             title: '冻结',
             tipsText: '¥${widget.bank?.freezenYan ?? '-'}',
+            onItemTap: () {
+              widget.context.forward('/wybank/account/freezen', arguments: {
+                'bank': widget.bank,
+              });
+            },
           ),
           Divider(
             height: 1,
@@ -574,6 +589,11 @@ class __AccountsCardState extends State<_AccountsCard> {
                 ? Colors.green
                 : widget.bank.profit > 0 ? Colors.redAccent : null,
             tipsTextDirection: TextDirection.ltr,
+            onItemTap: () {
+              widget.context.forward('/wybank/account/profit', arguments: {
+                'bank': widget.bank,
+              });
+            },
           ),
         ],
       ),
