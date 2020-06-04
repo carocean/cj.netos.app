@@ -74,10 +74,31 @@ class ExchangeOR {
   });
 }
 
+class PurchaseActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  PurchaseActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(int limit, int offset) {}
 
   Future<List<ExchangeOR>> pageExchange(int limit, int offset) {}
+
+  Future<List<PurchaseActivityOR>> getPurchaseActivies(String sn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -93,6 +114,32 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     return null;
+  }
+
+  @override
+  Future<List<PurchaseActivityOR>> getPurchaseActivies(String sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPurchaseActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<PurchaseActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        PurchaseActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
   }
 
   @override
@@ -151,7 +198,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           stock: obj['stock'],
           message: obj['message'],
           bankid: obj['bankid'],
-          bankPurchNo:  obj['bankPurchNo'],
+          bankPurchNo: obj['bankPurchNo'],
           note: obj['note'],
           price: obj['price'],
           purchAmount: obj['purchAmount'],

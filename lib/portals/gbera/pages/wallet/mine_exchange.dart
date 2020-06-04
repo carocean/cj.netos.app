@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
-import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 
 class MineExchanges extends StatefulWidget {
   PageContext context;

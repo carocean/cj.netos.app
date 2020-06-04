@@ -12,7 +12,7 @@ import 'package:netos_app/portals/gbera/desklets/desklets.dart';
 import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
-import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'mine_exchange.dart';
@@ -158,7 +158,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
                 child: Column(
                   children: <Widget>[
                     Text(
-                      '${((_bank?.stock ?? 0.0) * (_newPrice) / 100.00)}',
+                      '¥${((_bank?.stock ?? 0.0) * (_newPrice) / 100.00)}',
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 18,
@@ -287,12 +287,22 @@ class _PriceCardState extends State<_PriceCard> {
     _klineEntities.clear();
     super.dispose();
   }
-
+  Future<void> _refreshWenyAccount() async {
+    IWalletAccountRemote walletAccountService =
+    widget.context.site.getService('/wallet/accounts');
+    WenyBank bank = await walletAccountService.getWenyBankAcount(widget.bank.bank);
+    WenyBank old=widget.bank;
+    old.profit=bank.profit;
+    old.freezen=bank.freezen;
+    old.stock=bank.stock;
+  }
   Future<void> _updateNewPrice() async {
     _newPrice = _klineEntities.isNotEmpty
         ? _klineEntities[_klineEntities.length - 1].amount
         : _newPrice;
     widget.newPriceNotifyController.add(_newPrice);
+    widget.bank.price=_newPrice;
+   await _refreshWenyAccount();
     await _loadIndex(DateTime.now());
   }
 

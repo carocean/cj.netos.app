@@ -112,8 +112,10 @@ import 'package:netos_app/portals/gbera/pages/wallet/change.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
@@ -122,7 +124,7 @@ import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
-import 'package:netos_app/portals/gbera/store/remotes/wallet_purchases.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
@@ -1152,6 +1154,26 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/change/bill/details',
           buildPage: (PageContext pageContext) => ChangeDetails(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '',
+          subtitle: '',
+          desc: '申购单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/purchase/details',
+          buildPage: (PageContext pageContext) => PurchaseDetails(
+            context: pageContext,
+          ),
+        ),
+        Page(
+          title: '',
+          subtitle: '',
+          desc: '承兑单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/exchange/details',
+          buildPage: (PageContext pageContext) => ExchangeDetails(
             context: pageContext,
           ),
         ),

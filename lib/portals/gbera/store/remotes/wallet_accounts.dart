@@ -65,6 +65,9 @@ class BankInfo {
 
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
+
+ Future<WenyBank> getWenyBankAcount(String bank) {}
+
 }
 
 class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
@@ -85,6 +88,44 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
   @override
   Future<void> builder(IServiceProvider site) async {
     this.site = site;
+  }
+
+  @override
+  Future<WenyBank> getWenyBankAcount(String bank) async{
+    var stockAccount = await remotePorts.portGET(
+      walletBalancePorts,
+      'getStockAccount',
+      parameters: {
+        'wenyBankID':bank,
+      },
+    );
+    var profitAccount = await remotePorts.portGET(
+      walletBalancePorts,
+      'getProfitAccount',
+      parameters: {
+        'wenyBankID':bank,
+      },
+    );
+    var freezenAccount = await remotePorts.portGET(
+      walletBalancePorts,
+      'getFreezenAccount',
+      parameters: {
+        'wenyBankID':bank,
+      },
+    );
+    var priceAccount = await remotePorts.portGET(
+      bankBalancePorts,
+      'getPriceBucket',
+      parameters: {
+        'wenyBankID':bank,
+      },
+    );
+    return new WenyBank(
+      price: priceAccount['price'],
+      profit: (profitAccount['amount'] as double).floor(),
+      stock: stockAccount['stock'],
+      freezen: (freezenAccount['amount'] as double).floor(),
+    );
   }
 
   @override
