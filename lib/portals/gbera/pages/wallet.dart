@@ -537,7 +537,7 @@ class _WalletState extends State<Wallet> {
                                           ),
                                         ),
                                         Text(
-                                          '${bank.price}',
+                                          '¥${bank.price}',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             fontSize: 12,
@@ -563,7 +563,7 @@ class _WalletState extends State<Wallet> {
                                         ),
                                       ),
                                       Text(
-                                        '${bank.stock}',
+                                        '₩${bank.stock}',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 12,

@@ -171,7 +171,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '申购行:',
+                    '承兑行:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
@@ -322,7 +322,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '${exchange.state == 0 ? '申购中' : exchange.state == 1 ? '已完成' : ''}  ${exchange.status} ${exchange.message}'),
+                      '${exchange.state == 0 ? '承兑中' : exchange.state == 1 ? '已完成' : ''}  ${exchange.status} ${exchange.message}'),
                 ),
               ],
             ),
@@ -342,7 +342,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '申购时间:',
+                    '承兑时间:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
