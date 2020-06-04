@@ -69,191 +69,225 @@ class _MineExchangesState extends State<MineExchanges> {
       child: EasyRefresh.custom(
         controller: _controller,
         onLoad: _onload,
-        slivers: _exchanges.map((purch) {
+        slivers: _exchanges.map((exchange) {
           return SliverToBoxAdapter(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 5,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward(
+                  '/wybank/exchange/details',
+                  arguments: {'exchange': exchange, 'bank': widget.bank},
+                );
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 5,
+                    ),
+                    child: Icon(
+                      Icons.monetization_on,
+                      color: Colors.grey[800],
+                      size: 35,
+                    ),
                   ),
-                  child: Icon(
-                    FontAwesomeIcons.buysellads,
-                    color: Colors.grey[800],
-                    size: 35,
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    Text(
-                                      '${purch.sn}',
+                  Expanded(
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Row(
+                                    children: <Widget>[
+                                      Text(
+                                        '${exchange.sn}',
+                                      ),
+                                    ],
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
                                     ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '${TimelineUtil.formatByDateTime(
-                                          parseStrTime(purch.ctime),
-                                          dayFormat: DayFormat.Full,
-                                        )}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '${TimelineUtil.formatByDateTime(
+                                            parseStrTime(exchange.ctime),
+                                            dayFormat: DayFormat.Full,
+                                          )}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[500],
+                                            fontSize: 12,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '申购金额:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                        Text.rich(
+                                          TextSpan(
+                                            text: '状态: ',
+                                            children: [
+                                              TextSpan(
+                                                  text: '${exchange.status}'),
+                                              TextSpan(text: '  '),
+                                              TextSpan(
+                                                  text: '${exchange.message}'),
+                                            ],
+                                          ),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[500],
+                                            fontSize: 12,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        '${(purch.purchAmount / 100.0).toStringAsFixed(2)}',
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '获得金额:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '申购金额:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        '${(purch.amount / 100.0).toStringAsFixed(2)}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '最终收益:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                        Text(
+                                          '${(exchange.purchAmount / 100.0).toStringAsFixed(2)}',
                                         ),
-                                      ),
-                                      Text(
-                                        '${(purch.profit / 100.0).toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          color: purch.profit > 0
-                                              ? Colors.red
-                                              : purch.profit < 0
-                                                  ? Colors.green
-                                                  : null,
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '获得金额:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '承兑价格:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                        Text(
+                                          '${(exchange.amount / 100.0).toStringAsFixed(2)}',
                                         ),
-                                      ),
-                                      Text(
-                                        '${purch.price}',
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 4,
-                                    bottom: 4,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 5,
-                                    crossAxisAlignment: WrapCrossAlignment.end,
-                                    children: <Widget>[
-                                      Text(
-                                        '承兑纹银:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '最终收益:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        '${purch.stock}',
-                                      ),
-                                    ],
+                                        Text(
+                                          '${(exchange.profit / 100.0).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            color: exchange.profit > 0
+                                                ? Colors.red
+                                                : exchange.profit < 0
+                                                    ? Colors.green
+                                                    : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '承兑价格:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${exchange.price}',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                      bottom: 4,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 5,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                      children: <Widget>[
+                                        Text(
+                                          '承兑纹银:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${exchange.stock}',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color: Colors.grey[500],
-                          ),
-                        ],
-                      ),
-                      Container(
-                        height: 20,
-                        child: Divider(
-                          height: 1,
-                          color: Colors.grey[300],
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey[500],
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        Container(
+                          height: 20,
+                          child: Divider(
+                            height: 1,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }).toList(),

@@ -78,6 +78,7 @@ void main() => platformRun(
             '@.prop.ports.wallet':'http://47.105.165.186/wallet/wallet.ports',
             '@.prop.ports.wallet.balance':'http://47.105.165.186/wallet/balance.ports',
             '@.prop.ports.wallet.record':'http://47.105.165.186/wallet/record.ports',
+            '@.prop.ports.wallet.trade.receipt':'http://47.105.165.186/wallet/trade/receipt.ports',
             '@.prop.ports.wybank':'http://47.105.165.186/wybank/bank.ports',
             '@.prop.ports.wybank.balance':'http://47.105.165.186/wybank/balance.ports',
             '@.prop.ports.wybank.bill.price':'http://47.105.165.186/wybank/bill/price.ports',

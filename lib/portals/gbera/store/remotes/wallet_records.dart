@@ -92,13 +92,42 @@ class PurchaseActivityOR {
       this.ctime,
       this.id});
 }
+class ExchangeActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
 
+  ExchangeActivityOR(
+      {this.activityNo,
+        this.activityName,
+        this.record_sn,
+        this.status,
+        this.message,
+        this.ctime,
+        this.id});
+}
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(int limit, int offset) {}
 
   Future<List<ExchangeOR>> pageExchange(int limit, int offset) {}
 
   Future<List<PurchaseActivityOR>> getPurchaseActivies(String sn) {}
+
+  Future<ExchangeOR> getExchangeRecord(String sn) {}
+
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(int limit, int offset) {}
+
+  Future<List<PurchaseOR>> pagePurchaseExchanged(int limit, int offset) {}
+
+  Future<List<ExchangeActivityOR>>  getExchangeActivies(String sn) {}
+
+ Future<PurchaseOR> getPurchaseRecord(String refPurchase) {}
+
+
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -143,10 +172,108 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<ExchangeActivityOR>> getExchangeActivies(String sn) async{
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getExchangeActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<ExchangeActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        ExchangeActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
   Future<List<PurchaseOR>> pagePurchase(int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecord',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var purchases = <PurchaseOR>[];
+    for (var obj in list) {
+      purchases.add(
+        PurchaseOR(
+          ctime: obj['ctime'],
+          state: obj['state'],
+          stock: obj['stock'],
+          message: obj['message'],
+          bankid: obj['bankid'],
+          bankPurchSn: obj['bankPurchSn'],
+          exchangeState: obj['exchangeState'],
+          feeRatio: obj['feeRatio'],
+          note: obj['note'],
+          price: obj['price'],
+          principalAmount: obj['principalAmount'],
+          principalRatio: obj['principalRatio'],
+          purchAmount: obj['purchAmount'],
+          serviceFee: obj['serviceFee'],
+          sn: obj['sn'],
+          status: obj['status'],
+        ),
+      );
+    }
+    return purchases;
+  }
+
+  @override
+  Future<List<PurchaseOR>> pagePurchaseExchanged(int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'pagePurchaseRecordOfExchanged',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var purchases = <PurchaseOR>[];
+    for (var obj in list) {
+      purchases.add(
+        PurchaseOR(
+          ctime: obj['ctime'],
+          state: obj['state'],
+          stock: obj['stock'],
+          message: obj['message'],
+          bankid: obj['bankid'],
+          bankPurchSn: obj['bankPurchSn'],
+          exchangeState: obj['exchangeState'],
+          feeRatio: obj['feeRatio'],
+          note: obj['note'],
+          price: obj['price'],
+          principalAmount: obj['principalAmount'],
+          principalRatio: obj['principalRatio'],
+          purchAmount: obj['purchAmount'],
+          serviceFee: obj['serviceFee'],
+          sn: obj['sn'],
+          status: obj['status'],
+        ),
+      );
+    }
+    return purchases;
+  }
+
+  @override
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(int limit, int offset)async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'pagePurchaseRecordOfUnexchanged',
       parameters: {
         'limit': limit,
         'offset': offset,
@@ -211,5 +338,62 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       );
     }
     return exchanges;
+  }
+
+  @override
+  Future<PurchaseOR> getPurchaseRecord(String sn) async{
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPurchaseRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return  PurchaseOR(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      stock: obj['stock'],
+      message: obj['message'],
+      bankid: obj['bankid'],
+      bankPurchSn: obj['bankPurchSn'],
+      exchangeState: obj['exchangeState'],
+      feeRatio: obj['feeRatio'],
+      note: obj['note'],
+      price: obj['price'],
+      principalAmount: obj['principalAmount'],
+      principalRatio: obj['principalRatio'],
+      purchAmount: obj['purchAmount'],
+      serviceFee: obj['serviceFee'],
+      sn: obj['sn'],
+      status: obj['status'],
+    );
+  }
+
+  @override
+  Future<ExchangeOR> getExchangeRecord(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getExchangeRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return ExchangeOR(
+      ctime: obj['ctime'],
+      dtime: obj['lutime'],
+      state: obj['state'],
+      stock: obj['stock'],
+      message: obj['message'],
+      bankid: obj['bankid'],
+      bankPurchNo: obj['bankPurchNo'],
+      note: obj['note'],
+      price: obj['price'],
+      purchAmount: obj['purchAmount'],
+      sn: obj['sn'],
+      status: obj['status'],
+      profit: obj['profit'],
+      amount: obj['amount'],
+      refPurchase: obj['refsn'],
+    );
   }
 }

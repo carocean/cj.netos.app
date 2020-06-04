@@ -300,7 +300,9 @@ class _PriceCardState extends State<_PriceCard> {
     _newPrice = _klineEntities.isNotEmpty
         ? _klineEntities[_klineEntities.length - 1].amount
         : _newPrice;
-    widget.newPriceNotifyController.add(_newPrice);
+    if(!widget.newPriceNotifyController.isClosed) {
+      widget.newPriceNotifyController.add(_newPrice);
+    }
     widget.bank.price=_newPrice;
    await _refreshWenyAccount();
     await _loadIndex(DateTime.now());

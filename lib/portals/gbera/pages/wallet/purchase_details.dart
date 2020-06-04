@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
 class PurchaseDetails extends StatefulWidget {
   PageContext context;
@@ -16,10 +19,20 @@ class PurchaseDetails extends StatefulWidget {
 }
 
 class _PurchaseDetailsState extends State<PurchaseDetails> {
-  List<PurchaseActivityOR> _purchaseActivities;
+  List<PurchaseActivityOR> _purchaseActivities = [];
+  int _exchangeState = 0; //0为未开始；1为正在承兑；2为已承兑
+  Timer _timer;
+  PurchaseOR _purch;
+  WenyBank _bank;
 
   @override
   void initState() {
+    _purch = widget.context.parameters['purch'];
+    _bank = widget.context.parameters['bank'];
+    _exchangeState = _purch.exchangeState;
+    if (mounted) {
+      setState(() {});
+    }
     _loadActivities().then((v) {
       if (mounted) {
         setState(() {});
@@ -30,21 +43,65 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _timer?.cancel();
+    _purchaseActivities?.clear();
     super.dispose();
   }
 
   Future<void> _loadActivities() async {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
-    PurchaseOR purch = widget.context.parameters['purch'];
-    _purchaseActivities = await recordRemote.getPurchaseActivies(purch.sn);
+    _purchaseActivities = await recordRemote.getPurchaseActivies(_purch.sn);
+  }
+
+  Future<void> _doExchange() async {
+    _exchangeState = 1;
+    if (mounted) {
+      setState(() {});
+    }
+    IWalletTradeRemote tradeRemote = widget.context.site.getService("/wallet/trades");
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService("/wallet/records");
+
+    ExchangeResult result;
+    try {
+      result = await tradeRemote.exchange(_purch.sn);
+    } catch (e) {
+      _exchangeState = 2;
+      _purch.exchangeState=_exchangeState;
+      if (mounted) {
+        setState(() {});
+      }
+      throw e;
+    }
+    _timer = Timer.periodic(
+        Duration(
+          seconds: 1,
+        ), (timer) async {
+      if (_exchangeState > 1) {
+        return;
+      }
+      var record = await recordRemote.getExchangeRecord(result.sn);
+      if (record.state == 1) {
+        timer.cancel();
+        _exchangeState = 2;
+        _purch.exchangeState=_exchangeState;
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    PurchaseOR purch = widget.context.parameters['purch'];
-    WenyBank bank = widget.context.parameters['bank'];
+    PurchaseOR purch = _purch;
+    WenyBank bank = _bank;
+    if (purch == null || bank == null) {
+      return Scaffold(
+        body: Container(),
+      );
+    }
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -52,7 +109,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
             pinned: true,
             elevation: 0,
             automaticallyImplyLeading: true,
-            title: Text('订单详情'),
+            title: Text('申购合约'),
             centerTitle: true,
           ),
           SliverToBoxAdapter(
@@ -91,9 +148,14 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
           ),
           Center(
             child: Text(
-              '¥${(purch.stock * bank.price)}',
+              '¥${(purch.stock * bank.price)/100.00}',
               style: TextStyle(
                 fontSize: 30,
+                color: (purch.stock * bank.price) < purch.purchAmount
+                    ? Colors.green
+                    : (purch.stock * bank.price) > purch.purchAmount
+                        ? Colors.red
+                        : null,
               ),
             ),
           ),
@@ -102,22 +164,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
               padding: EdgeInsets.only(
                 top: 10,
               ),
-              child: FlatButton(
-                color: Colors.green,
-                onPressed: () {},
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 30,
-                    right: 30,
-                  ),
-                  child: Text(
-                    '承兑',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+              child: _renderExchangeOperator(purch, bank),
             ),
           ),
         ],
@@ -401,6 +448,38 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
           ),
           Padding(
             padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '协议内容:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '查看',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
               bottom: 10,
               top: 30,
               left: 15,
@@ -409,8 +488,8 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
               '处理过程:',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                fontSize: 16,
-                color: Colors.black54,
+                fontSize: 18,
+                color: Colors.black,
               ),
             ),
           ),
@@ -421,8 +500,6 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
-              top: 10,
-              bottom: 10,
             ),
             child: Column(
               children: _purchaseActivities.map((activity) {
@@ -438,8 +515,8 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                           Row(
                             children: <Widget>[
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 30,
+                                height: 30,
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(
                                   right: 10,
@@ -457,7 +534,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                               ),
                               Wrap(
                                 direction: Axis.vertical,
-                                spacing: 10,
+                                spacing: 5,
                                 children: <Widget>[
                                   Text(
                                     '${activity.activityName}',
@@ -490,7 +567,6 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                                 fontSize: 12,
                               ),
                             ),
-
                           ),
                         ],
                       ),
@@ -507,5 +583,46 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
         ],
       ),
     );
+  }
+
+  _renderExchangeOperator(PurchaseOR purch, WenyBank bank) {
+    switch (_exchangeState) {
+      case 0:
+        return FlatButton(
+          color: Colors.green,
+          onPressed: () {
+            _doExchange().then((v) {
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 30,
+              right: 30,
+            ),
+            child: Text(
+              '承兑',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        );
+      case 1:
+        return SizedBox(
+          width: 30,
+          height: 30,
+          child: CircularProgressIndicator(),
+        );
+      case 2:
+        return Text(
+          '已承兑',
+          style: TextStyle(
+            color: Colors.grey[500],
+          ),
+        );
+    }
   }
 }
