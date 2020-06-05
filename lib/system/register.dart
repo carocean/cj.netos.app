@@ -472,7 +472,7 @@ class __AvatarRegionState extends State<_AvatarRegion> {
             },
           ),
         ),
-        if (_per != null)
+        _per == null?Container(width: 0,height: 0,):
           Positioned(
             left: 0,
             right: 0,

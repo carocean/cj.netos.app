@@ -92,9 +92,9 @@ List<ThemeStyle> buildThemes(site) {
   ];
 }
 
-List<Page> buildPages(site) {
-  return <Page>[
-    Page(
+List<LogicPage> buildPages(site) {
+  return <LogicPage>[
+    LogicPage(
       title: '控件，截取头像',
       subtitle: '',
       icon: null,
@@ -103,7 +103,7 @@ List<Page> buildPages(site) {
         context: pageContext,
       ),
     ),
-    Page(
+    LogicPage(
       title: '入口检测',
       subtitle: '',
       icon: null,
@@ -112,7 +112,7 @@ List<Page> buildPages(site) {
         context: pageContext,
       ),
     ),
-    Page(
+    LogicPage(
       title: '登录',
       subtitle: '',
       icon: null,
@@ -121,7 +121,7 @@ List<Page> buildPages(site) {
         context: pageContext,
       ),
     ),
-    Page(
+    LogicPage(
       title: '注册',
       subtitle: '',
       icon: null,
@@ -130,7 +130,7 @@ List<Page> buildPages(site) {
         context: pageContext,
       ),
     ),
-    Page(
+    LogicPage(
       title: '出错啦',
       subtitle: '',
       icon: null,

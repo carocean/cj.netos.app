@@ -61,8 +61,8 @@ var buildPortal = (IServiceProvider site) => Portal(
         ),
       ],
       buildDesklets: (site) => <Desklet>[],
-      buildPages: (site) => <Page>[
-        Page(
+      buildPages: (site) => <LogicPage>[
+        LogicPage(
           title: '我的生意',
           subtitle: '',
           icon: Icons.business,

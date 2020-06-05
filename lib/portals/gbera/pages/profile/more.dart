@@ -224,10 +224,10 @@ class __GroupWidgetState extends State<_GroupWidget> {
                     field: f,
                     context: widget.context,
                   ),
-                  if (index < _fields.length)
+                  index < _fields.length?
                     Divider(
                       height: 1,
-                    ),
+                    ):Container(height: 0,width: 0,),
                 ],
               );
             }).toList(),

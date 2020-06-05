@@ -162,7 +162,7 @@ class _AccountViewerState extends State<AccountViewer> {
             ListView(
               shrinkWrap: true,
               children: <Widget>[
-                if (account['person'] == widget.context.principal.person)
+                account['person'] == widget.context.principal.person?
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
@@ -170,13 +170,13 @@ class _AccountViewerState extends State<AccountViewer> {
                           arguments: {'account': account});
                     },
                     child: item_change_pwd,
-                  ),
-                if (account['person'] == widget.context.principal.person)
+                  ):Container(width: 0,height: 0,),
+                account['person'] == widget.context.principal.person?
                   Divider(
                     height: 1,
                     indent: 20,
-                  ),
-                if (account['person'] != widget.context.principal.person)
+                  ):Container(width: 0,height: 0,),
+                account['person'] != widget.context.principal.person?
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -184,15 +184,15 @@ class _AccountViewerState extends State<AccountViewer> {
                         arguments: {'account': account});
                   },
                   child: item_switch_login,
-                ),
+                ):Container(height: 0,width: 0,),
               ],
             ),
-            if (account['person'] == widget.context.principal.person)
+            account['person'] == widget.context.principal.person?
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: _doDelete,
                 child: item_del,
-              ),
+              ):Container(height: 0,width: 0,),
           ],
         ),
       ),

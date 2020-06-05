@@ -173,12 +173,12 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
               ),
               Row(
                 children: <Widget>[
-                  if (widget.context.principal.person == account['person'])
+                  widget.context.principal.person == account['person']?
                     Icon(
                       Icons.check,
                       size: 16,
                       color: Colors.red[400],
-                    ),
+                    ):Container(width: 0,height: 0,),
                   Padding(
                     padding: EdgeInsets.only(
                       left: 10,

@@ -815,14 +815,14 @@ class _KChartCardState extends State<_KChartCard> {
                         fractionDigits: 4,
                       ),
                     ),
-                    if (showLoading)
+                    !showLoading?Container(width: 0,height: 0,):
                       Container(
                           width: double.infinity,
                           height: 400,
                           alignment: Alignment.center,
                           child: CircularProgressIndicator()),
                   ]),
-                  if (isShowDepthChart)
+                  !isShowDepthChart?Container(width: 0,height: 0,):
                     Container(
                       height: 230,
                       width: double.infinity,

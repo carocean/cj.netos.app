@@ -63,7 +63,7 @@ class _EditSexState extends State<EditSex> {
                           ),
                           Row(
                             children: <Widget>[
-                              if ('male' == personInfo['sex'])
+                              'male' == personInfo['sex']?
                                 Padding(
                                   padding: EdgeInsets.only(
                                     right: 5,
@@ -73,7 +73,7 @@ class _EditSexState extends State<EditSex> {
                                     color: Colors.red,
                                     size: 16,
                                   ),
-                                ),
+                                ):Container(width: 0,height: 0,),
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 16,
@@ -111,7 +111,7 @@ class _EditSexState extends State<EditSex> {
                           ),
                           Row(
                             children: <Widget>[
-                              if ('female' == personInfo['sex'])
+                              'female' == personInfo['sex']?
                               Padding(
                                 padding: EdgeInsets.only(
                                   right: 5,
@@ -121,7 +121,7 @@ class _EditSexState extends State<EditSex> {
                                   color: Colors.red,
                                   size: 16,
                                 ),
-                              ),
+                              ):Container(width: 0,height: 0,),
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 16,

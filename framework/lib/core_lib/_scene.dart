@@ -33,7 +33,7 @@ mixin IScene implements IDisposable {
   Future<void> init({
     @required IServiceProvider site,
     Map<String, dynamic> services,
-    List<Page> pages,
+    List<LogicPage> pages,
     List<Desklet> desklets,
     String defaultTheme,
     List<ThemeStyle> themeStyles,
@@ -41,7 +41,7 @@ mixin IScene implements IDisposable {
 
   bool containsPage(String path) {}
 
-  Page getPage(String path) {}
+  LogicPage getPage(String path) {}
 }
 
 class DefaultScene implements IScene, IServiceProvider {
@@ -49,7 +49,7 @@ class DefaultScene implements IScene, IServiceProvider {
 
   final String name;
   String _defaultTheme;
-  Map<String, Page> _pages = {};
+  Map<String, LogicPage> _pages = {};
   Map<String, Desklet> _desklets = {};
   Map<String, _ThemeEntitity> _themeStyles = {};
   IServiceProvider parentSite;
@@ -65,7 +65,7 @@ class DefaultScene implements IScene, IServiceProvider {
   }
 
   @override
-  Page getPage(String path) {
+  LogicPage getPage(String path) {
     return _pages[path];
   }
 
@@ -102,7 +102,7 @@ class DefaultScene implements IScene, IServiceProvider {
   Future<void> init(
       {IServiceProvider site,
       Map<String, dynamic> services,
-      List<Page> pages,
+      List<LogicPage> pages,
       List<Desklet> desklets,
       String defaultTheme,
       List<ThemeStyle> themeStyles}) async {

@@ -20,7 +20,7 @@ import '_theme.dart';
 import '_utimate.dart';
 
 class PageContext {
-  final Page page;
+  final LogicPage page;
   final IServiceProvider site;
   final BuildContext context;
   final String sourceScene;
@@ -88,7 +88,7 @@ class PageContext {
       }
       _parseQureystringAndFillParams(qs, arguments);
     }
-    Page page = site.getService("@.page:$path");
+    LogicPage page = site.getService("@.page:$path");
     if (page == null) return null;
     if (page.buildPage == null) {
       return null;
@@ -139,7 +139,7 @@ class PageContext {
     }
   }
 
-  Page findPage(String url) {
+  LogicPage findPage(String url) {
     String path = url;
     int pos = path.lastIndexOf('?');
     if (pos > -1) {
@@ -160,7 +160,8 @@ class PageContext {
       return false;
     }
     if (StringUtil.isEmpty(clearHistoryPageUrl)) {
-      return state.pop(result);
+      state.pop(result);
+      return true;
     }
     state.popUntil(
       _checkHistoryRoute(clearHistoryPageUrl),

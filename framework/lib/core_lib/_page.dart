@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import '../framework.dart';
 
 typedef BuildPage = Widget Function(PageContext pageContext);
-typedef BuildPages = List<Page> Function(IServiceProvider site);
+typedef BuildPages = List<LogicPage> Function(IServiceProvider site);
 
-class Page {
-  Page({
+class LogicPage {
+  LogicPage({
     @required this.title,
     @required this.icon,
     this.subtitle,

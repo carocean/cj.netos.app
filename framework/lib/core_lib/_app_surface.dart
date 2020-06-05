@@ -23,7 +23,7 @@ import '_system.dart';
 import '_utimate.dart';
 
 typedef BuildRoute = ModalRoute Function(
-    RouteSettings settings, Page page, IServiceProvider site);
+    RouteSettings settings, LogicPage page, IServiceProvider site);
 typedef AppDecorator = Widget Function(
     BuildContext, Widget, IServiceProvider site);
 typedef OnGenerateRoute = Route<dynamic> Function(RouteSettings);
@@ -144,7 +144,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       if (!current.containsPage(path)) {
         return null;
       }
-      Page page = current.getPage(path);
+      LogicPage page = current.getPage(path);
       if (page.buildRoute == null) {
         return null;
       }
@@ -310,7 +310,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       _scenes[portal.id] = scene;
 
       var pages = portal.buildPages == null
-          ? <Page>[]
+          ? <LogicPage>[]
           : portal.buildPages(_shareServiceContainer);
       var desklets = portal.buildDesklets == null
           ? <Desklet>[]

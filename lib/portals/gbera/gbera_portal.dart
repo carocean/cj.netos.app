@@ -303,7 +303,7 @@ class GberaPortal {
       ],
       buildDesklets: buildDesklets,
       buildPages: (IServiceProvider site) => [
-        Page(
+        LogicPage(
           title: '控件，截取头像',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -312,7 +312,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '出错啦',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -321,7 +321,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地微',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -330,7 +330,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '桌面',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -339,7 +339,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '网流',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -348,7 +348,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -357,7 +357,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '购买服务',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -366,7 +366,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '重命名',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -375,7 +375,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '二维码',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -384,7 +384,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '推广',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -393,7 +393,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '新建管道',
           subtitle: '',
           icon: Icons.add,
@@ -402,7 +402,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道信息',
           subtitle: '',
           icon: FontAwesomeIcons.qrcode,
@@ -411,7 +411,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '搜索管道',
           subtitle: '',
           icon: FontAwesomeIcons.search,
@@ -420,7 +420,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '网关管道',
           subtitle: '',
           icon: Icons.settings_input_composite,
@@ -429,7 +429,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '活动设置',
           subtitle: '',
           icon: Icons.settings_input_composite,
@@ -438,7 +438,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道进口公众',
           subtitle: '覆盖我的管道的公众管道、查看他人的管道都是此页面，以权限控制显示',
           icon: Icons.settings_input_composite,
@@ -447,7 +447,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道出口公众',
           subtitle: '覆盖我的管道的公众管道、查看他人的管道都是此页面，以权限控制显示',
           icon: Icons.settings_input_composite,
@@ -456,7 +456,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '公众',
           subtitle: '',
           icon: Icons.settings_input_composite,
@@ -465,7 +465,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '公众活动',
           subtitle: '',
           icon: Icons.settings_input_composite,
@@ -474,7 +474,7 @@ class GberaPortal {
             pageContext: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '发布文章',
           subtitle: '',
           icon: Icons.art_track,
@@ -483,7 +483,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道活动门户',
           subtitle: '',
           icon: Icons.art_track,
@@ -492,7 +492,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '服务清单',
           subtitle: '',
           desc: '为个人站点或商户站点提供的服务列表',
@@ -502,7 +502,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '微站的绑定管道',
           subtitle: '',
           desc: '',
@@ -512,7 +512,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '微应用',
           subtitle: '',
           desc: '',
@@ -522,7 +522,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '商户站点',
           subtitle: '',
           desc: '',
@@ -532,7 +532,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '个人站点',
           subtitle: '',
           desc: '',
@@ -542,7 +542,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '公众网流权限',
           subtitle: '',
           desc: '',
@@ -552,7 +552,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '朋友站点',
           subtitle: '',
           desc: '',
@@ -562,7 +562,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '入站申请',
           subtitle: '',
           desc: '',
@@ -572,7 +572,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '入站审批',
           subtitle: '',
           desc: '',
@@ -582,7 +582,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '微站',
           subtitle: '用于活动设置中查看我的微站列表',
           desc: '',
@@ -592,7 +592,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道',
           subtitle: '用于活动设置中查看我的管道列表',
           desc: '',
@@ -602,7 +602,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '文档传播路径',
           subtitle: '',
           desc: '',
@@ -612,7 +612,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '出口公众权限设置',
           subtitle: '',
           desc: '',
@@ -622,7 +622,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '进口公众权限设置',
           subtitle: '',
           desc: '',
@@ -632,7 +632,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '管道端口用户查看器',
           subtitle: '',
           desc: '',
@@ -642,7 +642,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '微应用',
           subtitle: '用于活动设置中查看我的微应用列表',
           desc: '',
@@ -652,7 +652,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '网关',
           subtitle: '用于活动设置中拒绝接收用户或管道发来的信息',
           desc: '',
@@ -662,14 +662,14 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '图片查看器',
           subtitle: '',
           desc: '',
           icon: Icons.image,
           url: '/images/viewer',
           buildRoute:
-              (RouteSettings settings, Page page, IServiceProvider site) {
+              (RouteSettings settings, LogicPage page, IServiceProvider site) {
             return MaterialPageRoute(
               settings: settings,
               builder: (context) {
@@ -686,7 +686,7 @@ class GberaPortal {
             );
           },
         ),
-        Page(
+        LogicPage(
           title: '管道看版',
           subtitle: '',
           desc: '',
@@ -696,7 +696,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '他的管道',
           subtitle: '用于活动网关中查看他的管道列表',
           desc: '',
@@ -706,7 +706,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '市场',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -715,7 +715,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地微',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -724,7 +724,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '主地理感知器',
           subtitle: '即我的地圈',
           icon: GalleryIcons.shrine,
@@ -733,7 +733,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '我的地理感知器',
           subtitle: '即非我的地圈的其它类型感知器',
           icon: GalleryIcons.shrine,
@@ -742,7 +742,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '粉丝的地理感知器',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -751,7 +751,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '感知器查看器',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -760,7 +760,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地理用户查看器',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -769,7 +769,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '选择地理感知器分类',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -778,7 +778,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '新创地理感知器',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -787,7 +787,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '更新频率',
           subtitle: '实时定位地理更新通知变化',
           icon: GalleryIcons.shrine,
@@ -796,7 +796,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '选择附近地物',
           subtitle: '由近及远列出高德地圈周边地物',
           icon: GalleryIcons.shrine,
@@ -805,7 +805,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '查看我的地圈的信息',
           subtitle: '地圈的感知半径、更新频率',
           icon: GalleryIcons.shrine,
@@ -814,7 +814,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '发布文章',
           subtitle: '',
           icon: Icons.art_track,
@@ -823,7 +823,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '背景设置',
           subtitle: '',
           icon: Icons.art_track,
@@ -832,7 +832,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '实时感知发现',
           subtitle: '',
           icon: Icons.art_track,
@@ -841,7 +841,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '粉丝',
           subtitle: '',
           icon: Icons.art_track,
@@ -850,7 +850,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '网流消息网关',
           subtitle: '',
           icon: Icons.art_track,
@@ -860,7 +860,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈动态门户',
           subtitle: '感知器创建者的',
           icon: Icons.art_track,
@@ -869,7 +869,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈动态门户',
           subtitle: '指定用户',
           icon: Icons.art_track,
@@ -878,7 +878,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地方市场',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -887,7 +887,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '实时发现',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -896,7 +896,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '历史活动',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -905,7 +905,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '偏好设置',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -952,7 +952,7 @@ class GberaPortal {
 //                );
 //              },
         ),
-        Page(
+        LogicPage(
           title: '我的二维码',
           subtitle: '',
           icon: FontAwesomeIcons.qrcode,
@@ -961,7 +961,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '个人信息',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -970,7 +970,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '修改昵称',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -979,7 +979,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '修改实名',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -988,7 +988,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '修改个人签名',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -997,7 +997,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '修改性别',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -1006,7 +1006,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '其它属性',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -1015,7 +1015,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '钱包',
           subtitle: '',
           icon: Icons.account_balance_wallet,
@@ -1024,7 +1024,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '银行卡',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1033,7 +1033,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '零钱',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1042,7 +1042,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '洇金',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1051,7 +1051,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '在订单',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1060,7 +1060,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '收款',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1069,7 +1069,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '付款',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1078,7 +1078,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '设置金额',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1087,7 +1087,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '收款记录',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1096,7 +1096,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '收款单',
           subtitle: '',
           previousTitle: '收款记录',
@@ -1107,7 +1107,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '帑银',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1116,7 +1116,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '纹银',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1125,7 +1125,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '充值',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1134,7 +1134,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '提现',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1143,7 +1143,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '零钱明细',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1152,7 +1152,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '纹银账户',
           subtitle: '',
           desc: '存量账户',
@@ -1162,7 +1162,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '冻结账户',
           subtitle: '',
           desc: '纹银冻结账户',
@@ -1172,7 +1172,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '收益账户',
           subtitle: '',
           desc: '纹银收益账户',
@@ -1182,7 +1182,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '',
           subtitle: '',
           desc: '零钱明细项的详细页',
@@ -1192,7 +1192,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '',
           subtitle: '',
           desc: '申购单明细',
@@ -1202,7 +1202,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '',
           subtitle: '',
           desc: '承兑单明细',
@@ -1212,7 +1212,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '桌面设置',
           subtitle: '',
           icon: Icons.dashboard,
@@ -1221,7 +1221,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '栏目',
           subtitle: '',
           icon: Icons.apps,
@@ -1230,7 +1230,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '墙纸',
           subtitle: '',
           icon: Icons.wallpaper,
@@ -1239,7 +1239,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '系统设置',
           subtitle: '',
           icon: Icons.settings,
@@ -1248,7 +1248,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '主题',
           subtitle: '',
           icon: FontAwesomeIcons.themeisle,
@@ -1257,7 +1257,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '用户协议',
           subtitle: '',
           icon: FontAwesomeIcons.fileContract,
@@ -1266,7 +1266,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '关于',
           subtitle: '',
           icon: Icons.info_outline,
@@ -1275,7 +1275,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '用户与账号',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1284,7 +1284,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '账号',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1293,7 +1293,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '应用账号列表',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1302,7 +1302,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '新建账号',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1311,7 +1311,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '修改密码',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1320,7 +1320,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '登录',
           subtitle: '',
           icon: Icons.person_outline,
@@ -1329,7 +1329,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '我的角色',
           subtitle: '',
           icon: Icons.recent_actors,
@@ -1338,7 +1338,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '登录账号',
           subtitle: '',
           icon: Icons.account_box,
@@ -1347,7 +1347,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '金证喷泉',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1356,7 +1356,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '元宝',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1365,7 +1365,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈设置',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1374,7 +1374,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈设置',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1383,7 +1383,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈设置',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1392,7 +1392,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '地圈设置',
           subtitle: '感知器查看器的设置',
           icon: GalleryIcons.shrine,
@@ -1401,7 +1401,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '银行卡',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1410,7 +1410,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '栏目列表',
           subtitle: '',
           desc: '列出门户栏目',
@@ -1420,7 +1420,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: 'goGOGO',
           subtitle: '',
           desc: '平台购物商城',
@@ -1430,7 +1430,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '购物车',
           subtitle: '',
           desc: '平台购物商城',
@@ -1440,7 +1440,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '帑指交易所',
           subtitle: '',
           desc: '',
@@ -1450,7 +1450,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '帑银交易所',
           subtitle: '',
           desc: '',
@@ -1460,7 +1460,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '帑指交易所',
           subtitle: '',
           desc: '',
@@ -1470,7 +1470,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '期货·地商',
           subtitle: '',
           desc: '',
@@ -1480,7 +1480,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '帑银交易所',
           subtitle: '',
           desc: '',
@@ -1490,7 +1490,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '股市·地商',
           subtitle: '',
           desc: '',
@@ -1500,7 +1500,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '选择分类',
           subtitle: '',
           desc: '平台购物商城',
@@ -1510,7 +1510,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '对话框',
           subtitle: '',
           desc: '聊天对话',
@@ -1520,7 +1520,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '会话设置',
           subtitle: '',
           desc: '对话、群设置',
@@ -1530,7 +1530,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '添加朋友',
           subtitle: '',
           desc: '',
@@ -1540,7 +1540,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '导入公众',
           subtitle: '',
           desc: '',
@@ -1550,7 +1550,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '好友',
           subtitle: '',
           desc: '',
@@ -1560,7 +1560,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '设置聊天室名',
           subtitle: '',
           desc: '',
@@ -1570,7 +1570,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '设置聊天室公告',
           subtitle: '',
           desc: '',
@@ -1580,7 +1580,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '发布公告',
           subtitle: '',
           desc: '',
@@ -1590,7 +1590,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '显示聊天室二维码',
           subtitle: '',
           desc: '',
@@ -1600,7 +1600,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '设置在聊天室的昵称',
           subtitle: '',
           desc: '',
@@ -1610,7 +1610,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-        Page(
+        LogicPage(
           title: '显示聊天室成员昵称',
           subtitle: '',
           desc: '',
