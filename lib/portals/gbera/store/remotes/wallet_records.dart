@@ -111,17 +111,17 @@ class ExchangeActivityOR {
         this.id});
 }
 mixin IWalletRecordRemote {
-  Future<List<PurchaseOR>> pagePurchase(int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchase(String bankid,int limit, int offset) {}
 
-  Future<List<ExchangeOR>> pageExchange(int limit, int offset) {}
+  Future<List<ExchangeOR>> pageExchange(String bankid,int limit, int offset) {}
 
   Future<List<PurchaseActivityOR>> getPurchaseActivies(String sn) {}
 
   Future<ExchangeOR> getExchangeRecord(String sn) {}
 
-  Future<List<PurchaseOR>> pagePurchaseUnExchange(int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(String bankid,int limit, int offset) {}
 
-  Future<List<PurchaseOR>> pagePurchaseExchanged(int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchaseExchanged(String bankid,int limit, int offset) {}
 
   Future<List<ExchangeActivityOR>>  getExchangeActivies(String sn) {}
 
@@ -198,11 +198,12 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchase(int limit, int offset) async {
+  Future<List<PurchaseOR>> pagePurchase(String bankid,int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecord',
       parameters: {
+        'wenyBankID':bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -234,11 +235,12 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchaseExchanged(int limit, int offset) async{
+  Future<List<PurchaseOR>> pagePurchaseExchanged(String bankid,int limit, int offset) async{
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecordOfExchanged',
       parameters: {
+        'wenyBankID':bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -270,11 +272,12 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchaseUnExchange(int limit, int offset)async {
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(String bankid,int limit, int offset)async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecordOfUnexchanged',
       parameters: {
+        'wenyBankID':bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -306,11 +309,12 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<ExchangeOR>> pageExchange(int limit, int offset) async {
+  Future<List<ExchangeOR>> pageExchange(String bankid,int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pageExchangeRecord',
       parameters: {
+        'wenyBankID':bankid,
         'limit': limit,
         'offset': offset,
       },

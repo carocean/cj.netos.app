@@ -43,7 +43,7 @@ class _MineExchangesState extends State<MineExchanges> {
   Future<void> _onload() async {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
-    var exchanges = await recordRemote.pageExchange(_limit, _offset);
+    var exchanges = await recordRemote.pageExchange(widget.bank.bank,_limit, _offset);
     if (exchanges.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       return;
@@ -188,7 +188,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${(exchange.amount / 100.0).toStringAsFixed(2)}',
+                                          '${(exchange.amount??0 / 100.0).toStringAsFixed(2)}',
                                         ),
                                       ],
                                     ),
@@ -210,11 +210,11 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${(exchange.profit / 100.0).toStringAsFixed(2)}',
+                                          '${(exchange.profit??0 / 100.0).toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            color: exchange.profit > 0
+                                            color: (exchange.profit??0) > 0
                                                 ? Colors.red
-                                                : exchange.profit < 0
+                                                : (exchange.profit??0) < 0
                                                     ? Colors.green
                                                     : null,
                                           ),
@@ -239,7 +239,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${exchange.price}',
+                                          '${(exchange.price??0.00).toStringAsFixed(2)}',
                                         ),
                                       ],
                                     ),

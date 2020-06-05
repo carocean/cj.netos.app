@@ -105,12 +105,12 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
           ),
           Center(
             child: Text(
-              '¥${(exchange.amount / 100.0).toStringAsFixed(2)}',
+              '¥${((exchange.amount ?? 0) / 100.0).toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 30,
-                color: exchange.profit > 0
+                color: (exchange.profit ?? 0) > 0
                     ? Colors.red
-                    : exchange.profit < 0 ? Colors.green : null,
+                    : (exchange.profit ?? 0) < 0 ? Colors.green : null,
               ),
             ),
           ),
@@ -261,11 +261,11 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                    '¥${(exchange.profit / 100.00).toStringAsFixed(2)}',
+                    '¥${((exchange.profit ?? 0) / 100.00).toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: exchange.profit > 0
+                      color: (exchange.profit ?? 0) > 0
                           ? Colors.red
-                          : exchange.profit < 0 ? Colors.green : null,
+                          : (exchange.profit ?? 0) < 0 ? Colors.green : null,
                     ),
                   ),
                 ),
@@ -294,7 +294,8 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('¥${exchange.price}'),
+                  child:
+                      Text('¥${(exchange.price ?? 0.00).toStringAsFixed(2)}'),
                 ),
               ],
             ),
@@ -468,50 +469,56 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                       ),
                       child: Stack(
                         children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Container(
-                                width: 30,
-                                height: 30,
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(
-                                  right: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                    color: Colors.grey[500],
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20))),
-                                child: Text(
-                                  '${activity.activityNo}',
-                                  style: TextStyle(
-                                    color: Colors.white,
+                          Padding(
+                            padding: EdgeInsets.only(right: 50),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  alignment: Alignment.center,
+                                  margin: EdgeInsets.only(
+                                    right: 10,
                                   ),
-                                ),
-                              ),
-                              Wrap(
-                                direction: Axis.vertical,
-                                spacing: 5,
-                                children: <Widget>[
-                                  Text(
-                                    '${activity.activityName}',
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey[500],
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(20))),
+                                  child: Text(
+                                    '${activity.activityNo}',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  Wrap(
-                                    spacing: 10,
+                                ),
+                                Expanded(
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 5,
                                     children: <Widget>[
                                       Text(
-                                        '${activity.status}',
+                                        '${activity.activityName}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                      Text(
-                                        '${activity.message}',
+                                      Wrap(
+                                        spacing: 10,
+                                        children: <Widget>[
+                                          Text(
+                                            '${activity.status}',
+                                          ),
+                                          Text(
+                                            '${activity.message}',
+                                            softWrap: true,
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
                           Positioned(
                             right: 0,

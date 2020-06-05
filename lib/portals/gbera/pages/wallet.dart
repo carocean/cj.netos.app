@@ -457,10 +457,25 @@ class _WalletState extends State<Wallet> {
       ),
     );
     var card_zq;
-    if (_myWallet?.banks == null) {
+    if (_myWallet?.banks == null || _myWallet?.banks.isEmpty) {
       card_zq = Container(
-        width: 0,
-        height: 0,
+        color: Colors.white,
+        margin: EdgeInsets.only(
+          top: 2,
+        ),
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+          top: 20,
+          bottom: 20,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '没有纹银账户',
+          style: TextStyle(
+            color: Colors.grey[500],
+          ),
+        ),
       );
     } else {
       card_zq = Container(

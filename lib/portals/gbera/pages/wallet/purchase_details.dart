@@ -512,7 +512,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                       ),
                       child: Stack(
                         children: <Widget>[
-                          Row(
+                          Padding(padding: EdgeInsets.only(right: 50,),child: Row(
                             children: <Widget>[
                               Container(
                                 width: 30,
@@ -524,7 +524,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                                 decoration: BoxDecoration(
                                     color: Colors.grey[500],
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(20))),
+                                    BorderRadius.all(Radius.circular(20))),
                                 child: Text(
                                   '${activity.activityNo}',
                                   style: TextStyle(
@@ -532,7 +532,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                                   ),
                                 ),
                               ),
-                              Wrap(
+                              Expanded(child:  Wrap(
                                 direction: Axis.vertical,
                                 spacing: 5,
                                 children: <Widget>[
@@ -554,9 +554,9 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                                     ],
                                   ),
                                 ],
-                              ),
+                              ),),
                             ],
-                          ),
+                          ),),
                           Positioned(
                             right: 0,
                             bottom: 0,

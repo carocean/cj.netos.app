@@ -59,19 +59,22 @@ class _MinePurchasesState extends State<MinePurchases> {
     var purchases;
     switch (_tabPurchasesFilter) {
       case 0:
-        purchases = await recordRemote.pagePurchaseUnExchange(_limit, _offset);
+        purchases = await recordRemote.pagePurchaseUnExchange(widget.bank.bank,_limit, _offset);
         break;
       case 1:
-        purchases = await recordRemote.pagePurchaseExchanged(_limit, _offset);
+        purchases = await recordRemote.pagePurchaseExchanged(widget.bank.bank,_limit, _offset);
         break;
       case 2:
-        purchases = await recordRemote.pagePurchase(_limit, _offset);
+        purchases = await recordRemote.pagePurchase(widget.bank.bank,_limit, _offset);
         break;
       default:
         throw FlutterError('不支持');
     }
     if (purchases.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _purchases.addAll(purchases);

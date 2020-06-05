@@ -9,25 +9,24 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 
-class ChangeBill extends StatefulWidget {
+class FreezenWenyBill extends StatefulWidget {
   PageContext context;
 
-  ChangeBill({this.context});
+  FreezenWenyBill({this.context});
 
   @override
-  _ChangeBillState createState() => _ChangeBillState();
+  _WenyBillStockState createState() => _WenyBillStockState();
 }
 
-class _ChangeBillState extends State<ChangeBill> {
-
-  MyWallet _wallet;
+class _WenyBillStockState extends State<FreezenWenyBill> {
+  WenyBank _bank;
   int _limit = 50, _offset = 0;
-  List<BalanceBillOR> _bills = [];
+  List<FreezenBillOR> _bills = [];
   EasyRefreshController _controller;
 
   @override
   void initState() {
-    _wallet = widget.context.parameters['wallet'];
+    _bank = widget.context.parameters['bank'];
     _controller = EasyRefreshController();
     _loadBills();
     super.initState();
@@ -42,9 +41,9 @@ class _ChangeBillState extends State<ChangeBill> {
 
   Future<void> _loadBills() async {
     IWalletBillRemote billRemote =
-    widget.context.site.getService('/wallet/bills');
-    List<BalanceBillOR> list =
-    await billRemote.pageBalanceBill( _limit, _offset);
+        widget.context.site.getService('/wallet/bills');
+    List<FreezenBillOR> list =
+        await billRemote.pageFreezenBill(_bank.bank, _limit, _offset);
     if (list.isEmpty) {
       return;
     }
@@ -55,27 +54,27 @@ class _ChangeBillState extends State<ChangeBill> {
     }
   }
 
-  _forwardDetails(BalanceBillOR bill) async{
+  _forwardDetails(FreezenBillOR bill) async{
     IWalletRecordRemote recordRemote =
-    widget.context.site.getService('/wallet/records');
-//    switch (bill.order) {
-//      case 8:
-//        var purch = await recordRemote.getPurchaseRecord(bill.refsn);
-//        widget.context.forward(
-//          '/wybank/purchase/details',
-//          arguments: {'purch': purch, 'bank': _wallet},
-//        );
-//        break;
-//      case 9:
-//        var exchange =await recordRemote.getExchangeRecord(bill.refsn);
-//        widget.context.forward(
-//          '/wybank/exchange/details',
-//          arguments: {'exchange': exchange, 'bank': _wallet},
-//        );
-//        break;
-//      default:
-//        throw FlutterError('stockBill:未知的订单类型');
-//    }
+        widget.context.site.getService('/wallet/records');
+    switch (bill.order) {
+      case 8:
+        var purch = await recordRemote.getPurchaseRecord(bill.refsn);
+        widget.context.forward(
+          '/wybank/purchase/details',
+          arguments: {'purch': purch, 'bank': _bank},
+        );
+        break;
+      case 9:
+        var exchange =await recordRemote.getExchangeRecord(bill.refsn);
+        widget.context.forward(
+          '/wybank/exchange/details',
+          arguments: {'exchange': exchange, 'bank': _bank},
+        );
+        break;
+      default:
+        throw FlutterError('stockBill:未知的订单类型');
+    }
   }
 
   @override

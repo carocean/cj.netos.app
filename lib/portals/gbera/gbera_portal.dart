@@ -122,11 +122,15 @@ import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_profit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Freezen.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Profit.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_stock.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
@@ -192,6 +196,7 @@ class GberaPortal {
           '/wallet/accounts': WalletAccountRemote(),
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
+          '/wallet/bills':WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
         };
       },
@@ -1163,6 +1168,16 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '纹银账单',
+          subtitle: '',
+          desc: '纹银账单',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/bill/stock',
+          buildPage: (PageContext pageContext) => StockWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '冻结账户',
           subtitle: '',
           desc: '纹银冻结账户',
@@ -1173,12 +1188,32 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '冻结账单',
+          subtitle: '',
+          desc: '冻结账单',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/bill/freezen',
+          buildPage: (PageContext pageContext) => FreezenWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '收益账户',
           subtitle: '',
           desc: '纹银收益账户',
           icon: GalleryIcons.shrine,
           url: '/wybank/account/profit',
           buildPage: (PageContext pageContext) => ProfitWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '收益账单',
+          subtitle: '',
+          desc: '收益账单',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/bill/profit',
+          buildPage: (PageContext pageContext) => ProfitWenyBill(
             context: pageContext,
           ),
         ),
