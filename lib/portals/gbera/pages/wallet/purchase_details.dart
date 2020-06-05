@@ -306,6 +306,34 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
+                    '申购价格:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                      '¥${(purch.price).toStringAsFixed(14)}'),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
                     '服务费:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,

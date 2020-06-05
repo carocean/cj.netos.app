@@ -103,6 +103,9 @@ import 'package:netos_app/portals/gbera/pages/users/user_list.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/amount_settings.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/card_details.dart';
@@ -125,6 +128,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Freezen.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Profit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_stock.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
@@ -196,7 +200,7 @@ class GberaPortal {
           '/wallet/accounts': WalletAccountRemote(),
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
-          '/wallet/bills':WalletBillRemote(),
+          '/wallet/bills': WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
         };
       },
@@ -1158,6 +1162,26 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '在订单明细',
+          subtitle: '',
+          desc: '在订单账单',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/onorder/bill',
+          buildPage: (PageContext pageContext) => OnorderBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇金明细',
+          subtitle: '',
+          desc: '在订单账单',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/absorb/bill',
+          buildPage: (PageContext pageContext) => AbsorbBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '纹银账户',
           subtitle: '',
           desc: '存量账户',
@@ -1207,6 +1231,7 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
+
         LogicPage(
           title: '收益账单',
           subtitle: '',
@@ -1224,6 +1249,26 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/change/bill/details',
           buildPage: (PageContext pageContext) => ChangeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '充值单查看',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/recharge/details',
+          buildPage: (PageContext pageContext) => RechargeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '提现单查看',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/withdraw/details',
+          buildPage: (PageContext pageContext) => WithdrawDetails(
             context: pageContext,
           ),
         ),

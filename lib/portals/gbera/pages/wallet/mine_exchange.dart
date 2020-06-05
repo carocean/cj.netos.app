@@ -239,7 +239,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${(exchange.price??0.00).toStringAsFixed(2)}',
+                                          '${(exchange.price??0.00).toStringAsFixed(14)}',
                                         ),
                                       ],
                                     ),

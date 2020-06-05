@@ -92,6 +92,7 @@ class PurchaseActivityOR {
       this.ctime,
       this.id});
 }
+
 class ExchangeActivityOR {
   int activityNo;
   String activityName;
@@ -103,6 +104,104 @@ class ExchangeActivityOR {
 
   ExchangeActivityOR(
       {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
+class RechargeOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  String fromChannel;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+
+  RechargeOR(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.realAmount,
+      this.fromChannel,
+      this.state,
+      this.ctime,
+      this.lutime,
+      this.status,
+      this.message,
+      this.note});
+}
+class RechargeActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  RechargeActivityOR(
+      {this.activityNo,
+        this.activityName,
+        this.record_sn,
+        this.status,
+        this.message,
+        this.ctime,
+        this.id});
+}
+
+class WithdrawOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  String toChannel;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+
+  WithdrawOR(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.realAmount,
+      this.toChannel,
+      this.state,
+      this.ctime,
+      this.lutime,
+      this.status,
+      this.message,
+      this.note});
+}
+class WithdrawActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  WithdrawActivityOR(
+      {this.activityNo,
         this.activityName,
         this.record_sn,
         this.status,
@@ -111,23 +210,31 @@ class ExchangeActivityOR {
         this.id});
 }
 mixin IWalletRecordRemote {
-  Future<List<PurchaseOR>> pagePurchase(String bankid,int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchase(String bankid, int limit, int offset) {}
 
-  Future<List<ExchangeOR>> pageExchange(String bankid,int limit, int offset) {}
+  Future<List<ExchangeOR>> pageExchange(String bankid, int limit, int offset) {}
 
   Future<List<PurchaseActivityOR>> getPurchaseActivies(String sn) {}
 
   Future<ExchangeOR> getExchangeRecord(String sn) {}
 
-  Future<List<PurchaseOR>> pagePurchaseUnExchange(String bankid,int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(
+      String bankid, int limit, int offset) {}
 
-  Future<List<PurchaseOR>> pagePurchaseExchanged(String bankid,int limit, int offset) {}
+  Future<List<PurchaseOR>> pagePurchaseExchanged(
+      String bankid, int limit, int offset) {}
 
-  Future<List<ExchangeActivityOR>>  getExchangeActivies(String sn) {}
+  Future<List<ExchangeActivityOR>> getExchangeActivies(String sn) {}
 
- Future<PurchaseOR> getPurchaseRecord(String refPurchase) {}
+  Future<PurchaseOR> getPurchaseRecord(String refPurchase) {}
 
+  Future<RechargeOR> getRechargeRecord(String refsn) {}
 
+  Future<List<RechargeActivityOR>> getRechargeActivies(String sn) {}
+
+  Future<WithdrawOR> getWithdrawRecord(String refsn) {}
+
+  Future<List<WithdrawActivityOR>> getWithdrawActivies(String sn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -172,7 +279,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<ExchangeActivityOR>> getExchangeActivies(String sn) async{
+  Future<List<ExchangeActivityOR>> getExchangeActivies(String sn) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'getExchangeActivities',
@@ -198,12 +305,13 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchase(String bankid,int limit, int offset) async {
+  Future<List<PurchaseOR>> pagePurchase(
+      String bankid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecord',
       parameters: {
-        'wenyBankID':bankid,
+        'wenyBankID': bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -235,12 +343,13 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchaseExchanged(String bankid,int limit, int offset) async{
+  Future<List<PurchaseOR>> pagePurchaseExchanged(
+      String bankid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecordOfExchanged',
       parameters: {
-        'wenyBankID':bankid,
+        'wenyBankID': bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -272,12 +381,13 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<PurchaseOR>> pagePurchaseUnExchange(String bankid,int limit, int offset)async {
+  Future<List<PurchaseOR>> pagePurchaseUnExchange(
+      String bankid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pagePurchaseRecordOfUnexchanged',
       parameters: {
-        'wenyBankID':bankid,
+        'wenyBankID': bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -309,12 +419,13 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<ExchangeOR>> pageExchange(String bankid,int limit, int offset) async {
+  Future<List<ExchangeOR>> pageExchange(
+      String bankid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'pageExchangeRecord',
       parameters: {
-        'wenyBankID':bankid,
+        'wenyBankID': bankid,
         'limit': limit,
         'offset': offset,
       },
@@ -345,7 +456,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<PurchaseOR> getPurchaseRecord(String sn) async{
+  Future<PurchaseOR> getPurchaseRecord(String sn) async {
     var obj = await remotePorts.portGET(
       walletRecordPorts,
       'getPurchaseRecord',
@@ -353,7 +464,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
-    return  PurchaseOR(
+    return PurchaseOR(
       ctime: obj['ctime'],
       state: obj['state'],
       stock: obj['stock'],
@@ -399,5 +510,109 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       amount: obj['amount'],
       refPurchase: obj['refsn'],
     );
+  }
+
+  @override
+  Future<WithdrawOR> getWithdrawRecord(String refsn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getWithdrawRecord',
+      parameters: {
+        'record_sn': refsn,
+      },
+    );
+    return WithdrawOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'] ,
+      realAmount: obj['realAmount'] ,
+      toChannel: obj['toChannel'],
+    );
+  }
+
+  @override
+  Future<RechargeOR> getRechargeRecord(String refsn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getRechargeRecord',
+      parameters: {
+        'record_sn': refsn,
+      },
+    );
+    return RechargeOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'] ,
+      realAmount: obj['realAmount'],
+      fromChannel: obj['fromChannel'],
+    );
+  }
+
+  @override
+  Future<List<WithdrawActivityOR>> getWithdrawActivies(String sn) async{
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getWithdrawActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<WithdrawActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        WithdrawActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<List<RechargeActivityOR>> getRechargeActivies(String sn) async{
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getRechargeActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<RechargeActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        RechargeActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
   }
 }

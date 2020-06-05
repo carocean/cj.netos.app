@@ -98,7 +98,7 @@ class _AbsorbState extends State<Absorb> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              widget.context.forward('/wallet/change/bill');
+              widget.context.forward('/wallet/absorb/bill');
             },
             child: Text('明细'),
           ),

@@ -9,20 +9,19 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 
-class ChangeBill extends StatefulWidget {
+class OnorderBill extends StatefulWidget {
   PageContext context;
 
-  ChangeBill({this.context});
+  OnorderBill({this.context});
 
   @override
-  _ChangeBillState createState() => _ChangeBillState();
+  _OnorderBillState createState() => _OnorderBillState();
 }
 
-class _ChangeBillState extends State<ChangeBill> {
-
+class _OnorderBillState extends State<OnorderBill> {
   MyWallet _wallet;
   int _limit = 50, _offset = 0;
-  List<BalanceBillOR> _bills = [];
+  List<OnorderBillOR> _bills = [];
   EasyRefreshController _controller;
 
   @override
@@ -42,9 +41,9 @@ class _ChangeBillState extends State<ChangeBill> {
 
   Future<void> _loadBills() async {
     IWalletBillRemote billRemote =
-    widget.context.site.getService('/wallet/bills');
-    List<BalanceBillOR> list =
-    await billRemote.pageBalanceBill( _limit, _offset);
+        widget.context.site.getService('/wallet/bills');
+    List<OnorderBillOR> list =
+        await billRemote.pageOnorderBill(_limit, _offset);
     if (list.isEmpty) {
       return;
     }
@@ -55,31 +54,24 @@ class _ChangeBillState extends State<ChangeBill> {
     }
   }
 
-  _forwardDetails(BalanceBillOR bill) async{
+  _forwardDetails(OnorderBillOR bill) async {
     IWalletRecordRemote recordRemote =
-    widget.context.site.getService('/wallet/records');
+        widget.context.site.getService('/wallet/records');
 
     switch (bill.order) {
-      case 1://充值
-        var recharge =await recordRemote.getRechargeRecord(bill.refsn);
-        widget.context.forward(
-          '/wallet/recharge/details',
-          arguments: {'recharge': recharge, 'wallet': _wallet},
-        );
-        break;
-      case 2://提现
-        var withdraw =await recordRemote.getWithdrawRecord(bill.refsn);
+      case 2: //提现
+        var withdraw = await recordRemote.getWithdrawRecord(bill.refsn);
         widget.context.forward(
           '/wallet/withdraw/details',
           arguments: {'withdraw': withdraw, 'wallet': _wallet},
         );
         break;
-      case 8://申购
+      case 8: //申购
         var purch = await recordRemote.getPurchaseRecord(bill.refsn);
         var bank;
-        for(var b in _wallet.banks) {
-          if(b.bank==purch.bankid) {
-            bank=b;
+        for (var b in _wallet.banks) {
+          if (b.bank == purch.bankid) {
+            bank = b;
             break;
           }
         }
@@ -90,7 +82,7 @@ class _ChangeBillState extends State<ChangeBill> {
         break;
 
       default:
-        throw FlutterError('stockBill:未知的订单类型');
+        throw FlutterError('onorderBill:未知的订单类型');
     }
   }
 
@@ -123,10 +115,22 @@ class _ChangeBillState extends State<ChangeBill> {
                       bottom: 5,
                     ),
                     child: Text(
-                      '${bill.title}',
+                      '${bill.order == 2 ? '提现预扣款-' : bill.order == 8 ? '申购预扣款-' : ''}${bill.title}',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 5,
+                    ),
+                    child: Text(
+                      '订单:${bill.refsn}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
                       ),
                     ),
                   ),
@@ -146,10 +150,11 @@ class _ChangeBillState extends State<ChangeBill> {
                     padding: EdgeInsets.only(
                       bottom: 5,
                     ),
-                    child: Text('¥${(bill.amount/100.00).toStringAsFixed(2)}'),
+                    child:
+                        Text('¥${(bill.amount / 100.00).toStringAsFixed(2)}'),
                   ),
                   Text(
-                    '余额 ¥${(bill.balance/100.00).toStringAsFixed(2)}',
+                    '余额 ¥${(bill.balance / 100.00).toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

@@ -118,7 +118,7 @@ class _ChangeState extends State<Change> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              widget.context.forward('/wallet/change/bill');
+              widget.context.forward('/wallet/change/bill',arguments: {'wallet':_myWallet});
             },
             child: Text('明细'),
           ),

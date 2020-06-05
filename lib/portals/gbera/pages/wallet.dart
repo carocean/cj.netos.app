@@ -148,7 +148,7 @@ class _WalletState extends State<Wallet> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => widget.context.forward('/wallet/absorb'),
+              onTap: () => widget.context.forward('/wallet/absorb',arguments: {'wallet': _myWallet,}),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -209,7 +209,7 @@ class _WalletState extends State<Wallet> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => widget.context.forward('/wallet/onorder'),
+              onTap: () => widget.context.forward('/wallet/onorder',arguments: {'wallet': _myWallet,}),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

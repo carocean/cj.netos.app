@@ -1,31 +1,34 @@
 import 'dart:async';
-
+import 'package:intl/intl.dart' as intl;
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
-class ExchangeDetails extends StatefulWidget {
+class WithdrawDetails extends StatefulWidget {
   PageContext context;
 
-  ExchangeDetails({this.context});
+  WithdrawDetails({this.context});
 
   @override
-  _ExchangeDetailsState createState() => _ExchangeDetailsState();
+  _WithdrawDetailsState createState() => _WithdrawDetailsState();
 }
 
-class _ExchangeDetailsState extends State<ExchangeDetails> {
-  List<ExchangeActivityOR> _exchangeActivities = [];
+class _WithdrawDetailsState extends State<WithdrawDetails> {
+  List<WithdrawActivityOR> _activities = [];
   Timer _timer;
-  ExchangeOR _exchange;
-  WenyBank _bank;
+  WithdrawOR _withdraw;
+  MyWallet _wallet;
 
   @override
   void initState() {
-    _exchange = widget.context.parameters['exchange'];
-    _bank = widget.context.parameters['bank'];
+    _withdraw = widget.context.parameters['withdraw'];
+    _wallet = widget.context.parameters['wallet'];
     if (mounted) {
       setState(() {});
     }
@@ -40,21 +43,21 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
   @override
   void dispose() {
     _timer?.cancel();
-    _exchangeActivities?.clear();
+    _activities?.clear();
     super.dispose();
   }
 
   Future<void> _loadActivities() async {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
-    _exchangeActivities = await recordRemote.getExchangeActivies(_exchange.sn);
+    _activities = await recordRemote.getWithdrawActivies(_withdraw.sn);
   }
 
   @override
   Widget build(BuildContext context) {
-    ExchangeOR exchange = _exchange;
-    WenyBank bank = _bank;
-    if (exchange == null || bank == null) {
+    WithdrawOR withdraw = _withdraw;
+    MyWallet wallet = _wallet;
+    if (withdraw == null || wallet == null) {
       return Scaffold(
         body: Container(),
       );
@@ -66,21 +69,21 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
             pinned: true,
             elevation: 0,
             automaticallyImplyLeading: true,
-            title: Text('承兑合约'),
+            title: Text('提现单'),
             centerTitle: true,
           ),
           SliverToBoxAdapter(
-            child: _AmountCard(exchange, bank),
+            child: _AmountCard(withdraw, wallet),
           ),
           SliverFillRemaining(
-            child: _DetailsCard(exchange, bank),
+            child: _DetailsCard(withdraw, wallet),
           ),
         ],
       ),
     );
   }
 
-  Widget _AmountCard(ExchangeOR exchange, WenyBank bank) {
+  Widget _AmountCard(WithdrawOR withdraw, MyWallet wallet) {
     return Container(
       margin: EdgeInsets.only(
         top: 0,
@@ -95,7 +98,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
               bottom: 4,
             ),
             child: Text(
-              '最终获得:',
+              '金额:',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[400],
@@ -105,12 +108,9 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
           ),
           Center(
             child: Text(
-              '¥${((exchange.amount ?? 0) / 100.0).toStringAsFixed(2)}',
+              '¥${(withdraw.realAmount/100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 30,
-                color: (exchange.profit ?? 0) > 0
-                    ? Colors.red
-                    : (exchange.profit ?? 0) < 0 ? Colors.green : null,
               ),
             ),
           ),
@@ -119,7 +119,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
     );
   }
 
-  Widget _DetailsCard(ExchangeOR exchange, WenyBank bank) {
+  Widget _DetailsCard(WithdrawOR withdraw, MyWallet wallet) {
     var minWidth = 70.00;
     return Container(
       color: Colors.white,
@@ -150,7 +150,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                    '${exchange.sn}',
+                    '${withdraw.sn}',
                   ),
                 ),
               ],
@@ -171,14 +171,16 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '承兑行:',
+                    '请求金额:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Text('${bank.info.title}'),
+                  child: Text(
+                    '¥${(withdraw.demandAmount/100).toStringAsFixed(2)}',
+                  ),
                 ),
               ],
             ),
@@ -198,34 +200,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '纹银:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text('₩${exchange.stock}'),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 40,
-              right: 40,
-              top: 10,
-              bottom: 10,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: minWidth,
-                  ),
-                  child: Text(
-                    '申购金额:',
+                    '提现到:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
@@ -233,68 +208,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '¥${(exchange.purchAmount / 100.00).toStringAsFixed(2)}'),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 40,
-              right: 40,
-              top: 10,
-              bottom: 10,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: minWidth,
-                  ),
-                  child: Text(
-                    '承兑价格:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child:
-                      Text('¥${(exchange.price ?? 0.00).toStringAsFixed(14)}'),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 40,
-              right: 40,
-              top: 10,
-              bottom: 10,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: minWidth,
-                  ),
-                  child: Text(
-                    '最终收益:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    '¥${((exchange.profit ?? 0) / 100.00).toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: (exchange.profit ?? 0) > 0
-                          ? Colors.red
-                          : (exchange.profit ?? 0) < 0 ? Colors.green : null,
-                    ),
+                    '${withdraw.toChannel}',
                   ),
                 ),
               ],
@@ -323,7 +237,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '${exchange.state == 0 ? '承兑中' : exchange.state == 1 ? '已完成' : ''}  ${exchange.status} ${exchange.message}'),
+                      '${withdraw.state == 0 ? '申购中' : withdraw.state == 1 ? '已完成' : ''}  ${withdraw.status} ${withdraw.message}'),
                 ),
               ],
             ),
@@ -343,17 +257,14 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '承兑时间:',
+                    '收单时间:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Text('${TimelineUtil.formatByDateTime(
-                    parseStrTime(exchange.ctime),
-                    dayFormat: DayFormat.Full,
-                  )}'),
+                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.ctime))}'),
                 ),
               ],
             ),
@@ -373,33 +284,15 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '申购合约:',
+                    '完成时间:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () async {
-                      IWalletRecordRemote recordRemote =
-                          widget.context.site.getService('/wallet/records');
-                      PurchaseOR purch = await recordRemote
-                          .getPurchaseRecord(exchange.refPurchase);
-                      widget.context.forward(
-                        '/wybank/purchase/details',
-                        arguments: {'purch': purch, 'bank': _bank},
-                      );
-                    },
-                    child: Text(
-                      '查看',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                )
+                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.lutime))}'),
+                ),
               ],
             ),
           ),
@@ -459,7 +352,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
               right: 20,
             ),
             child: Column(
-              children: _exchangeActivities.map((activity) {
+              children: _activities.map((activity) {
                 return Column(
                   children: <Widget>[
                     Container(
@@ -467,68 +360,56 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                         top: 10,
                         bottom: 10,
                       ),
-                      child: Stack(
+                      child: Row(
                         children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(right: 50),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  alignment: Alignment.center,
-                                  margin: EdgeInsets.only(
-                                    right: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey[500],
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(20))),
-                                  child: Text(
-                                    '${activity.activityNo}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Wrap(
-                                    direction: Axis.vertical,
-                                    spacing: 5,
-                                    children: <Widget>[
-                                      Text(
-                                        '${activity.activityName}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Wrap(
-                                        spacing: 10,
-                                        children: <Widget>[
-                                          Text(
-                                            '${activity.status}',
-                                          ),
-                                          Text(
-                                            '${activity.message}',
-                                            softWrap: true,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          Container(
+                            width: 30,
+                            height: 30,
+                            alignment: Alignment.center,
+                            margin: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[500],
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(20))),
+                            child: Text(
+                              '${activity.activityNo}',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Text(
-                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime), dayFormat: DayFormat.Full)}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 12,
-                              ),
+                          Expanded(
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 5,
+                              children: <Widget>[
+                                Text(
+                                  '${activity.activityName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${intl.DateFormat('yyyy/MM/dd HH:mm:ss SSS').format(parseStrTime(activity.ctime))}',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Wrap(
+                                  spacing: 10,
+                                  children: <Widget>[
+                                    Text(
+                                      '${activity.status}',
+                                    ),
+                                    Text(
+                                      '${activity.message}',
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],

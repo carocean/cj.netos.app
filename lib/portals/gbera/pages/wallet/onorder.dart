@@ -70,8 +70,7 @@ class _OnorderState extends State<Onorder> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                debugPrint('查看明细');
-                widget.context.forward('/wallet/change/deposit');
+                widget.context.forward('/wallet/onorder/bill',arguments: {'wallet':_myWallet,});
               },
               textColor: widget.context.style('/wallet/change/deposit.textColor'),
               color: widget.context.style('/wallet/change/deposit.color'),
@@ -95,14 +94,6 @@ class _OnorderState extends State<Onorder> {
         elevation: 0,
         automaticallyImplyLeading: bb == null ? true : false,
         leading: getLeading(bb),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              widget.context.forward('/wallet/change/bill');
-            },
-            child: Text('明细'),
-          ),
-        ],
       ),
       body: Container(
         padding: EdgeInsets.only(
