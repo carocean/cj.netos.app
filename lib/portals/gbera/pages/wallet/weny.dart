@@ -434,7 +434,7 @@ class _PriceCardState extends State<_PriceCard> {
                         ),
                       ),
                       Text(
-                        '¥$_newPrice',
+                        '¥${(_newPrice ?? 0).toStringAsFixed(14)}',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
@@ -558,10 +558,10 @@ class __AccountsCardState extends State<_AccountsCard> {
       color: Colors.white,
       child: Column(
         children: <Widget>[
-          CardItem(
+          _getCardItem(
             title: '存量',
-            tipsText: '₩${(widget.bank?.stock ?? 0).toStringAsFixed(14)}',
-            onItemTap: () {
+            tips: '₩${(widget.bank?.stock ?? 0).toStringAsFixed(14)}',
+            onTap: () {
               widget.context.forward('/wybank/account/stock', arguments: {
                 'bank': widget.bank,
               });
@@ -570,10 +570,10 @@ class __AccountsCardState extends State<_AccountsCard> {
           Divider(
             height: 1,
           ),
-          CardItem(
+          _getCardItem(
             title: '冻结',
-            tipsText: '¥${widget.bank?.freezenYan ?? '-'}',
-            onItemTap: () {
+            tips: '¥${widget.bank?.freezenYan ?? '-'}',
+            onTap: () {
               widget.context.forward('/wybank/account/freezen', arguments: {
                 'bank': widget.bank,
               });
@@ -582,14 +582,13 @@ class __AccountsCardState extends State<_AccountsCard> {
           Divider(
             height: 1,
           ),
-          CardItem(
+          _getCardItem(
             title: '收益',
-            tipsText: '¥${widget.bank?.profitYan ?? '-'}',
-            tipsColor: widget.bank.profit < 0
+            tips:  '¥${widget.bank?.profitYan ?? '-'}',
+            color:  widget.bank.profit < 0
                 ? Colors.green
                 : widget.bank.profit > 0 ? Colors.redAccent : null,
-            tipsTextDirection: TextDirection.ltr,
-            onItemTap: () {
+            onTap: () {
               widget.context.forward('/wybank/account/profit', arguments: {
                 'bank': widget.bank,
               });
@@ -626,4 +625,54 @@ class StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
     return true;
   }
+}
+
+Widget _getCardItem(
+    {String title, String tips, Color color, Function() onTap}) {
+  return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    child: Padding(
+      padding: EdgeInsets.only(
+        top: 18,
+        bottom: 18,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            '${title ?? ''}',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text(
+                  '${tips ?? ''}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: color ?? Colors.grey[600],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 5,
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
