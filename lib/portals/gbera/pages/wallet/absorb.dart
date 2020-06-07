@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
 class Absorb extends StatefulWidget {
   PageContext context;
@@ -15,11 +18,65 @@ class Absorb extends StatefulWidget {
 
 class _AbsorbState extends State<Absorb> {
   MyWallet _myWallet;
+  bool _enableButton = false;
+  String _buttonText = '提取到零钱';
+  GlobalKey<ScaffoldState> _key=GlobalKey();
   @override
   void initState() {
-    _myWallet=widget.context.parameters['wallet'];
+    _myWallet = widget.context.parameters['wallet'];
+    _enableButton = _myWallet.absorb > 0;
     super.initState();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _transAbsorb() async {
+    _enableButton = false;
+    _buttonText = '提取中...';
+    if (mounted) {
+      setState(() {});
+    }
+    IWalletTradeRemote tradeRemote =
+        widget.context.site.getService('/wallet/trades');
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService('/wallet/records');
+    TransAbsorbResult result =
+        await tradeRemote.transAbsorb(_myWallet.absorb, '');
+    Timer.periodic(
+        Duration(
+          seconds: 1,
+        ), (timer) async {
+      TransAbsorbOR record;
+      try {
+        record = await recordRemote.getTransAbsorb(result.sn);
+      } catch (ex) {
+        timer.cancel();
+        throw FlutterError(ex);
+      }
+      if (record.state == 1) {
+        timer.cancel();
+      }
+      if (result.status < 300) {
+        _myWallet.absorb = 0;
+        _buttonText = '成功';
+      } else {
+        _buttonText = '失败';
+      }
+      if (mounted) {
+        setState(() {});
+      }
+      String _message = '${result.status} ${result.message}';
+
+      _key.currentState.showSnackBar(SnackBar(
+        content: Text('$_message'),
+      ));
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var card_main = Container(
@@ -49,7 +106,7 @@ class _AbsorbState extends State<Absorb> {
                 ),
               ),
               Text(
-                '${_myWallet?.absorbYan??'0.00'}',
+                '${_myWallet?.absorbYan ?? '0.00'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: widget.context.style('/wallet/change/money.text'),
@@ -69,15 +126,17 @@ class _AbsorbState extends State<Absorb> {
             width: 160,
             height: 36,
             child: RaisedButton(
-              onPressed: () {
-                debugPrint('提取到零钱');
-//                widget.context.forward('/wallet/change/deposit');
-              },
-              textColor: widget.context.style('/wallet/change/deposit.textColor'),
+              onPressed: !_enableButton
+                  ? null
+                  : () {
+                      _transAbsorb();
+                    },
+              textColor:
+                  widget.context.style('/wallet/change/deposit.textColor'),
               color: widget.context.style('/wallet/change/deposit.color'),
               highlightColor:
-              widget.context.style('/wallet/change/deposit.highlightColor'),
-              child: Text('提取到零钱'),
+                  widget.context.style('/wallet/change/deposit.highlightColor'),
+              child: Text(_buttonText),
             ),
           ),
         ),
@@ -87,6 +146,7 @@ class _AbsorbState extends State<Absorb> {
     var bb = widget.context.parameters['back_button'];
 
     return Scaffold(
+      key: _key,
       appBar: AppBar(
 //        title: Text(
 //          widget.context.page?.title,
@@ -98,7 +158,7 @@ class _AbsorbState extends State<Absorb> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              widget.context.forward('/wallet/absorb/bill');
+              widget.context.forward('/wallet/absorb/bill',arguments: {'wallet': _myWallet,});
             },
             child: Text('明细'),
           ),
@@ -135,4 +195,3 @@ class _AbsorbState extends State<Absorb> {
     );
   }
 }
-

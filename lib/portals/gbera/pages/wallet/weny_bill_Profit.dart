@@ -58,6 +58,13 @@ class _WenyBillStockState extends State<ProfitWenyBill> {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService('/wallet/records');
     switch (bill.order) {
+      case 2:
+        var profit = await recordRemote.getTransProfit(bill.refsn);
+        widget.context.forward(
+          '/wybank/trans_profit/details',
+          arguments: {'transProfit': profit, 'bank': _bank},
+        );
+        break;
       case 8:
         var purch = await recordRemote.getPurchaseRecord(bill.refsn);
         widget.context.forward(

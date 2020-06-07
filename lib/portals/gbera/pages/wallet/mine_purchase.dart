@@ -313,7 +313,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.purchAmount / 100.0).toStringAsFixed(2)}',
+                                                '${((purch.purchAmount??0.0) / 100.0).toStringAsFixed(2)}',
                                               ),
                                             ],
                                           ),
@@ -335,7 +335,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${purch.price}',
+                                                '${(purch.price??0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -357,7 +357,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${purch.stock}',
+                                                '${(purch.stock??0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -379,7 +379,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.stock * _newPrice) / 100.00}',
+                                                '${((purch.stock??0.00) * _newPrice) / 100.00}',
                                                 style: TextStyle(
                                                   color: purch.stock *
                                                               widget

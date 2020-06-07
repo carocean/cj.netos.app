@@ -59,28 +59,20 @@ class _AbsorbBillState extends State<AbsorbBill> {
         widget.context.site.getService('/wallet/records');
 
     switch (bill.order) {
-      case 2: //提现
-        var withdraw = await recordRemote.getWithdrawRecord(bill.refsn);
+      case 1://存入
+        var absorb =await recordRemote.getDepositAbsorb(bill.refsn);
         widget.context.forward(
-          '/wallet/withdraw/details',
-          arguments: {'withdraw': withdraw, 'wallet': _wallet},
+          '/wallet/deposit_absorb/details',
+          arguments: {'depositAbsorb': absorb, 'wallet': _wallet},
         );
         break;
-      case 8: //申购
-        var purch = await recordRemote.getPurchaseRecord(bill.refsn);
-        var bank;
-        for (var b in _wallet.banks) {
-          if (b.bank == purch.bankid) {
-            bank = b;
-            break;
-          }
-        }
+      case 2://转出
+        var absorb =await recordRemote.getTransAbsorb(bill.refsn);
         widget.context.forward(
-          '/wybank/purchase/details',
-          arguments: {'purch': purch, 'bank': bank},
+          '/wallet/trans_absorb/details',
+          arguments: {'transAbsorb': absorb, 'wallet': _wallet},
         );
         break;
-
       default:
         throw FlutterError('onorderBill:未知的订单类型');
     }

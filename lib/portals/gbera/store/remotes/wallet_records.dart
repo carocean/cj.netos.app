@@ -142,6 +142,7 @@ class RechargeOR {
       this.message,
       this.note});
 }
+
 class RechargeActivityOR {
   int activityNo;
   String activityName;
@@ -153,12 +154,12 @@ class RechargeActivityOR {
 
   RechargeActivityOR(
       {this.activityNo,
-        this.activityName,
-        this.record_sn,
-        this.status,
-        this.message,
-        this.ctime,
-        this.id});
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
 }
 
 class WithdrawOR {
@@ -191,6 +192,7 @@ class WithdrawOR {
       this.message,
       this.note});
 }
+
 class WithdrawActivityOR {
   int activityNo;
   String activityName;
@@ -202,13 +204,166 @@ class WithdrawActivityOR {
 
   WithdrawActivityOR(
       {this.activityNo,
-        this.activityName,
-        this.record_sn,
-        this.status,
-        this.message,
-        this.ctime,
-        this.id});
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
 }
+
+class TransAbsorbOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+
+  TransAbsorbOR(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.realAmount,
+      this.state,
+      this.ctime,
+      this.lutime,
+      this.status,
+      this.message,
+      this.note});
+}
+
+class DepositAbsorbOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+  String sourceCode;
+  String sourceTitle;
+
+  DepositAbsorbOR({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.demandAmount,
+    this.realAmount,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.note,
+    this.sourceCode,
+    this.sourceTitle,
+  });
+}
+
+class TransProfitOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+  String bankid;
+
+  TransProfitOR({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.demandAmount,
+    this.realAmount,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.note,
+    this.bankid,
+  });
+}
+
+class TransAbsorbActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  TransAbsorbActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
+class TransProfitActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  TransProfitActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
+class DepositProfitActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  DepositProfitActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(String bankid, int limit, int offset) {}
 
@@ -235,6 +390,18 @@ mixin IWalletRecordRemote {
   Future<WithdrawOR> getWithdrawRecord(String refsn) {}
 
   Future<List<WithdrawActivityOR>> getWithdrawActivies(String sn) {}
+
+  Future<TransAbsorbOR> getTransAbsorb(String sn) {}
+
+  Future<TransProfitOR> getTransProfit(sn) {}
+
+  Future<List<TransAbsorbActivityOR>> getTransAbsorbActivies(String sn) {}
+
+  Future<List<TransProfitActivityOR>> getTransProfitActivies(String sn) {}
+
+  Future<List<DepositProfitActivityOR>> getDepositAbsorbActivies(sn) {}
+
+  Future<DepositAbsorbOR> getDepositAbsorb(String refsn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -532,8 +699,8 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       personName: obj['personName'],
       currency: obj['currency'],
       person: obj['person'],
-      demandAmount: obj['demandAmount'] ,
-      realAmount: obj['realAmount'] ,
+      demandAmount: obj['demandAmount'],
+      realAmount: obj['realAmount'],
       toChannel: obj['toChannel'],
     );
   }
@@ -558,14 +725,14 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       personName: obj['personName'],
       currency: obj['currency'],
       person: obj['person'],
-      demandAmount: obj['demandAmount'] ,
+      demandAmount: obj['demandAmount'],
       realAmount: obj['realAmount'],
       fromChannel: obj['fromChannel'],
     );
   }
 
   @override
-  Future<List<WithdrawActivityOR>> getWithdrawActivies(String sn) async{
+  Future<List<WithdrawActivityOR>> getWithdrawActivies(String sn) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'getWithdrawActivities',
@@ -591,7 +758,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<RechargeActivityOR>> getRechargeActivies(String sn) async{
+  Future<List<RechargeActivityOR>> getRechargeActivies(String sn) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'getRechargeActivities',
@@ -614,5 +781,161 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       );
     }
     return activities;
+  }
+
+  @override
+  Future<TransAbsorbOR> getTransAbsorb(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransAbsorbRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return TransAbsorbOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'],
+      realAmount: obj['realAmount'],
+    );
+  }
+
+  @override
+  Future<TransProfitOR> getTransProfit(sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransProfitRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return TransProfitOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'],
+      realAmount: obj['realAmount'],
+      bankid: obj['bankid'],
+    );
+  }
+
+  @override
+  Future<List<TransAbsorbActivityOR>> getTransAbsorbActivies(String sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransAbsorbActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<TransAbsorbActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        TransAbsorbActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<List<TransProfitActivityOR>> getTransProfitActivies(String sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransProfitActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<TransProfitActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        TransProfitActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<List<DepositProfitActivityOR>> getDepositAbsorbActivies(sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositAbsorbActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<DepositProfitActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        DepositProfitActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<DepositAbsorbOR> getDepositAbsorb(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositAbsorbRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return DepositAbsorbOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'],
+      realAmount: obj['realAmount'],
+      sourceCode: obj['sourceCode'],
+      sourceTitle: obj['sourceTitle'],
+    );
   }
 }

@@ -104,6 +104,7 @@ import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
@@ -113,13 +114,14 @@ import 'package:netos_app/portals/gbera/pages/wallet/cards.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/cashout.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_bill.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/change_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/trans_absorb_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/trans_profit_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
@@ -1231,7 +1233,6 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-
         LogicPage(
           title: '收益账单',
           subtitle: '',
@@ -1239,16 +1240,6 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wybank/bill/profit',
           buildPage: (PageContext pageContext) => ProfitWenyBill(
-            context: pageContext,
-          ),
-        ),
-        LogicPage(
-          title: '',
-          subtitle: '',
-          desc: '零钱明细项的详细页',
-          icon: GalleryIcons.shrine,
-          url: '/wallet/change/bill/details',
-          buildPage: (PageContext pageContext) => ChangeDetails(
             context: pageContext,
           ),
         ),
@@ -1289,6 +1280,36 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wybank/exchange/details',
           buildPage: (PageContext pageContext) => ExchangeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '转账洇金单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/trans_absorb/details',
+          buildPage: (PageContext pageContext) => TransAbsorbDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '存入洇金单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/deposit_absorb/details',
+          buildPage: (PageContext pageContext) => DepositAbsorbDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '收益单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/trans_profit/details',
+          buildPage: (PageContext pageContext) => TransProfitDetails(
             context: pageContext,
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
-class ExchangeResult{
+
+class ExchangeResult {
   String sn;
   String personName;
   String currency;
@@ -28,12 +29,69 @@ class ExchangeResult{
       this.state,
       this.bankid});
 }
-mixin IWalletTradeRemote{
- Future<ExchangeResult> exchange(String sn) {}
 
+class TransAbsorbResult {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int state;
+  String ctime;
+  int status;
+  String message;
+  String note;
+
+  TransAbsorbResult(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.state,
+      this.ctime,
+      this.status,
+      this.message,
+      this.note});
 }
 
-class WalletTradeRemote implements IWalletTradeRemote,IServiceBuilder{
+class TransProfitResult {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int state;
+  String ctime;
+  int status;
+  String message;
+  String note;
+  String bankid;
+
+  TransProfitResult({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.demandAmount,
+    this.state,
+    this.ctime,
+    this.status,
+    this.message,
+    this.note,
+    this.bankid,
+  });
+}
+
+mixin IWalletTradeRemote {
+  Future<ExchangeResult> exchange(String sn) {}
+
+  Future<TransAbsorbResult> transAbsorb(int amount, String note) {}
+
+  Future<TransProfitResult> transProfit(String bank, int profit, String s) {}
+}
+
+class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
@@ -49,13 +107,13 @@ class WalletTradeRemote implements IWalletTradeRemote,IServiceBuilder{
   }
 
   @override
-  Future<ExchangeResult> exchange(String sn)async {
+  Future<ExchangeResult> exchange(String sn) async {
     var obj = await remotePorts.portGET(
       walletTradePorts,
       'exchangeWeny',
       parameters: {
         'purchase_sn': sn,
-        'note':'',
+        'note': '',
       },
     );
     return ExchangeResult(
@@ -74,4 +132,54 @@ class WalletTradeRemote implements IWalletTradeRemote,IServiceBuilder{
     );
   }
 
+  @override
+  Future<TransAbsorbResult> transAbsorb(int amount, String note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'transferAbsorb',
+      parameters: {
+        'amount': amount,
+        'note': note,
+      },
+    );
+    return TransAbsorbResult(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      demandAmount: obj['demandAmount'],
+      sn: obj['sn'],
+      currency: obj['currency'],
+      personName: obj['personName'],
+      person: obj['person'],
+      note: obj['note'],
+      message: obj['message'],
+      status: obj['status'],
+    );
+  }
+
+  @override
+  Future<TransProfitResult> transProfit(
+      String bank, int amount, String note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'transferProfit',
+      parameters: {
+        'wenyBankID': bank,
+        'amount': amount,
+        'note': note,
+      },
+    );
+    return TransProfitResult(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      demandAmount: obj['demandAmount'],
+      sn: obj['sn'],
+      currency: obj['currency'],
+      personName: obj['personName'],
+      person: obj['person'],
+      note: obj['note'],
+      message: obj['message'],
+      status: obj['status'],
+      bankid: obj['bankid'],
+    );
+  }
 }

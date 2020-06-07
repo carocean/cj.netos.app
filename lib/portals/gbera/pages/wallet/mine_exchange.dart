@@ -188,7 +188,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${(exchange.amount??0 / 100.0).toStringAsFixed(2)}',
+                                          '${((exchange.amount??0) / 100.0).toStringAsFixed(2)}',
                                         ),
                                       ],
                                     ),
@@ -210,7 +210,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           ),
                                         ),
                                         Text(
-                                          '${(exchange.profit??0 / 100.0).toStringAsFixed(2)}',
+                                          '${((exchange.profit??0) / 100.0).toStringAsFixed(2)}',
                                           style: TextStyle(
                                             color: (exchange.profit??0) > 0
                                                 ? Colors.red

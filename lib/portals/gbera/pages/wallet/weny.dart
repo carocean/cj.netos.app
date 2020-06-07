@@ -158,7 +158,7 @@ class _WenyState extends State<Weny> with SingleTickerProviderStateMixin {
                 child: Column(
                   children: <Widget>[
                     Text(
-                      '¥${((_bank?.stock ?? 0.0) * (_newPrice) / 100.00)}',
+                      '¥${((_bank?.stock ?? 0.0) * (_newPrice) / 100.00).toStringAsFixed(14)}',
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 18,
@@ -560,7 +560,7 @@ class __AccountsCardState extends State<_AccountsCard> {
         children: <Widget>[
           CardItem(
             title: '存量',
-            tipsText: '₩${widget.bank?.stock ?? '-'}',
+            tipsText: '₩${(widget.bank?.stock ?? 0).toStringAsFixed(14)}',
             onItemTap: () {
               widget.context.forward('/wybank/account/stock', arguments: {
                 'bank': widget.bank,

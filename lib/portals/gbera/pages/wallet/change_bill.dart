@@ -88,7 +88,20 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'purch': purch, 'bank': bank},
         );
         break;
-
+      case 10://洇金
+        var absorb =await recordRemote.getTransAbsorb(bill.refsn);
+        widget.context.forward(
+          '/wallet/trans_absorb/details',
+          arguments: {'transAbsorb': absorb, 'wallet': _wallet},
+        );
+        break;
+      case 11://洇金
+        var profit =await recordRemote.getTransProfit(bill.refsn);
+        widget.context.forward(
+          '/wallet/trans_profit/details',
+          arguments: {'transProfit': profit, 'wallet': _wallet},
+        );
+        break;
       default:
         throw FlutterError('stockBill:未知的订单类型');
     }
