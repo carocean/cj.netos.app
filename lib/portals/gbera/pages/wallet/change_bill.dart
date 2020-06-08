@@ -97,9 +97,16 @@ class _ChangeBillState extends State<ChangeBill> {
         break;
       case 11://洇金
         var profit =await recordRemote.getTransProfit(bill.refsn);
+        var wenybank;
+        for(var bank in _wallet.banks) {
+          if(bank.bank==profit.bankid) {
+            wenybank=bank;
+            break;
+          }
+        }
         widget.context.forward(
-          '/wallet/trans_profit/details',
-          arguments: {'transProfit': profit, 'wallet': _wallet},
+          '/wybank/trans_profit/details',
+          arguments: {'transProfit': profit, 'bank': wenybank},
         );
         break;
       default:
