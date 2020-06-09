@@ -182,7 +182,7 @@ class _ProfileState extends State<Profile> {
             ),
             child: GestureDetector(
               onTap: () {
-                widget.context.forward('/scaffolds/mybusiness',scene: 'mybusiness');
+                widget.context.forward('/scaffolds/landagent',scene: 'landagent');
               },
               behavior: HitTestBehavior.opaque,
               child: Row(

@@ -37,6 +37,8 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
         arguments: {'From-Page-Url': widget.context.page.url}));
     parts.add(widget.context.part('/geosphere', context,
         arguments: {'From-Page-Url': widget.context.page.url}));
+    parts.add(widget.context.part('/golink', context,
+        arguments: {'From-Page-Url': widget.context.page.url}));
     parts.add(widget.context.part('/market', context,
         arguments: {'From-Page-Url': widget.context.page.url}));
   }

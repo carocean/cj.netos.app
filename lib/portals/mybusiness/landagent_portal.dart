@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/mybusiness/pages/desktop.dart';
 import 'package:netos_app/portals/mybusiness/styles/blue_styles.dart' as blue;
 
 import 'scaffolds.dart';
 
 var buildPortal = (IServiceProvider site) => Portal(
-      id: 'mybusiness',
+      id: 'landagent',
       title: '我的生意',
       icon: Icons.add,
       defaultTheme: '/blue',
@@ -63,11 +64,20 @@ var buildPortal = (IServiceProvider site) => Portal(
       buildDesklets: (site) => <Desklet>[],
       buildPages: (site) => <LogicPage>[
         LogicPage(
-          title: '我的生意',
+          title: '地商',
           subtitle: '',
           icon: Icons.business,
-          url: '/scaffolds/mybusiness',
-          buildPage: (PageContext pageContext) => MyBusinessScaffold(
+          url: '/scaffolds/landagent',
+          buildPage: (PageContext pageContext) => LandagentScaffold(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '桌面',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/desktop',
+          buildPage: (PageContext pageContext) => LandagentDesktop(
             context: pageContext,
           ),
         ),

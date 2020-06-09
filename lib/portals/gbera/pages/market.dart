@@ -21,6 +21,7 @@ class Market extends StatefulWidget {
 
 class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
   EasyRefreshController _controller;
+
   @override
   bool get wantKeepAlive {
     return true;
@@ -28,7 +29,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
-    _controller=EasyRefreshController();
+    _controller = EasyRefreshController();
     super.initState();
   }
 
@@ -37,9 +38,11 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
     _controller.dispose();
     super.dispose();
   }
-  Future<void> _onload()async{
-    _controller.finishLoad(success: true,noMore: true);
+
+  Future<void> _onload() async {
+    _controller.finishLoad(success: true, noMore: true);
   }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -176,7 +179,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
   List<Widget> _platformServices() {
     var services = <_PlatformService>[
       _PlatformService(
-        name: '我要做商家',
+        name: '成为商家',
         icon: Icon(
           Icons.shop,
           size: 30,
@@ -184,20 +187,38 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
         ),
       ),
       _PlatformService(
-        name: '我要做地商',
+        name: '成为地商',
         icon: Icon(
           IconData(0xe62d, fontFamily: 'geo_locations'),
           size: 30,
           color: Colors.grey[600],
         ),
+        onTap: () {
+          widget.context.forward(
+            '/market/request/landagent',
+          );
+        },
       ),
       _PlatformService(
-        name: '我要做市商',
+        name: '成为市商',
         icon: Icon(
           IconData(0xe676, fontFamily: 'market_shishang'),
           size: 30,
           color: Colors.grey[600],
         ),
+      ),
+      _PlatformService(
+        name: '成为运营商',
+        icon: Icon(
+          Icons.developer_board,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+        onTap: () {
+          widget.context.forward(
+            '/market/request/isp',
+          );
+        },
       ),
     ];
 

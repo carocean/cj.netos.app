@@ -37,9 +37,12 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
+import 'package:netos_app/portals/gbera/pages/golink.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
+import 'package:netos_app/portals/gbera/pages/market/request_isp.dart';
+import 'package:netos_app/portals/gbera/pages/market/request_landagent.dart';
 import 'package:netos_app/portals/gbera/pages/market/select_gogogo_category.dart';
 import 'package:netos_app/portals/gbera/pages/market/ty_exchange.dart';
 import 'package:netos_app/portals/gbera/pages/market/ty_land_agent.dart';
@@ -723,6 +726,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/market',
           buildPage: (PageContext pageContext) => Market(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '追链',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/golink',
+          buildPage: (PageContext pageContext) => Golink(
             context: pageContext,
           ),
         ),
@@ -1518,6 +1530,26 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/desktop/portlets',
           buildPage: (PageContext pageContext) => PortletList(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '成为地商',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/market/request/landagent',
+          buildPage: (PageContext pageContext) => RequestLandagent(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '成为运营商',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/market/request/isp',
+          buildPage: (PageContext pageContext) => RequestISP(
             context: pageContext,
           ),
         ),
