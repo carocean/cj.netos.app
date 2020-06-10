@@ -8,30 +8,41 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 import 'video_view.dart';
-class MediaSrc{
+
+class MediaSrc {
   final String id;
   final String type;
   final String src;
   final String leading;
   final String msgid;
   final String text;
+
   ///来源，如：网流管道、地圈
   final String sourceType;
+
   MediaSrc(
-     { this.id, this.type, this.src, this.leading, this.msgid, this.text,this.sourceType});
+      {this.id,
+      this.type,
+      this.src,
+      this.leading,
+      this.msgid,
+      this.text,
+      this.sourceType});
 }
+
 class ImageViewer extends StatefulWidget {
   PageContext context;
   MediaSrc viewMedia;
   List<MediaSrc> others;
-  bool autoPlay=false;
+  bool autoPlay = false;
+
   ImageViewer({this.context, this.viewMedia, this.others}) {
     this.viewMedia = context.parameters['media'];
     this.others = context.parameters['others'];
     if (this.others == null) {
       this.others = [];
     }
-    autoPlay= context.parameters['autoPlay']??false;
+    autoPlay = context.parameters['autoPlay'] ?? false;
   }
 
   @override
@@ -41,16 +52,19 @@ class ImageViewer extends StatefulWidget {
 class _ImageViewerState extends State<ImageViewer> {
   static var select = 0;
   VideoController _controller;
+
   @override
   void initState() {
-    this._controller=VideoController();
+    this._controller = VideoController();
     super.initState();
   }
+
   @override
   void dispose() {
-    this._controller=null;
+    this._controller = null;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     changeImage(int isUp) {
@@ -69,7 +83,7 @@ class _ImageViewerState extends State<ImageViewer> {
       widget.context.forward('/images/viewer', arguments: {
         'media': widget.others[select],
         'others': widget.others,
-        'autoPlay':widget.context.parameters['autoPlay'],
+        'autoPlay': widget.context.parameters['autoPlay'],
       });
     }
 
@@ -166,6 +180,12 @@ class _ImageViewerState extends State<ImageViewer> {
   Widget _getMediaRender(MediaSrc media) {
     var mediaRender;
     var src = media?.src;
+    if (src.startsWith('http')) {
+      int pos = src.lastIndexOf('?');
+      if (pos < 0) {
+        src = '$src?accessToken=${widget.context.principal.accessToken}';
+      }
+    }
     switch (media.type) {
       case 'image':
         mediaRender = src.startsWith('/')

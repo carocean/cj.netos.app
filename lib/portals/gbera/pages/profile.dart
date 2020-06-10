@@ -195,7 +195,7 @@ class _ProfileState extends State<Profile> {
                       right: 10,
                     ),
                     child: Icon(
-                      Icons.business,
+                      Icons.landscape,
                       size: 30,
                       color:
                       widget.context.style('/profile/list/item-icon.color'),
@@ -210,6 +210,57 @@ class _ProfileState extends State<Profile> {
                         ///是用户的经营管理后台，如我有店铺就经营店铺，我有xx
                         Text(
                           '我是地商',
+                          style: widget
+                              .context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              onTap: () {
+                widget.context.forward('/scaffolds/isp',scene: 'isp');
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      Icons.business,
+                      size: 30,
+                      color:
+                      widget.context.style('/profile/list/item-icon.color'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        ///是用户的经营管理后台，如我有店铺就经营店铺，我有xx
+                        Text(
+                          '我是运营商',
                           style: widget
                               .context
                               .style('/profile/list/item-title.text'),

@@ -12,16 +12,17 @@ class RequestISP extends StatefulWidget {
 
 class _RequestISPState extends State<RequestISP> {
   int _activityNo = 0;
+  ScrollController _controller;
 
   @override
   void initState() {
-    // TODO: implement initState
+    _controller = ScrollController();
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -29,6 +30,7 @@ class _RequestISPState extends State<RequestISP> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
+        controller: _controller,
         headerSliverBuilder: (ctx, s) {
           return [
             SliverAppBar(
@@ -258,7 +260,7 @@ class _RequestISPState extends State<RequestISP> {
       children: <Widget>[
         Padding(
           padding: EdgeInsets.only(
-            bottom: 10,
+            bottom: 0,
             top: 10,
           ),
           child: Row(
@@ -288,13 +290,45 @@ class _RequestISPState extends State<RequestISP> {
             ],
           ),
         ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 10,
+            top: 0,
+          ),
+          child: Row(
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  '统一社会信用代码:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  right: 5,
+                ),
+              ),
+              Expanded(
+                child: TextField(
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '输入营业执照上的信用代码',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Divider(
           height: 1,
         ),
         Padding(
           padding: EdgeInsets.only(
             bottom: 10,
-            top: 10,
+            top: 20,
           ),
           child: Row(
             children: <Widget>[
@@ -327,9 +361,11 @@ class _RequestISPState extends State<RequestISP> {
                         top: 20,
                       ),
                       child: Center(
-                        child: Image.network(
-                          'http://47.105.165.186:7100/public/IMG_0220.jpg?accessToken=${widget.context.principal.accessToken}',
-                          fit: BoxFit.fill,
+                        child: FadeInImage.assetNetwork(
+                          placeholder:
+                              'lib/portals/gbera/images/default_image.png',
+                          image:
+                              'http://47.105.165.186:7100/public/IMG_0220.jpg?accessToken=${widget.context.principal.accessToken}',
                           height: 200,
                         ),
                       ),
@@ -397,7 +433,7 @@ class _RequestISPState extends State<RequestISP> {
             children: <Widget>[
               Padding(
                 child: Text(
-                  'ISP经营期限:',
+                  'ISP经营牌照期限:',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                   ),
@@ -472,21 +508,60 @@ class _RequestISPState extends State<RequestISP> {
             bottom: 10,
             top: 10,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          child: Column(
             children: <Widget>[
-              Padding(
-                child: Text(
-                  '所有人手机号:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    child: Text(
+                      '所有人手机号:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    padding: EdgeInsets.only(
+                      right: 5,
+                    ),
                   ),
-                ),
-                padding: EdgeInsets.only(
-                  right: 5,
-                ),
+                  Expanded(
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '输入手机号',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 5,
+                      right: 5,
+                      top: 5,
+                      bottom: 5,
+                    ),
+                    color: Colors.green,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {},
+                      child: Text(
+                        '获取验证码',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 5,
+                ),
                 child: TextField(
                   keyboardType: TextInputType.number,
                   style: TextStyle(
@@ -495,26 +570,6 @@ class _RequestISPState extends State<RequestISP> {
                   decoration: InputDecoration(
                     hintText: '输入验证码',
                     border: InputBorder.none,
-                  ),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(
-                  left: 5,
-                  right: 5,
-                  top: 5,
-                  bottom: 5,
-                ),
-                color: Colors.green,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {},
-                  child: Text(
-                    '获取验证码',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
                   ),
                 ),
               ),
@@ -546,13 +601,14 @@ class _RequestISPState extends State<RequestISP> {
               Checkbox(
                 value: true,
               ),
-              Text('运营商（ISP)经营许可协议条款')
+              Text('运营商(ISP)经营牌照许可协议条款')
             ],
           ),
         ),
         FlatButton(
           onPressed: () {
             _activityNo++;
+            _controller?.jumpTo(0);
             setState(() {});
           },
           color: Colors.green,
@@ -571,7 +627,7 @@ class _RequestISPState extends State<RequestISP> {
         left: 20,
         right: 20,
         bottom: 20,
-        top: 100,
+        top: 20,
       ),
       child: Column(
         children: <Widget>[
@@ -579,61 +635,193 @@ class _RequestISPState extends State<RequestISP> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      child: Text(
+                        '应付金额:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      padding: EdgeInsets.only(
+                        right: 5,
+                        bottom: 20,
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        '¥29999.00',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 32,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 Padding(
-                  child: Text(
-                    '应付金额:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 20,
-                    ),
-                  ),
                   padding: EdgeInsets.only(
-                    right: 5,
                     bottom: 20,
+                    top: 10,
                   ),
-                ),
-                Center(
                   child: Text(
-                    '¥29999.00',
+                    '平台收款行信息：',
                     style: TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      fontSize: 32,
+                      color: Colors.grey[500],
                     ),
                   ),
                 ),
-//                Container(
-//                  padding: EdgeInsets.only(
-//                    top: 20,
-//                    bottom: 20,
-//                  ),
-//                  child: Text('支付成功!'),
-//                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    bottom: 10,
+                  ),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.start,
+                    runSpacing: 10,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              '开户行:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '中国工商银行',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              '行号:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '083838822773737733',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 40,
+                  child: Divider(
+                    height: 1,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Padding(
+                          child: Text(
+                            '拍摄交易单:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
+                          ),
+                          padding: EdgeInsets.only(
+                            right: 5,
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {},
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 20,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Center(
+                      child: FadeInImage.assetNetwork(
+                        placeholder:
+                            'lib/portals/gbera/images/default_image.png',
+                        image:
+                            'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
+                        height: 200,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              FlatButton(
-                color: Colors.green,
-                onPressed: () {
-                  _activityNo--;
-                  if (mounted) {
-                    setState(() {});
-                  }
-                },
-                textColor: Colors.white,
-                child: Text('上一步'),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints.tightForFinite(
+                width: double.maxFinite,
               ),
-              FlatButton(
+              child: FlatButton(
                 color: Colors.green,
                 onPressed: () {},
                 textColor: Colors.white,
                 child: Text('立即支付'),
               ),
-            ],
-          )
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: 20,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                _activityNo--;
+                _controller?.jumpTo(0);
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  '上一步',
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
