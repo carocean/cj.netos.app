@@ -152,6 +152,8 @@ import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
+import 'package:netos_app/portals/gbera/styles/blue-styles.dart';
+import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 import 'desklets/chats/add_friend.dart';
@@ -313,6 +315,104 @@ class GberaPortal {
               ),
             );
           },
+        ),
+        ThemeStyle(
+          title: '蓝色',
+          desc: '呈现淡蓝，接近白',
+          url: '/blue',
+          iconColor: Colors.blue[500],
+          buildStyle: buildBlueStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFE1f5fe),
+            scaffoldBackgroundColor: Color(0xFFE1f5fe),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFE1f5fe),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.blue[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.blue[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.blue[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFE1f5fe,
+              {
+                50: Color(0xFFE1f5fe),
+                100: Color(0xffb3e5fc),
+                200: Color(0xff81d4fa),
+                300: Color(0xff4fc3f7),
+                400: Color(0xff29b6f6),
+                500: Color(0xff03a9f4),
+                600: Color(0xff039be5),
+                700: Color(0xFF0288d1),
+                800: Color(0xFF0277bd),
+                900: Color(0xff01579b),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '橙色',
+          desc: '淘宝色',
+          url: '/orange',
+          iconColor: Colors.deepOrangeAccent,
+          buildStyle: buildOrangeStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFFBE9E7),
+            scaffoldBackgroundColor: Color(0xFFFBE9E7),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFFBE9E7),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.orange[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.orange[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.orange[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFFBE9E7,
+              {
+                50: Color(0xFFFBE9E7),
+                100: Color(0xFFFCCBC),
+                200: Color(0xFFFAB91),
+                300: Color(0xFF8A65),
+                400: Color(0xFFF7043),
+                500: Color(0xFFF5722),
+                600: Color(0xFF4511E),
+                700: Color(0xFFE64A19),
+                800: Color(0xFFD84315),
+                900: Color(0xFFBF360C),
+              },
+            ),
+          ),
         ),
       ],
       buildDesklets: buildDesklets,

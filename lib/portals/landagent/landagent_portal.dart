@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
-import 'package:netos_app/portals/mybusiness/pages/desktop.dart';
-import 'package:netos_app/portals/mybusiness/styles/blue_styles.dart' as blue;
+import 'package:netos_app/portals/landagent/pages/desktop.dart';
+import 'package:netos_app/portals/landagent/pages/event_details.dart';
+import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 
 import 'scaffolds.dart';
 
 var buildPortal = (IServiceProvider site) => Portal(
       id: 'landagent',
-      title: '我的生意',
+      title: '地商门户',
       icon: Icons.add,
       defaultTheme: '/blue',
       buildThemes: (site) => <ThemeStyle>[
@@ -18,11 +19,11 @@ var buildPortal = (IServiceProvider site) => Portal(
           iconColor: Colors.blue[500],
           buildStyle: (site) => blue.buildStyles(site),
           buildTheme: (context) => ThemeData(
-            backgroundColor: Color(0xFFF5F5f5),
-            scaffoldBackgroundColor: Color(0xFFF5F5f5),
+            backgroundColor: Color(0xFFE1f5fe),
+            scaffoldBackgroundColor: Color(0xFFE1f5fe),
             brightness: Brightness.light,
             appBarTheme: AppBarTheme.of(context).copyWith(
-              color: Color(0xFFF5F5f5),
+              color: Color(0xFFE1f5fe),
               textTheme: TextTheme(
                 title: TextStyle(
                   color: Colors.blue[800],
@@ -44,18 +45,18 @@ var buildPortal = (IServiceProvider site) => Portal(
               elevation: 1.0,
             ),
             primarySwatch: MaterialColor(
-              0xFFF5F5f5,
+              0xFFE1f5fe,
               {
-                50: Color(0xFFE8F5E9),
-                100: Color(0xFFC8E6C9),
-                200: Color(0xFFA5D6A7),
-                300: Color(0xFF81C784),
-                400: Color(0xFF66BB6A),
-                500: Color(0xFF4CAF50),
-                600: Color(0xFF43A047),
-                700: Color(0xFF388E3C),
-                800: Color(0xFF2E7D32),
-                900: Color(0xFF1B5E20),
+                50: Color(0xFFE1f5fe),
+                100: Color(0xffb3e5fc),
+                200: Color(0xff81d4fa),
+                300: Color(0xff4fc3f7),
+                400: Color(0xff29b6f6),
+                500: Color(0xff03a9f4),
+                600: Color(0xff039be5),
+                700: Color(0xFF0288d1),
+                800: Color(0xFF0277bd),
+                900: Color(0xff01579b),
               },
             ),
           ),
@@ -78,6 +79,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/desktop',
           buildPage: (PageContext pageContext) => LandagentDesktop(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '事件查看器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/event/details',
+          buildPage: (PageContext pageContext) => LandagentEventDetails(
             context: pageContext,
           ),
         ),

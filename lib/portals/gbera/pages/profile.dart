@@ -226,6 +226,10 @@ class _ProfileState extends State<Profile> {
               ),
             ),
           ),
+          Divider(
+            height: 1,
+            indent: 40,
+          ),
           Container(
             padding: EdgeInsets.only(
               top: 15,
