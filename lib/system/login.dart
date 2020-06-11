@@ -729,8 +729,8 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
                       right: 40,
                     ),
                     padding: EdgeInsets.only(
-                      top: 20,
-                      bottom: 20,
+                      top: 15,
+                      bottom: 15,
                       left: 10,
                       right: 10,
                     ),
@@ -741,7 +741,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
                     child: Wrap(
-                      spacing: 8,
+                      runSpacing: 12,
                       children: widget.principals.map((e) {
                         if (e.person == _principal.person) {
                           return SizedBox(
@@ -757,21 +757,28 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
                               setState(() {});
                             }
                           },
-                          child: Wrap(
-                            spacing: 5,
-                            children: <Widget>[
-                              Image.file(
-                                File(e.lavatar),
-                                width: 16,
-                                height: 16,
-                              ),
-                              Text(
-                                '${e.nickName}',
-                                style: TextStyle(
-                                  fontSize: 12,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: 5,
+                              right: 5,
+                            ),
+                            child: Wrap(
+                              spacing: 5,
+                              runSpacing: 5,
+                              children: <Widget>[
+                                Image.file(
+                                  File(e.lavatar),
+                                  width: 16,
+                                  height: 16,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  '${e.nickName}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),
