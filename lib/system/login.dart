@@ -692,6 +692,17 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
               Padding(
                 padding: EdgeInsets.all(5),
                 child: Text(
+                  '${_principal.person}',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(0),
+                child: Text(
                   '${_principal.nickName}',
                   style: TextStyle(
                     color: Colors.black87,

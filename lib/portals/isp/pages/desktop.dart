@@ -53,6 +53,26 @@ class _IspDesktopState extends State<IspDesktop>
             title: Text(
               '运营商(ISP)',
             ),
+            actions: <Widget>[
+              PopupMenuButton(
+                onSelected: (String value) {
+                  switch(value) {
+                    case 'logout':
+                      widget.context.forward('/public/login', scene: '/');
+                      break;
+                  }
+                },
+
+//                  padding: EdgeInsets.all(10),
+                offset: Offset(0, 40),
+                itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                  PopupMenuItem(
+                    value: "logout",
+                    child: new Text("退出系统"),
+                  ),
+                ],
+              ),
+            ],
           ),
           SliverToBoxAdapter(
             child: Padding(
