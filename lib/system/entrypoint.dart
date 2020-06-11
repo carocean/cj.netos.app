@@ -65,9 +65,9 @@ class _EntryPointState extends State<EntryPoint> {
     //成功则到桌面
     WidgetsBinding.instance.addPostFrameCallback((d) {
       widget.context.forward(
-        "/scaffold/withbottombar",
+        "/",
         clearHistoryByPagePath: '/public/',
-        scene: 'gbera',
+        scene: widget.context.principal.portal??'gbera',
       );
     });
   }

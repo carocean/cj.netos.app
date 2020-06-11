@@ -68,7 +68,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           title: '运营商',
           subtitle: '',
           icon: Icons.business,
-          url: '/scaffolds/isp',
+          url: '/',
           buildPage: (PageContext pageContext) => IspScaffold(
             context: pageContext,
           ),

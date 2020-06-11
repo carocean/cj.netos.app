@@ -68,7 +68,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           title: '地商',
           subtitle: '',
           icon: Icons.business,
-          url: '/scaffolds/landagent',
+          url: '/',
           buildPage: (PageContext pageContext) => LandagentScaffold(
             context: pageContext,
           ),

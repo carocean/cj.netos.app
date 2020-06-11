@@ -439,7 +439,7 @@ class GberaPortal {
           title: '地微',
           subtitle: '',
           icon: GalleryIcons.shrine,
-          url: '/scaffold/withbottombar',
+          url: '/',
           buildPage: (PageContext pageContext) => WithBottomScaffold(
             context: pageContext,
           ),

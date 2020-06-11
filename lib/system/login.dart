@@ -648,12 +648,13 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
   bool _buttonEnabled = false;
   bool _showPassword = false;
   String _loginLabel = '登录';
+  Principal _principal;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _passwordController = TextEditingController();
+    _principal = widget.principals[0];
   }
 
   @override
@@ -664,7 +665,6 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
 
   @override
   Widget build(BuildContext context) {
-    var principal = widget.principals[0];
     return ListView(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -683,7 +683,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
                   Radius.circular(8),
                 ),
                 child: Image.file(
-                  File(principal.lavatar),
+                  File(_principal.lavatar),
                   width: 70,
                   height: 70,
                 ),
@@ -691,7 +691,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
               Padding(
                 padding: EdgeInsets.all(5),
                 child: Text(
-                  '${principal.nickName}',
+                  '${_principal.nickName}',
                   style: TextStyle(
                     color: Colors.black87,
                     fontWeight: FontWeight.w500,
@@ -702,12 +702,88 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
             ],
           ),
         ),
+        widget.principals.length < 2
+            ? SizedBox(
+                height: 0,
+                width: 0,
+              )
+            : Stack(
+                fit: StackFit.passthrough,
+                overflow: Overflow.visible,
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(
+                      left: 40,
+                      right: 40,
+                    ),
+                    padding: EdgeInsets.only(
+                      top: 20,
+                      bottom: 20,
+                      left: 10,
+                      right: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey[300],
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    child: Wrap(
+                      spacing: 8,
+                      children: widget.principals.map((e) {
+                        if (e.person == _principal.person) {
+                          return SizedBox(
+                            width: 0,
+                            height: 0,
+                          );
+                        }
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            _principal = e;
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          },
+                          child: Wrap(
+                            spacing: 5,
+                            children: <Widget>[
+                              Image.file(
+                                File(e.lavatar),
+                                width: 16,
+                                height: 16,
+                              ),
+                              Text(
+                                '${e.nickName}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  Positioned(
+                    left: 60,
+                    top: -14,
+                    child: Text(
+                      '其它公众号',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
         Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
             bottom: 10,
-            top: 10,
+            top: 20,
           ),
           child: Row(
             children: <Widget>[
@@ -794,7 +870,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
           onTap: !_buttonEnabled
               ? null
               : () {
-                  _doLogin(principal);
+                  _doLogin(_principal);
                 },
           child: Container(
             margin: EdgeInsets.only(
@@ -860,8 +936,8 @@ class PasswordLoginAction {
       _appid = this.context.site.getService('@.prop.entrypoint.app');
     }
     appKeyPair = await appKeyPair.getAppKeyPair(_appid, this.context.site);
-    var nonce = MD5Util.MD5(
-        '${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
+    var nonce =
+        MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
     await context.ports.callback(
       'get ${context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'auth',
@@ -945,8 +1021,8 @@ class PasswordLoginAction {
       ));
     }
     await manager.online();
-    context.forward("/scaffold/withbottombar",
-        clearHistoryByPagePath: '/', scene: 'gbera');
+    context.forward("/",
+        clearHistoryByPagePath: '/', scene: map['portal'] ?? 'gbera');
   }
 
   void forwardError(e) {
