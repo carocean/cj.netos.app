@@ -21,7 +21,7 @@ class _NodePowerDesktopState extends State<NodePowerDesktop> {
         SliverToBoxAdapter(
           child: Container(
             child: GestureDetector(behavior: HitTestBehavior.opaque,onTap: (){
-              widget.context.forward('/public/login',scene: '/');
+
             },child: Text('这是节点动力公司的系统应用'),),
           ),
         ),
