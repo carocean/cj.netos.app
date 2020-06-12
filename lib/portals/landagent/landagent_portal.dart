@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
+import 'package:netos_app/portals/landagent/pages/weny_account_freezen.dart';
+import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 
 import 'scaffolds.dart';
@@ -88,6 +92,51 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/event/details',
           buildPage: (PageContext pageContext) => LandagentEventDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银银行',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank',
+          buildPage: (PageContext pageContext) => WenyBankWidget(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银存量',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/stock',
+          buildPage: (PageContext pageContext) => StockWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '资金现量',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/fund',
+          buildPage: (PageContext pageContext) => StockWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '冻结资金',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/freezen',
+          buildPage: (PageContext pageContext) => FreezenWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '自由金',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/free',
+          buildPage: (PageContext pageContext) => FreezenWenyAccount(
             context: pageContext,
           ),
         ),

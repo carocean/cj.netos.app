@@ -354,7 +354,7 @@ class _WenyBank extends StatelessWidget {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => this.context.forward('/wallet/weny', arguments: {
+              onTap: () => this.context.forward('/wenybank', arguments: {
                 'bank': bank,
               }),
               child: Row(
@@ -421,12 +421,12 @@ class _WenyBank extends StatelessWidget {
                             Row(
                               children: <Widget>[
                                 Container(
-                                  width: 35,
+                                  width: 50,
                                   padding: EdgeInsets.only(
                                     right: 4,
                                   ),
                                   child: Text(
-                                    '买入:',
+                                    '日申购:',
                                     style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w500,
@@ -435,7 +435,7 @@ class _WenyBank extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '₩${bank.stock}',
+                                  '¥299288.23',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 12,

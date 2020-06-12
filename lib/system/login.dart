@@ -788,7 +788,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
                     left: 60,
                     top: -14,
                     child: Text(
-                      '其它公众号',
+                      '其它公号',
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey[500],
@@ -1090,6 +1090,7 @@ class __VerifyCodeButtonState extends State<_VerifyCodeButton> {
     _fetchButtonEnabled = false;
     setState(() {});
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
+    appKeyPair=await appKeyPair.getAppKeyPair(widget.context.principal.appid, widget.context.site);
     var nonce = MD5Util.MD5(Uuid().v1());
     await widget.context.ports.callback(
       'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',

@@ -13,15 +13,15 @@ class Roles extends StatelessWidget {
     var ucRoles = <Widget>[];
     var tenantRoles = <Widget>[];
     var appRoles = <Widget>[];
-    var roles=this.context.principal.roles;
-    for(String role in roles) {
-      if(role.startsWith('platform:')){
+    var roles = this.context.principal.roles;
+    for (String role in roles) {
+      if (role.startsWith('platform:')) {
         ucRoles.add(_buildUcRole(role));
       }
-      if(role.startsWith('tenant:')){
+      if (role.startsWith('tenant:')) {
         tenantRoles.add(_buildTenantRole(role));
       }
-      if(role.startsWith('app:')){
+      if (role.startsWith('app:')) {
         appRoles.add(_buildAppRole(role));
       }
     }
@@ -57,7 +57,7 @@ class Roles extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.only(),
                     child: Text(
-                      '金证时代中国公司',
+                      '郑州节点动力科技有限公司',
                       style: TextStyle(
                         color: Colors.grey[500],
                       ),

@@ -36,15 +36,19 @@ class _RegisterPageState extends State<RegisterPage> {
     _nickNameController = TextEditingController();
     _phoneController = TextEditingController();
     _passwordController = TextEditingController();
-    _anonymous();
+    _anonymous().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
-  _anonymous() async {
+  Future<void> _anonymous() async {
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
     var nonce = MD5Util.MD5(Uuid().v1()).toUpperCase();
     String sign = appKeyPair.appSign(nonce);
     await widget.context.ports.callback(
-      'post ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
+      'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
       restCommand: 'auth',
       headers: {
         'App-Id': appKeyPair.appid,
@@ -94,8 +98,10 @@ class _RegisterPageState extends State<RegisterPage> {
     });
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
     var defaultApp = widget.context.site.getService('@.prop.entrypoint.app');
-    appKeyPair = await appKeyPair.getAppKeyPair(defaultApp, widget.context.site);
-    var nonce = MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
+    appKeyPair =
+        await appKeyPair.getAppKeyPair(defaultApp, widget.context.site);
+    var nonce =
+        MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
     await widget.context.ports.callback(
       'post ${widget.context.site.getService('@.prop.ports.uc.register')} http/1.1',
       restCommand: 'registerByIphone',
@@ -110,6 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'password': _passwordController.text,
         'nickName': _nickNameController.text,
         'avatar': _avatarRemoteFile,
+        'signature':'',
       },
       onerror: ({e, stack}) {
         widget.context.ports.deleteFile(_avatarRemoteFile);
@@ -149,6 +156,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (StringUtil.isEmpty(_anonymousAccessToken)) {
+      return Container(
+        width: 0,
+        height: 0,
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -472,24 +485,28 @@ class __AvatarRegionState extends State<_AvatarRegion> {
             },
           ),
         ),
-        _per == null?Container(width: 0,height: 0,):
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Align(
-              child: Text(
-                '$_per',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+        _per == null
+            ? Container(
+                width: 0,
+                height: 0,
+              )
+            : Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Align(
+                  child: Text(
+                    '$_per',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  alignment: Alignment.center,
                 ),
               ),
-              alignment: Alignment.center,
-            ),
-          ),
       ],
     );
   }

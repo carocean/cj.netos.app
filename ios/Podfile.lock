@@ -1,4 +1,5 @@
 PODS:
+  - AlipaySDK-iOS (15.7.4)
   - AMap3DMap (6.9.0):
     - AMapFoundation (~> 1.5)
   - amap_core_fluttify (0.0.1):
@@ -33,6 +34,9 @@ PODS:
     - Flutter
   - flutter_plugin_record (0.0.1):
     - Flutter
+  - fluwx (0.0.1):
+    - Flutter
+    - WechatOpenSDK (= 1.8.7.1)
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
@@ -67,6 +71,9 @@ PODS:
   - sqflite (0.0.1):
     - Flutter
     - FMDB (~> 2.7.2)
+  - tobias (0.0.1):
+    - AlipaySDK-iOS (~> 15.7.4)
+    - Flutter
   - url_launcher (0.0.1):
     - Flutter
   - url_launcher_macos (0.0.1):
@@ -79,6 +86,7 @@ PODS:
     - Flutter
   - webview_flutter (0.0.1):
     - Flutter
+  - WechatOpenSDK (1.8.7.1)
 
 DEPENDENCIES:
   - amap_core_fluttify (from `.symlinks/plugins/amap_core_fluttify/ios`)
@@ -89,6 +97,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
   - flutter_plugin_record (from `.symlinks/plugins/flutter_plugin_record/ios`)
+  - fluwx (from `.symlinks/plugins/fluwx/ios`)
   - foundation_fluttify (from `.symlinks/plugins/foundation_fluttify/ios`)
   - image_crop (from `.symlinks/plugins/image_crop/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
@@ -104,6 +113,7 @@ DEPENDENCIES:
   - shared_preferences_macos (from `.symlinks/plugins/shared_preferences_macos/ios`)
   - shared_preferences_web (from `.symlinks/plugins/shared_preferences_web/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
+  - tobias (from `.symlinks/plugins/tobias/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
   - url_launcher_macos (from `.symlinks/plugins/url_launcher_macos/ios`)
   - url_launcher_web (from `.symlinks/plugins/url_launcher_web/ios`)
@@ -113,11 +123,13 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AlipaySDK-iOS
     - AMap3DMap
     - AMapFoundation
     - AMapLocation
     - AMapSearch
     - FMDB
+    - WechatOpenSDK
 
 EXTERNAL SOURCES:
   amap_core_fluttify:
@@ -136,6 +148,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
   flutter_plugin_record:
     :path: ".symlinks/plugins/flutter_plugin_record/ios"
+  fluwx:
+    :path: ".symlinks/plugins/fluwx/ios"
   foundation_fluttify:
     :path: ".symlinks/plugins/foundation_fluttify/ios"
   image_crop:
@@ -166,6 +180,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_web/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
+  tobias:
+    :path: ".symlinks/plugins/tobias/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
   url_launcher_macos:
@@ -180,6 +196,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter/ios"
 
 SPEC CHECKSUMS:
+  AlipaySDK-iOS: 8659cdb4403de7e5f26ad8b699864a9cbe53384c
   AMap3DMap: c80b264f08f179d9b0949b84c65fc1a51dec9d6f
   amap_core_fluttify: f82f67cdc867f8fa2f7253bd9a58d8876c260317
   amap_location_fluttify: d11d6a1a7438da8ac6e2451ff76b8cde7966fa08
@@ -192,6 +209,7 @@ SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_plugin_android_lifecycle: 47de533a02850f070f5696a623995e93eddcdb9b
   flutter_plugin_record: 562ded56f3a109d769e72c3ef52ef20d835493d4
+  fluwx: 07a55ed66bf3a4961e836a2a411b02dcada32902
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   foundation_fluttify: 3038fcc96aabb59c77f595964954c118af535d57
   image_crop: e0a67085d3ebf3cf46ca46d61c53a082507b0bc3
@@ -208,12 +226,14 @@ SPEC CHECKSUMS:
   shared_preferences_macos: f3f29b71ccbb56bf40c9dd6396c9acf15e214087
   shared_preferences_web: 141cce0c3ed1a1c5bf2a0e44f52d31eeb66e5ea9
   sqflite: 4001a31ff81d210346b500c55b17f4d6c7589dd0
+  tobias: 4c0085b1d9e16ea680f99173e8fd115987b544e6
   url_launcher: a1c0cc845906122c4784c542523d8cacbded5626
   url_launcher_macos: fd7894421cd39320dce5f292fc99ea9270b2a313
   url_launcher_web: e5527357f037c87560776e36436bf2b0288b965c
   video_player: 69c5f029fac4ffe4fc8a85ea7f7b793709661549
   video_player_web: da8cadb8274ed4f8dbee8d7171b420dedd437ce7
   webview_flutter: bec7599de6bfbe8008a739aa3ebd7b364ea9d0cd
+  WechatOpenSDK: 6a4d1436c15b3b5fe2a0bd383f3046010186da44
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
 
