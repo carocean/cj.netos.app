@@ -158,6 +158,9 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
     for (var account in stockAccounts) {
       var bank = account['bankid'];
       var bankInfo = await _getBankInfo(bank);
+      if (bankInfo == null) {
+        continue;
+      }
       var price = await _getPrice(bank);
       var freezen = 0;
       for (var freezenAccount in freezenAccounts) {
@@ -207,6 +210,9 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         'banksn': bank,
       },
     );
+    if (map == null) {
+      return null;
+    }
     return BankInfo(
       title: map['title'],
       id: map['id'],
@@ -215,8 +221,8 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       ctime: map['ctime'],
       icon: map['icon'],
       masterId: map['masterId'],
-      masterPerson:map['masterPerson'] ,
-      masterType:map['masterType'] ,
+      masterPerson: map['masterPerson'],
+      masterType: map['masterType'],
     );
   }
 
