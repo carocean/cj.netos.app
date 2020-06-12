@@ -33,7 +33,7 @@ class _StockWenyAccountState extends State<StockWenyAccount> {
               bottom: 10,
             ),
             child: Text(
-              '我的纹银',
+              '纹银存量',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

@@ -18,7 +18,8 @@ class WenyBankWidget extends StatefulWidget {
   _WenyBankWidgetState createState() => _WenyBankWidgetState();
 }
 
-class _WenyBankWidgetState extends State<WenyBankWidget> with SingleTickerProviderStateMixin{
+class _WenyBankWidgetState extends State<WenyBankWidget>
+    with SingleTickerProviderStateMixin {
   WenyBank _bank;
   TabController tabController;
   List<TabPageView> tabPageViews;
@@ -49,7 +50,7 @@ class _WenyBankWidgetState extends State<WenyBankWidget> with SingleTickerProvid
       ),
       TabPageView(
         title: '承兑',
-view: Container(),
+        view: Container(),
 //        view: MineExchanges(
 //          context: widget.context,
 //          bank: _bank,
@@ -69,6 +70,7 @@ view: Container(),
     tabPageViews.clear();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -266,6 +268,65 @@ class _PriceCardState extends State<_PriceCard> {
                     Padding(
                       padding: EdgeInsets.only(
                         top: 5,
+                        bottom: 5,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '市盈率: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 5,
+                        bottom: 5,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '账比: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  height: 16,
+                  child: Divider(
+                    height: 1,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 5,
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -425,19 +486,17 @@ class _PriceCardState extends State<_PriceCard> {
                   ),
                   child: _klineEntities.isEmpty
                       ? Center(
-                    child: Text('没有数据'),
-                  )
+                          child: Text('没有数据'),
+                        )
                       : KChartWidget(
-                    _klineEntities,
-                    isLine: true,
-                    fractionDigits: 14,
-                    mainState: MainState.MA,
-                    secondaryState: SecondaryState.NONE,
-                    volState: VolState.NONE,
-                    onLoadMore: (value) {
-
-                    },
-                  ),
+                          _klineEntities,
+                          isLine: true,
+                          fractionDigits: 14,
+                          mainState: MainState.MA,
+                          secondaryState: SecondaryState.NONE,
+                          volState: VolState.NONE,
+                          onLoadMore: (value) {},
+                        ),
                 ),
               ],
             ),
@@ -473,7 +532,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             title: '纹银存量',
             tips: '₩${(widget.bank?.stock ?? 0).toStringAsFixed(14)}',
             onTap: () {
-              widget.context.forward('/wybank/account/stock', arguments: {
+              widget.context.forward('/wenybank/account/stock', arguments: {
                 'bank': widget.bank,
               });
             },
@@ -485,7 +544,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             title: '资金现量',
             tips: '¥38388.34',
             onTap: () {
-              widget.context.forward('/wybank/account/stock', arguments: {
+              widget.context.forward('/wenybank/account/fund', arguments: {
                 'bank': widget.bank,
               });
             },
@@ -497,7 +556,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             title: '冻结资金',
             tips: '¥${widget.bank?.freezenYan ?? '-'}',
             onTap: () {
-              widget.context.forward('/wybank/account/freezen', arguments: {
+              widget.context.forward('/wenybank/account/freezen', arguments: {
                 'bank': widget.bank,
               });
             },
@@ -506,10 +565,10 @@ class __AccountsCardState extends State<_AccountsCard> {
             height: 1,
           ),
           _getCardItem(
-            title: '可分配资金',
-            tips:  '¥939.23',
+            title: '账金账户',
+            tips: '¥939.23',
             onTap: () {
-              widget.context.forward('/wybank/account/profit', arguments: {
+              widget.context.forward('/wenybank/account/free', arguments: {
                 'bank': widget.bank,
               });
             },

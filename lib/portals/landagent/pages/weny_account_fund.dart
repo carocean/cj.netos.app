@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 
-class FreezenWenyAccount extends StatefulWidget {
+class FundWenyAccount extends StatefulWidget {
   PageContext context;
 
-  FreezenWenyAccount({this.context});
+  FundWenyAccount({this.context});
 
   @override
-  _FreezenWenyAccountState createState() => _FreezenWenyAccountState();
+  _FundWenyAccountState createState() => _FundWenyAccountState();
 }
 
-class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
+class _FundWenyAccountState extends State<FundWenyAccount> {
   WenyBank _bank;
 
   @override
@@ -32,7 +32,7 @@ class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
               bottom: 10,
             ),
             child: Text(
-              '冻结资金',
+              '资金现量',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

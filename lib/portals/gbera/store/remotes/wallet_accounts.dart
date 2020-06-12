@@ -48,26 +48,32 @@ class WenyBank {
 
 class BankInfo {
   String creator;
-  int property;
   String ctime;
   String id;
   int state;
   String title;
+  String masterId;
+  int masterType;
+  String masterPerson;
+  String icon;
 
-  BankInfo(
-      {this.creator,
-      this.property,
-      this.ctime,
-      this.id,
-      this.state,
-      this.title});
+  BankInfo({
+    this.creator,
+    this.ctime,
+    this.id,
+    this.state,
+    this.title,
+    this.masterId,
+    this.masterPerson,
+    this.masterType,
+    this.icon,
+  });
 }
 
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
 
- Future<WenyBank> getWenyBankAcount(String bank) {}
-
+  Future<WenyBank> getWenyBankAcount(String bank) {}
 }
 
 class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
@@ -91,33 +97,33 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
   }
 
   @override
-  Future<WenyBank> getWenyBankAcount(String bank) async{
+  Future<WenyBank> getWenyBankAcount(String bank) async {
     var stockAccount = await remotePorts.portGET(
       walletBalancePorts,
       'getStockAccount',
       parameters: {
-        'wenyBankID':bank,
+        'wenyBankID': bank,
       },
     );
     var profitAccount = await remotePorts.portGET(
       walletBalancePorts,
       'getProfitAccount',
       parameters: {
-        'wenyBankID':bank,
+        'wenyBankID': bank,
       },
     );
     var freezenAccount = await remotePorts.portGET(
       walletBalancePorts,
       'getFreezenAccount',
       parameters: {
-        'wenyBankID':bank,
+        'wenyBankID': bank,
       },
     );
     var priceAccount = await remotePorts.portGET(
       bankBalancePorts,
       'getPriceBucket',
       parameters: {
-        'wenyBankID':bank,
+        'wenyBankID': bank,
       },
     );
     return new WenyBank(
@@ -207,7 +213,10 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       state: map['state'],
       creator: map['creator'],
       ctime: map['ctime'],
-      property: map['property'],
+      icon: map['icon'],
+      masterId: map['masterId'],
+      masterPerson:map['masterPerson'] ,
+      masterType:map['masterType'] ,
     );
   }
 

@@ -43,6 +43,7 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
               '地商(LA)',
             ),
             actions: <Widget>[
+              widget.context.principal.appid!='la.netos'?SizedBox(height: 0,width: 0,):
               PopupMenuButton(
                 onSelected: (String value) {
                   switch(value) {
@@ -98,7 +99,7 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                             ),
                             Text.rich(
                               TextSpan(
-                                text: '分账余额:',
+                                text: '账金余额:',
                                 children: [
                                   TextSpan(text: '¥28383.23'),
                                 ],
@@ -202,7 +203,10 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                     ctime: '20200603122816333',
                     id: 'xxxx',
                     state: 1,
-                    property: 0,
+                    masterType: 0,
+                    icon: '',
+                    masterId: '',
+                    masterPerson: '',
                     creator: 'cj@gbera.netos',
                   ),
                 ),
@@ -220,7 +224,10 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                     ctime: '20200603122816333',
                     id: 'xxxx',
                     state: 1,
-                    property: 0,
+                    masterType: 0,
+                    icon: '',
+                    masterId: '',
+                    masterPerson: '',
                     creator: 'cj@gbera.netos',
                   ),
                 ),
