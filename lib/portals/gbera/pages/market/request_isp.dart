@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'dart:math' as math;
 
 class RequestISP extends StatefulWidget {
   PageContext context;
@@ -13,10 +14,30 @@ class RequestISP extends StatefulWidget {
 class _RequestISPState extends State<RequestISP> {
   int _activityNo = 0;
   ScrollController _controller;
+  TextEditingController _cropName;
+  TextEditingController _cropCode;
+  TextEditingController _simpleName;
+  TextEditingController _masterRealName;
+  TextEditingController _masterPhone;
+  TextEditingController _verifyCode;
+  TextEditingController _bussinessScope;
+  String _bussinessAreaTitle;
+  String _bussinessAreaCode;
+  String _licenceSrc;
+  String _cropLogo;
+
+  double _operatePeriod = 12.0;
+  int _fee = 2332;
 
   @override
   void initState() {
     _controller = ScrollController();
+    _cropName=TextEditingController();
+    _cropCode=TextEditingController();
+    _simpleName=TextEditingController();
+    _masterRealName=TextEditingController();
+    _masterPhone=TextEditingController();
+    _bussinessScope=TextEditingController();
     super.initState();
   }
 
@@ -25,6 +46,8 @@ class _RequestISPState extends State<RequestISP> {
     _controller?.dispose();
     super.dispose();
   }
+
+  Future<void> _applyRegister() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +273,7 @@ class _RequestISPState extends State<RequestISP> {
   }
 
   _renderStep1RegisterPanel() {
+    final ThemeData theme = Theme.of(context);
     return ListView(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -278,11 +302,45 @@ class _RequestISPState extends State<RequestISP> {
               ),
               Expanded(
                 child: TextField(
+                  controller: _cropName,
                   style: TextStyle(
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
                     hintText: '输入营业执照上的公司名',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 0,
+            top: 0,
+          ),
+          child: Row(
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  '公司简称:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  right: 5,
+                ),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _simpleName,
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '输入企业简称',
                     border: InputBorder.none,
                   ),
                 ),
@@ -310,6 +368,7 @@ class _RequestISPState extends State<RequestISP> {
               ),
               Expanded(
                 child: TextField(
+                  controller: _cropCode,
                   style: TextStyle(
                     fontSize: 14,
                   ),
@@ -317,6 +376,61 @@ class _RequestISPState extends State<RequestISP> {
                     hintText: '输入营业执照上的信用代码',
                     border: InputBorder.none,
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 10,
+            top: 20,
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 5,
+                          ),
+                          child: Text(
+                            '公司Logo:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {},
+                          child: Text('上传'),
+                        ),
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 20,
+                        bottom: 20,
+                      ),
+                      child: Center(
+                        child: FadeInImage.assetNetwork(
+                          placeholder:
+                              'lib/portals/gbera/images/default_image.png',
+                          image:
+                              'http://47.105.165.186:7100/public/IMG_0220.jpg?accessToken=${widget.context.principal.accessToken}',
+                          height: 40,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -359,6 +473,7 @@ class _RequestISPState extends State<RequestISP> {
                     Padding(
                       padding: EdgeInsets.only(
                         top: 20,
+                        bottom: 20,
                       ),
                       child: Center(
                         child: FadeInImage.assetNetwork(
@@ -386,50 +501,7 @@ class _RequestISPState extends State<RequestISP> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                child: Text(
-                  '费用:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                padding: EdgeInsets.only(
-                  right: 5,
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    fontSize: 14,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '1年29999.00元；2年49999.00元;3-5年79999.00元',
-                    border: InputBorder.none,
-                    prefixText: '¥',
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  left: 5,
-                ),
-                child: Text('元'),
-              ),
-            ],
-          ),
-        ),
-        Divider(
-          height: 1,
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-            bottom: 10,
-            top: 10,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Padding(
                 child: Text(
@@ -439,26 +511,75 @@ class _RequestISPState extends State<RequestISP> {
                   ),
                 ),
                 padding: EdgeInsets.only(
-                  right: 5,
+                  top: 12,
                 ),
               ),
               Expanded(
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    fontSize: 14,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '生效时间为审批通过的第2天',
-                    border: InputBorder.none,
-                  ),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  children: <Widget>[
+                    SliderTheme(
+                      data: theme.sliderTheme.copyWith(
+                        activeTrackColor: Colors.greenAccent,
+                        inactiveTrackColor:
+                            theme.colorScheme.onSurface.withOpacity(0.5),
+                        activeTickMarkColor:
+                            theme.colorScheme.onSurface.withOpacity(0.7),
+                        inactiveTickMarkColor:
+                            theme.colorScheme.surface.withOpacity(0.7),
+                        overlayColor:
+                            theme.colorScheme.onSurface.withOpacity(0.12),
+                        thumbColor: Colors.redAccent,
+                        valueIndicatorColor: Colors.deepPurpleAccent,
+                        thumbShape: _CustomThumbShape(),
+                        valueIndicatorShape: _CustomValueIndicatorShape(),
+                        valueIndicatorTextStyle: theme.accentTextTheme.body2
+                            .copyWith(color: theme.colorScheme.onSurface),
+                      ),
+                      child: Slider(
+                        value: _operatePeriod,
+                        min: 12,
+                        max: 72,
+                        divisions: 5,
+                        onChanged: (v) {
+                          setState(() {
+                            _operatePeriod = v;
+                          });
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        bottom: 10,
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Text(
+                            '服务费: ',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_fee / 100.00).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(
                   left: 5,
+                  top: 12,
                 ),
-                child: Text('年'),
+                child: Text('${(_operatePeriod).toStringAsFixed(0)}个月'),
               ),
             ],
           ),
@@ -466,6 +587,63 @@ class _RequestISPState extends State<RequestISP> {
         Divider(
           height: 1,
         ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 20,
+            top: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  '经营地域:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  right: 5,
+                ),
+              ),
+              Expanded(
+                child: Text('x '),
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 20,
+            top: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  '经营范围:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  right: 5,
+                ),
+              ),
+              Expanded(
+                child: Text('x '),
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+        ),
+
         Padding(
           padding: EdgeInsets.only(
             bottom: 10,
@@ -487,6 +665,7 @@ class _RequestISPState extends State<RequestISP> {
               ),
               Expanded(
                 child: TextField(
+                  controller: _masterRealName,
                   keyboardType: TextInputType.number,
                   style: TextStyle(
                     fontSize: 14,
@@ -526,6 +705,7 @@ class _RequestISPState extends State<RequestISP> {
                   ),
                   Expanded(
                     child: TextField(
+                      controller: _masterPhone,
                       keyboardType: TextInputType.number,
                       style: TextStyle(
                         fontSize: 14,
@@ -563,6 +743,7 @@ class _RequestISPState extends State<RequestISP> {
                   top: 5,
                 ),
                 child: TextField(
+                  controller: _verifyCode,
                   keyboardType: TextInputType.number,
                   style: TextStyle(
                     fontSize: 14,
@@ -609,7 +790,9 @@ class _RequestISPState extends State<RequestISP> {
           onPressed: () {
             _activityNo++;
             _controller?.jumpTo(0);
-            setState(() {});
+            _applyRegister().then((v) {
+              setState(() {});
+            });
           },
           color: Colors.green,
           textColor: Colors.white,
@@ -856,4 +1039,126 @@ class DemoHeader extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) =>
       true; // 因为所有的内容都是固定的，所以不需要更新
+}
+
+class _CustomThumbShape extends SliderComponentShape {
+  static const double _thumbSize = 4.0;
+  static const double _disabledThumbSize = 3.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return isEnabled
+        ? const Size.fromRadius(_thumbSize)
+        : const Size.fromRadius(_disabledThumbSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledThumbSize,
+    end: _thumbSize,
+  );
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset thumbCenter, {
+    Animation<double> activationAnimation,
+    Animation<double> enableAnimation,
+    bool isDiscrete,
+    TextPainter labelPainter,
+    RenderBox parentBox,
+    SliderThemeData sliderTheme,
+    TextDirection textDirection,
+    double value,
+  }) {
+    final Canvas canvas = context.canvas;
+    final ColorTween colorTween = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.thumbColor,
+    );
+    final double size = _thumbSize * sizeTween.evaluate(enableAnimation);
+    final Path thumbPath = _downTriangle(size, thumbCenter);
+    canvas.drawPath(
+        thumbPath, Paint()..color = colorTween.evaluate(enableAnimation));
+  }
+}
+
+class _CustomValueIndicatorShape extends SliderComponentShape {
+  static const double _indicatorSize = 4.0;
+  static const double _disabledIndicatorSize = 3.0;
+  static const double _slideUpHeight = 40.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(isEnabled ? _indicatorSize : _disabledIndicatorSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledIndicatorSize,
+    end: _indicatorSize,
+  );
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset thumbCenter, {
+    Animation<double> activationAnimation,
+    Animation<double> enableAnimation,
+    bool isDiscrete,
+    TextPainter labelPainter,
+    RenderBox parentBox,
+    SliderThemeData sliderTheme,
+    TextDirection textDirection,
+    double value,
+  }) {
+    final Canvas canvas = context.canvas;
+    final ColorTween enableColor = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.valueIndicatorColor,
+    );
+    final Tween<double> slideUpTween = Tween<double>(
+      begin: 0.0,
+      end: _slideUpHeight,
+    );
+    final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
+    final Offset slideUpOffset =
+        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+    final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
+    final Color paintColor = enableColor
+        .evaluate(enableAnimation)
+        .withAlpha((255.0 * activationAnimation.value).round());
+    canvas.drawPath(
+      thumbPath,
+      Paint()..color = paintColor,
+    );
+    canvas.drawLine(
+        thumbCenter,
+        thumbCenter + slideUpOffset,
+        Paint()
+          ..color = paintColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0);
+    labelPainter.paint(
+        canvas,
+        thumbCenter +
+            slideUpOffset +
+            Offset(-labelPainter.width / 2.0, -labelPainter.height - 4.0));
+  }
+}
+
+Path _upTriangle(double size, Offset thumbCenter) =>
+    _downTriangle(size, thumbCenter, invert: true);
+
+Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
+  final Path thumbPath = Path();
+  final double height = math.sqrt(3.0) / 2.0;
+  final double centerHeight = size * height / 3.0;
+  final double halfSize = size / 2.0;
+  final double sign = invert ? -1.0 : 1.0;
+  thumbPath.moveTo(
+      thumbCenter.dx - halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.lineTo(thumbCenter.dx, thumbCenter.dy - 2.0 * sign * centerHeight);
+  thumbPath.lineTo(
+      thumbCenter.dx + halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.close();
+  return thumbPath;
 }
