@@ -1,6 +1,20 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:framework/framework.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/util.dart';
 import 'dart:math' as math;
+
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/store/remotes/isp.dart';
+import 'package:uuid/uuid.dart';
 
 class RequestISP extends StatefulWidget {
   PageContext context;
@@ -12,7 +26,8 @@ class RequestISP extends StatefulWidget {
 }
 
 class _RequestISPState extends State<RequestISP> {
-  int _activityNo = 0;
+  int _pannel_index = 0; //0为登记页；1为流程页；
+  bool _watting_for_check_workitem = true;
   ScrollController _controller;
   TextEditingController _cropName;
   TextEditingController _cropCode;
@@ -20,24 +35,67 @@ class _RequestISPState extends State<RequestISP> {
   TextEditingController _masterRealName;
   TextEditingController _masterPhone;
   TextEditingController _verifyCode;
-  TextEditingController _bussinessScope;
+  String _bussinessScope;
   String _bussinessAreaTitle;
   String _bussinessAreaCode;
   String _licenceSrc;
   String _cropLogo;
+  String _licenceSrc_local;
+  String _cropLogo_local;
+  bool _signContract = true;
+  int _operatePeriod = 12;
+  int _fee = 0;
+  int _isp_fee_per_month = 5000000; //isp每月收费5万元
 
-  double _operatePeriod = 12.0;
-  int _fee = 2332;
+  //上传进度条
+  int _upload_licence_i = 0;
+  int _upload_licence_j = 0;
+  int _upload_logo_i = 0;
+  int _upload_logo_j = 0;
+  bool _licence_uploading = false;
+  bool _logo_uploading = false;
+  String _fetchCodeLabel = '获取验证码';
+  bool _fetchButtonEnabled = false;
+  int _verifyCode_result = 0; //验证结果.0还没验证；1成功；-1失败
+  List<WorkItem> _workitems = [];
 
   @override
   void initState() {
+    _fee = _operatePeriod * _isp_fee_per_month;
     _controller = ScrollController();
-    _cropName=TextEditingController();
-    _cropCode=TextEditingController();
-    _simpleName=TextEditingController();
-    _masterRealName=TextEditingController();
-    _masterPhone=TextEditingController();
-    _bussinessScope=TextEditingController();
+    _cropName = TextEditingController();
+    _cropCode = TextEditingController();
+    _simpleName = TextEditingController();
+    _masterRealName = TextEditingController();
+    _masterPhone = TextEditingController();
+    _verifyCode = TextEditingController();
+    _bussinessScope =
+        '授权贵公司在##内经营节点动力旗下地微相关产品服务，服务包括：\n1、平聊服务；\n2、网流服务；\n3、地圈服务；\n4、追链服务；\n5、地商服务；\n6、其它经双方约定的服务。';
+    geoLocation.start();
+    geoLocation.listen('/market/isp', 0, (location) async {
+      if (!mounted) {
+        return;
+      }
+      var province = await location.province;
+      if (StringUtil.isEmpty(province)) {
+        return;
+      }
+      geoLocation.unlisten('/market/isp');
+      geoLocation.stop();
+      var list = await AmapSearch.searchKeyword(province);
+      for (var item in list) {
+        _bussinessAreaTitle = await item.provinceName;
+        _bussinessAreaCode = await item.provinceCode;
+        setState(() {});
+        break;
+      }
+    });
+    _loadWorkflow().then((v) {
+      _watting_for_check_workitem = false;
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -47,7 +105,49 @@ class _RequestISPState extends State<RequestISP> {
     super.dispose();
   }
 
-  Future<void> _applyRegister() async {}
+  Future<void> _loadWorkflow() async {
+    IIspRemote remote = widget.context.site.getService('/remote/org/isp');
+    List<WorkItem> items = await remote.pageMyWorkItemOnWorkflow();
+    _workitems.addAll(items);
+    if (items.isNotEmpty) {
+      _pannel_index = 1;
+    } else {
+      _pannel_index = 0;
+    }
+  }
+
+  Future<void> _applyRegister() async {
+    IIspRemote remote = widget.context.site.getService('/remote/org/isp');
+    var workitem = await remote.applyRegisterByPerson(IspApplayBO(
+      bussinessAreaCode: _bussinessAreaCode,
+      bussinessAreaTitle: _bussinessAreaTitle,
+      bussinessScop: _bussinessScope,
+      cropCode: _cropCode.text,
+      cropLogo: _cropLogo,
+      cropName: _cropName.text,
+      fee: _fee,
+      licenceSrc: _licenceSrc,
+      masterPhone: _masterPhone.text,
+      masterRealName: _masterRealName.text,
+      operatePeriod: _operatePeriod,
+      simpleName: _simpleName.text,
+    ));
+  }
+
+  bool _checkNextButtonEnabled() {
+    return !StringUtil.isEmpty(_cropName.text) &&
+        !StringUtil.isEmpty(_simpleName.text) &&
+        !StringUtil.isEmpty(_cropCode.text) &&
+        !StringUtil.isEmpty(_licenceSrc) &&
+        !StringUtil.isEmpty(_cropLogo) &&
+        _operatePeriod > 0 &&
+        _fee > 0 &&
+        !StringUtil.isEmpty(_bussinessAreaTitle) &&
+        !StringUtil.isEmpty(_bussinessAreaCode) &&
+        !StringUtil.isEmpty(_masterRealName.text) &&
+        _verifyCode_result == 1 &&
+        _signContract;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +233,7 @@ class _RequestISPState extends State<RequestISP> {
                             ),
                             decoration: BoxDecoration(
                               color:
-                                  _activityNo > 0 ? Colors.red : Colors.green,
+                                  _pannel_index > 0 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -179,7 +279,7 @@ class _RequestISPState extends State<RequestISP> {
                             ),
                             decoration: BoxDecoration(
                               color:
-                                  _activityNo > 1 ? Colors.red : Colors.green,
+                                  _pannel_index > 1 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -225,7 +325,7 @@ class _RequestISPState extends State<RequestISP> {
                             ),
                             decoration: BoxDecoration(
                               color:
-                                  _activityNo > 2 ? Colors.red : Colors.green,
+                                  _pannel_index > 2 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -257,18 +357,178 @@ class _RequestISPState extends State<RequestISP> {
             ),
           ];
         },
-        body: Container(
-          constraints: BoxConstraints.expand(),
-          color: Colors.white,
-          child: IndexedStack(
-            index: _activityNo,
-            children: <Widget>[
-              _renderStep1RegisterPanel(),
-              _renderStep2PaymentPanel(),
-            ],
-          ),
-        ),
+        body: _watting_for_check_workitem
+            ? Center(
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : Container(
+                constraints: BoxConstraints.expand(),
+                color: Colors.white,
+                child: IndexedStack(
+                  index: _pannel_index,
+                  children: <Widget>[
+                    _renderStep1RegisterPanel(),
+                    _renderWorkitemPannel(),
+                    _renderStep2PaymentPanel(),
+                  ],
+                ),
+              ),
       ),
+    );
+  }
+
+  Future<void> _uploadCropLogo() async {
+//    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    widget.context.forward('/widgets/avatar', arguments: {
+      'aspectRatio': -1.0,
+    }).then((avatar) async {
+      if (StringUtil.isEmpty(avatar)) {
+        return;
+      }
+      print('----$avatar');
+      _cropLogo_local = avatar;
+      _logo_uploading = true;
+      setState(() {});
+      var map = await widget.context.ports
+          .upload('/app/org/isp/logo/', [avatar], onSendProgress: (i, j) {
+        _upload_logo_i = i;
+        _upload_logo_j = j;
+        if (i == j) {
+          _logo_uploading = false;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      _cropLogo = map[avatar];
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<void> _uploadLicence() async {
+    widget.context.forward('/widgets/avatar', arguments: {
+      'aspectRatio': -1.0,
+    }).then((avatar) async {
+      if (StringUtil.isEmpty(avatar)) {
+        return;
+      }
+      print('----$avatar');
+      _licenceSrc_local = avatar;
+      _licence_uploading = true;
+      setState(() {});
+      var map = await widget.context.ports
+          .upload('/app/org/isp/licence/', [avatar], onSendProgress: (i, j) {
+        _upload_licence_i = i;
+        _upload_licence_j = j;
+        if (i == j) {
+          _licence_uploading = false;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      _licenceSrc = map[avatar];
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  _requestCode() async {
+    _fetchCodeLabel = '获取中...';
+    _fetchButtonEnabled = false;
+    setState(() {});
+    AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
+    appKeyPair = await appKeyPair.getAppKeyPair(
+        widget.context.principal.appid, widget.context.site);
+    var nonce = MD5Util.MD5(Uuid().v1());
+    await widget.context.ports.callback(
+      'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
+      restCommand: 'sendVerifyCode',
+      headers: {
+        'app-id': appKeyPair.appid,
+        'app-key': appKeyPair.appKey,
+        'app-nonce': nonce,
+        'app-sign': appKeyPair.appSign(nonce),
+      },
+      parameters: {
+        "phone": _masterPhone.text,
+      },
+      onsucceed: ({dynamic rc, dynamic response}) {
+        print(rc);
+        _fetchCodeLabel = '获取成功';
+
+        var times = 60;
+        Timer.periodic(Duration(milliseconds: 1000), (t) {
+          if (times == 0) {
+            t.cancel();
+            _fetchCodeLabel = '重新获取';
+            _fetchButtonEnabled = true;
+            if (super.mounted) {
+              setState(() {});
+            }
+            return;
+          }
+          _fetchCodeLabel = '等待..${times}s';
+          times--;
+          if (super.mounted) {
+            setState(() {});
+          }
+        });
+      },
+      onerror: ({e, stack}) {
+        print(e);
+        _fetchCodeLabel = '重新获取';
+        _fetchButtonEnabled = true;
+
+        setState(() {});
+      },
+      onReceiveProgress: (i, j) {
+        print('$i-$j');
+      },
+    );
+  }
+
+  Future<void> _doVerfiyCode() async {
+    AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
+    appKeyPair = await appKeyPair.getAppKeyPair(
+        widget.context.principal.appid, widget.context.site);
+    var nonce = MD5Util.MD5(Uuid().v1());
+    await widget.context.ports.callback(
+      'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
+      restCommand: 'verifyCode',
+      headers: {
+        'app-id': appKeyPair.appid,
+        'app-key': appKeyPair.appKey,
+        'app-nonce': nonce,
+        'app-sign': appKeyPair.appSign(nonce),
+      },
+      parameters: {
+        "phone": _masterPhone.text,
+        'verifyCode': _verifyCode.text,
+      },
+      onsucceed: ({dynamic rc, dynamic response}) {
+        var content = rc['dataText'];
+        _verifyCode_result = content == 'true' ? 1 : -1;
+        if (mounted) {
+          setState(() {});
+        }
+      },
+      onerror: ({e, stack}) {
+        _verifyCode_result = -1;
+        if (mounted) {
+          setState(() {});
+        }
+      },
+      onReceiveProgress: (i, j) {
+        print('$i-$j');
+      },
     );
   }
 
@@ -409,7 +669,13 @@ class _RequestISPState extends State<RequestISP> {
                         ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {},
+                          onTap: () {
+                            _uploadCropLogo().then((v) {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
+                          },
                           child: Text('上传'),
                         ),
                       ],
@@ -421,12 +687,31 @@ class _RequestISPState extends State<RequestISP> {
                         bottom: 20,
                       ),
                       child: Center(
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'lib/portals/gbera/images/default_image.png',
-                          image:
-                              'http://47.105.165.186:7100/public/IMG_0220.jpg?accessToken=${widget.context.principal.accessToken}',
-                          height: 40,
+                        child: Column(
+                          children: <Widget>[
+                            StringUtil.isEmpty(_cropLogo_local)
+                                ? Container(
+                                    width: 0,
+                                    height: 0,
+                                  )
+                                : Image.file(
+                                    File('$_cropLogo_local'),
+                                    width: 60,
+                                  ),
+                            !_logo_uploading
+                                ? Container(
+                                    width: 0,
+                                    height: 0,
+                                  )
+                                : Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                    ),
+                                    child: Text(
+                                      '${((_upload_logo_i * 1.0 / _upload_logo_j) * 100.00).toStringAsFixed(0)}%',
+                                    ),
+                                  ),
+                          ],
                         ),
                       ),
                     ),
@@ -464,7 +749,11 @@ class _RequestISPState extends State<RequestISP> {
                         ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {},
+                          onTap: () {
+                            _uploadLicence().then((v) {
+                              setState(() {});
+                            });
+                          },
                           child: Text('上传'),
                         ),
                       ],
@@ -476,12 +765,31 @@ class _RequestISPState extends State<RequestISP> {
                         bottom: 20,
                       ),
                       child: Center(
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'lib/portals/gbera/images/default_image.png',
-                          image:
-                              'http://47.105.165.186:7100/public/IMG_0220.jpg?accessToken=${widget.context.principal.accessToken}',
-                          height: 200,
+                        child: Column(
+                          children: <Widget>[
+                            StringUtil.isEmpty(_licenceSrc_local)
+                                ? Container(
+                                    width: 0,
+                                    height: 0,
+                                  )
+                                : Image.file(
+                                    File(_licenceSrc_local),
+                                    height: 200,
+                                  ),
+                            !_licence_uploading
+                                ? Container(
+                                    width: 0,
+                                    height: 0,
+                                  )
+                                : Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4,
+                                    ),
+                                    child: Text(
+                                      '${((_upload_licence_i * 1.0 / _upload_licence_j) * 100.00).toStringAsFixed(0)}%',
+                                    ),
+                                  ),
+                          ],
                         ),
                       ),
                     ),
@@ -499,13 +807,13 @@ class _RequestISPState extends State<RequestISP> {
             bottom: 10,
             top: 10,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               Padding(
                 child: Text(
-                  'ISP经营牌照期限:',
+                  'ISP经营期限:',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                   ),
@@ -514,72 +822,103 @@ class _RequestISPState extends State<RequestISP> {
                   top: 12,
                 ),
               ),
-              Expanded(
-                child: Wrap(
-                  direction: Axis.vertical,
-                  children: <Widget>[
-                    SliderTheme(
-                      data: theme.sliderTheme.copyWith(
-                        activeTrackColor: Colors.greenAccent,
-                        inactiveTrackColor:
-                            theme.colorScheme.onSurface.withOpacity(0.5),
-                        activeTickMarkColor:
-                            theme.colorScheme.onSurface.withOpacity(0.7),
-                        inactiveTickMarkColor:
-                            theme.colorScheme.surface.withOpacity(0.7),
-                        overlayColor:
-                            theme.colorScheme.onSurface.withOpacity(0.12),
-                        thumbColor: Colors.redAccent,
-                        valueIndicatorColor: Colors.deepPurpleAccent,
-                        thumbShape: _CustomThumbShape(),
-                        valueIndicatorShape: _CustomValueIndicatorShape(),
-                        valueIndicatorTextStyle: theme.accentTextTheme.body2
-                            .copyWith(color: theme.colorScheme.onSurface),
+              Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                        child: SliderTheme(
+                          data: theme.sliderTheme.copyWith(
+                            activeTrackColor: Colors.greenAccent,
+                            inactiveTrackColor:
+                                theme.colorScheme.onSurface.withOpacity(0.5),
+                            activeTickMarkColor:
+                                theme.colorScheme.onSurface.withOpacity(0.7),
+                            inactiveTickMarkColor:
+                                theme.colorScheme.surface.withOpacity(0.7),
+                            overlayColor:
+                                theme.colorScheme.onSurface.withOpacity(0.12),
+                            thumbColor: Colors.redAccent,
+                            valueIndicatorColor: Colors.deepPurpleAccent,
+                            thumbShape: _CustomThumbShape(),
+                            valueIndicatorShape: _CustomValueIndicatorShape(),
+                            valueIndicatorTextStyle: theme.accentTextTheme.body2
+                                .copyWith(color: theme.colorScheme.onSurface),
+                          ),
+                          child: Slider(
+                            value: _operatePeriod * 1.0,
+                            min: 12,
+                            max: 120,
+                            divisions: 18,
+                            onChanged: (v) {
+                              setState(() {
+                                _operatePeriod = v.floor();
+                                _fee = _operatePeriod * _isp_fee_per_month;
+                              });
+                            },
+                          ),
+                        ),
                       ),
-                      child: Slider(
-                        value: _operatePeriod,
-                        min: 12,
-                        max: 72,
-                        divisions: 5,
-                        onChanged: (v) {
-                          setState(() {
-                            _operatePeriod = v;
-                          });
-                        },
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 5,
+                        ),
+                        child: Text('${(_operatePeriod).toStringAsFixed(0)}个月'),
                       ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      bottom: 10,
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: 20,
-                        bottom: 10,
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            '服务费: ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
+                    child: Row(
+                      children: <Widget>[
+                        Text(
+                          '服务费: ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
                           ),
-                          Text(
-                            '¥${(_fee / 100.00).toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
+                        ),
+                        Text(
+                          '¥${(_fee / 100.00).toStringAsFixed(2)}=${(_fee / 1000000.00).toStringAsFixed(4)}万元',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.redAccent,
                           ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  left: 5,
-                  top: 12,
-                ),
-                child: Text('${(_operatePeriod).toStringAsFixed(0)}个月'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      bottom: 10,
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Text(
+                          '注: ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        Text(
+                          '按月计费，每月服务费是:¥${(_isp_fee_per_month / 100.0).toStringAsFixed(2)}=${(_isp_fee_per_month / 1000000.0).toStringAsFixed(4)}万元',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
               ),
             ],
           ),
@@ -597,7 +936,7 @@ class _RequestISPState extends State<RequestISP> {
             children: <Widget>[
               Padding(
                 child: Text(
-                  '经营地域:',
+                  '授权经营地域:',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                   ),
@@ -607,7 +946,13 @@ class _RequestISPState extends State<RequestISP> {
                 ),
               ),
               Expanded(
-                child: Text('x '),
+                child: Text(
+                  '${_bussinessAreaTitle ?? '定位中...'}',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
@@ -635,7 +980,13 @@ class _RequestISPState extends State<RequestISP> {
                 ),
               ),
               Expanded(
-                child: Text('x '),
+                child: Text(
+                  (_bussinessScope ?? '')
+                      ?.replaceFirst('##', _bussinessAreaTitle ?? '...'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
@@ -643,7 +994,6 @@ class _RequestISPState extends State<RequestISP> {
         Divider(
           height: 1,
         ),
-
         Padding(
           padding: EdgeInsets.only(
             bottom: 10,
@@ -707,6 +1057,10 @@ class _RequestISPState extends State<RequestISP> {
                     child: TextField(
                       controller: _masterPhone,
                       keyboardType: TextInputType.number,
+                      onChanged: (v) {
+                        _fetchButtonEnabled = !StringUtil.isEmpty(v);
+                        setState(() {});
+                      },
                       style: TextStyle(
                         fontSize: 14,
                       ),
@@ -723,12 +1077,17 @@ class _RequestISPState extends State<RequestISP> {
                       top: 5,
                       bottom: 5,
                     ),
-                    color: Colors.green,
+                    color:
+                        !_fetchButtonEnabled ? Colors.grey[400] : Colors.green,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () {},
+                      onTap: !_fetchButtonEnabled
+                          ? null
+                          : () {
+                              _requestCode();
+                            },
                       child: Text(
-                        '获取验证码',
+                        _fetchCodeLabel,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -751,7 +1110,14 @@ class _RequestISPState extends State<RequestISP> {
                   decoration: InputDecoration(
                     hintText: '输入验证码',
                     border: InputBorder.none,
+                    counterText: '${_verifyCode_result == 1 ? '验证成功' : ''}',
+                    errorText: '${_verifyCode_result == -1 ? '验证失败' : ''}',
                   ),
+                  onChanged: (v) {
+                    if (!StringUtil.isEmpty(v) && v.length == 6) {
+                      _doVerfiyCode();
+                    }
+                  },
                 ),
               ),
             ],
@@ -780,21 +1146,29 @@ class _RequestISPState extends State<RequestISP> {
                 ),
               ),
               Checkbox(
-                value: true,
+                value: _signContract,
+                onChanged: (v) {
+                  _signContract = v;
+                  setState(() {});
+                },
               ),
               Text('运营商(ISP)经营牌照许可协议条款')
             ],
           ),
         ),
         FlatButton(
-          onPressed: () {
-            _activityNo++;
-            _controller?.jumpTo(0);
-            _applyRegister().then((v) {
-              setState(() {});
-            });
-          },
+          onPressed: !_checkNextButtonEnabled()
+              ? null
+              : () {
+                  _pannel_index++;
+                  _controller?.jumpTo(0);
+                  _applyRegister().then((v) {
+                    setState(() {});
+                  });
+                },
           color: Colors.green,
+          disabledColor: Colors.grey[300],
+          disabledTextColor: Colors.white,
           textColor: Colors.white,
           child: Text(
             '下一步',
@@ -815,151 +1189,153 @@ class _RequestISPState extends State<RequestISP> {
       child: Column(
         children: <Widget>[
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      child: Text(
-                        '应付金额:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                      padding: EdgeInsets.only(
-                        right: 5,
-                        bottom: 20,
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        '¥29999.00',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 32,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 20,
-                    top: 10,
-                  ),
-                  child: Text(
-                    '平台收款行信息：',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    bottom: 10,
-                  ),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.start,
-                    runSpacing: 10,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          SizedBox(
-                            width: 60,
-                            child: Text(
-                              '开户行:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                      Padding(
+                        child: Text(
+                          '应付金额:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            color: Colors.grey[500],
                           ),
-                          Text(
-                            '中国工商银行',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                        ),
+                        padding: EdgeInsets.only(
+                          right: 5,
+                          bottom: 20,
+                        ),
                       ),
-                      Row(
-                        children: <Widget>[
-                          SizedBox(
-                            width: 60,
-                            child: Text(
-                              '行号:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                      Center(
+                        child: Text(
+                          '¥29999.00',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 32,
                           ),
-                          Text(
-                            '083838822773737733',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Container(
-                  height: 40,
-                  child: Divider(
-                    height: 1,
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 20,
+                      top: 10,
+                    ),
+                    child: Text(
+                      '平台收款行信息：',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      bottom: 10,
+                    ),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      runSpacing: 10,
                       children: <Widget>[
-                        Padding(
-                          child: Text(
-                            '拍摄交易单:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
+                        Row(
+                          children: <Widget>[
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                '开户行:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
-                          padding: EdgeInsets.only(
-                            right: 5,
-                          ),
+                            Text(
+                              '中国工商银行',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {},
-                          child: Icon(
-                            Icons.camera_alt,
-                            size: 20,
-                            color: Colors.grey[600],
-                          ),
+                        Row(
+                          children: <Widget>[
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                '行号:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '083838822773737733',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Center(
-                      child: FadeInImage.assetNetwork(
-                        placeholder:
-                            'lib/portals/gbera/images/default_image.png',
-                        image:
-                            'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
-                        height: 200,
-                      ),
+                  ),
+                  Container(
+                    height: 40,
+                    child: Divider(
+                      height: 1,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                            child: Text(
+                              '拍摄交易单:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                            padding: EdgeInsets.only(
+                              right: 5,
+                            ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {},
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 20,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Center(
+                        child: FadeInImage.assetNetwork(
+                          placeholder:
+                              'lib/portals/gbera/images/default_image.png',
+                          image:
+                              'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
+                          height: 200,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -986,7 +1362,7 @@ class _RequestISPState extends State<RequestISP> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                _activityNo--;
+                _pannel_index--;
                 _controller?.jumpTo(0);
                 if (mounted) {
                   setState(() {});
@@ -1007,6 +1383,113 @@ class _RequestISPState extends State<RequestISP> {
           ),
         ],
       ),
+    );
+  }
+
+  _renderWorkitemPannel() {
+    return ListView(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 10,
+      ),
+      children: _workitems.map((item) {
+        var inst = item.workInst;
+        var event = item.workEvent;
+        var map = jsonDecode(inst.data);
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            switch (event.stepNo) {
+              case 0: //注册
+                break;
+              case 1: //付款确认
+                _pannel_index = 2;
+                break;
+              case 2:
+                break;
+              case 3:
+                break;
+            }
+            setState(() {});
+          },
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 5,
+                    ),
+                    child: Text('${event.stepNo + 1}'),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                              inst.name ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              TimelineUtil.formatByDateTime(
+                                    parseStrTime(event.ctime, len: 17),
+                                    dayFormat: DayFormat.Full,
+                                  ) ??
+                                  '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text('${map['simpleName']}'),
+                            Text.rich(
+                              TextSpan(
+                                text: '',
+                                children: [
+                                  TextSpan(
+                                    text: '${event.title ?? ''}',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
+                child: Divider(
+                  height: 1,
+                ),
+              )
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

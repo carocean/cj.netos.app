@@ -149,6 +149,7 @@ flutter:
     - lib/portals/gbera/wallpapers/6.png
     - lib/portals/gbera/data/depth.json
     - lib/portals/gbera/data/kline.json
+    - lib/portals/gbera/images/default_watting.gif
   fonts:
     - family: geo_discovery
       fonts:
