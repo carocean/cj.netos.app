@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
 
@@ -139,9 +140,20 @@ class _WorkgroupDetailsState extends State<WorkgroupDetails> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Icon(
-                            Icons.add,
-                            size: 18,
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              showSearch(
+                                context: context,
+                                delegate: PersonSearchDelegate(widget.context),
+                              ).then((v) {
+                                print('------$v');
+                              });
+                            },
+                            child: Icon(
+                              Icons.add,
+                              size: 18,
+                            ),
                           ),
                         ],
                       ),
