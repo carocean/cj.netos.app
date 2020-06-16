@@ -13,7 +13,7 @@ import 'package:netos_app/common/util.dart';
 import 'dart:math' as math;
 
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
-import 'package:netos_app/portals/gbera/store/remotes/isp.dart';
+import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:uuid/uuid.dart';
 
 class RequestISP extends StatefulWidget {
@@ -27,6 +27,7 @@ class RequestISP extends StatefulWidget {
 
 class _RequestISPState extends State<RequestISP> {
   int _pannel_index = 0; //0为登记页；1为流程页；
+  int _step_no = 0;
   bool _watting_for_check_workitem = true;
   ScrollController _controller;
   TextEditingController _cropName;
@@ -58,6 +59,7 @@ class _RequestISPState extends State<RequestISP> {
   bool _fetchButtonEnabled = false;
   int _verifyCode_result = 0; //验证结果.0还没验证；1成功；-1失败
   List<WorkItem> _workitems = [];
+  WorkItem _currentWorkItem;
 
   @override
   void initState() {
@@ -92,6 +94,11 @@ class _RequestISPState extends State<RequestISP> {
     });
     _loadWorkflow().then((v) {
       _watting_for_check_workitem = false;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _loadRecipientBanks().then((value) {
       if (mounted) {
         setState(() {});
       }
@@ -232,8 +239,7 @@ class _RequestISPState extends State<RequestISP> {
                               ),
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  _pannel_index > 0 ? Colors.red : Colors.green,
+                              color: _step_no > 0 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -278,8 +284,7 @@ class _RequestISPState extends State<RequestISP> {
                               ),
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  _pannel_index > 1 ? Colors.red : Colors.green,
+                              color: _step_no > 1 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -324,8 +329,7 @@ class _RequestISPState extends State<RequestISP> {
                               ),
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  _pannel_index > 2 ? Colors.red : Colors.green,
+                              color: _step_no > 2 ? Colors.red : Colors.green,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(20),
                               ),
@@ -1178,7 +1182,64 @@ class _RequestISPState extends State<RequestISP> {
     );
   }
 
+  List<ReceivingBankOL> _banks = [];
+
+  Future<void> _loadRecipientBanks() async {
+    IReceivingBankRemote remote =
+        widget.context.site.getService('/remote/org/receivingBank');
+    List<ReceivingBankOL> items = await remote.getAll();
+    _banks.addAll(items);
+  }
+
+  String _evidence, _evidence_local;
+  bool _evidence_uploading = false;
+  int _upload_evidence_i = 0, _upload_evidence_j = 1;
+
+  Future<void> _uploadTradeNo() async {
+    widget.context.forward('/widgets/avatar').then((avatar) async {
+      if (StringUtil.isEmpty(avatar)) {
+        return;
+      }
+      _evidence_local = avatar;
+      _evidence_uploading = true;
+      setState(() {});
+      var map = await widget.context.ports
+          .upload('/app/org/isp/evidence/', [avatar], onSendProgress: (i, j) {
+        _upload_evidence_i = i;
+        _upload_evidence_j = j;
+        if (i == j) {
+          _evidence_uploading = false;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      _evidence = map[avatar];
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<void> _confirmPayment() async {
+    IIspRemote remote = widget.context.site.getService('/remote/org/isp');
+    var workitem =
+        await remote.confirmPayOrder(_currentWorkItem.workInst.id, _evidence);
+    _pannel_index = 1;
+    _workitems.clear();
+    _workitems.add(workitem);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   _renderStep2PaymentPanel() {
+    if (_currentWorkItem == null) {
+      return Container();
+    }
+    var inst = _currentWorkItem.workInst;
+    var event = _currentWorkItem.workEvent;
+    var data = jsonDecode(inst.data);
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -1212,7 +1273,7 @@ class _RequestISPState extends State<RequestISP> {
                       ),
                       Center(
                         child: Text(
-                          '¥29999.00',
+                          '¥${((data['fee'] as int) / 100 / 10000.0).toStringAsFixed(4)}万元',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 32,
@@ -1227,7 +1288,7 @@ class _RequestISPState extends State<RequestISP> {
                       top: 10,
                     ),
                     child: Text(
-                      '平台收款行信息：',
+                      '平台收款行：',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -1241,55 +1302,78 @@ class _RequestISPState extends State<RequestISP> {
                       right: 20,
                       bottom: 10,
                     ),
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      runSpacing: 10,
-                      children: <Widget>[
-                        Row(
+                    child: Column(
+                      children: _banks.map((bank) {
+                        return Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.start,
+                          runSpacing: 10,
                           children: <Widget>[
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                '开户行:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
+                            Row(
+                              children: <Widget>[
+                                SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    '开户行:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  '${bank.bankName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              '中国工商银行',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
+                            Row(
+                              children: <Widget>[
+                                SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    '户名:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${bank.accountName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    '账号:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${bank.accountNo}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 20,
+                              child: Divider(
+                                height: 1,
                               ),
                             ),
                           ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                '行号:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              '083838822773737733',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 40,
-                    child: Divider(
-                      height: 1,
+                        );
+                      }).toList(),
                     ),
                   ),
                   Column(
@@ -1314,7 +1398,9 @@ class _RequestISPState extends State<RequestISP> {
                           ),
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: () {},
+                            onTap: () {
+                              _uploadTradeNo();
+                            },
                             child: Icon(
                               Icons.camera_alt,
                               size: 20,
@@ -1323,15 +1409,30 @@ class _RequestISPState extends State<RequestISP> {
                           ),
                         ],
                       ),
-                      Center(
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'lib/portals/gbera/images/default_image.png',
-                          image:
-                              'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
-                          height: 200,
-                        ),
-                      ),
+                      !_evidence_uploading
+                          ? SizedBox(
+                              width: 0,
+                              height: 0,
+                            )
+                          : Center(
+                              child: Text(
+                                '${((_upload_evidence_i / _upload_evidence_j) * 100).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                            ),
+                      StringUtil.isEmpty(_evidence_local)
+                          ? SizedBox(
+                              width: 0,
+                              height: 0,
+                            )
+                          : Center(
+                              child: Image.file(
+                                File('$_evidence_local'),
+                                width: 150,
+                              ),
+                            ),
                     ],
                   ),
                 ],
@@ -1349,9 +1450,15 @@ class _RequestISPState extends State<RequestISP> {
               ),
               child: FlatButton(
                 color: Colors.green,
-                onPressed: () {},
+                disabledColor: Colors.grey[400],
+                disabledTextColor: Colors.grey[100],
+                onPressed: StringUtil.isEmpty(_evidence)
+                    ? null
+                    : () {
+                        _confirmPayment();
+                      },
                 textColor: Colors.white,
-                child: Text('立即支付'),
+                child: Text('确认'),
               ),
             ),
           ),
@@ -1397,33 +1504,71 @@ class _RequestISPState extends State<RequestISP> {
         var inst = item.workInst;
         var event = item.workEvent;
         var map = jsonDecode(inst.data);
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            switch (event.stepNo) {
-              case 0: //注册
-                break;
-              case 1: //付款确认
-                _pannel_index = 2;
-                break;
-              case 2:
-                break;
-              case 3:
-                break;
-            }
-            setState(() {});
-          },
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Padding(
+        switch (event.code) {
+          case 'workInstBegin':
+            _step_no = 0;
+            break;
+          case 'payConfirm':
+            _step_no = 1;
+            break;
+        }
+        return Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.forward('/org/workitem/details');
+                  },
+                  child: Padding(
                     padding: EdgeInsets.only(
-                      right: 5,
+                      right: 10,
                     ),
-                    child: Text('${event.stepNo + 1}'),
+                    child: Stack(
+                      overflow: Overflow.visible,
+                      children: <Widget>[
+                        Image.network(
+                          '${inst.icon}?accessToken=${widget.context.principal.accessToken}',
+                          width: 35,
+                          height: 35,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          child: Center(
+                            child: Text(
+                              '${event.stepNo + 1}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                  Expanded(
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      switch (event.code) {
+                        case 'workInstBegin': //注册
+                          break;
+                        case 'payConfirm': //付款确认
+                          _pannel_index = 2;
+                          _step_no = 1;
+                          _currentWorkItem = item;
+                          break;
+                      }
+                      setState(() {});
+                    },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -1433,7 +1578,7 @@ class _RequestISPState extends State<RequestISP> {
                             Text(
                               inst.name ?? '',
                               style: TextStyle(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
@@ -1455,7 +1600,12 @@ class _RequestISPState extends State<RequestISP> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Text('${map['simpleName']}'),
+                            Text(
+                              '${map['simpleName']}',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
                             Text.rich(
                               TextSpan(
                                 text: '',
@@ -1478,16 +1628,16 @@ class _RequestISPState extends State<RequestISP> {
                       ],
                     ),
                   ),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-                child: Divider(
-                  height: 1,
                 ),
-              )
-            ],
-          ),
+              ],
+            ),
+            SizedBox(
+              height: 20,
+              child: Divider(
+                height: 1,
+              ),
+            )
+          ],
         );
       }).toList(),
     );

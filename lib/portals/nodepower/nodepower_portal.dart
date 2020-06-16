@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
+import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
+import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
 import 'package:netos_app/portals/nodepower/pages/organization.dart';
 import 'package:netos_app/portals/nodepower/pages/workbench.dart';
+import 'package:netos_app/portals/nodepower/pages/workflow_details.dart';
+import 'package:netos_app/portals/nodepower/pages/workflow_manager.dart';
+import 'package:netos_app/portals/nodepower/pages/workgroup_details.dart';
+import 'package:netos_app/portals/nodepower/pages/workgroup_manager.dart';
+import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
+import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
 import 'package:netos_app/portals/nodepower/scaffolds.dart';
+
+import 'desklets/desklet_workflow.dart';
 
 var buildPortal = (IServiceProvider site) => Portal(
       id: 'nodepower',
@@ -65,7 +76,28 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
       ],
-      buildDesklets: (site) => <Desklet>[],
+      buildDesklets: (site) => <Desklet>[
+        Desklet(
+          title: '工作',
+          url: '/workflow',
+          icon: Icons.group_work,
+          subtitle: '',
+          desc: '',
+          buildDesklet: (portlet, desklet, context) {
+            return WorkflowDesklet(
+              context: context,
+              desklet: desklet,
+              portlet: portlet,
+            );
+          },
+        )
+      ],
+      builderSceneServices: (site) async {
+        return <String, dynamic>{
+          '/remote/org/workflow': WorkflowRemote(),
+          '/remote/org/workgroup': WorkgroupRemote(),
+        };
+      },
       buildPages: (site) => <LogicPage>[
         LogicPage(
           title: '运营商',
@@ -109,6 +141,69 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/mine',
           buildPage: (PageContext pageContext) => Mine(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '图片',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/widgets/avatar',
+          buildPage: (PageContext pageContext) => GberaAvatar(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工作流管理',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/workflow',
+          buildPage: (PageContext pageContext) => WorkflowManager(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建工作流程',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/createWorkflow',
+          buildPage: (PageContext pageContext) => CreateWorkflow(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工作流详情',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/workflow/details',
+          buildPage: (PageContext pageContext) => WorkflowDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工作组管理',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/workgroup',
+          buildPage: (PageContext pageContext) => WorkgroupManager(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建工作组',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/createWorkgroup',
+          buildPage: (PageContext pageContext) => CreateWorkgroup(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工作组详情',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/work/workgroup/details',
+          buildPage: (PageContext pageContext) => WorkgroupDetails(
             context: pageContext,
           ),
         ),

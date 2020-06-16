@@ -91,7 +91,8 @@ void main() => platformRun(
             '@.prop.ports.wybank.bill.fund':'http://47.105.165.186/wybank/bill/fund.ports',
             '@.prop.ports.org.isp':'http://47.105.165.186/org/isp.ports',
             '@.prop.ports.org.workflow':'http://47.105.165.186/org/workflow.ports',
-            '@.prop.org.workflow.isp':'4699F6534868138FFBF3442BBEEEE2D5',//isp申请的工作流标识
+            '@.prop.org.workflow.isp':'workflow.isp.apply',//isp申请的工作流标识
+            '@.prop.ports.org.receivingBank':'http://47.105.165.186/org/receivingBank.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

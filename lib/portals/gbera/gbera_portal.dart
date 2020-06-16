@@ -138,7 +138,7 @@ import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
-import 'package:netos_app/portals/gbera/store/remotes/isp.dart';
+import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -211,6 +211,7 @@ class GberaPortal {
           '/wallet/bills': WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/remote/org/isp': IspRemote(),
+          '/remote/org/receivingBank':ReceivingBankRemote(),
         };
       },
       builderShareServices: (site) async {

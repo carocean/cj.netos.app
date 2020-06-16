@@ -51,7 +51,7 @@ class _NodePowerScaffoldState extends State<NodePowerScaffold> {
             icon: Icon(Icons.apps),
           ),
           BottomNavigationBarItem(
-            title: Text('组织'),
+            title: Text('同事'),
             icon: Icon(Icons.group),
           ),
           BottomNavigationBarItem(

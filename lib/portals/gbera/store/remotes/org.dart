@@ -109,10 +109,65 @@ class WorkEvent {
       this.data});
 }
 
+class ReceivingBankOL {
+  String id;
+  String bankName;
+  String accountName;
+  String accountNo;
+  String note;
+
+  ReceivingBankOL(
+      {this.id, this.bankName, this.accountName, this.accountNo, this.note});
+}
+
+mixin IReceivingBankRemote {
+  Future<List<ReceivingBankOL>> getAll() {}
+}
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
 
   Future<List<WorkItem>> pageMyWorkItemOnWorkflow() {}
+
+ Future<WorkItem> confirmPayOrder(String id, String evidence) {}
+
+}
+
+class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  get receivingBankPorts => site.getService('@.prop.ports.org.receivingBank');
+
+  @override
+  Future<void> builder(IServiceProvider site) {
+    this.site = site;
+    return null;
+  }
+
+  @override
+  Future<List<ReceivingBankOL>> getAll() async {
+    var list = await remotePorts.portGET(
+      receivingBankPorts,
+      'getAll',
+      parameters: {},
+    );
+    List<ReceivingBankOL> banks = [];
+    for (var obj in list) {
+      banks.add(
+        ReceivingBankOL(
+          note: obj['note'],
+          id: obj['id'],
+          accountName: obj['accountName'],
+          accountNo: obj['accountNo'],
+          bankName: obj['bankName'],
+        ),
+      );
+    }
+    return banks;
+  }
 }
 
 class IspRemote implements IIspRemote, IServiceBuilder {
@@ -178,15 +233,56 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   }
 
   @override
+  Future<WorkItem> confirmPayOrder(String workinst, String evidence) async{
+    var obj = await remotePorts.portGET(
+      ispPorts,
+      'confirmPayOrder',
+      parameters: {
+        'workinst': workinst,
+        'payEvidence':evidence,
+      },
+    );
+    var workInstObj = obj['workInst'];
+    var workEventObj = obj['workEvent'];
+    return WorkItem(
+      workEvent: WorkEvent(
+        workInst: workEventObj['workInst'],
+        data: workEventObj['data'],
+        title: workEventObj['title'],
+        id: workEventObj['id'],
+        ctime: workEventObj['ctime'],
+        dtime: workEventObj['dtime'],
+        code: workEventObj['code'],
+        isDone: workEventObj['isDone'],
+        operated: workEventObj['operated'],
+        prevEvent: workEventObj['prevEvent'],
+        recipient: workEventObj['recipient'],
+        sender: workEventObj['sender'],
+        stepNo: workEventObj['stepNo'],
+      ),
+      workInst: WorkInst(
+        isDone: workInstObj['isDone'],
+        ctime: workInstObj['ctime'],
+        id: workInstObj['id'],
+        data: workInstObj['data'],
+        creator: workInstObj['creator'],
+        icon: workInstObj['icon'],
+        name: workInstObj['name'],
+        workflow: workInstObj['workflow'],
+      ),
+    );
+  }
+
+  @override
   Future<List<WorkItem>> pageMyWorkItemOnWorkflow() async {
     var list = await remotePorts.portGET(
       workflowPorts,
       'pageMyWorkItemOnWorkflow',
       parameters: {
         'workflow': workFlow,
-        'filter':0,
-        'limit':100,
-        'offset':0,
+        'filter': 0,
+        'limit': 100,
+        'offset': 0,
       },
     );
     var result = <WorkItem>[];

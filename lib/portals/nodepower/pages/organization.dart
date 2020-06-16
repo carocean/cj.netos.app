@@ -17,7 +17,7 @@ class _OrganizationState extends State<Organization> {
       slivers: <Widget>[
         SliverAppBar(
           pinned: true,
-          title: Text('组织架构'),
+          title: Text('同事'),
           centerTitle: true,
         ),
       ],
