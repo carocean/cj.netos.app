@@ -4,6 +4,7 @@ import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
+import 'package:netos_app/system/pages/person_card.dart';
 import 'package:netos_app/system/remote/persons.dart';
 
 import 'entrypoint.dart';
@@ -22,11 +23,11 @@ System buildSystem(IServiceProvider site) {
     builderShareServices: (site) async {
       return <String, dynamic>{
         "/principals": PrincipalService(),
-        "/local/principals":DefaultLocalPrincipalManager(),
+        "/local/principals": DefaultLocalPrincipalManager(),
         "/gbera/persons": PersonService(),
-        '/remote/persons':PersonRemote(),
-        '/cache/persons':PersonCache(),
-        '/cache/channels':ChannelCache(),
+        '/remote/persons': PersonRemote(),
+        '/cache/persons': PersonCache(),
+        '/cache/channels': ChannelCache(),
       };
     },
     buildThemes: buildThemes,
@@ -136,6 +137,15 @@ List<LogicPage> buildPages(site) {
       icon: null,
       url: '/error',
       buildPage: (PageContext pageContext) => GberaError(
+        context: pageContext,
+      ),
+    ),
+    LogicPage(
+      title: '公众名片',
+      subtitle: '',
+      icon: null,
+      url: '/public/card/basicPerson',
+      buildPage: (PageContext pageContext) => PersonCard(
         context: pageContext,
       ),
     ),

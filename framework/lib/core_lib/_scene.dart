@@ -24,6 +24,8 @@ mixin IScene implements IDisposable {
 
   String get theme;
 
+  IServiceProvider get site;
+
   Map<String, Widget Function(BuildContext)> get pages;
 
   ThemeData getActivedThemeData(BuildContext context);
@@ -58,6 +60,8 @@ class DefaultScene implements IScene, IServiceProvider {
   DefaultScene({
     @required this.name,
   });
+
+  IServiceProvider get site => this;
 
   @override
   bool containsPage(String path) {

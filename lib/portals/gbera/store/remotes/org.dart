@@ -126,10 +126,11 @@ mixin IReceivingBankRemote {
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
 
-  Future<List<WorkItem>> pageMyWorkItemOnWorkflow() {}
+  Future<List<WorkItem>> pageMyWorkItemOnWorkflow(int filter) {}
 
- Future<WorkItem> confirmPayOrder(String id, String evidence) {}
+  Future<WorkItem> confirmPayOrder(String id, String evidence) {}
 
+  Future<void> checkApplyRegisterByPlatform(String id, bool bool) {}
 }
 
 class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
@@ -233,13 +234,13 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   }
 
   @override
-  Future<WorkItem> confirmPayOrder(String workinst, String evidence) async{
+  Future<WorkItem> confirmPayOrder(String workinst, String evidence) async {
     var obj = await remotePorts.portGET(
       ispPorts,
       'confirmPayOrder',
       parameters: {
         'workinst': workinst,
-        'payEvidence':evidence,
+        'payEvidence': evidence,
       },
     );
     var workInstObj = obj['workInst'];
@@ -274,13 +275,13 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<WorkItem>> pageMyWorkItemOnWorkflow() async {
+  Future<List<WorkItem>> pageMyWorkItemOnWorkflow(int filter) async {
     var list = await remotePorts.portGET(
       workflowPorts,
       'pageMyWorkItemOnWorkflow',
       parameters: {
         'workflow': workFlow,
-        'filter': 0,
+        'filter': filter,
         'limit': 100,
         'offset': 0,
       },
@@ -320,5 +321,18 @@ class IspRemote implements IIspRemote, IServiceBuilder {
       );
     }
     return result;
+  }
+
+  @override
+  Future<Function> checkApplyRegisterByPlatform(
+      String workinst, bool checkPass) async {
+    await remotePorts.portGET(
+      ispPorts,
+      'checkApplyRegisterByPlatform',
+      parameters: {
+        'workinst': workinst,
+        'checkPass': checkPass,
+      },
+    );
   }
 }

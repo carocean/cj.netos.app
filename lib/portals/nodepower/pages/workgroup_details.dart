@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/nodepower/pages/search_person_of_app.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class WorkgroupDetails extends StatefulWidget {
   PageContext context;
@@ -14,6 +20,53 @@ class WorkgroupDetails extends StatefulWidget {
 }
 
 class _WorkgroupDetailsState extends State<WorkgroupDetails> {
+  List<Person> _recipients = [];
+
+  @override
+  void initState() {
+    _loadWorkgroupRecipients();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _loadWorkgroupRecipients() async {
+    Workgroup workgroup = widget.context.parameters['workgroup'];
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/remote/org/workflow');
+    List<String> recipients =
+        await workflowRemote.getWorkGroupRecipients(workgroup.code);
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+
+    for (String official in recipients) {
+      var person =
+          await personService.getPerson(official, isDownloadAvatar: true);
+      if (person == null) {
+        continue;
+      }
+      _recipients.add(person);
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  _removeWorkRecipient(Person person) async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/remote/org/workflow');
+    Workgroup workgroup = widget.context.parameters['workgroup'];
+    await workflowRemote.removeWorkRecipient(workgroup.code, person.official);
+    _recipients.removeWhere((element) => element.official == person.official);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Workgroup workgroup = widget.context.parameters['workgroup'];
@@ -145,9 +198,11 @@ class _WorkgroupDetailsState extends State<WorkgroupDetails> {
                             onTap: () {
                               showSearch(
                                 context: context,
-                                delegate: PersonSearchDelegate(widget.context),
+                                delegate: PersonOfAppSearchDelegate(
+                                    widget.context, workgroup),
                               ).then((v) {
-                                print('------$v');
+                                _recipients.clear();
+                                _loadWorkgroupRecipients();
                               });
                             },
                             child: Icon(
@@ -176,11 +231,102 @@ class _WorkgroupDetailsState extends State<WorkgroupDetails> {
 
   _renderRecipients() {
     var list = <Widget>[];
-    for (var i = 0; i < 100; i++) {
+    for (var recipient in _recipients) {
       list.add(
-        Container(
-          height: 40,
-          child: Text('1'),
+        Column(
+          children: <Widget>[
+            Slidable(
+              actionPane: SlidableDrawerActionPane(),
+              secondaryActions: <Widget>[
+                IconSlideAction(
+                  caption: '删除',
+                  foregroundColor: Colors.grey[500],
+                  icon: Icons.delete,
+                  onTap: () async {
+                    _removeWorkRecipient(recipient);
+                  },
+                ),
+              ],
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+              widget.context.forward('/public/card/basicPerson',
+                  arguments: {'person': recipient});
+                },
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                  ),
+                  color: Colors.white,
+                  child: Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 10,
+                        ),
+                        child: SizedBox(
+                          width: 40,
+                          child: Image.file(
+                            File(recipient.avatar),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    '${recipient.nickName ?? ''}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${recipient.official}',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 5,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                top: 15,
+                bottom: 15,
+              ),
+              child: Divider(
+                height: 1,
+                indent: 65,
+              ),
+            ),
+          ],
         ),
       );
     }

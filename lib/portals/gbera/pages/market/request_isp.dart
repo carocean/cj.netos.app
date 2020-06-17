@@ -13,6 +13,7 @@ import 'package:netos_app/common/util.dart';
 import 'dart:math' as math;
 
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/pages/market/org_licence.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:uuid/uuid.dart';
 
@@ -92,7 +93,7 @@ class _RequestISPState extends State<RequestISP> {
         break;
       }
     });
-    _loadWorkflow().then((v) {
+    _loadWorkitem().then((v) {
       _watting_for_check_workitem = false;
       if (mounted) {
         setState(() {});
@@ -112,9 +113,12 @@ class _RequestISPState extends State<RequestISP> {
     super.dispose();
   }
 
-  Future<void> _loadWorkflow() async {
+  Future<void> _loadWorkitem() async {
     IIspRemote remote = widget.context.site.getService('/remote/org/isp');
-    List<WorkItem> items = await remote.pageMyWorkItemOnWorkflow();
+    List<WorkItem> items = await remote.pageMyWorkItemOnWorkflow(1);
+    if(items.isNotEmpty) {
+      _currentWorkItem=items[0];
+    }
     _workitems.addAll(items);
     if (items.isNotEmpty) {
       _pannel_index = 1;
@@ -378,6 +382,8 @@ class _RequestISPState extends State<RequestISP> {
                     _renderStep1RegisterPanel(),
                     _renderWorkitemPannel(),
                     _renderStep2PaymentPanel(),
+                    _renderStep3PlatformChecker(),
+                    _renderStep4EndFlow(),
                   ],
                 ),
               ),
@@ -1511,6 +1517,12 @@ class _RequestISPState extends State<RequestISP> {
           case 'payConfirm':
             _step_no = 1;
             break;
+          case 'platformChecker':
+            _step_no = 2;
+            break;
+          case 'workInstEnd':
+            _step_no = 3;
+            break;
         }
         return Column(
           children: <Widget>[
@@ -1561,10 +1573,20 @@ class _RequestISPState extends State<RequestISP> {
                       switch (event.code) {
                         case 'workInstBegin': //注册
                           break;
+                        case 'return':
                         case 'payConfirm': //付款确认
                           _pannel_index = 2;
                           _step_no = 1;
                           _currentWorkItem = item;
+                          break;
+                        case 'platformChecker':
+                          _pannel_index = 3;
+                          _step_no = 2;
+                          _currentWorkItem = item;
+                          break;
+                        case 'workInstEnd':
+                          _pannel_index = 4;
+                          _step_no = 3;
                           break;
                       }
                       setState(() {});
@@ -1640,6 +1662,74 @@ class _RequestISPState extends State<RequestISP> {
           ],
         );
       }).toList(),
+    );
+  }
+
+  _renderStep3PlatformChecker() {
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: Center(
+            child: Text('等待平台审核'),
+          ),
+        ),
+        Container(
+          child: FlatButton(
+            onPressed: () {
+              _pannel_index = 1;
+              setState(() {});
+            },
+            child: Text('返回'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  _renderStep4EndFlow() {
+    var json=_currentWorkItem.workEvent.data;
+    var obj=jsonDecode(json);
+    var ispid=obj['organ'];
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                ),
+                child: Card(
+                  color: Colors.blue[50],
+                  child: OrgLicenceCard(
+                    context: widget.context,
+                    ispid:ispid,
+                    type: 0,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        Container(
+          color: Theme.of(context).backgroundColor,
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: FlatButton(
+            onPressed: () {
+              _pannel_index = 1;
+              setState(() {});
+            },
+            child: Text('返回'),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
+import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
@@ -17,6 +20,7 @@ import 'package:netos_app/portals/nodepower/pages/workgroup_manager.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
 import 'package:netos_app/portals/nodepower/scaffolds.dart';
+import 'package:netos_app/system/pages/person_card.dart';
 
 import 'desklets/desklet_workflow.dart';
 
@@ -96,6 +100,7 @@ var buildPortal = (IServiceProvider site) => Portal(
         return <String, dynamic>{
           '/remote/org/workflow': WorkflowRemote(),
           '/remote/org/workgroup': WorkgroupRemote(),
+          '/remote/org/isp': IspRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -206,6 +211,48 @@ var buildPortal = (IServiceProvider site) => Portal(
           buildPage: (PageContext pageContext) => WorkgroupDetails(
             context: pageContext,
           ),
+        ),
+        LogicPage(
+          title: '公众名片',
+          subtitle: '',
+          icon: null,
+          url: '/public/card/basicPerson',
+          buildPage: (PageContext pageContext) => PersonCard(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: 'ISP平台审批',
+          subtitle: '',
+          icon: null,
+          url: '/work/workitem/adoptISP',
+          buildPage: (PageContext pageContext) => AdoptISP(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '图片查看器',
+          subtitle: '',
+          desc: '',
+          icon: Icons.image,
+          url: '/images/viewer',
+          buildRoute:
+              (RouteSettings settings, LogicPage page, IServiceProvider site) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                PageContext pageContext = PageContext(
+                  page: page,
+                  site: site,
+                  context: context,
+                );
+                return new ImageViewer(
+                  context: pageContext,
+                );
+              },
+              fullscreenDialog: true,
+            );
+          },
         ),
       ],
     );
