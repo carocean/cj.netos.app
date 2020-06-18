@@ -30,6 +30,8 @@ mixin IWorkflowRemote {
   Future<List<String>> getWorkGroupRecipients(String workgroup) {}
 
   Future<List<WorkItem>> pageMyWorkItem(int limit, int offset) {}
+
+  Future<bool> doMyWorkItem(String id, String s, bool bool) {}
 }
 
 class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
@@ -200,5 +202,20 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
       );
     }
     return result;
+  }
+
+  @override
+  Future<bool> doMyWorkItem(
+      String workinst, String operated, bool doneWorkInst) async {
+    var obj = await remotePorts.portGET(
+      workflowPorts,
+      'doMyWorkItem',
+      parameters: {
+        'workinst': workinst,
+        'operated': operated,
+        'doneWorkInst': doneWorkInst,
+      },
+    );
+    return obj;
   }
 }

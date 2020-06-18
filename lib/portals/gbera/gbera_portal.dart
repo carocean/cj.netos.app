@@ -155,6 +155,7 @@ import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
 import 'package:netos_app/portals/gbera/styles/blue-styles.dart';
 import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
+import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 import 'desklets/chats/add_friend.dart';
@@ -214,6 +215,7 @@ class GberaPortal {
           '/remote/org/la': LaRemote(),
           '/remote/org/licence': LicenceRemote(),
           '/remote/org/receivingBank': ReceivingBankRemote(),
+          '/remote/org/workflow': WorkflowRemote(),
         };
       },
       builderShareServices: (site) async {

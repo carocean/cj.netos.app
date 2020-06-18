@@ -7,6 +7,7 @@ import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
+import 'package:netos_app/portals/nodepower/pages/adopt/adopt_la.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
@@ -101,6 +102,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/remote/org/workflow': WorkflowRemote(),
           '/remote/org/workgroup': WorkgroupRemote(),
           '/remote/org/isp': IspRemote(),
+          '/remote/org/la': LaRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -227,6 +229,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/work/workitem/adoptISP',
           buildPage: (PageContext pageContext) => AdoptISP(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: 'LA平台审批',
+          subtitle: '',
+          icon: null,
+          url: '/work/workitem/adoptLA',
+          buildPage: (PageContext pageContext) => AdoptLA(
             context: pageContext,
           ),
         ),

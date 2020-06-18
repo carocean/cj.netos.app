@@ -29,7 +29,7 @@ final geoLocation = GeoLocation._();
 
 class GeoLocation {
   Map<String, _GeoLocationListener> _listens = {};
-
+  bool _isStarted=false;
   GeoLocation._();
 
 //  Future<Location> get location async {
@@ -54,10 +54,20 @@ class GeoLocation {
   }
 
   void stop() {
+    if(!_isStarted) {
+      return;
+    }
     AmapLocation.stopLocation();
+    _isStarted=false;
   }
-
+  void forceStop(){
+    AmapLocation.stopLocation();
+    _isStarted=false;
+  }
   Future<void> start() async {
+    if(_isStarted) {
+      return;
+    }
     await enableFluttifyLog(false); // 关闭log
     /// !注意: 只要是返回Future的方法, 一律使用`await`修饰, 确保当前方法执行完成后再执行下一行, 在不能使用`await`修饰的环境下, 在`then`方法中执行下一步.
     /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted
@@ -66,6 +76,7 @@ class GeoLocation {
     }
 // 连续定位
     if (await requestPermission()) {
+      _isStarted=true;
       await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High,timeout: 120000)){
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
@@ -100,6 +111,7 @@ class GeoLocation {
         }
       }
     }
+
   }
 
   void setOffsetDistance(String listener,double offsetDistance) {

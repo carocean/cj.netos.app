@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
@@ -49,6 +50,12 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
         ILicenceRemote licenceRemote =
             widget.context.site.getService('/remote/org/licence');
         _orgLicenceOL = await licenceRemote.getLicence(widget.organ, 0);
+        var isp = _orgLAOL.isp;
+        if (!StringUtil.isEmpty(isp)) {
+          IspRemote ispRemote =
+              widget.context.site.getService('/remote/org/isp');
+          _orgISPOL = await ispRemote.getIsp(isp);
+        }
         break;
       case 2: //isp
         IIspRemote ispRemote =
@@ -102,8 +109,8 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                     alignment: Alignment.topCenter,
                     child: Text(
                       widget.type == 2
-                          ? 'ISP运营执照'
-                          : widget.type == 0 ? 'LA运营执照' : '',
+                          ? 'ISP营业执照'
+                          : widget.type == 0 ? 'LA营业执照' : '',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 30,
@@ -209,7 +216,9 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                         children: <Widget>[
                           Text.rich(
                             TextSpan(
-                              text: 'ISP  代  表  人   ',
+                              text: type == 0
+                                  ? 'LA  代  表   人   '
+                                  : type == 2 ? 'ISP  代  表  人   ' : '',
                               children: [
                                 TextSpan(
                                   text:
@@ -237,7 +246,7 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '授权运营区域  ',
+                              '授权营业区域  ',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -344,30 +353,6 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                         children: <Widget>[
                           Text.rich(
                             TextSpan(
-                              text: '付  费   金   额   ',
-                              children: [
-                                TextSpan(
-                                  text:
-                                      '¥${((_orgLicenceOL.fee) / 1000000.00).toStringAsFixed(2)}万元',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 3,
-                      ),
-                      Row(
-                        children: <Widget>[
-                          Text.rich(
-                            TextSpan(
                               text: '成  立   日   期   ',
                               children: [
                                 TextSpan(
@@ -407,6 +392,64 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                           ),
                         ],
                       ),
+                      SizedBox(
+                        height: 3,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Text.rich(
+                            TextSpan(
+                              text: '付  费   金   额   ',
+                              children: [
+                                TextSpan(
+                                  text:
+                                      '¥${((_orgLicenceOL.fee) / 1000000.00).toStringAsFixed(2)}万元',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      type != 0
+                          ? SizedBox(
+                              height: 0,
+                              width: 0,
+                            )
+                          : SizedBox(
+                              height: 3,
+                            ),
+                      type != 0
+                          ? SizedBox(
+                              height: 0,
+                              width: 0,
+                            )
+                          : Row(
+                              children: <Widget>[
+                                Text.rich(
+                                  TextSpan(
+                                    text: '归 属 运 营 商   ',
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            '${_orgISPOL == null ? '' : _orgISPOL.corpName}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                       SizedBox(
                         height: 20,
                       ),
@@ -461,7 +504,12 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                                 onPressed: () {
                                   widget.context.backward();
                                 },
-                                child: Text('取消',style: TextStyle(fontSize: 20,),),
+                                child: Text(
+                                  '取消',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                  ),
+                                ),
                               ),
                             ],
                           );

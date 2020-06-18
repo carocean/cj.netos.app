@@ -285,6 +285,25 @@ class _WorkflowDeskletState extends State<WorkflowDesklet> {
           _onload();
         });
         break;
+      case 'workflow.la.apply':
+        showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return pageContext.part(
+              '/work/workitem/adoptLA',
+              context,
+              arguments: {'workitem': item},
+            );
+          },
+        ).then((value) async {
+          if (StringUtil.isEmpty(value)) {
+            return;
+          }
+          _workitems.clear();
+          _offset = 0;
+          _onload();
+        });
+        break;
       default:
         break;
     }

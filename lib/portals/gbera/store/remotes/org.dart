@@ -50,6 +50,56 @@ class IspApplayBO {
   }
 }
 
+class LaApplayBO {
+  String cropName;
+  String simpleName;
+  String cropCode;
+  String licenceSrc;
+  String cropLogo;
+  String masterRealName;
+  String masterPhone;
+  int operatePeriod;
+  int fee;
+  String isp;
+  String bussinessScop;
+  String bussinessAreaTitle;
+  String bussinessAreaCode;
+
+  LaApplayBO({
+    this.cropName,
+    this.simpleName,
+    this.cropCode,
+    this.licenceSrc,
+    this.cropLogo,
+    this.masterRealName,
+    this.masterPhone,
+    this.operatePeriod,
+    this.fee,
+    this.isp,
+    this.bussinessScop,
+    this.bussinessAreaTitle,
+    this.bussinessAreaCode,
+  });
+
+  toMap() {
+    return {
+      'cropName': cropName,
+      'simpleName': simpleName,
+      'cropCode': cropCode,
+      'licenceSrc': licenceSrc,
+      'cropLogo': cropLogo,
+      'masterRealName': masterRealName,
+      'masterPhone': masterPhone,
+      'operatePeriod': operatePeriod,
+      'fee': fee,
+      'isp': isp,
+      'bussinessScop': bussinessScop,
+      'bussinessAreaTitle': bussinessAreaTitle,
+      'bussinessAreaCode': bussinessAreaCode,
+    };
+  }
+}
+
 class WorkItem {
   WorkInst workInst;
   WorkEvent workEvent;
@@ -144,6 +194,13 @@ class OrgISPOL {
   });
 }
 
+class OrgISPLicenceOL {
+  OrgISPOL ispOL;
+  OrgLicenceOL licenceOL;
+
+  OrgISPLicenceOL({this.ispOL, this.licenceOL});
+}
+
 class OrgLAOL {
   String id;
   String corpName;
@@ -207,6 +264,14 @@ mixin IReceivingBankRemote {
 }
 mixin ILaRemote {
   Future<OrgLAOL> getLa(String laid) {}
+
+  Future<List<WorkItem>> pageMyWorkItemOnWorkflow(int i) {}
+
+  Future<WorkItem> applyRegisterByPerson(LaApplayBO laApplayBO) {}
+
+  Future<WorkItem> confirmPayOrder(String id, String evidence) {}
+
+  Future<void> checkApplyRegisterByPlatform(String id, bool bool,String ispid) {}
 }
 mixin ILicenceRemote {
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
@@ -221,6 +286,8 @@ mixin IIspRemote {
   Future<void> checkApplyRegisterByPlatform(String id, bool bool) {}
 
   Future<OrgISPOL> getIsp(String ispid) {}
+
+  Future<List<OrgISPLicenceOL>> pageIsp(int i, int j) {}
 }
 
 class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
@@ -450,6 +517,58 @@ class IspRemote implements IIspRemote, IServiceBuilder {
       masterRealName: obj['masterRealName'],
     );
   }
+
+  @override
+  Future<List<OrgISPLicenceOL>> pageIsp(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      ispPorts,
+      'pageIspWithLicence',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<OrgISPLicenceOL> items = [];
+    for (var item in list) {
+      var ispObj = item['orgIsp'];
+      var licenceObj = item['orgLicence'];
+      if (licenceObj == null) {
+        continue;
+      }
+      items.add(
+        OrgISPLicenceOL(
+          ispOL: OrgISPOL(
+            corpCode: ispObj['corpCode'],
+            corpLogo: ispObj['corpLogo'],
+            corpName: ispObj['corpName'],
+            ctime: ispObj['ctime'],
+            id: ispObj['id'],
+            licenceSrc: ispObj['licenceSrc'],
+            masterPerson: ispObj['masterPerson'],
+            masterPhone: ispObj['masterPhone'],
+            masterRealName: ispObj['masterRealName'],
+          ),
+          licenceOL: OrgLicenceOL(
+            id: licenceObj['id'],
+            bussinessAreaCode: licenceObj['bussinessAreaCode'],
+            bussinessAreaTitle: licenceObj['bussinessAreaTitle'],
+            bussinessScop: licenceObj['bussinessScop'],
+            endTime: licenceObj['endTime'],
+            fee: licenceObj['fee'],
+            operatePeriod: licenceObj['operatePeriod'],
+            organ: licenceObj['organ'],
+            payEvidence: licenceObj['payEvidence'],
+            privilegeLevel: licenceObj['privilegeLevel'],
+            pubTime: licenceObj['pubTime'],
+            signText: licenceObj['signText'],
+            state: licenceObj['state'],
+            title: licenceObj['title'],
+          ),
+        ),
+      );
+    }
+    return items;
+  }
 }
 
 class LaRemote implements ILaRemote, IServiceBuilder {
@@ -494,6 +613,153 @@ class LaRemote implements ILaRemote, IServiceBuilder {
       masterPhone: obj['masterPhone'],
       masterRealName: obj['masterRealName'],
       isp: obj['isp'],
+    );
+  }
+
+  @override
+  Future<WorkItem> applyRegisterByPerson(LaApplayBO laApplayBO) async {
+    var obj = await remotePorts.portPOST(
+      laPorts,
+      'applyRegisterByPerson',
+      parameters: {
+        'workflow': workFlow,
+      },
+      data: {
+        'laApplyBO': jsonEncode(laApplayBO.toMap()),
+      },
+    );
+    var workInstObj = obj['workInst'];
+    var workEventObj = obj['workEvent'];
+    return WorkItem(
+      workEvent: WorkEvent(
+        workInst: workEventObj['workInst'],
+        data: workEventObj['data'],
+        title: workEventObj['title'],
+        id: workEventObj['id'],
+        ctime: workEventObj['ctime'],
+        dtime: workEventObj['dtime'],
+        code: workEventObj['code'],
+        isDone: workEventObj['isDone'],
+        operated: workEventObj['operated'],
+        prevEvent: workEventObj['prevEvent'],
+        recipient: workEventObj['recipient'],
+        sender: workEventObj['sender'],
+        stepNo: workEventObj['stepNo'],
+      ),
+      workInst: WorkInst(
+        isDone: workInstObj['isDone'],
+        ctime: workInstObj['ctime'],
+        id: workInstObj['id'],
+        data: workInstObj['data'],
+        creator: workInstObj['creator'],
+        icon: workInstObj['icon'],
+        name: workInstObj['name'],
+        workflow: workInstObj['workflow'],
+      ),
+    );
+  }
+
+  @override
+  Future<List<WorkItem>> pageMyWorkItemOnWorkflow(int filter) async {
+    var list = await remotePorts.portGET(
+      workflowPorts,
+      'pageMyWorkItemOnWorkflow',
+      parameters: {
+        'workflow': workFlow,
+        'filter': filter,
+        'limit': 100,
+        'offset': 0,
+      },
+    );
+    var result = <WorkItem>[];
+    for (var obj in list) {
+      var workInstObj = obj['workInst'];
+      var workEventObj = obj['workEvent'];
+      result.add(
+        WorkItem(
+          workEvent: WorkEvent(
+            workInst: workEventObj['workInst'],
+            data: workEventObj['data'],
+            title: workEventObj['title'],
+            id: workEventObj['id'],
+            ctime: workEventObj['ctime'],
+            dtime: workEventObj['dtime'],
+            code: workEventObj['code'],
+            isDone: workEventObj['isDone'],
+            operated: workEventObj['operated'],
+            prevEvent: workEventObj['prevEvent'],
+            recipient: workEventObj['recipient'],
+            sender: workEventObj['sender'],
+            stepNo: workEventObj['stepNo'],
+          ),
+          workInst: WorkInst(
+            isDone: workInstObj['isDone'],
+            ctime: workInstObj['ctime'],
+            id: workInstObj['id'],
+            data: workInstObj['data'],
+            creator: workInstObj['creator'],
+            icon: workInstObj['icon'],
+            name: workInstObj['name'],
+            workflow: workInstObj['workflow'],
+          ),
+        ),
+      );
+    }
+    return result;
+  }
+
+  @override
+  Future<WorkItem> confirmPayOrder(String workinst, String evidence) async {
+    var obj = await remotePorts.portGET(
+      laPorts,
+      'confirmPayOrder',
+      parameters: {
+        'workinst': workinst,
+        'payEvidence': evidence,
+      },
+    );
+    var workInstObj = obj['workInst'];
+    var workEventObj = obj['workEvent'];
+    return WorkItem(
+      workEvent: WorkEvent(
+        workInst: workEventObj['workInst'],
+        data: workEventObj['data'],
+        title: workEventObj['title'],
+        id: workEventObj['id'],
+        ctime: workEventObj['ctime'],
+        dtime: workEventObj['dtime'],
+        code: workEventObj['code'],
+        isDone: workEventObj['isDone'],
+        operated: workEventObj['operated'],
+        prevEvent: workEventObj['prevEvent'],
+        recipient: workEventObj['recipient'],
+        sender: workEventObj['sender'],
+        stepNo: workEventObj['stepNo'],
+      ),
+      workInst: WorkInst(
+        isDone: workInstObj['isDone'],
+        ctime: workInstObj['ctime'],
+        id: workInstObj['id'],
+        data: workInstObj['data'],
+        creator: workInstObj['creator'],
+        icon: workInstObj['icon'],
+        name: workInstObj['name'],
+        workflow: workInstObj['workflow'],
+      ),
+    );
+  }
+
+  @override
+  Future<Function> checkApplyRegisterByPlatform(
+      String workinst, bool checkPass,String ispid) async {
+    await remotePorts.portGET(
+      laPorts,
+      'checkApplyRegisterByPlatform',
+      parameters: {
+        'workinst': workinst,
+        'checkPass': checkPass,
+        'ispid':ispid,
+      },
     );
   }
 }

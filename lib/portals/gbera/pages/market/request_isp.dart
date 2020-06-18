@@ -120,21 +120,21 @@ class _RequestISPState extends State<RequestISP> {
     if (items.isNotEmpty) {
       _currentWorkItem = items[0];
       _pannel_index = 1;
-      switch(_currentWorkItem.workEvent.code) {
+      switch (_currentWorkItem.workEvent.code) {
         case 'workInstBegin':
-          _step_no=0;
+          _step_no = 0;
           break;
         case 'payConfirm':
-          _step_no=1;
+          _step_no = 1;
           break;
         case 'platformChecker':
-          _step_no=1;
+          _step_no = 1;
           break;
         case 'return':
-          _step_no=1;
+          _step_no = 1;
           break;
         case 'workInstEnd':
-          _step_no=2;
+          _step_no = 2;
           break;
       }
     } else {
@@ -1186,9 +1186,11 @@ class _RequestISPState extends State<RequestISP> {
           onPressed: !_checkNextButtonEnabled()
               ? null
               : () {
-                  _pannel_index=1;
-                  _applyRegister().then((v) {
-                    _loadWorkitem();
+                  _pannel_index = 1;
+                  _applyRegister().then((v) async {
+                    _workitems.clear();
+                    await _loadWorkitem();
+                    _controller.jumpTo(0);
                     setState(() {});
                   });
                 },
@@ -1219,7 +1221,8 @@ class _RequestISPState extends State<RequestISP> {
 
   Future<void> _uploadTradeNo() async {
     widget.context.forward('/widgets/avatar', arguments: {
-    'aspectRatio': -1.0,}).then((avatar) async {
+      'aspectRatio': -1.0,
+    }).then((avatar) async {
       if (StringUtil.isEmpty(avatar)) {
         return;
       }
@@ -1250,7 +1253,7 @@ class _RequestISPState extends State<RequestISP> {
         await remote.confirmPayOrder(_currentWorkItem.workInst.id, _evidence);
     _pannel_index = 1;
     _workitems.clear();
-    _workitems.add(workitem);
+    await _loadWorkitem();
     if (mounted) {
       setState(() {});
     }
@@ -1724,7 +1727,7 @@ class _RequestISPState extends State<RequestISP> {
                 left: 30,
                 right: 30,
               ),
-              child:OrgLicenceCard(
+              child: OrgLicenceCard(
                 context: widget.context,
                 organ: ispid,
                 type: 2,
