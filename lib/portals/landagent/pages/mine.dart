@@ -39,7 +39,7 @@ class _MineState extends State<Mine> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              widget.context.forward('/profile/editor').then((v) {});
+              widget.context.forward('/profile/editor',scene: 'gbera');
             },
             child: Padding(
               padding: EdgeInsets.only(
@@ -106,10 +106,15 @@ class _MineState extends State<Mine> {
                     Container(
                       color: Colors.white,
                       child: CardItem(
-                        title: '地商营业执照',
+                        title: '钱包',
+                        leading: Icon(
+                          Icons.account_balance_wallet,
+                        ),
                         paddingLeft: 15,
                         paddingRight: 15,
-                        onItemTap: () {},
+                        onItemTap: () {
+                          widget.context.forward('/wallet', scene: 'gbera',);
+                        },
                       ),
                     ),
                     SizedBox(
@@ -117,10 +122,59 @@ class _MineState extends State<Mine> {
                     ),
                     Container(
                       color: Colors.white,
-                      child: CardItem(
-                        title: '我的企业',
-                        paddingLeft: 15,
-                        paddingRight: 15,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            color: Colors.white,
+                            child: CardItem(
+                              title: '营业执照',
+                              leading: Icon(
+                                Icons.note,
+                              ),
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                              onItemTap: () {},
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                            child: Divider(
+                              height: 1,
+                              indent: 50,
+                            ),
+                          ),
+                          Container(
+                            color: Colors.white,
+                            child: CardItem(
+                              title: '我的企业',
+                              leading: Icon(
+                                Icons.business,
+                              ),
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                            child: Divider(
+                              height: 1,
+                              indent: 50,
+                            ),
+                          ),
+                          Container(
+                            color: Colors.white,
+                            child: CardItem(
+                              title: '所属运营商',
+                              leading: Icon(
+                                Icons.public,
+                              ),
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                              onItemTap: () {},
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     SizedBox(
@@ -128,11 +182,45 @@ class _MineState extends State<Mine> {
                     ),
                     Container(
                       color: Colors.white,
-                      child: CardItem(
-                        title: '所属运营商',
-                        paddingLeft: 15,
-                        paddingRight: 15,
-                        onItemTap: () {},
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            color: Colors.white,
+                            child: CardItem(
+                              title: '用户与账号',
+                              leading: Icon(
+                                Icons.note,
+                              ),
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                              onItemTap: () {
+                                widget.context.forward('/users/list',scene: 'gbera');
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                            child: Divider(
+                              height: 1,
+                              indent: 50,
+                            ),
+                          ),
+                          Container(
+                            color: Colors.white,
+                            child: CardItem(
+                              title: '系统设置',
+                              leading: Icon(
+                                Icons.public,
+                              ),
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                              onItemTap: () {
+                                widget.context.forward('/system/settings',scene: 'gbera');
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
