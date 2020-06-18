@@ -43,25 +43,6 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
               '地商(LA)',
             ),
             actions: <Widget>[
-              widget.context.principal.appid!='la.netos'?SizedBox(height: 0,width: 0,):
-              PopupMenuButton(
-                onSelected: (String value) {
-                  switch(value) {
-                    case 'logout':
-                      widget.context.forward('/public/login', scene: '/');
-                      break;
-                  }
-                },
-
-//                  padding: EdgeInsets.all(10),
-                offset: Offset(0, 40),
-                itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
-                  PopupMenuItem(
-                    value: "logout",
-                    child: new Text("退出系统"),
-                  ),
-                ],
-              ),
             ],
           ),
           SliverToBoxAdapter(

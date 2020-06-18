@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/avatar.dart';
+import 'package:netos_app/portals/gbera/pages/profile/edit_nickname.dart';
+import 'package:netos_app/portals/gbera/pages/profile/edit_realname.dart';
+import 'package:netos_app/portals/gbera/pages/profile/edit_sex.dart';
+import 'package:netos_app/portals/gbera/pages/profile/edit_signature.dart';
+import 'package:netos_app/portals/gbera/pages/profile/editor.dart';
+import 'package:netos_app/portals/gbera/pages/profile/more.dart';
+import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
+import 'package:netos_app/portals/landagent/pages/mine.dart';
 import 'package:netos_app/portals/landagent/pages/shunter_rules.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_free.dart';
@@ -92,6 +102,88 @@ var buildPortal = (IServiceProvider site) => Portal(
             context: pageContext,
           ),
         ),
+        LogicPage(
+          title: '我',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/mine',
+          buildPage: (PageContext pageContext) => Mine(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '修改头像',
+          subtitle: '',
+          icon: FontAwesomeIcons.qrcode,
+          url: '/widgets/avatar',
+          buildPage: (PageContext pageContext) => GberaAvatar(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '我的二维码',
+          subtitle: '',
+          icon: FontAwesomeIcons.qrcode,
+          url: '/profile/qrcode',
+          buildPage: (PageContext pageContext) => Qrcode(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '个人信息',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor',
+          buildPage: (PageContext pageContext) => ProfileEditor(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '修改昵称',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor/nickname',
+          buildPage: (PageContext pageContext) => EditNickName(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '修改实名',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor/realname',
+          buildPage: (PageContext pageContext) => EditRealName(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '修改个人签名',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor/signature',
+          buildPage: (PageContext pageContext) => EditSignature(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '修改性别',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor/sex',
+          buildPage: (PageContext pageContext) => EditSex(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '其它属性',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/editor/more',
+          buildPage: (PageContext pageContext) => ProfileMore(
+            context: pageContext,
+          ),
+        ),
+
         LogicPage(
           title: '事件查看器',
           subtitle: '',

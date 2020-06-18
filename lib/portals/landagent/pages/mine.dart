@@ -36,58 +36,64 @@ class _MineState extends State<Mine> {
     return SafeArea(
       child: Column(
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              left: 30,
-              top: 40,
-              bottom: 30,
-            ),
-            child: Row(
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 10,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward('/profile/editor').then((v) {});
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 30,
+                top: 40,
+                bottom: 30,
+              ),
+              child: Row(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8),
+                      ),
+                      child: Image.file(
+                        File(
+                          widget.context.principal.avatarOnLocal,
+                        ),
+                        width: 50,
+                        height: 50,
+                      ),
+                    ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(8),
-                    ),
-                    child: Image.file(
-                      File(
-                        widget.context.principal.avatarOnLocal,
+                  Wrap(
+                    direction: Axis.vertical,
+                    spacing: 8,
+                    children: <Widget>[
+                      Text(
+                        '${widget.context.principal.nickName}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      width: 50,
-                      height: 50,
-                    ),
-                  ),
-                ),
-                Wrap(
-                  direction: Axis.vertical,
-                  spacing: 8,
-                  children: <Widget>[
-                    Text(
-                      '${widget.context.principal.nickName}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                      Text.rich(
+                        TextSpan(
+                          text: '公号:',
+                          children: [
+                            TextSpan(
+                              text: '${widget.context.principal.person}',
+                            ),
+                          ],
+                        ),
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                        ),
                       ),
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        text: '公号:',
-                        children: [
-                          TextSpan(
-                            text: '${widget.context.principal.person}',
-                          ),
-                        ],
-                      ),
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                )
-              ],
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -100,7 +106,19 @@ class _MineState extends State<Mine> {
                     Container(
                       color: Colors.white,
                       child: CardItem(
-                        title: '测试',
+                        title: '地商营业执照',
+                        paddingLeft: 15,
+                        paddingRight: 15,
+                        onItemTap: () {},
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      color: Colors.white,
+                      child: CardItem(
+                        title: '我的企业',
                         paddingLeft: 15,
                         paddingRight: 15,
                       ),
@@ -111,9 +129,10 @@ class _MineState extends State<Mine> {
                     Container(
                       color: Colors.white,
                       child: CardItem(
-                        title: '测试',
+                        title: '所属运营商',
                         paddingLeft: 15,
                         paddingRight: 15,
+                        onItemTap: () {},
                       ),
                     ),
                   ],
@@ -130,7 +149,7 @@ class _MineState extends State<Mine> {
                         widget.context.forward('/public/login', scene: '/');
                       },
                       child: Text(
-                        '退出系统',
+                        '切换登录账号',
                         style: TextStyle(
                           color: Colors.blueGrey,
                           fontWeight: FontWeight.w500,
