@@ -77,6 +77,8 @@ dependencies:
   fluwx: ^2.1.0
   #alipay插件
   tobias: ^1.6.1
+  #保存图片到相册
+  image_gallery_saver: ^1.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

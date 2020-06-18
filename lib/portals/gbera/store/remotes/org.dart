@@ -120,8 +120,96 @@ class ReceivingBankOL {
       {this.id, this.bankName, this.accountName, this.accountNo, this.note});
 }
 
+class OrgISPOL {
+  String id;
+  String corpName;
+  String corpCode;
+  String licenceSrc;
+  String corpLogo;
+  String masterPerson;
+  String masterRealName;
+  String masterPhone;
+  String ctime;
+
+  OrgISPOL({
+    this.id,
+    this.corpName,
+    this.corpCode,
+    this.licenceSrc,
+    this.corpLogo,
+    this.masterPerson,
+    this.masterRealName,
+    this.masterPhone,
+    this.ctime,
+  });
+}
+
+class OrgLAOL {
+  String id;
+  String corpName;
+  String corpCode;
+  String licenceSrc;
+  String corpLogo;
+  String masterPerson;
+  String masterRealName;
+  String masterPhone;
+  String ctime;
+  String isp;
+
+  OrgLAOL(
+      {this.id,
+      this.corpName,
+      this.corpCode,
+      this.licenceSrc,
+      this.corpLogo,
+      this.masterPerson,
+      this.masterRealName,
+      this.masterPhone,
+      this.ctime,
+      this.isp});
+}
+
+class OrgLicenceOL {
+  String id;
+  String title;
+  int operatePeriod;
+  int fee;
+  int privilegeLevel;
+  String bussinessScop;
+  String bussinessAreaTitle;
+  String bussinessAreaCode;
+  String organ;
+  String signText;
+  int state;
+  String pubTime;
+  String endTime;
+  String payEvidence;
+
+  OrgLicenceOL(
+      {this.id,
+      this.title,
+      this.operatePeriod,
+      this.fee,
+      this.privilegeLevel,
+      this.bussinessScop,
+      this.bussinessAreaTitle,
+      this.bussinessAreaCode,
+      this.organ,
+      this.signText,
+      this.state,
+      this.pubTime,
+      this.endTime,
+      this.payEvidence});
+}
+
 mixin IReceivingBankRemote {
   Future<List<ReceivingBankOL>> getAll() {}
+}
+mixin ILaRemote {
+  Future<OrgLAOL> getLa(String laid) {}
+}
+mixin ILicenceRemote {
+  Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
 }
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
@@ -131,6 +219,8 @@ mixin IIspRemote {
   Future<WorkItem> confirmPayOrder(String id, String evidence) {}
 
   Future<void> checkApplyRegisterByPlatform(String id, bool bool) {}
+
+  Future<OrgISPOL> getIsp(String ispid) {}
 }
 
 class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
@@ -333,6 +423,126 @@ class IspRemote implements IIspRemote, IServiceBuilder {
         'workinst': workinst,
         'checkPass': checkPass,
       },
+    );
+  }
+
+  @override
+  Future<OrgISPOL> getIsp(String ispid) async {
+    var obj = await remotePorts.portGET(
+      ispPorts,
+      'getIsp',
+      parameters: {
+        'ispid': ispid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return OrgISPOL(
+      corpCode: obj['corpCode'],
+      corpLogo: obj['corpLogo'],
+      corpName: obj['corpName'],
+      ctime: obj['ctime'],
+      id: obj['id'],
+      licenceSrc: obj['licenceSrc'],
+      masterPerson: obj['masterPerson'],
+      masterPhone: obj['masterPhone'],
+      masterRealName: obj['masterRealName'],
+    );
+  }
+}
+
+class LaRemote implements ILaRemote, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  get laPorts => site.getService('@.prop.ports.org.la');
+
+  get workflowPorts => site.getService('@.prop.ports.org.workflow');
+
+  get workFlow => site.getService('@.prop.org.workflow.la');
+
+  @override
+  Future<void> builder(IServiceProvider site) {
+    this.site = site;
+    return null;
+  }
+
+  @override
+  Future<OrgLAOL> getLa(String laid) async {
+    var obj = await remotePorts.portGET(
+      laPorts,
+      'getLa',
+      parameters: {
+        'laid': laid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return OrgLAOL(
+      corpCode: obj['corpCode'],
+      corpLogo: obj['corpLogo'],
+      corpName: obj['corpName'],
+      ctime: obj['ctime'],
+      id: obj['id'],
+      licenceSrc: obj['licenceSrc'],
+      masterPerson: obj['masterPerson'],
+      masterPhone: obj['masterPhone'],
+      masterRealName: obj['masterRealName'],
+      isp: obj['isp'],
+    );
+  }
+}
+
+class LicenceRemote implements ILicenceRemote, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  get licencePorts => site.getService('@.prop.ports.org.licence');
+
+  get workflowPorts => site.getService('@.prop.ports.org.workflow');
+
+  @override
+  Future<void> builder(IServiceProvider site) {
+    this.site = site;
+    return null;
+  }
+
+  @override
+  Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) async {
+    var obj = await remotePorts.portGET(
+      licencePorts,
+      'getLicenceByOrg',
+      parameters: {
+        'organ': organ,
+        'privilegeLevel': privilegeLevel,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return OrgLicenceOL(
+      id: obj['id'],
+      bussinessAreaCode: obj['bussinessAreaCode'],
+      bussinessAreaTitle: obj['bussinessAreaTitle'],
+      bussinessScop: obj['bussinessScop'],
+      endTime: obj['endTime'],
+      fee: obj['fee'],
+      operatePeriod: obj['operatePeriod'],
+      organ: obj['organ'],
+      payEvidence: obj['payEvidence'],
+      privilegeLevel: obj['privilegeLevel'],
+      pubTime: obj['pubTime'],
+      signText: obj['signText'],
+      state: obj['state'],
+      title: obj['title'],
     );
   }
 }

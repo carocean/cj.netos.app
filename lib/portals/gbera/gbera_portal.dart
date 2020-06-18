@@ -211,7 +211,9 @@ class GberaPortal {
           '/wallet/bills': WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/remote/org/isp': IspRemote(),
-          '/remote/org/receivingBank':ReceivingBankRemote(),
+          '/remote/org/la': LaRemote(),
+          '/remote/org/licence': LicenceRemote(),
+          '/remote/org/receivingBank': ReceivingBankRemote(),
         };
       },
       builderShareServices: (site) async {

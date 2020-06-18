@@ -300,6 +300,11 @@ class _WorkflowDeskletState extends State<WorkflowDesklet> {
         var form = jsonDecode(data);
         children.add(
           TextSpan(
+            text: '公司:${form['cropName']}\n',
+          ),
+        );
+        children.add(
+          TextSpan(
             text: '运营区域:${form['bussinessAreaTitle']}\n',
           ),
         );

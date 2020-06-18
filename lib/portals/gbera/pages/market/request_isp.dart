@@ -116,12 +116,27 @@ class _RequestISPState extends State<RequestISP> {
   Future<void> _loadWorkitem() async {
     IIspRemote remote = widget.context.site.getService('/remote/org/isp');
     List<WorkItem> items = await remote.pageMyWorkItemOnWorkflow(1);
-    if(items.isNotEmpty) {
-      _currentWorkItem=items[0];
-    }
     _workitems.addAll(items);
     if (items.isNotEmpty) {
+      _currentWorkItem = items[0];
       _pannel_index = 1;
+      switch(_currentWorkItem.workEvent.code) {
+        case 'workInstBegin':
+          _step_no=0;
+          break;
+        case 'payConfirm':
+          _step_no=1;
+          break;
+        case 'platformChecker':
+          _step_no=1;
+          break;
+        case 'return':
+          _step_no=1;
+          break;
+        case 'workInstEnd':
+          _step_no=2;
+          break;
+      }
     } else {
       _pannel_index = 0;
     }
@@ -132,7 +147,8 @@ class _RequestISPState extends State<RequestISP> {
     var workitem = await remote.applyRegisterByPerson(IspApplayBO(
       bussinessAreaCode: _bussinessAreaCode,
       bussinessAreaTitle: _bussinessAreaTitle,
-      bussinessScop: _bussinessScope,
+      bussinessScop: (_bussinessScope ?? '')
+          ?.replaceFirst('##', _bussinessAreaTitle ?? '...'),
       cropCode: _cropCode.text,
       cropLogo: _cropLogo,
       cropName: _cropName.text,
@@ -1170,9 +1186,9 @@ class _RequestISPState extends State<RequestISP> {
           onPressed: !_checkNextButtonEnabled()
               ? null
               : () {
-                  _pannel_index++;
-                  _controller?.jumpTo(0);
+                  _pannel_index=1;
                   _applyRegister().then((v) {
+                    _loadWorkitem();
                     setState(() {});
                   });
                 },
@@ -1202,7 +1218,8 @@ class _RequestISPState extends State<RequestISP> {
   int _upload_evidence_i = 0, _upload_evidence_j = 1;
 
   Future<void> _uploadTradeNo() async {
-    widget.context.forward('/widgets/avatar').then((avatar) async {
+    widget.context.forward('/widgets/avatar', arguments: {
+    'aspectRatio': -1.0,}).then((avatar) async {
       if (StringUtil.isEmpty(avatar)) {
         return;
       }
@@ -1687,33 +1704,32 @@ class _RequestISPState extends State<RequestISP> {
   }
 
   _renderStep4EndFlow() {
-    var json=_currentWorkItem.workEvent.data;
-    var obj=jsonDecode(json);
-    var ispid=obj['organ'];
+    if (_currentWorkItem == null) {
+      return Center(
+        child: Text('没有数据'),
+      );
+    }
+    var json = _currentWorkItem.workEvent.data;
+    var obj = jsonDecode(json);
+    var ispid = obj['organ'];
     return Column(
       children: <Widget>[
         Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                constraints: BoxConstraints.tightForFinite(
-                  width: double.maxFinite,
-                ),
-                padding: EdgeInsets.only(
-                  left: 30,
-                  right: 30,
-                ),
-                child: Card(
-                  color: Colors.blue[50],
-                  child: OrgLicenceCard(
-                    context: widget.context,
-                    ispid:ispid,
-                    type: 0,
-                  ),
-                ),
-              )
-            ],
+          child: SingleChildScrollView(
+            child: Container(
+              constraints: BoxConstraints.tightForFinite(
+                width: double.maxFinite,
+              ),
+              padding: EdgeInsets.only(
+                left: 30,
+                right: 30,
+              ),
+              child:OrgLicenceCard(
+                context: widget.context,
+                organ: ispid,
+                type: 2,
+              ),
+            ),
           ),
         ),
         Container(

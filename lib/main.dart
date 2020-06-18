@@ -90,8 +90,11 @@ void main() => platformRun(
             '@.prop.ports.wybank.bill.price':'http://47.105.165.186/wybank/bill/price.ports',
             '@.prop.ports.wybank.bill.fund':'http://47.105.165.186/wybank/bill/fund.ports',
             '@.prop.ports.org.isp':'http://47.105.165.186/org/isp.ports',
+            '@.prop.ports.org.la':'http://47.105.165.186/org/la.ports',
+            '@.prop.ports.org.licence':'http://47.105.165.186/org/licence.ports',
             '@.prop.ports.org.workflow':'http://47.105.165.186/org/workflow.ports',
             '@.prop.org.workflow.isp':'workflow.isp.apply',//isp申请的工作流标识
+            '@.prop.org.workflow.la':'workflow.la.apply',//isp申请的工作流标识
             '@.prop.ports.org.receivingBank':'http://47.105.165.186/org/receivingBank.ports',
           },
           buildServices: (site) async {
