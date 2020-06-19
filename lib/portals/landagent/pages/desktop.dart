@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
+import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 class LandagentDesktop extends StatefulWidget {
   PageContext context;
@@ -14,27 +19,60 @@ class LandagentDesktop extends StatefulWidget {
   _LandagentDesktopState createState() => _LandagentDesktopState();
 }
 
-class _LandagentDesktopState extends State<LandagentDesktop> {
+class _LandagentDesktopState extends State<LandagentDesktop>
+    with SingleTickerProviderStateMixin {
   EasyRefreshController _controller;
+  int _limit = 20, _offset = 0;
+  List<WorkItem> _workitems = [];
+  TabController tabController;
+  List<_TabPageView> tabPageViews;
 
   @override
   void initState() {
     _controller = EasyRefreshController();
+    this.tabPageViews = [
+      _TabPageView(
+        title: '待办',
+        buildView: _todoListPanel,
+      ),
+      _TabPageView(
+        title: '已办',
+        buildView: _doneListPanel,
+      ),
+    ];
+    this.tabController =
+        TabController(length: tabPageViews.length, vsync: this);
+    _onRefresh();
     super.initState();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
+    this.tabController?.dispose();
+    this.tabPageViews?.clear();
     super.dispose();
   }
 
-  Future<void> _onLoad() async {}
+  Future<void> _onRefresh() async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/org/workflow');
+    var items = await workflowRemote.pageMyWorkItem(_limit, _offset);
+    if (items.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
+    _offset += items.length;
+    _workitems.addAll(items);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return NestedScrollView(
-      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+      headerSliverBuilder: (ctx, v) {
         return <Widget>[
           SliverAppBar(
             pinned: true,
@@ -43,6 +81,14 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
               '地商(LA)',
             ),
             actions: <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.add,
+                ),
+                onPressed: () {
+                  widget.context.forward('/apply/wybank');
+                },
+              )
             ],
           ),
           SliverToBoxAdapter(
@@ -58,12 +104,17 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                     children: <Widget>[
                       Padding(
                         padding: EdgeInsets.only(
-                          right: 5,
+                          right: 10,
                         ),
-                        child: Image.network(
-                          'http://47.105.165.186:7100/avatars/28ab4dbc08306fde51923becef0bd721.jpg?accessToken=${widget.context.principal.accessToken}',
-                          width: 40,
-                          height: 40,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          child: Image.file(
+                            File(
+                              '${widget.context.principal.avatarOnLocal}',
+                            ),
+                            width: 40,
+                            height: 40,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -72,7 +123,7 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                           spacing: 2,
                           children: <Widget>[
                             Text(
-                              '大丰发展',
+                              '${widget.context.principal.nickName}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -80,10 +131,9 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
                             ),
                             Text.rich(
                               TextSpan(
-                                text: '账金余额:',
-                                children: [
-                                  TextSpan(text: '¥28383.23'),
-                                ],
+                                text:
+                                    '${widget.context.principal.signature ?? ''}',
+                                children: [],
                               ),
                               style: TextStyle(
                                 color: Colors.grey[500],
@@ -104,118 +154,142 @@ class _LandagentDesktopState extends State<LandagentDesktop> {
               height: 40,
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '通讯纹银市场已审批通过！',
-                  eventName: '平台通知',
-                  onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (ctx) {
-                          return widget.context.part('/event/details', context);
-                        });
-                  },
-                ),
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '本周财报',
-                  eventName: '运营商通知',
-                ),
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '平台理财新知识！',
-                  eventName: '节点动力培训学院',
-                  isBottom: true,
-                ),
-              ],
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              color: Theme.of(context).backgroundColor,
-              padding: EdgeInsets.only(
-                left: 10,
-                right: 10,
-                bottom: 5,
-                top: 10,
-              ),
-              child: Text(
-                '纹银市场',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: StickyTabBarDelegate(
+              color: Colors.white,
+              child: TabBar(
+                labelColor: Colors.black,
+                controller: this.tabController,
+                tabs: tabPageViews.map((v) {
+                  return Tab(
+                    text: v.title,
+                  );
+                }).toList(),
               ),
             ),
-          ),
+          )
         ];
       },
-      body: Container(
-        constraints: BoxConstraints.expand(),
-        color: Colors.white,
-        child: EasyRefresh(
-          controller: _controller,
-          onLoad: _onLoad,
-          child: ListView(
-            padding: EdgeInsets.all(0),
-            children: <Widget>[
-              _WenyBank(
-                context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    masterType: 0,
-                    icon: '',
-                    masterId: '',
-                    masterPerson: '',
-                    creator: 'cj@gbera.netos',
-                  ),
-                ),
-              ),
-              _WenyBank(
-                context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    masterType: 0,
-                    icon: '',
-                    masterId: '',
-                    masterPerson: '',
-                    creator: 'cj@gbera.netos',
-                  ),
-                ),
-              ),
-            ],
+      body: TabBarView(
+        controller: this.tabController,
+        children: tabPageViews.map((v) {
+          if (v.buildView == null) {
+            return Container(
+              width: 0,
+              height: 0,
+            );
+          }
+          return v.buildView();
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _todoListPanel() {
+    var items = <Widget>[];
+    if (_workitems.isEmpty) {
+      items.add(
+        Container(
+          padding: EdgeInsets.only(
+            top: 10,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '没有事件',
+            style: TextStyle(
+              color: Colors.grey[500],
+            ),
           ),
         ),
+      );
+    }
+    for (var i = 0; i < _workitems.length; i++) {
+      var item = _workitems[i];
+      var inst = item.workInst;
+      var event = item.workEvent;
+      items.add(
+        _OperatorEvent(
+          eventLeading: FadeInImage.assetNetwork(
+            placeholder: 'lib/portals/gbera/images/default_watting.gif',
+            image:
+                '${inst.icon}?accessToken=${widget.context.principal.accessToken}',
+            width: 20,
+            height: 20,
+            fit: BoxFit.fill,
+          ),
+          eventName: '${inst.name}',
+          eventDetails: '待处理: ${event.title} ${event.sender ?? ''}',
+          onTap: () {
+            showModalBottomSheet(
+                context: context,
+                builder: (ctx) {
+                  return widget.context.part('/event/details', context);
+                });
+          },
+        ),
+      );
+    }
+    return EasyRefresh(
+      onRefresh: _onRefresh,
+      controller: _controller,
+      child: ListView(
+        padding: EdgeInsets.only(top: 15,),
+        children: items,
+      ),
+    );
+  }
+
+  Widget _doneListPanel() {
+    var items = <Widget>[];
+    if (_workitems.isEmpty) {
+      items.add(
+        Container(
+          padding: EdgeInsets.only(
+            top: 10,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '没有事件',
+            style: TextStyle(
+              color: Colors.grey[500],
+            ),
+          ),
+        ),
+      );
+    }
+    for (var i = 0; i < _workitems.length; i++) {
+      var item = _workitems[i];
+      var inst = item.workInst;
+      var event = item.workEvent;
+      items.add(
+        _OperatorEvent(
+          eventLeading: FadeInImage.assetNetwork(
+            placeholder: 'lib/portals/gbera/images/default_watting.gif',
+            image:
+                '${inst.icon}?accessToken=${widget.context.principal.accessToken}',
+            width: 20,
+            height: 20,
+            fit: BoxFit.fill,
+          ),
+          eventName: '${inst.name}',
+          eventDetails: '待处理: ${event.title} ${event.sender ?? ''}',
+          onTap: () {
+            showModalBottomSheet(
+                context: context,
+                builder: (ctx) {
+                  return widget.context.part('/event/details', context);
+                });
+          },
+        ),
+      );
+    }
+    return EasyRefresh(
+      onRefresh: _onRefresh,
+      controller: _controller,
+      child: ListView(
+        padding: EdgeInsets.only(top: 15,),
+        children: items,
       ),
     );
   }
@@ -243,8 +317,8 @@ class _OperatorEvent extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: EdgeInsets.only(
-          left: 30,
-          right: 30,
+          left: 20,
+          right: 20,
         ),
         child: Column(
           children: <Widget>[
@@ -299,8 +373,8 @@ class _OperatorEvent extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.only(
-                top: 10,
-                bottom: 10,
+                top: 15,
+                bottom: 15,
               ),
               child: isBottom
                   ? SizedBox(
@@ -319,153 +393,36 @@ class _OperatorEvent extends StatelessWidget {
   }
 }
 
-class _WenyBank extends StatelessWidget {
-  PageContext context;
-  WenyBank bank;
-  bool isBottom;
+class StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar child;
+  final Color color;
 
-  _WenyBank({this.context, this.bank, this.isBottom = false});
+  StickyTabBarDelegate({@required this.child, @required this.color});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      padding: EdgeInsets.only(
-        left: 15,
-        right: 15,
-      ),
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => this.context.forward('/wenybank', arguments: {
-                'bank': bank,
-              }),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.image,
-                      size: 30,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '${bank.info.title}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: 10,
-                                bottom: 4,
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Container(
-                                    width: 35,
-                                    padding: EdgeInsets.only(
-                                      right: 4,
-                                    ),
-                                    child: Text(
-                                      '现价:',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '¥${bank.price}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 50,
-                                  padding: EdgeInsets.only(
-                                    right: 4,
-                                  ),
-                                  child: Text(
-                                    '日申购:',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  '¥299288.23',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Text(
-                                  '¥${(bank.stock * bank.price / 100.0).toStringAsFixed(2)}'),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_right,
-                              size: 20,
-                              color: Colors.grey[400],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          isBottom
-              ? SizedBox(
-                  width: 0,
-                  height: 0,
-                )
-              : Divider(
-                  height: 1,
-                ),
-        ],
-      ),
+      child: this.child,
+      color: color,
     );
   }
+
+  @override
+  double get maxExtent => this.child.preferredSize.height;
+
+  @override
+  double get minExtent => this.child.preferredSize.height;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
+  }
+}
+
+class _TabPageView {
+  String title;
+  Widget Function() buildView;
+
+  _TabPageView({this.title, this.buildView});
 }

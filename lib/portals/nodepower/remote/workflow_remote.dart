@@ -32,6 +32,8 @@ mixin IWorkflowRemote {
   Future<List<WorkItem>> pageMyWorkItem(int limit, int offset) {}
 
   Future<bool> doMyWorkItem(String id, String s, bool bool) {}
+
+  Future<WorkItem> createWorkInstance(String workflow, String data) {}
 }
 
 class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
@@ -217,5 +219,46 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
       },
     );
     return obj;
+  }
+
+  @override
+  Future<WorkItem> createWorkInstance(String workflow, String data) async {
+    var obj = await remotePorts.portGET(
+      workflowPorts,
+      'createWorkInstance',
+      parameters: {
+        'workflow': workflow,
+        'data': data,
+      },
+    );
+    var workInstObj = obj['workInst'];
+    var workEventObj = obj['workEvent'];
+    return WorkItem(
+      workEvent: WorkEvent(
+        workInst: workEventObj['workInst'],
+        data: workEventObj['data'],
+        title: workEventObj['title'],
+        id: workEventObj['id'],
+        ctime: workEventObj['ctime'],
+        dtime: workEventObj['dtime'],
+        code: workEventObj['code'],
+        isDone: workEventObj['isDone'],
+        operated: workEventObj['operated'],
+        prevEvent: workEventObj['prevEvent'],
+        recipient: workEventObj['recipient'],
+        sender: workEventObj['sender'],
+        stepNo: workEventObj['stepNo'],
+      ),
+      workInst: WorkInst(
+        isDone: workInstObj['isDone'],
+        ctime: workInstObj['ctime'],
+        id: workInstObj['id'],
+        data: workInstObj['data'],
+        creator: workInstObj['creator'],
+        icon: workInstObj['icon'],
+        name: workInstObj['name'],
+        workflow: workInstObj['workflow'],
+      ),
+    );
   }
 }

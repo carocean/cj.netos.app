@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+
 class LandagentScaffold extends StatefulWidget {
   PageContext context;
 
   LandagentScaffold({this.context});
+
   @override
   _LandagentScaffoldState createState() => _LandagentScaffoldState();
 }
@@ -16,6 +19,9 @@ class _LandagentScaffoldState extends State<LandagentScaffold> {
   void initState() {
     _parts.add(
       widget.context.part('/desktop', context),
+    );
+    _parts.add(
+      widget.context.part('/market', context),
     );
     _parts.add(
       widget.context.part('/mine', context),
@@ -37,6 +43,10 @@ class _LandagentScaffoldState extends State<LandagentScaffold> {
           BottomNavigationBarItem(
             title: Text('桌面'),
             icon: Icon(Icons.dashboard),
+          ),
+          BottomNavigationBarItem(
+            title: Text('纹银'),
+            icon: Icon(FontAwesomeIcons.wonSign,size: 20,),
           ),
           BottomNavigationBarItem(
             title: Text('我'),

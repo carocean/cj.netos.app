@@ -13,6 +13,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/pages/mine.dart';
+import 'package:netos_app/portals/landagent/pages/org_la.dart';
 import 'package:netos_app/portals/landagent/pages/shunter_rules.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_free.dart';
@@ -21,8 +22,12 @@ import 'package:netos_app/portals/landagent/pages/weny_account_fund.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_isp.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_platform.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
+import 'package:netos_app/portals/landagent/pages/weny_applay.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
+import 'package:netos_app/portals/landagent/pages/weny_market.dart';
+import 'package:netos_app/portals/landagent/remote/org.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
+import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 import 'scaffolds.dart';
 
@@ -83,6 +88,12 @@ var buildPortal = (IServiceProvider site) => Portal(
         ),
       ],
       buildDesklets: (site) => <Desklet>[],
+      builderSceneServices: (site) async {
+        return <String, dynamic>{
+          '/org/la': OrgLaRemote(),
+          '/org/workflow':WorkflowRemote(),
+        };
+      },
       buildPages: (site) => <LogicPage>[
         LogicPage(
           title: '地商',
@@ -108,6 +119,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/mine',
           buildPage: (PageContext pageContext) => Mine(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银市场',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/market',
+          buildPage: (PageContext pageContext) => WenyMarket(
             context: pageContext,
           ),
         ),
@@ -198,6 +218,24 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/wenybank/shunters',
           buildPage: (PageContext pageContext) => ShunterRuleWidget(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '地商信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/org/la',
+          buildPage: (PageContext pageContext) => OrgLAPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申请纹银银行',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/apply/wybank',
+          buildPage: (PageContext pageContext) => ApplyWyBank(
             context: pageContext,
           ),
         ),

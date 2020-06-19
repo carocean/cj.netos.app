@@ -105,6 +105,7 @@ import 'package:netos_app/portals/gbera/pages/users/roles.dart';
 import 'package:netos_app/portals/gbera/pages/users/user_list.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/view_licence.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart';
@@ -1857,6 +1858,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/portlet/chat/room/showNickName',
           buildPage: (PageContext pageContext) => ChatroomShowNickName(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看营业执照',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/viewer/licence',
+          buildPage: (PageContext pageContext) => ViewLicence(
             context: pageContext,
           ),
         ),

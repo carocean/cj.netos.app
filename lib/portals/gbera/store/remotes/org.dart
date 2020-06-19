@@ -174,6 +174,7 @@ class OrgISPOL {
   String id;
   String corpName;
   String corpCode;
+  String corpSimple;
   String licenceSrc;
   String corpLogo;
   String masterPerson;
@@ -185,6 +186,7 @@ class OrgISPOL {
     this.id,
     this.corpName,
     this.corpCode,
+    this.corpSimple,
     this.licenceSrc,
     this.corpLogo,
     this.masterPerson,
@@ -205,6 +207,7 @@ class OrgLAOL {
   String id;
   String corpName;
   String corpCode;
+  String corpSimple;
   String licenceSrc;
   String corpLogo;
   String masterPerson;
@@ -217,6 +220,7 @@ class OrgLAOL {
       {this.id,
       this.corpName,
       this.corpCode,
+      this.corpSimple,
       this.licenceSrc,
       this.corpLogo,
       this.masterPerson,
@@ -271,7 +275,8 @@ mixin ILaRemote {
 
   Future<WorkItem> confirmPayOrder(String id, String evidence) {}
 
-  Future<void> checkApplyRegisterByPlatform(String id, bool bool,String ispid) {}
+  Future<void> checkApplyRegisterByPlatform(
+      String id, bool bool, String ispid) {}
 }
 mixin ILicenceRemote {
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
@@ -508,6 +513,7 @@ class IspRemote implements IIspRemote, IServiceBuilder {
     return OrgISPOL(
       corpCode: obj['corpCode'],
       corpLogo: obj['corpLogo'],
+      corpSimple: obj['corpSimple'],
       corpName: obj['corpName'],
       ctime: obj['ctime'],
       id: obj['id'],
@@ -541,6 +547,7 @@ class IspRemote implements IIspRemote, IServiceBuilder {
             corpCode: ispObj['corpCode'],
             corpLogo: ispObj['corpLogo'],
             corpName: ispObj['corpName'],
+            corpSimple: ispObj['corpSimple'],
             ctime: ispObj['ctime'],
             id: ispObj['id'],
             licenceSrc: ispObj['licenceSrc'],
@@ -606,6 +613,7 @@ class LaRemote implements ILaRemote, IServiceBuilder {
       corpCode: obj['corpCode'],
       corpLogo: obj['corpLogo'],
       corpName: obj['corpName'],
+      corpSimple: obj['corpSimple'],
       ctime: obj['ctime'],
       id: obj['id'],
       licenceSrc: obj['licenceSrc'],
@@ -751,14 +759,14 @@ class LaRemote implements ILaRemote, IServiceBuilder {
 
   @override
   Future<Function> checkApplyRegisterByPlatform(
-      String workinst, bool checkPass,String ispid) async {
+      String workinst, bool checkPass, String ispid) async {
     await remotePorts.portGET(
       laPorts,
       'checkApplyRegisterByPlatform',
       parameters: {
         'workinst': workinst,
         'checkPass': checkPass,
-        'ispid':ispid,
+        'ispid': ispid,
       },
     );
   }
