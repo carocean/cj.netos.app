@@ -280,6 +280,9 @@ mixin ILaRemote {
 }
 mixin ILicenceRemote {
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
+
+  Future<OrgLicenceOL> getLicenceByID(form) {}
+
 }
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
@@ -787,6 +790,36 @@ class LicenceRemote implements ILicenceRemote, IServiceBuilder {
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     return null;
+  }
+
+  @override
+  Future<OrgLicenceOL> getLicenceByID(licenceid ) async{
+    var obj = await remotePorts.portGET(
+      licencePorts,
+      'getLicenceByID',
+      parameters: {
+        'licenceid': licenceid ,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return OrgLicenceOL(
+      id: obj['id'],
+      bussinessAreaCode: obj['bussinessAreaCode'],
+      bussinessAreaTitle: obj['bussinessAreaTitle'],
+      bussinessScop: obj['bussinessScop'],
+      endTime: obj['endTime'],
+      fee: obj['fee'],
+      operatePeriod: obj['operatePeriod'],
+      organ: obj['organ'],
+      payEvidence: obj['payEvidence'],
+      privilegeLevel: obj['privilegeLevel'],
+      pubTime: obj['pubTime'],
+      signText: obj['signText'],
+      state: obj['state'],
+      title: obj['title'],
+    );
   }
 
   @override

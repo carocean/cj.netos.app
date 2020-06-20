@@ -305,7 +305,7 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _onRefresh();
+    _onLoad();
     super.initState();
   }
 
@@ -316,6 +316,12 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
   }
 
   Future<void> _onRefresh() async {
+    _offset = 0;
+    _workitems.clear();
+    await _onLoad();
+  }
+
+  Future<void> _onLoad() async {
     IWorkflowRemote workflowRemote =
         widget.context.site.getService('/org/workflow');
     var items = await workflowRemote.pageMyWorkItemByFilter(1, _limit, _offset);
@@ -391,6 +397,7 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
     }
     return EasyRefresh(
       onRefresh: _onRefresh,
+      onLoad: _onLoad,
       controller: _controller,
       child: ListView(
         padding: EdgeInsets.only(

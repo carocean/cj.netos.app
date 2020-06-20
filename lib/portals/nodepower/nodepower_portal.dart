@@ -8,6 +8,7 @@ import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_la.dart';
+import 'package:netos_app/portals/nodepower/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
@@ -103,6 +104,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/remote/org/workgroup': WorkgroupRemote(),
           '/remote/org/isp': IspRemote(),
           '/remote/org/la': LaRemote(),
+          '/remote/org/licence':LicenceRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -238,6 +240,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/work/workitem/adoptLA',
           buildPage: (PageContext pageContext) => AdoptLA(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银银行审批',
+          subtitle: '',
+          icon: null,
+          url: '/work/workitem/adoptWybank',
+          buildPage: (PageContext pageContext) => AdoptWybank(
             context: pageContext,
           ),
         ),

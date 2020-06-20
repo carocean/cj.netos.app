@@ -55,19 +55,21 @@ class _NodePowerDesktopState extends State<NodePowerDesktop> {
           title: Text('节点动力'),
           elevation: 0,
         ),
-        SliverList(
-          delegate: SliverChildListDelegate.fixed(
-            _desklets.map((let) {
-              return Flex(
-                direction: Axis.vertical,
-                children: <Widget>[
-                  let,
-                  SizedBox(
-                    height: 15,
-                  ),
-                ],
-              );
-            }).toList(),
+        SliverFillRemaining(
+          child: SingleChildScrollView(
+            physics: NeverScrollableScrollPhysics(),
+            child: Column(
+              children: _desklets.map((let) {
+                return Column(
+                  children: <Widget>[
+                    let,
+                    SizedBox(
+                      height: 15,
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         )
       ],
