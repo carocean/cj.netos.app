@@ -22,7 +22,7 @@ import 'package:netos_app/portals/landagent/pages/weny_account_fund.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_isp.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_platform.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
-import 'package:netos_app/portals/landagent/pages/weny_applay.dart';
+import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';

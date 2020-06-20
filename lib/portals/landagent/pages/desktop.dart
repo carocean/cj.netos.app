@@ -1,14 +1,15 @@
 import 'dart:io';
 
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
-import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
+import 'package:intl/intl.dart' as intl;
 
 class LandagentDesktop extends StatefulWidget {
   PageContext context;
@@ -21,52 +22,41 @@ class LandagentDesktop extends StatefulWidget {
 
 class _LandagentDesktopState extends State<LandagentDesktop>
     with SingleTickerProviderStateMixin {
-  EasyRefreshController _controller;
-  int _limit = 20, _offset = 0;
-  List<WorkItem> _workitems = [];
   TabController tabController;
   List<_TabPageView> tabPageViews;
 
   @override
   void initState() {
-    _controller = EasyRefreshController();
     this.tabPageViews = [
       _TabPageView(
         title: '待办',
-        buildView: _todoListPanel,
+        buildView: () {
+          return _TodoWorkitem(context: widget.context);
+        },
       ),
       _TabPageView(
         title: '已办',
-        buildView: _doneListPanel,
+        buildView: () {
+          return _DoneWorkitem(context: widget.context);
+        },
+      ),
+      _TabPageView(
+        title: '我的申请',
+        buildView: () {
+          return _MyCreatedInstWorkItem(context: widget.context);
+        },
       ),
     ];
     this.tabController =
         TabController(length: tabPageViews.length, vsync: this);
-    _onRefresh();
     super.initState();
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
     this.tabController?.dispose();
     this.tabPageViews?.clear();
     super.dispose();
-  }
-
-  Future<void> _onRefresh() async {
-    IWorkflowRemote workflowRemote =
-        widget.context.site.getService('/org/workflow');
-    var items = await workflowRemote.pageMyWorkItem(_limit, _offset);
-    if (items.isEmpty) {
-      _controller.finishLoad(success: true, noMore: true);
-      return;
-    }
-    _offset += items.length;
-    _workitems.addAll(items);
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override
@@ -185,8 +175,52 @@ class _LandagentDesktopState extends State<LandagentDesktop>
       ),
     );
   }
+}
 
-  Widget _todoListPanel() {
+class _TodoWorkitem extends StatefulWidget {
+  PageContext context;
+
+  _TodoWorkitem({this.context});
+
+  @override
+  __TodoWorkitemState createState() => __TodoWorkitemState();
+}
+
+class __TodoWorkitemState extends State<_TodoWorkitem> {
+  EasyRefreshController _controller;
+  int _limit = 20, _offset = 0;
+  List<WorkItem> _workitems = [];
+
+  @override
+  void initState() {
+    _controller = EasyRefreshController();
+    _onRefresh();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/org/workflow');
+    var items = await workflowRemote.pageMyWorkItemByFilter(0, _limit, _offset);
+    if (items.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
+    _offset += items.length;
+    _workitems.addAll(items);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var items = <Widget>[];
     if (_workitems.isEmpty) {
       items.add(
@@ -219,7 +253,18 @@ class _LandagentDesktopState extends State<LandagentDesktop>
             fit: BoxFit.fill,
           ),
           eventName: '${inst.name}',
-          eventDetails: '待处理: ${event.title} ${event.sender ?? ''}',
+          eventDetails: '当前处理: ${event.title}' +
+              '\n送达时间: ' +
+              TimelineUtil.formatByDateTime(
+                parseStrTime(
+                  event.ctime,
+                  len: 17,
+                ),
+                dayFormat: DayFormat.Full,
+              ) +
+              (StringUtil.isEmpty(event.sender)
+                  ? ''
+                  : '\n发件人: ${event.sender}'),
           onTap: () {
             showModalBottomSheet(
                 context: context,
@@ -234,13 +279,59 @@ class _LandagentDesktopState extends State<LandagentDesktop>
       onRefresh: _onRefresh,
       controller: _controller,
       child: ListView(
-        padding: EdgeInsets.only(top: 15,),
+        padding: EdgeInsets.only(
+          top: 15,
+        ),
         children: items,
       ),
     );
   }
+}
 
-  Widget _doneListPanel() {
+class _DoneWorkitem extends StatefulWidget {
+  PageContext context;
+
+  _DoneWorkitem({this.context});
+
+  @override
+  __DoneWorkitemState createState() => __DoneWorkitemState();
+}
+
+class __DoneWorkitemState extends State<_DoneWorkitem> {
+  EasyRefreshController _controller;
+  int _limit = 20, _offset = 0;
+  List<WorkItem> _workitems = [];
+
+  @override
+  void initState() {
+    _controller = EasyRefreshController();
+    _onRefresh();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/org/workflow');
+    var items = await workflowRemote.pageMyWorkItemByFilter(1, _limit, _offset);
+    if (items.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
+    _offset += items.length;
+    _workitems.addAll(items);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var items = <Widget>[];
     if (_workitems.isEmpty) {
       items.add(
@@ -273,7 +364,21 @@ class _LandagentDesktopState extends State<LandagentDesktop>
             fit: BoxFit.fill,
           ),
           eventName: '${inst.name}',
-          eventDetails: '待处理: ${event.title} ${event.sender ?? ''}',
+          eventDetails: '当前处理: ${event.title}' +
+              '\n送达时间: ' +
+              TimelineUtil.formatByDateTime(
+                parseStrTime(
+                  event.ctime,
+                  len: 17,
+                ),
+                dayFormat: DayFormat.Full,
+              ) +
+              (StringUtil.isEmpty(event.sender)
+                  ? ''
+                  : '\n发件人: ${event.sender}') +
+              (StringUtil.isEmpty(event.recipient)
+                  ? ''
+                  : '\n收件人: ${event.recipient}'),
           onTap: () {
             showModalBottomSheet(
                 context: context,
@@ -288,7 +393,126 @@ class _LandagentDesktopState extends State<LandagentDesktop>
       onRefresh: _onRefresh,
       controller: _controller,
       child: ListView(
-        padding: EdgeInsets.only(top: 15,),
+        padding: EdgeInsets.only(
+          top: 15,
+        ),
+        children: items,
+      ),
+    );
+  }
+}
+
+class _MyCreatedInstWorkItem extends StatefulWidget {
+  PageContext context;
+
+  _MyCreatedInstWorkItem({this.context});
+
+  @override
+  __MyCreatedInstWorkItemState createState() => __MyCreatedInstWorkItemState();
+}
+
+class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
+  EasyRefreshController _controller;
+  int _limit = 20, _offset = 0;
+  List<WorkItem> _workitems = [];
+
+  @override
+  void initState() {
+    _controller = EasyRefreshController();
+    _onRefresh();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+//
+//  @override
+//  void didUpdateWidget(_MyCreatedInstWorkItem oldWidget) {
+//    super.didUpdateWidget(oldWidget);
+//  }
+
+  Future<void> _onRefresh() async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/org/workflow');
+    var items = await workflowRemote.pageMyWorkItemByFilter(2, _limit, _offset);
+    if (items.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      return;
+    }
+    _offset += items.length;
+    _workitems.addAll(items);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var items = <Widget>[];
+    if (_workitems.isEmpty) {
+      items.add(
+        Container(
+          padding: EdgeInsets.only(
+            top: 10,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '没有事件',
+            style: TextStyle(
+              color: Colors.grey[500],
+            ),
+          ),
+        ),
+      );
+    }
+    for (var i = 0; i < _workitems.length; i++) {
+      var item = _workitems[i];
+      var inst = item.workInst;
+      var event = item.workEvent;
+      items.add(
+        _OperatorEvent(
+          eventLeading: FadeInImage.assetNetwork(
+            placeholder: 'lib/portals/gbera/images/default_watting.gif',
+            image:
+                '${inst.icon}?accessToken=${widget.context.principal.accessToken}',
+            width: 20,
+            height: 20,
+            fit: BoxFit.fill,
+          ),
+          eventName: '${inst.name}',
+          eventDetails: '当前处理: ${event.title}' +
+              '\n送达时间: ' +
+              TimelineUtil.formatByDateTime(
+                parseStrTime(
+                  event.ctime,
+                  len: 17,
+                ),
+                dayFormat: DayFormat.Full,
+              ) +
+              (StringUtil.isEmpty(event.recipient)
+                  ? ''
+                  : '\n处理人: ${event.recipient}'),
+          onTap: () {
+            showModalBottomSheet(
+                context: context,
+                builder: (ctx) {
+                  return widget.context.part('/event/details', context);
+                });
+          },
+        ),
+      );
+    }
+    return EasyRefresh(
+      onRefresh: _onRefresh,
+      controller: _controller,
+      child: ListView(
+        padding: EdgeInsets.only(
+          top: 15,
+        ),
         children: items,
       ),
     );

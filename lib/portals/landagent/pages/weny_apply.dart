@@ -101,6 +101,7 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
     });
     var workitem =
         await workflowRemote.createWorkInstance('workflow.wybank.apply', data);
+    await workflowRemote.doWorkItemAndSend(workitem.workInst.id, 'created', false,null,'\$g.netos.market.checker','platformChecker','平台审核');
     widget.context.backward(result: workitem);
   }
 

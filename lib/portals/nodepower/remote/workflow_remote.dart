@@ -31,9 +31,22 @@ mixin IWorkflowRemote {
 
   Future<List<WorkItem>> pageMyWorkItem(int limit, int offset) {}
 
-  Future<bool> doMyWorkItem(String id, String s, bool bool) {}
+  Future<List<WorkItem>> pageMyWorkItemByFilter(
+      int filter, int limit, int offset);
+
+  Future<bool> doMyWorkItem(
+      String workinst, String operated, bool doneWorkInst, String note) {}
 
   Future<WorkItem> createWorkInstance(String workflow, String data) {}
+
+  Future<bool> doWorkItemAndSend(
+      String workinst,
+      String operated,
+      bool doneWorkInst,
+      String note,
+      String recipients,
+      String eventCode,
+      String stepName) {}
 }
 
 class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
@@ -159,12 +172,13 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<WorkItem>> pageMyWorkItem(int limit, int offset) async {
+  Future<List<WorkItem>> pageMyWorkItemByFilter(
+      int filter, int limit, int offset) async {
     var list = await remotePorts.portGET(
       workflowPorts,
       'pageMyWorkItem',
       parameters: {
-        'filter': 0,
+        'filter': filter,
         'limit': limit,
         'offset': offset,
       },
@@ -207,8 +221,13 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<WorkItem>> pageMyWorkItem(int limit, int offset) async {
+    return await this.pageMyWorkItemByFilter(0, limit, offset);
+  }
+
+  @override
   Future<bool> doMyWorkItem(
-      String workinst, String operated, bool doneWorkInst) async {
+      String workinst, String operated, bool doneWorkInst, String note) async {
     var obj = await remotePorts.portGET(
       workflowPorts,
       'doMyWorkItem',
@@ -216,6 +235,32 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
         'workinst': workinst,
         'operated': operated,
         'doneWorkInst': doneWorkInst,
+        'note': note,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<bool> doWorkItemAndSend(
+      String workinst,
+      String operated,
+      bool doneWorkInst,
+      String note,
+      String recipients,
+      String eventCode,
+      String stepName) async{
+    var obj = await remotePorts.portGET(
+      workflowPorts,
+      'doWorkItemAndSend',
+      parameters: {
+        'workinst': workinst,
+        'operated': operated,
+        'doneWorkInst': doneWorkInst,
+        'note': note,
+        'recipients':recipients,
+        'eventCode':eventCode,
+        'stepName':stepName,
       },
     );
     return obj;
