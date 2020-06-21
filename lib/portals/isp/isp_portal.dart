@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/isp/pages/desktop.dart';
 import 'package:netos_app/portals/isp/pages/event_details.dart';
+import 'package:netos_app/portals/isp/pages/mine.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 
 import 'scaffolds.dart';
@@ -79,6 +80,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/desktop',
           buildPage: (PageContext pageContext) => IspDesktop(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '我',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/mine',
+          buildPage: (PageContext pageContext) => Mine(
             context: pageContext,
           ),
         ),

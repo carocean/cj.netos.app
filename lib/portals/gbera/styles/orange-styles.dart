@@ -351,5 +351,19 @@ List<Style> buildOrangeStyles(IServiceProvider site) {
         );
       },
     ),
+    Style(
+        url: '/profile/list/start_button_background.color',
+        desc: '开始按钮的背景色',
+        get: () {
+          return Color(0xFFFFAB91);
+        }
+    ),
+    Style(
+        url: '/profile/list/start_button_text.color',
+        desc: '开始按钮的文本色',
+        get: () {
+          return Color(0xFFBF360C);
+        }
+    ),
   ];
 }

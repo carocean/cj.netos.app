@@ -3,35 +3,35 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 
-List<Style> buildGreenStyles(IServiceProvider site) {
+List<Style> buildPinkStyles(IServiceProvider site) {
   return <Style>[
     Style(
         url: '/desktop/settings/portlet.activeColor',
         desc: '栏目列表siwtch组件激活色',
         get: () {
-          return Colors.green[500];
+          return Colors.pink[800];
         }
     ),
     Style(
         url: '/desktop/desklets/settings.icon',
         desc: '桌面栏目设置列表',
         get: () {
-          return Colors.green[500];
+          return Colors.pink[500];
         }
     ),
     Style(
         url: '/bottom.unselectedItemColor',
         desc: '低部导航未选中时颜色',
         get: () {
-          return Colors.green[200];
+          return Colors.black26;
         }
     ),
     Style(
-      url: '/bottom.selectedItemColor',
-      desc: '低部导航选中时颜色',
-      get: () {
-        return Colors.green;
-      }
+        url: '/bottom.selectedItemColor',
+        desc: '低部导航选中时颜色',
+        get: () {
+          return Colors.pink[700];
+        }
     ),
     Style(
       url: '/geosphere/mydq.text',
@@ -39,7 +39,6 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 14,
-          color: Colors.green,
         );
       },
     ),
@@ -59,7 +58,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 12,
-          color: Colors.green[600],
+          color: Colors.pink[600],
         );
       },
     ),
@@ -79,7 +78,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 12,
-          color: Colors.green[600],
+          color: Colors.pink[600],
         );
       },
     ),
@@ -89,7 +88,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 14,
-          color: Colors.green[600],
+          color: Colors.pink[600],
           fontWeight: FontWeight.w500,
         );
       },
@@ -109,7 +108,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       desc: '',
       get: () {
         return TextStyle(
-          color: Colors.green[700],
+          color: Colors.pink[700],
           fontWeight: FontWeight.w500,
           fontSize: 15,
         );
@@ -121,7 +120,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 20,
-          color: Colors.green[700],
+          color: Colors.pink[700],
         );
       },
     ),
@@ -132,7 +131,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
         return Icon(
           FontAwesomeIcons.qrcode,
           size: 16,
-          color: Colors.green[400],
+          color: Colors.pink[400],
         );
       },
     ),
@@ -143,7 +142,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
         return Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: Colors.green[400],
+          color: Colors.pink[400],
         );
       },
     ),
@@ -160,7 +159,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 18,
-          color: Colors.green[800],
+          color: Colors.pink[800],
           fontWeight: FontWeight.w600,
         );
       },
@@ -171,7 +170,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 14,
-          color: Colors.green[500],
+          color: Colors.pink[500],
         );
       },
     ),
@@ -179,7 +178,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       url: '/profile/list/item-icon.color',
       desc: '列表项图片的颜色',
       get: () {
-        return Colors.green[600];
+        return Colors.pink[600];
       },
     ),
     Style(
@@ -209,7 +208,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
         return TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Colors.green[500],
+          color: Colors.pink[500],
         );
       },
     ),
@@ -220,7 +219,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
         return TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: Colors.green[800],
+          color: Colors.pink[800],
         );
       },
     ),
@@ -276,14 +275,14 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       url: '/wallet/change/cashout.color',
       desc: '提现按钮背景样式',
       get: () {
-        return Colors.green[200];
+        return Colors.pink[200];
       },
     ),
     Style(
       url: '/wallet/change/cashout.highlightColor',
       desc: '提现按钮背景高亮样式',
       get: () {
-        return Colors.green[300];
+        return Colors.pink[300];
       },
     ),
     Style(
@@ -302,7 +301,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 13,
-          color: Colors.green[600],
+          color: Colors.pink[600],
         );
       },
     ),
@@ -312,7 +311,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontSize: 13,
-          color: Colors.green[600],
+          color: Colors.pink[600],
         );
       },
     ),
@@ -320,7 +319,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       url: '/wallet/change/deposit/method/arrow.icon',
       desc: '支付方式箭头样式',
       get: () {
-        return Colors.green[400];
+        return Colors.pink[400];
       },
     ),
     Style(
@@ -348,7 +347,7 @@ List<Style> buildGreenStyles(IServiceProvider site) {
       get: () {
         return TextStyle(
           fontWeight: FontWeight.w500,
-          color: Colors.green[500],
+          color: Colors.pink[500],
         );
       },
     ),
@@ -356,14 +355,14 @@ List<Style> buildGreenStyles(IServiceProvider site) {
         url: '/profile/list/start_button_background.color',
         desc: '开始按钮的背景色',
         get: () {
-          return Color(0xFF81C784);
+          return Color(0xFFF48FB1);
         }
     ),
     Style(
         url: '/profile/list/start_button_text.color',
         desc: '开始按钮的文本色',
         get: () {
-          return Color(0xFF1B5E20);
+          return Color(0xFF880E4F);
         }
     ),
   ];

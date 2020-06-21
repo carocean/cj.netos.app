@@ -155,7 +155,10 @@ import 'package:netos_app/portals/gbera/store/services/geo_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
 import 'package:netos_app/portals/gbera/styles/blue-styles.dart';
+import 'package:netos_app/portals/gbera/styles/blueGrey-styles.dart';
 import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
+import 'package:netos_app/portals/gbera/styles/pink-styles.dart';
+import 'package:netos_app/portals/gbera/styles/purple-styles.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -259,16 +262,16 @@ class GberaPortal {
               primarySwatch: MaterialColor(
                 0xFFF5F5f5,
                 {
-                  50: Color(0xFFE8F5E9),
-                  100: Color(0xFFC8E6C9),
-                  200: Color(0xFFA5D6A7),
-                  300: Color(0xFF81C784),
-                  400: Color(0xFF66BB6A),
-                  500: Color(0xFF4CAF50),
-                  600: Color(0xFF43A047),
-                  700: Color(0xFF388E3C),
-                  800: Color(0xFF2E7D32),
-                  900: Color(0xFF1B5E20),
+                  50: Color(0xFFFAFAFA),
+                  100: Color(0xFF5F5F5),
+                  200: Color(0xFFEEEEEE),
+                  300: Color(0xFFE0E0E0),
+                  400: Color(0xFFBDBDBD),
+                  500: Color(0xFF9E9E9E),
+                  600: Color(0xFF757575),
+                  700: Color(0xFF616161),
+                  800: Color(0xFF424242),
+                  900: Color(0xFF212121),
                 },
               ),
             );
@@ -278,7 +281,7 @@ class GberaPortal {
           title: '绿色',
           desc: '呈现淡绿',
           url: '/green',
-          iconColor: Colors.green[500],
+          iconColor: Colors.greenAccent,
           buildStyle: buildGreenStyles,
           buildTheme: (BuildContext context) {
             return ThemeData(
@@ -328,7 +331,7 @@ class GberaPortal {
           title: '蓝色',
           desc: '呈现淡蓝，接近白',
           url: '/blue',
-          iconColor: Colors.blue[500],
+          iconColor: Colors.blueAccent,
           buildStyle: buildBlueStyles,
           buildTheme: (context) => ThemeData(
             backgroundColor: Color(0xFFE1f5fe),
@@ -409,15 +412,162 @@ class GberaPortal {
               0xFFFBE9E7,
               {
                 50: Color(0xFFFBE9E7),
-                100: Color(0xFFFCCBC),
-                200: Color(0xFFFAB91),
-                300: Color(0xFF8A65),
-                400: Color(0xFFF7043),
-                500: Color(0xFFF5722),
-                600: Color(0xFF4511E),
+                100: Color(0xFFFFCCBC),
+                200: Color(0xFFFFAB91),
+                300: Color(0xFFFF8A65),
+                400: Color(0xFFFF7043),
+                500: Color(0xFFFF5722),
+                600: Color(0xFFF4511E),
                 700: Color(0xFFE64A19),
                 800: Color(0xFFD84315),
                 900: Color(0xFFBF360C),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '粉色',
+          desc: '玫瑰色',
+          url: '/pink',
+          iconColor: Colors.pinkAccent,
+          buildStyle: buildPinkStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFFCE4EC),
+            scaffoldBackgroundColor: Color(0xFFFCE4EC),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFFCE4EC),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.pink[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.pink[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.pink[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFFCE4EC,
+              {
+                50: Color(0xFFFCE4EC),
+                100: Color(0xFFF8BBD0),
+                200: Color(0xFFF48FB1),
+                300: Color(0xFFF06292),
+                400: Color(0xFFEC407A),
+                500: Color(0xFFE91E63),
+                600: Color(0xFFD81B60),
+                700: Color(0xFFC2185B),
+                800: Color(0xFFAD1457),
+                900: Color(0xFF880E4F),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '蓝灰',
+          desc: '庄重厚实感',
+          url: '/blueGrey',
+          iconColor: Colors.blueGrey,
+          buildStyle: buildBlueGreyStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFECEFF1),
+            scaffoldBackgroundColor: Color(0xFFECEFF1),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFECEFF1),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.blueGrey[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.blueGrey[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.blueGrey[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFECEFF1,
+              {
+                50: Color(0xFFECEFF1),
+                100: Color(0xFFCFD8DC),
+                200: Color(0xFFB0BEC5),
+                300: Color(0xFF90A4AE),
+                400: Color(0xFF78909C),
+                500: Color(0xFF607D8B),
+                600: Color(0xFF546E7A),
+                700: Color(0xFF455A64),
+                800: Color(0xFF37474F),
+                900: Color(0xFF263238),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '紫色',
+          desc: '紫色象征着尊贵;浪漫;一种强烈的感情',
+          url: '/purple',
+          iconColor: Colors.purple,
+          buildStyle: buildPurpleStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFF3E5F5),
+            scaffoldBackgroundColor: Color(0xFFF3E5F5),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFF3E5F5),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.purple[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.purple[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.purple[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFF3E5F5,
+              {
+                50: Color(0xFFF3E5F5),
+                100: Color(0xFFE1BEE7),
+                200: Color(0xFFCE93D8),
+                300: Color(0xFFBA68C8),
+                400: Color(0xFFAB47BC),
+                500: Color(0xFF9C27B0),
+                600: Color(0xFF8E24AA),
+                700: Color(0xFF7B1FA2),
+                800: Color(0xFF6A1B9A),
+                900: Color(0xFF4A148C),
               },
             ),
           ),

@@ -14,7 +14,6 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-
   @override
   Widget build(BuildContext context) {
     var header = Padding(
@@ -36,9 +35,7 @@ class _ProfileState extends State<Profile> {
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
-                        widget.context.forward('/profile/editor').then((v){
-
-                        });
+                        widget.context.forward('/profile/editor').then((v) {});
                       },
                       child: Padding(
                         padding: EdgeInsets.all(4),
@@ -65,15 +62,13 @@ class _ProfileState extends State<Profile> {
                             ),
                             child: Text(
                               '${widget.context.principal.nickName}',
-                              style: widget
-                                  .context
+                              style: widget.context
                                   .style('/profile/header-face-title.text'),
                             ),
                           ),
                           Text(
                             '${widget.context.principal?.person}',
-                            style: widget
-                                .context
+                            style: widget.context
                                 .style('/profile/header-face-no.text'),
                           ),
                         ],
@@ -99,7 +94,7 @@ class _ProfileState extends State<Profile> {
                     right: 8,
                   ),
                   child:
-                  widget.context.style('/profile/header-right-qrcode.icon'),
+                      widget.context.style('/profile/header-right-qrcode.icon'),
                 ),
               ),
               widget.context.style('/profile/header-right-arrow.icon'),
@@ -143,7 +138,7 @@ class _ProfileState extends State<Profile> {
                       widget.context.findPage('/wallet').icon,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -154,119 +149,7 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         Text(
                           widget.context.findPage('/wallet').title,
-                          style: widget
-                              .context
-                              .style('/profile/list/item-title.text'),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          size: 20,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Divider(
-            height: 1,
-            indent: 40,
-          ),
-          //我的生意
-          Container(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                widget.context.forward('/',scene: 'landagent');
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      Icons.landscape,
-                      size: 30,
-                      color:
-                      widget.context.style('/profile/list/item-icon.color'),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        ///是用户的经营管理后台，如我有店铺就经营店铺，我有xx
-                        Text(
-                          '我是地商',
-                          style: widget
-                              .context
-                              .style('/profile/list/item-title.text'),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          size: 20,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Divider(
-            height: 1,
-            indent: 40,
-          ),
-          Container(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                widget.context.forward('/',scene: 'isp');
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      Icons.business,
-                      size: 30,
-                      color:
-                      widget.context.style('/profile/list/item-icon.color'),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        ///是用户的经营管理后台，如我有店铺就经营店铺，我有xx
-                        Text(
-                          '我是运营商',
-                          style: widget
-                              .context
+                          style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),
                         Icon(
@@ -333,7 +216,7 @@ class _ProfileState extends State<Profile> {
                       widget.context.findPage('/users/list')?.icon,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -344,8 +227,7 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         Text(
                           widget.context.findPage('/users/list')?.title,
-                          style: widget
-                              .context
+                          style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),
                         Icon(
@@ -389,7 +271,7 @@ class _ProfileState extends State<Profile> {
                       widget.context.findPage('/desktop/settings')?.icon,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -400,8 +282,7 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         Text(
                           widget.context.findPage('/desktop/settings')?.title,
-                          style: widget
-                              .context
+                          style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),
                         Icon(
@@ -445,7 +326,7 @@ class _ProfileState extends State<Profile> {
                       widget.context.findPage('/system/settings').icon,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -456,8 +337,7 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         Text(
                           '系统设置',
-                          style: widget
-                              .context
+                          style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),
                         Icon(
@@ -477,46 +357,90 @@ class _ProfileState extends State<Profile> {
     );
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(150),
-        child: AppBar(
-//          title: Text(widget.context.page?.title,),
-//          titleSpacing: 0,
-//          centerTitle: false,
-          backgroundColor: widget.context.style('/profile/header-bg.color'),
-          elevation: 0.0,
-          flexibleSpace: header,
-          automaticallyImplyLeading: true,
-        ),
-      ),
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverToBoxAdapter(
-            child: Container(
-              margin: EdgeInsets.only(
-                top: 10,
+      body: Stack(
+        children: <Widget>[
+          CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 150,
+                backgroundColor: widget.context.style('/profile/header-bg.color'),
+                elevation: 0.0,
+                flexibleSpace: header,
+                automaticallyImplyLeading: true,
               ),
-              child: Column(
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 10,
-                    ),
-                    child: card_1,
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: EdgeInsets.only(
+                    top: 10,
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 10,
-                    ),
-                    child: card_2,
+                  child: Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 10,
+                        ),
+                        child: card_1,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 10,
+                        ),
+                        child: card_2,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 10,
+                        ),
+                        child: card_3,
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 10,
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 40,
+            right: 0,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  widget.context.forward('/public/login', scene: '/');
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.context.style('/profile/list/start_button_background.color'),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
                     ),
-                    child: card_3,
+                    boxShadow: [
+//                      BoxShadow(
+//                          color: widget.context.style('/profile/list/start_button_shadow.color'),
+//                          offset: Offset(-1.0, 1.0), //阴影xy轴偏移量
+//                          blurRadius: 10.0, //阴影模糊程度
+//                          spreadRadius: 1.0 //阴影扩散程度
+//                      ),
+                    ],
                   ),
-                ],
+                  padding: EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 8,
+                    bottom: 8,
+                  ),
+                  child: Text(
+                    '切换登录账号',
+                    style: TextStyle(
+                      color: widget.context.style('/profile/list/start_button_text.color'),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -525,4 +449,3 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
-

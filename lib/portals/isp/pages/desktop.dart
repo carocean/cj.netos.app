@@ -23,12 +23,22 @@ class _IspDesktopState extends State<IspDesktop>
   void initState() {
     this.tabPageViews = [
       _TabPageView(
-        title: '直营',
-        view: _BankList(context: widget.context,),
+        title: '待办',
+        buildView: () {
+          return _TodoWorkitem(context: widget.context);
+        },
       ),
       _TabPageView(
-        title: '地商',
-        view: _BankList(context: widget.context,),
+        title: '已办',
+        buildView: () {
+          return _DoneWorkitem(context: widget.context);
+        },
+      ),
+      _TabPageView(
+        title: '发件',
+        buildView: () {
+          return _MyCreatedInstWorkItem(context: widget.context);
+        },
       ),
     ];
     this.tabController =
@@ -57,17 +67,20 @@ class _IspDesktopState extends State<IspDesktop>
               PopupMenuButton(
                 onSelected: (String value) {
                   switch(value) {
-                    case 'logout':
-                      widget.context.forward('/public/login', scene: '/');
+                    case 'publishNews':
+//                      widget.context.forward('/public/login', scene: '/');
                       break;
                   }
                 },
-//                  padding: EdgeInsets.all(10),
                 offset: Offset(0, 40),
                 itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
                   PopupMenuItem(
-                    value: "logout",
-                    child: new Text("退出系统"),
+                    value: "publishNews",
+                    child: new Text("发资讯"),
+                  ),
+                  PopupMenuItem(
+                    value: "applyWybank",
+                    child: new Text("申请纹银银行"),
                   ),
                 ],
               ),
@@ -132,44 +145,6 @@ class _IspDesktopState extends State<IspDesktop>
               height: 40,
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '通讯纹银市场已审批通过！',
-                  eventName: '平台通知',
-                  onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (ctx) {
-                          return widget.context.part('/event/details', context);
-                        });
-                  },
-                ),
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '本周财报',
-                  eventName: '运营商通知',
-                ),
-                _OperatorEvent(
-                  eventLeading: Icon(
-                    Icons.widgets,
-                    size: 20,
-                  ),
-                  eventDetails: '平台理财新知识！',
-                  eventName: '节点动力培训学院',
-                  isBottom: true,
-                ),
-              ],
-            ),
-          ),
           SliverPersistentHeader(
             pinned: true,
             delegate: _TabBar(
@@ -190,13 +165,13 @@ class _IspDesktopState extends State<IspDesktop>
       body: TabBarView(
         controller: this.tabController,
         children: tabPageViews.map((v) {
-          if (v.view == null) {
+          if (v.buildView == null) {
             return Container(
               width: 0,
               height: 0,
             );
           }
-          return v.view;
+          return v.buildView();
         }).toList(),
       ),
     );
@@ -233,342 +208,51 @@ class _TabBar extends SliverPersistentHeaderDelegate {
 
 class _TabPageView {
   String title;
-  Widget view;
+  Widget Function() buildView;
 
-  _TabPageView({
-    this.title,
-    this.view,
-  });
+  _TabPageView({this.title, this.buildView});
 }
 
-class _OperatorEvent extends StatelessWidget {
-  String eventName;
-  String eventDetails;
-  Widget eventLeading;
-  bool isBottom;
-  Function() onTap;
-
-  _OperatorEvent({
-    this.eventName,
-    this.eventDetails,
-    this.eventLeading,
-    this.isBottom = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 30,
-          right: 30,
-        ),
-        child: Column(
-          children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 5,
-                  ),
-                  child: eventLeading,
-                ),
-                Expanded(
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 4,
-                          children: <Widget>[
-                            Text(
-                              eventName ?? '',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              eventDetails ?? '',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[600],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: 5,
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-              ),
-              child: isBottom
-                  ? SizedBox(
-                width: 0,
-                height: 0,
-              )
-                  : Divider(
-                height: 1,
-                indent: 25,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BankList extends StatefulWidget {
+class _TodoWorkitem extends StatefulWidget {
   PageContext context;
 
-  _BankList({this.context});
+  _TodoWorkitem({this.context});
 
   @override
-  __BankListState createState() => __BankListState();
+  __TodoWorkitemState createState() => __TodoWorkitemState();
 }
 
-class __BankListState extends State<_BankList> {
-  EasyRefreshController _controller;
-  @override
-  void initState() {
-    _controller=EasyRefreshController();
-    super.initState();
-  }
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-  Future<void> _onLoad()async{}
+class __TodoWorkitemState extends State<_TodoWorkitem> {
   @override
   Widget build(BuildContext context) {
-    return  Container(
-      constraints: BoxConstraints.expand(),
-      color: Colors.white,
-      child: EasyRefresh(
-        controller: _controller,
-        onLoad: _onLoad,
-        child: ListView(
-          padding: EdgeInsets.all(0),
-          children: <Widget>[
-            _WenyBank(
-              context: widget.context,
-              bank: WenyBank(
-                bank: 'xxxxx',
-                stock: 2388382.3332238883,
-                freezen: 2303,
-                profit: 23983,
-                price: 0.00233248848484,
-                info: BankInfo(
-                  title: '农业发展',
-                  ctime: '20200603122816333',
-                  id: 'xxxx',
-                  state: 1,
-                  masterType: 0,
-                  icon: '',
-                  masterId: '',
-                  masterPerson: '',
-                  creator: 'cj@gbera.netos',
-                ),
-              ),
-            ),
-            _WenyBank(
-              context: widget.context,
-              bank: WenyBank(
-                bank: 'xxxxx',
-                stock: 2388382.3332238883,
-                freezen: 2303,
-                profit: 23983,
-                price: 0.00233248848484,
-                info: BankInfo(
-                  title: '农业发展',
-                  ctime: '20200603122816333',
-                  id: 'xxxx',
-                  state: 1,
-                  masterType: 0,
-                  icon: '',
-                  masterId: '',
-                  masterPerson: '',
-                  creator: 'cj@gbera.netos',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return Container();
   }
 }
-
-class _WenyBank extends StatelessWidget {
+class _DoneWorkitem extends StatefulWidget {
   PageContext context;
-  WenyBank bank;
-  bool isBottom;
 
-  _WenyBank({this.context, this.bank, this.isBottom = false});
-
+  _DoneWorkitem({this.context});
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 15,
-        right: 15,
-      ),
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => this.context.forward('/wallet/weny', arguments: {
-                'bank': bank,
-              }),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.image,
-                      size: 30,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '${bank.info.title}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: 10,
-                                bottom: 4,
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Container(
-                                    width: 35,
-                                    padding: EdgeInsets.only(
-                                      right: 4,
-                                    ),
-                                    child: Text(
-                                      '现价:',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '¥${bank.price}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 35,
-                                  padding: EdgeInsets.only(
-                                    right: 4,
-                                  ),
-                                  child: Text(
-                                    '买入:',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  '₩${bank.stock}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Text(
-                                  '¥${(bank.stock * bank.price / 100.0).toStringAsFixed(2)}'),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_right,
-                              size: 20,
-                              color: Colors.grey[400],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          isBottom
-              ? SizedBox(
-            width: 0,
-            height: 0,
-          )
-              : Divider(
-            height: 1,
-          ),
-        ],
-      ),
-    );
-  }
+  __DoneWorkitemState createState() => __DoneWorkitemState();
 }
 
+class __DoneWorkitemState extends State<_DoneWorkitem> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+class _MyCreatedInstWorkItem extends StatefulWidget {
+  PageContext context;
+
+  _MyCreatedInstWorkItem({this.context});
+  @override
+  __MyCreatedInstWorkItemState createState() => __MyCreatedInstWorkItemState();
+}
+
+class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
