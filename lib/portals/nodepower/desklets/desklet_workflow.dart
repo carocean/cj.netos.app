@@ -210,6 +210,9 @@ class __TodoListWorkitemWidgetState extends State<_TodoListWorkitemWidget> {
     List<WorkItem> list = await workflowRemote.pageMyWorkItem(_limit, _offset);
     if (list.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += list.length;
@@ -257,7 +260,7 @@ class __TodoListWorkitemWidgetState extends State<_TodoListWorkitemWidget> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               _showForm(widget.context, context, item).then((value){
-                if (StringUtil.isEmpty(value)) {
+                if (value==null) {
                   return;
                 }
                 _workitems.clear();
@@ -443,6 +446,9 @@ class __DoneListWorkitemWidgetState extends State<_DoneListWorkitemWidget> {
         await workflowRemote.pageMyWorkItemByFilter(1, _limit, _offset);
     if (list.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += list.length;
@@ -490,7 +496,7 @@ class __DoneListWorkitemWidgetState extends State<_DoneListWorkitemWidget> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               _showForm(widget.context, context, item).then((value){
-                if (StringUtil.isEmpty(value)) {
+                if (value==null) {
                   return;
                 }
                 _workitems.clear();
@@ -679,6 +685,9 @@ class __CreatedInstWorkitemWidgetState
         await workflowRemote.pageMyWorkItemByFilter(2, _limit, _offset);
     if (list.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += list.length;
@@ -726,7 +735,7 @@ class __CreatedInstWorkitemWidgetState
             behavior: HitTestBehavior.opaque,
             onTap: () {
               _showForm(widget.context, context, item).then((value){
-                if (StringUtil.isEmpty(value)) {
+                if (value==null) {
                   return;
                 }
                 _workitems.clear();

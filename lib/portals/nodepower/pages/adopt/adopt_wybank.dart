@@ -99,10 +99,62 @@ class _AdoptWybankState extends State<AdoptWybank> {
   }
 
   Future<void> _doAdopt() async {
-
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/remote/org/workflow');
+    //求运营商的业主
+    ILaRemote laRemote = widget.context.site.getService('/remote/org/la');
+    OrgLAOL laol = await laRemote.getLa(_orgLicenceOL.organ);
+    IIspRemote lspRemote = widget.context.site.getService('/remote/org/isp');
+    OrgISPOL ispol = await lspRemote.getIsp(laol.isp);
+    var master = ispol.masterPerson;
+    List<String> accounts = await lspRemote.listIspAccountOfPerson(master);
+    var recipients = '';
+    for (var person in accounts) {
+      recipients = '$person;$recipients';
+    }
+    var inst = _workitem.workInst;
+    var form = _createForm();
+    await workflowRemote.doWorkItemAndSend2(
+      inst.id,
+      'platformChecked',
+      false,
+      '纹银银行已通过审批，并已可营业',
+      form.toMap(),
+      true,
+      recipients,
+      //发送给归属运营商的业主
+      'review',
+      '运营商阅示',
+    );
+    widget.context
+        .backward(result: {'action': 'doAdopt', 'workitem': _workitem});
   }
 
-  Future<void> _doReturn() async {}
+  Future<void> _doReturn() async {
+    IWorkflowRemote workflowRemote =
+        widget.context.site.getService('/remote/org/workflow');
+    //求运营商的业主
+    ILaRemote laRemote = widget.context.site.getService('/remote/org/la');
+    OrgLAOL laol = await laRemote.getLa(_orgLicenceOL.organ);
+    IIspRemote lspRemote = widget.context.site.getService('/remote/org/isp');
+    OrgISPOL ispol = await lspRemote.getIsp(laol.isp);
+    var inst = _workitem.workInst;
+    var form = _createForm();
+    await workflowRemote.doWorkItemAndSend2(
+      inst.id,
+      'doReturn',
+      false,
+      '经审未符合条件，被退回',
+      form.toMap(),
+      true,
+      ispol.masterPerson,
+      //发送给归属运营商的业主
+      'returnForEdit',
+      '发回修改',
+    );
+    widget.context
+        .backward(result: {'action': 'doReturn', 'workitem': _workitem});
+  }
 
   @override
   Widget build(BuildContext context) {

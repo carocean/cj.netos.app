@@ -41,7 +41,7 @@ class _LandagentDesktopState extends State<LandagentDesktop>
         },
       ),
       _TabPageView(
-        title: '我的申请',
+        title: '发件',
         buildView: () {
           return _MyCreatedInstWorkItem(context: widget.context);
         },
@@ -210,6 +210,9 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
     var items = await workflowRemote.pageMyWorkItemByFilter(0, _limit, _offset);
     if (items.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += items.length;
@@ -327,6 +330,9 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
     var items = await workflowRemote.pageMyWorkItemByFilter(1, _limit, _offset);
     if (items.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += items.length;
@@ -448,6 +454,9 @@ class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
     var items = await workflowRemote.pageMyWorkItemByFilter(2, _limit, _offset);
     if (items.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += items.length;

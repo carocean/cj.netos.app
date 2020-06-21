@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
@@ -37,6 +39,9 @@ mixin IWorkflowRemote {
   Future<bool> doMyWorkItem(
       String workinst, String operated, bool doneWorkInst, String note) {}
 
+  Future<bool> doMyWorkItem2(String workinst, String operated,
+      bool doneWorkInst, String note, dynamic data, bool putonMHub) {}
+
   Future<WorkItem> createWorkInstance(String workflow, String data) {}
 
   Future<bool> doWorkItemAndSend(
@@ -44,6 +49,17 @@ mixin IWorkflowRemote {
       String operated,
       bool doneWorkInst,
       String note,
+      String recipients,
+      String eventCode,
+      String stepName) {}
+
+  Future<bool> doWorkItemAndSend2(
+      String workinst,
+      String operated,
+      bool doneWorkInst,
+      String note,
+      dynamic data,
+      bool putonMHub,
       String recipients,
       String eventCode,
       String stepName) {}
@@ -242,6 +258,26 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
   }
 
   @override
+  Future<bool> doMyWorkItem2(String workinst, String operated,
+      bool doneWorkInst, String note, dynamic data, bool putonMHub) async{
+    var obj = await remotePorts.portPOST(
+      workflowPorts,
+      'doMyWorkItem2',
+      parameters: {
+        'workinst': workinst,
+        'operated': operated,
+        'doneWorkInst': doneWorkInst,
+        'note': note,
+        'putonMHub':putonMHub,
+      },
+      data: {
+        'data':jsonEncode(data),
+      },
+    );
+    return obj;
+  }
+
+  @override
   Future<bool> doWorkItemAndSend(
       String workinst,
       String operated,
@@ -249,7 +285,7 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
       String note,
       String recipients,
       String eventCode,
-      String stepName) async{
+      String stepName) async {
     var obj = await remotePorts.portGET(
       workflowPorts,
       'doWorkItemAndSend',
@@ -258,9 +294,40 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
         'operated': operated,
         'doneWorkInst': doneWorkInst,
         'note': note,
-        'recipients':recipients,
-        'eventCode':eventCode,
-        'stepName':stepName,
+        'recipients': recipients,
+        'eventCode': eventCode,
+        'stepName': stepName,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<bool> doWorkItemAndSend2(
+      String workinst,
+      String operated,
+      bool doneWorkInst,
+      String note,
+      dynamic data,
+      bool putonMHub,
+      String recipients,
+      String eventCode,
+      String stepName) async{
+    var obj = await remotePorts.portPOST(
+      workflowPorts,
+      'doWorkItemAndSend2',
+      parameters: {
+        'workinst': workinst,
+        'operated': operated,
+        'doneWorkInst': doneWorkInst,
+        'note': note,
+        'putonMHub':putonMHub,
+        'recipients': recipients,
+        'eventCode': eventCode,
+        'stepName': stepName,
+      },
+      data: {
+        'data':jsonEncode(data),
       },
     );
     return obj;

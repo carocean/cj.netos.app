@@ -296,6 +296,9 @@ mixin IIspRemote {
   Future<OrgISPOL> getIsp(String ispid) {}
 
   Future<List<OrgISPLicenceOL>> pageIsp(int i, int j) {}
+
+  Future<List<String>> listIspAccountOfPerson(String master) {}
+
 }
 
 class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
@@ -348,11 +351,28 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   get workflowPorts => site.getService('@.prop.ports.org.workflow');
 
   get workFlow => site.getService('@.prop.org.workflow.isp');
-
+  get personPorts => site.getService('@.prop.ports.uc.person');
   @override
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     return null;
+  }
+
+  @override
+  Future<List<String>> listIspAccountOfPerson(String master) async{
+    var list = await remotePorts.portGET(
+      personPorts,
+      'listAccountOfPerson',
+      parameters: {
+        'appid': 'isp.netos',
+        'person':master,
+      },
+    );
+    var persons = <String>[];
+    for (var obj in list) {
+      persons.add(obj['person']);
+    }
+    return persons;
   }
 
   @override

@@ -44,9 +44,9 @@ class WybankForm {
       'serviceFeeRatio': serviceFeeRatio,
       'reserveRatio': reserveRatio,
       'principalRatio': principalRatio,
-      'ttmConfig': ttmConfig?.map((info) {
+      'ttmConfig': ttmConfig.map((info) {
         return info.toMap();
-      }),
+      }).toList(),
       'platformRatio': platformRatio,
       'ispRatio': ispRatio,
       'laRatio': laRatio,
