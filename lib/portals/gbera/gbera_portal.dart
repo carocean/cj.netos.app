@@ -156,9 +156,11 @@ import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
 import 'package:netos_app/portals/gbera/styles/blue-styles.dart';
 import 'package:netos_app/portals/gbera/styles/blueGrey-styles.dart';
+import 'package:netos_app/portals/gbera/styles/lime-styles.dart';
 import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
 import 'package:netos_app/portals/gbera/styles/pink-styles.dart';
 import 'package:netos_app/portals/gbera/styles/purple-styles.dart';
+import 'package:netos_app/portals/gbera/styles/teal-styles.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -568,6 +570,104 @@ class GberaPortal {
                 700: Color(0xFF7B1FA2),
                 800: Color(0xFF6A1B9A),
                 900: Color(0xFF4A148C),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '蓝绿',
+          desc: '蓝绿色有令人平和恬静的效果',
+          url: '/teal',
+          iconColor: Colors.teal,
+          buildStyle: buildTealStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFE0F2F1),
+            scaffoldBackgroundColor: Color(0xFFE0F2F1),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFE0F2F1),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.teal[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.teal[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.teal[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFE0F2F1,
+              {
+                50: Color(0xFFE0F2F1),
+                100: Color(0xFFB2DFDB),
+                200: Color(0xFF80CBC4),
+                300: Color(0xFF4DB6AC),
+                400: Color(0xFF26A69A),
+                500: Color(0xFF009688),
+                600: Color(0xFF00897B),
+                700: Color(0xFF00786B),
+                800: Color(0xFF00695C),
+                900: Color(0xFF004D40),
+              },
+            ),
+          ),
+        ),
+        ThemeStyle(
+          title: '柠檬色',
+          desc: '年轻人的世界色彩',
+          url: '/lime',
+          iconColor: Colors.lime,
+          buildStyle: buildLimeStyles,
+          buildTheme: (context) => ThemeData(
+            backgroundColor: Color(0xFFF9FBE7),
+            scaffoldBackgroundColor: Color(0xFFF9FBE7),
+            brightness: Brightness.light,
+            appBarTheme: AppBarTheme.of(context).copyWith(
+              color: Color(0xFFF9FBE7),
+              textTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.lime[800],
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actionsIconTheme: IconThemeData(
+                color: Colors.lime[700],
+                opacity: 1,
+                size: 20,
+              ),
+              brightness: Brightness.light,
+              iconTheme: IconThemeData(
+                color: Colors.lime[700],
+                opacity: 1,
+                size: 20,
+              ),
+              elevation: 1.0,
+            ),
+            primarySwatch: MaterialColor(
+              0xFFF9FBE7,
+              {
+                50: Color(0xFFF9FBE7),
+                100: Color(0xFFF0F4C3),
+                200: Color(0xFFE6EE9C),
+                300: Color(0xFFDCE775),
+                400: Color(0xFFD4E157),
+                500: Color(0xFFCDDC39),
+                600: Color(0xFFC0CA33),
+                700: Color(0xFFAFB42B),
+                800: Color(0xFF9E9D24),
+                900: Color(0xFF827717),
               },
             ),
           ),

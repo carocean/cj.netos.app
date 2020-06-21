@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 
 class Mine extends StatefulWidget {
   PageContext context;
@@ -16,10 +17,16 @@ class Mine extends StatefulWidget {
 
 class _MineState extends State<Mine> {
   EasyRefreshController _controller;
+  List<OrgISPOL> _corps = [];
 
   @override
   void initState() {
     _controller = EasyRefreshController();
+    _onload().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -29,10 +36,50 @@ class _MineState extends State<Mine> {
     super.dispose();
   }
 
-  Future<void> _onload() async {}
-
+  Future<void> _onload() async {
+    IIspRemote ispRemote = widget.context.site.getService('/org/isp');
+    List<OrgISPOL> ispList = await ispRemote.listMyOrgIsp();
+    _corps.addAll(ispList);
+  }
   @override
   Widget build(BuildContext context) {
+    var _corpWidgets = <Widget>[];
+    for (var i=0; i<_corps.length;i++) {
+      var corp = _corps[i];
+      _corpWidgets.add(
+        Container(
+          color: Colors.white,
+          child: CardItem(
+            title: '${corp.corpSimple}',
+            leading: FadeInImage.assetNetwork(
+              placeholder: 'lib/portals/gbera/images/default_watting.gif',
+              image:
+              '${corp.corpLogo}?accessToken=${widget.context.principal.accessToken}',
+              width: 22,
+              height: 22,
+              fit: BoxFit.fill,
+            ),
+            paddingLeft: 15,
+            paddingRight: 15,
+            onItemTap: () {
+              widget.context.forward('/org/isp',arguments: {'isp':corp});
+
+            },
+          ),
+        ),
+      );
+      if(i<_corps.length-1) {
+        _corpWidgets.add(
+          SizedBox(
+            height: 10,
+            child: Divider(
+              height: 1,
+              indent: 50,
+            ),
+          ),
+        );
+      }
+    }
     return SafeArea(
       child: Column(
         children: <Widget>[
@@ -126,6 +173,19 @@ class _MineState extends State<Mine> {
                     ),
                     Container(
                       color: Colors.white,
+                      child: SingleChildScrollView(
+                        physics: NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _corpWidgets,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      color: Colors.white,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -189,14 +249,6 @@ class _MineState extends State<Mine> {
                             topLeft: Radius.circular(20),
                             bottomLeft: Radius.circular(20),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Color(0xFF4511E),
-                                offset: Offset(-4.0, 3.0), //阴影xy轴偏移量
-                                blurRadius: 8.0, //阴影模糊程度
-                                spreadRadius: 1.0 //阴影扩散程度
-                            ),
-                          ],
                         ),
                         padding: EdgeInsets.only(
                           left: 10,

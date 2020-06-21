@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 
 class IspDesktop extends StatefulWidget {
@@ -66,7 +69,7 @@ class _IspDesktopState extends State<IspDesktop>
             actions: <Widget>[
               PopupMenuButton(
                 onSelected: (String value) {
-                  switch(value) {
+                  switch (value) {
                     case 'publishNews':
 //                      widget.context.forward('/public/login', scene: '/');
                       break;
@@ -99,12 +102,17 @@ class _IspDesktopState extends State<IspDesktop>
                     children: <Widget>[
                       Padding(
                         padding: EdgeInsets.only(
-                          right: 5,
+                          right: 10,
                         ),
-                        child: Image.network(
-                          'http://47.105.165.186:7100/app/chatroom/39ef96a0-7d9a-11ea-f435-4118afc463ec.jpg?accessToken=${widget.context.principal.accessToken}',
-                          width: 40,
-                          height: 40,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          child: Image.file(
+                            File(
+                              '${widget.context.principal.avatarOnLocal}',
+                            ),
+                            width: 40,
+                            height: 40,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -113,24 +121,29 @@ class _IspDesktopState extends State<IspDesktop>
                           spacing: 2,
                           children: <Widget>[
                             Text(
-                              '郑州福源集团',
+                              '${widget.context.principal.nickName}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
                               ),
                             ),
-                            Text.rich(
-                              TextSpan(
-                                text: '分账余额:',
-                                children: [
-                                  TextSpan(text: '¥28383.23'),
-                                ],
-                              ),
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 12,
-                              ),
-                            ),
+                            StringUtil.isEmpty(
+                                    widget.context.principal.signature)
+                                ? SizedBox(
+                                    height: 0,
+                                    width: 0,
+                                  )
+                                : Text.rich(
+                                    TextSpan(
+                                      text:
+                                          '${widget.context.principal.signature}',
+                                      children: [],
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 12,
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -228,10 +241,12 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
     return Container();
   }
 }
+
 class _DoneWorkitem extends StatefulWidget {
   PageContext context;
 
   _DoneWorkitem({this.context});
+
   @override
   __DoneWorkitemState createState() => __DoneWorkitemState();
 }
@@ -242,10 +257,12 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
     return Container();
   }
 }
+
 class _MyCreatedInstWorkItem extends StatefulWidget {
   PageContext context;
 
   _MyCreatedInstWorkItem({this.context});
+
   @override
   __MyCreatedInstWorkItemState createState() => __MyCreatedInstWorkItemState();
 }

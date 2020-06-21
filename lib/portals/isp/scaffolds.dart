@@ -62,7 +62,7 @@ class _IspScaffoldState extends State<IspScaffold> {
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
         unselectedItemColor: Colors.black26,
-        selectedItemColor: Colors.blue[700],
+        selectedItemColor: Colors.orange[700],
         showUnselectedLabels: true,
         showSelectedLabels: true,
         iconSize: 24,

@@ -277,12 +277,13 @@ mixin ILaRemote {
 
   Future<void> checkApplyRegisterByPlatform(
       String id, bool bool, String ispid) {}
+
+  Future<List<OrgLAOL>> pageLaOfIspList(List<String> list,int limit,int offset) {}
 }
 mixin ILicenceRemote {
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
 
   Future<OrgLicenceOL> getLicenceByID(form) {}
-
 }
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
@@ -299,6 +300,9 @@ mixin IIspRemote {
 
   Future<List<String>> listIspAccountOfPerson(String master) {}
 
+  Future<List<OrgISPOL>> listMyOrgIsp() {}
+
+  Future<OrgLicenceOL> getLicence(String id, int i) {}
 }
 
 class ReceivingBankRemote implements IReceivingBankRemote, IServiceBuilder {
@@ -351,7 +355,9 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   get workflowPorts => site.getService('@.prop.ports.org.workflow');
 
   get workFlow => site.getService('@.prop.org.workflow.isp');
+
   get personPorts => site.getService('@.prop.ports.uc.person');
+
   @override
   Future<void> builder(IServiceProvider site) {
     this.site = site;
@@ -359,13 +365,13 @@ class IspRemote implements IIspRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<String>> listIspAccountOfPerson(String master) async{
+  Future<List<String>> listIspAccountOfPerson(String master) async {
     var list = await remotePorts.portGET(
       personPorts,
       'listAccountOfPerson',
       parameters: {
         'appid': 'isp.netos',
-        'person':master,
+        'person': master,
       },
     );
     var persons = <String>[];
@@ -373,6 +379,49 @@ class IspRemote implements IIspRemote, IServiceBuilder {
       persons.add(obj['person']);
     }
     return persons;
+  }
+
+  @override
+  Future<OrgLicenceOL> getLicence(String id, int i) async {}
+
+  @override
+  Future<List<OrgISPOL>> listMyOrgIsp() async {
+    var list = await remotePorts.portGET(
+      personPorts,
+      'listMyAccount',
+      parameters: {
+        'appid': 'gbera.netos',
+      },
+    );
+    var persons = <String>[];
+    for (var obj in list) {
+      persons.add(obj['person']);
+    }
+    list = await remotePorts.portPOST(
+      ispPorts,
+      'listIspOfMasters',
+      data: {
+        'masters': jsonEncode(persons),
+      },
+    );
+    var ispList = <OrgISPOL>[];
+    for (var obj in list) {
+      ispList.add(
+        OrgISPOL(
+          corpCode: obj['corpCode'],
+          corpLogo: obj['corpLogo'],
+          corpSimple: obj['corpSimple'],
+          corpName: obj['corpName'],
+          ctime: obj['ctime'],
+          id: obj['id'],
+          licenceSrc: obj['licenceSrc'],
+          masterPerson: obj['masterPerson'],
+          masterPhone: obj['masterPhone'],
+          masterRealName: obj['masterRealName'],
+        ),
+      );
+    }
+    return ispList;
   }
 
   @override
@@ -793,6 +842,38 @@ class LaRemote implements ILaRemote, IServiceBuilder {
       },
     );
   }
+
+  @override
+  Future<List<OrgLAOL>> pageLaOfIspList(List<String> ispList,int limit,int offset) async {
+    var list = await remotePorts.portGET(
+      laPorts,
+      'pageLaOfIspList',
+      parameters: {
+        'ispList': jsonEncode(ispList),
+        'limit':limit,
+        'offset':offset,
+      },
+    );
+    var retList = <OrgLAOL>[];
+    for (var obj in list) {
+      retList.add(
+        OrgLAOL(
+          corpCode: obj['corpCode'],
+          corpLogo: obj['corpLogo'],
+          corpName: obj['corpName'],
+          corpSimple: obj['corpSimple'],
+          ctime: obj['ctime'],
+          id: obj['id'],
+          licenceSrc: obj['licenceSrc'],
+          masterPerson: obj['masterPerson'],
+          masterPhone: obj['masterPhone'],
+          masterRealName: obj['masterRealName'],
+          isp: obj['isp'],
+        ),
+      );
+    }
+    return retList;
+  }
 }
 
 class LicenceRemote implements ILicenceRemote, IServiceBuilder {
@@ -813,12 +894,12 @@ class LicenceRemote implements ILicenceRemote, IServiceBuilder {
   }
 
   @override
-  Future<OrgLicenceOL> getLicenceByID(licenceid ) async{
+  Future<OrgLicenceOL> getLicenceByID(licenceid) async {
     var obj = await remotePorts.portGET(
       licencePorts,
       'getLicenceByID',
       parameters: {
-        'licenceid': licenceid ,
+        'licenceid': licenceid,
       },
     );
     if (obj == null) {
