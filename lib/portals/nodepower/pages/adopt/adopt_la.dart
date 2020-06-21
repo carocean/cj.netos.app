@@ -171,7 +171,9 @@ class _AdoptLAState extends State<AdoptLA> {
               children: <Widget>[
                 FlatButton(
                   child: Text('批准'),
-                  onPressed: StringUtil.isEmpty(_selectedISP)
+                  onPressed: StringUtil.isEmpty(_selectedISP) ||
+                          inst.isDone == 1 ||
+                          event.recipient != widget.context.principal.person
                       ? null
                       : () {
                           _adoptApplyRegisterByPlatform(inst, event, form);
@@ -179,9 +181,12 @@ class _AdoptLAState extends State<AdoptLA> {
                 ),
                 FlatButton(
                   child: Text('退回'),
-                  onPressed: () {
-                    _returnApplyRegisterByPlatform(inst, event, form);
-                  },
+                  onPressed: inst.isDone == 1 ||
+                          event.recipient != widget.context.principal.person
+                      ? null
+                      : () {
+                          _returnApplyRegisterByPlatform(inst, event, form);
+                        },
                 )
               ],
             ),
@@ -194,14 +199,14 @@ class _AdoptLAState extends State<AdoptLA> {
   void _adoptApplyRegisterByPlatform(
       WorkInst inst, WorkEvent event, form) async {
     ILaRemote laRemote = widget.context.site.getService('/remote/org/la');
-    await laRemote.checkApplyRegisterByPlatform(inst.id, true,_selectedISP);
+    await laRemote.checkApplyRegisterByPlatform(inst.id, true, _selectedISP);
     widget.context.backward(result: 'adopt');
   }
 
   void _returnApplyRegisterByPlatform(
       WorkInst inst, WorkEvent event, form) async {
     ILaRemote laRemote = widget.context.site.getService('/remote/org/la');
-    await laRemote.checkApplyRegisterByPlatform(inst.id, false,_selectedISP);
+    await laRemote.checkApplyRegisterByPlatform(inst.id, false, _selectedISP);
     widget.context.backward(result: 'return');
   }
 

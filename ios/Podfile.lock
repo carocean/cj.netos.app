@@ -44,6 +44,8 @@ PODS:
     - Flutter
   - image_crop (0.0.1):
     - Flutter
+  - image_gallery_saver (0.0.1):
+    - Flutter
   - image_picker (0.0.1):
     - Flutter
   - just_audio (0.0.1):
@@ -100,6 +102,7 @@ DEPENDENCIES:
   - fluwx (from `.symlinks/plugins/fluwx/ios`)
   - foundation_fluttify (from `.symlinks/plugins/foundation_fluttify/ios`)
   - image_crop (from `.symlinks/plugins/image_crop/ios`)
+  - image_gallery_saver (from `.symlinks/plugins/image_gallery_saver/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - nineold (from `.symlinks/plugins/nineold/ios`)
@@ -154,6 +157,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/foundation_fluttify/ios"
   image_crop:
     :path: ".symlinks/plugins/image_crop/ios"
+  image_gallery_saver:
+    :path: ".symlinks/plugins/image_gallery_saver/ios"
   image_picker:
     :path: ".symlinks/plugins/image_picker/ios"
   just_audio:
@@ -213,6 +218,7 @@ SPEC CHECKSUMS:
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   foundation_fluttify: 3038fcc96aabb59c77f595964954c118af535d57
   image_crop: e0a67085d3ebf3cf46ca46d61c53a082507b0bc3
+  image_gallery_saver: 73b3cd8ad9c950c739878af9c311744d1bf5405d
   image_picker: e3eacd46b94694dde7cf2705955cece853aa1a8f
   just_audio: c695d6e7e37f9e96672dd84039d7530e7fd5c205
   nineold: d0d68a3226a2b819ab0c25617ec667fec71797dd

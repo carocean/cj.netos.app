@@ -100,13 +100,19 @@ class _AdoptISPState extends State<AdoptISP> {
               children: <Widget>[
                 FlatButton(
                   child: Text('批准'),
-                  onPressed: () {
-                    _adoptApplyRegisterByPlatform(inst, event, form);
-                  },
+                  onPressed: inst.isDone == 1 ||
+                          event.recipient != widget.context.principal.person
+                      ? null
+                      : () {
+                          _adoptApplyRegisterByPlatform(inst, event, form);
+                        },
                 ),
                 FlatButton(
                   child: Text('退回'),
-                  onPressed: () {
+                  onPressed:inst.isDone == 1 ||
+                      event.recipient != widget.context.principal.person
+                      ? null
+                      :  () {
                     _returnApplyRegisterByPlatform(inst, event, form);
                   },
                 )

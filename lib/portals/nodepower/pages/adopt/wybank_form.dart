@@ -8,6 +8,7 @@ class WybankForm {
   String districtTitle;
   String districtCode;
   String creator;
+  List<String> ispManagers;
   double serviceFeeRatio;
   double reserveRatio;
   double principalRatio;
@@ -24,6 +25,7 @@ class WybankForm {
       this.districtTitle,
       this.districtCode,
       this.creator,
+      this.ispManagers,
       this.serviceFeeRatio,
       this.reserveRatio,
       this.principalRatio,
@@ -41,16 +43,17 @@ class WybankForm {
       'districtTitle': districtTitle,
       'districtCode': districtCode,
       'creator': creator,
-      'serviceFeeRatio': serviceFeeRatio,
-      'reserveRatio': reserveRatio,
-      'principalRatio': principalRatio,
+      'ispManagers':ispManagers,
+      'serviceFeeRatio': serviceFeeRatio.toStringAsFixed(4),
+      'reserveRatio': reserveRatio.toStringAsFixed(4),
+      'principalRatio': principalRatio.toStringAsFixed(4),
       'ttmConfig': ttmConfig.map((info) {
         return info.toMap();
       }).toList(),
-      'platformRatio': platformRatio,
-      'ispRatio': ispRatio,
-      'laRatio': laRatio,
-      'absorbRatio': absorbRatio,
+      'platformRatio': platformRatio.toStringAsFixed(4),
+      'ispRatio': ispRatio.toStringAsFixed(4),
+      'laRatio': laRatio.toStringAsFixed(4),
+      'absorbRatio': absorbRatio.toStringAsFixed(4),
     };
   }
 
@@ -77,7 +80,7 @@ class TtmInfo {
 
   Map<String, dynamic> toMap() {
     return {
-      'ttm': ttm,
+      'ttm': ttm.toStringAsFixed(4),
       'maxAmount': maxAmount,
       'minAmount': minAmount,
     };

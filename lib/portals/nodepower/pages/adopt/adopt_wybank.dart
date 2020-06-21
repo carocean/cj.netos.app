@@ -77,7 +77,7 @@ class _AdoptWybankState extends State<AdoptWybank> {
     _serviceFeeRatio?.text =
         '${_currentConfigTemplate.serviceFeeRatio.toStringAsFixed(4)}';
     _reserveRatio?.text =
-        '${_currentConfigTemplate.serviceFeeRatio.toStringAsFixed(4)}';
+        '${_currentConfigTemplate.reserveRatio.toStringAsFixed(4)}';
 
     _ttmConfig.clear();
     var ttmConfig = _currentConfigTemplate.ttmConfig;
@@ -114,6 +114,7 @@ class _AdoptWybankState extends State<AdoptWybank> {
     }
     var inst = _workitem.workInst;
     var form = _createForm();
+    form.ispManagers = accounts;
     await workflowRemote.doWorkItemAndSend2(
       inst.id,
       'platformChecked',
@@ -138,8 +139,11 @@ class _AdoptWybankState extends State<AdoptWybank> {
     OrgLAOL laol = await laRemote.getLa(_orgLicenceOL.organ);
     IIspRemote lspRemote = widget.context.site.getService('/remote/org/isp');
     OrgISPOL ispol = await lspRemote.getIsp(laol.isp);
+    var master = ispol.masterPerson;
+    List<String> accounts = await lspRemote.listIspAccountOfPerson(master);
     var inst = _workitem.workInst;
     var form = _createForm();
+    form.ispManagers = accounts;
     await workflowRemote.doWorkItemAndSend2(
       inst.id,
       'doReturn',
@@ -967,7 +971,9 @@ class _AdoptWybankState extends State<AdoptWybank> {
               children: <Widget>[
                 FlatButton(
                   child: Text('批准'),
-                  onPressed: !_checkForm()
+                  onPressed: (!_checkForm() ||inst.isDone==1||
+                          _workitem.workEvent.recipient !=
+                              widget.context.principal.person)
                       ? null
                       : () {
                           _doAdopt();
@@ -975,9 +981,12 @@ class _AdoptWybankState extends State<AdoptWybank> {
                 ),
                 FlatButton(
                   child: Text('退回'),
-                  onPressed: () {
-                    _doReturn();
-                  },
+                  onPressed: inst.isDone==1||_workitem.workEvent.recipient !=
+                          widget.context.principal.person
+                      ? null
+                      : () {
+                          _doReturn();
+                        },
                 )
               ],
             ),
