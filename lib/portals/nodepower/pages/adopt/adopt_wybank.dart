@@ -10,6 +10,8 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
+import 'wybank_form.dart';
+
 class AdoptWybank extends StatefulWidget {
   PageContext context;
 
@@ -32,8 +34,10 @@ class _AdoptWybankState extends State<AdoptWybank> {
       TextEditingController(text: '0.1000');
   TextEditingController _ispShuntRatio = TextEditingController(text: '0.2000');
   TextEditingController _laShuntRatio = TextEditingController(text: '0.4000');
-  TextEditingController _networkShuntRatio =
+  TextEditingController _absorbShuntRatio =
       TextEditingController(text: '0.3000');
+  WybankConfigTemplate _currentConfigTemplate;
+  List<TtmInfo> _ttmConfig = [];
 
   @override
   void initState() {
@@ -52,11 +56,14 @@ class _AdoptWybankState extends State<AdoptWybank> {
     _platformShuntRatio?.dispose();
     _ispShuntRatio?.dispose();
     _laShuntRatio?.dispose();
-    _networkShuntRatio?.dispose();
+    _absorbShuntRatio?.dispose();
     super.dispose();
   }
 
   Future<void> _load() async {
+    await wybankConfigTemplateContainer.load();
+    _currentConfigTemplate = wybankConfigTemplateContainer.templates[0];
+    changeTemplate();
     var form = jsonDecode(_workitem.workInst.data);
     ILicenceRemote licenceRemote =
         widget.context.site.getService('/remote/org/licence');
@@ -65,6 +72,37 @@ class _AdoptWybankState extends State<AdoptWybank> {
       setState(() {});
     }
   }
+
+  changeTemplate() {
+    _serviceFeeRatio?.text =
+        '${_currentConfigTemplate.serviceFeeRatio.toStringAsFixed(4)}';
+    _reserveRatio?.text =
+        '${_currentConfigTemplate.serviceFeeRatio.toStringAsFixed(4)}';
+
+    _ttmConfig.clear();
+    var ttmConfig = _currentConfigTemplate.ttmConfig;
+    for (var ttm in ttmConfig) {
+      _ttmConfig.add(ttm);
+    }
+    var ttmItem = _ttmConfig[0];
+    _ttmRatio?.text = '${ttmItem.ttm.toStringAsFixed(4)}';
+    _maxAmount?.text = '${ttmItem.maxAmount}';
+    _minAmount?.text = '${ttmItem.minAmount}';
+    _platformShuntRatio?.text =
+        '${_currentConfigTemplate.platformRatio.toStringAsFixed(4)}';
+    _ispShuntRatio?.text =
+        '${_currentConfigTemplate.ispRatio.toStringAsFixed(4)}';
+    _laShuntRatio?.text =
+        '${_currentConfigTemplate.laRatio.toStringAsFixed(4)}';
+    _absorbShuntRatio?.text =
+        '${_currentConfigTemplate.absorbRatio.toStringAsFixed(4)}';
+  }
+
+  Future<void> _doAdopt() async {
+
+  }
+
+  Future<void> _doReturn() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -240,6 +278,64 @@ class _AdoptWybankState extends State<AdoptWybank> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
+                      Container(
+                        constraints: BoxConstraints.tightForFinite(
+                          width: double.maxFinite,
+                        ),
+                        padding: EdgeInsets.only(
+                          bottom: 10,
+                          top: 10,
+                          left: 10,
+                          right: 10,
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: 10,
+                              ),
+                              child: Text(
+                                '选择模板: ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton(
+                                  underline: Container(
+                                    height: 1,
+                                    color: Colors.grey[400],
+                                  ),
+                                  isExpanded: false,
+                                  elevation: 1,
+                                  value: _currentConfigTemplate,
+                                  onChanged: (v) {
+                                    _currentConfigTemplate = v;
+                                    changeTemplate();
+                                    setState(() {});
+                                  },
+                                  items: wybankConfigTemplateContainer.templates
+                                      .map((template) {
+                                    return DropdownMenuItem(
+                                      child: Text(
+                                        '${template.template ?? ''}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      value: template,
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       Stack(
                         overflow: Overflow.visible,
                         children: <Widget>[
@@ -503,11 +599,41 @@ class _AdoptWybankState extends State<AdoptWybank> {
                                       MainAxisAlignment.spaceEvenly,
                                   children: <Widget>[
                                     FlatButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                            context: context,
+                                            builder: (ctx) {
+                                              return widget.context.part(
+                                                  '/adopt/wybank/ttm', ctx,
+                                                  arguments: {
+                                                    'ttmConfig': _ttmConfig
+                                                  });
+                                            }).then((value) {
+                                          if (value == null) {
+                                            return;
+                                          }
+                                        });
+                                      },
                                       child: Text('查看'),
                                     ),
                                     FlatButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        for (var info in _ttmConfig) {
+                                          if (info.ttm ==
+                                              double.parse(_ttmRatio.text)) {
+                                            return;
+                                          }
+                                        }
+                                        _ttmConfig.add(
+                                          TtmInfo(
+                                            ttm: double.parse(_ttmRatio.text),
+                                            minAmount:
+                                                int.parse(_minAmount.text),
+                                            maxAmount:
+                                                int.parse(_maxAmount.text),
+                                          ),
+                                        );
+                                      },
                                       child: Text('添加'),
                                     ),
                                   ],
@@ -662,10 +788,10 @@ class _AdoptWybankState extends State<AdoptWybank> {
                                           ),
                                           hintText: '输入小数',
                                         ),
-                                        controller: _networkShuntRatio,
+                                        controller: _absorbShuntRatio,
                                         onChanged: (v) {
                                           if (StringUtil.isEmpty(v)) {
-                                            _networkShuntRatio.text = '0';
+                                            _absorbShuntRatio.text = '0';
                                           }
                                           if (mounted) {
                                             setState(() {});
@@ -707,14 +833,14 @@ class _AdoptWybankState extends State<AdoptWybank> {
                                             ),
                                             TextSpan(
                                               text:
-                                                  '网络洇金(${_networkShuntRatio.text})\n',
+                                                  '网络洇金(${_absorbShuntRatio.text})\n',
                                             ),
                                             TextSpan(
                                               text: '---------------------\n',
                                             ),
                                             TextSpan(
                                               text:
-                                                  '总资金(${_totalShunter()!=1.0?'错误：${_totalShunter().toStringAsFixed(4)}':_totalShunter().toStringAsFixed(4)})',
+                                                  '自由金(${_totalShunter() != 1.0 ? '错误：${_totalShunter().toStringAsFixed(4)}' : _totalShunter().toStringAsFixed(4)})',
                                             ),
                                           ],
                                           style: TextStyle(
@@ -789,11 +915,17 @@ class _AdoptWybankState extends State<AdoptWybank> {
               children: <Widget>[
                 FlatButton(
                   child: Text('批准'),
-                  onPressed: () {},
+                  onPressed: !_checkForm()
+                      ? null
+                      : () {
+                          _doAdopt();
+                        },
                 ),
                 FlatButton(
                   child: Text('退回'),
-                  onPressed: () {},
+                  onPressed: () {
+                    _doReturn();
+                  },
                 )
               ],
             ),
@@ -816,6 +948,32 @@ class _AdoptWybankState extends State<AdoptWybank> {
     return double.parse(_platformShuntRatio.text) +
         double.parse(_ispShuntRatio.text) +
         double.parse(_laShuntRatio.text) +
-        double.parse(_networkShuntRatio.text);
+        double.parse(_absorbShuntRatio.text);
+  }
+
+  WybankForm _createForm() {
+    var event = _workitem.workEvent;
+    var form = jsonDecode(event.data);
+    return WybankForm(
+      ttmConfig: _ttmConfig,
+      serviceFeeRatio: double.parse(_serviceFeeRatio.text),
+      reserveRatio: double.parse(_reserveRatio.text),
+      principalRatio: 1.0000 - double.parse(_serviceFeeRatio.text),
+      platformRatio: double.parse(_platformShuntRatio.text),
+      laRatio: double.parse(_laShuntRatio.text),
+      ispRatio: double.parse(_ispShuntRatio.text),
+      absorbRatio: double.parse(_absorbShuntRatio.text),
+      title: form['title'],
+      creator: form['creator'],
+      districtCode: form['districtCode'],
+      districtTitle: form['districtTitle'],
+      icon: form['icon'],
+      licence: form['licence'],
+    );
+  }
+
+  bool _checkForm() {
+    var form = _createForm();
+    return form.isValid();
   }
 }

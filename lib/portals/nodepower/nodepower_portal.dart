@@ -9,6 +9,7 @@ import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_la.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_wybank.dart';
+import 'package:netos_app/portals/nodepower/pages/adopt/ttm_config_dialog.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
@@ -275,6 +276,15 @@ var buildPortal = (IServiceProvider site) => Portal(
               fullscreenDialog: true,
             );
           },
+        ),
+        LogicPage(
+          title: '市盈率配置列表',
+          subtitle: '',
+          icon: null,
+          url: '/adopt/wybank/ttm',
+          buildPage: (PageContext pageContext) => TtmConfigDialog(
+            context: pageContext,
+          ),
         ),
       ],
     );

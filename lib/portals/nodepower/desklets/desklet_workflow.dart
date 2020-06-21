@@ -256,7 +256,14 @@ class __TodoListWorkitemWidgetState extends State<_TodoListWorkitemWidget> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              _showForm(widget.context, context, item);
+              _showForm(widget.context, context, item).then((value){
+                if (StringUtil.isEmpty(value)) {
+                  return;
+                }
+                _workitems.clear();
+                _offset = 0;
+                _onload();
+              });
             },
             child: Column(
               children: <Widget>[
@@ -314,7 +321,7 @@ class __TodoListWorkitemWidgetState extends State<_TodoListWorkitemWidget> {
                           SizedBox(
                             height: 5,
                           ),
-                          _renderData(item),
+                          _renderData(widget.context,item),
                           Padding(
                             padding: EdgeInsets.only(
                               top: 5,
@@ -390,136 +397,9 @@ class __TodoListWorkitemWidgetState extends State<_TodoListWorkitemWidget> {
     return workitems;
   }
 
-  void _showForm(PageContext pageContext, BuildContext context, WorkItem item) {
-    var inst = item.workInst;
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptISP',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      case 'workflow.la.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptLA',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      case 'workflow.wybank.apply':
-        widget.context.forward(
-          '/work/workitem/adoptWybank',
-          arguments: {'workitem': item},
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      default:
-        break;
-    }
-  }
 
-  Widget _renderData(WorkItem item) {
-    var inst = item.workInst;
-    var event = item.workEvent;
-    var children = <InlineSpan>[];
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        var data = event.data;
-        var form = jsonDecode(data);
-        children.add(
-          TextSpan(
-            text: '公司:${form['cropName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '运营区域:${form['bussinessAreaTitle']}\n',
-          ),
-        );
 
-        children.add(
-          TextSpan(
-            text: '运营期限:${form['operatePeriod']}个月\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '服务费:¥${((form['fee'] as int) / 1000000).toStringAsFixed(2)}万元\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '支付凭证:${StringUtil.isEmpty(form['payEvidence']) ? '无' : '已上传'}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '\n申请人:${inst.creator}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '真实名:${form['masterRealName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '电话:${form['masterPhone']}',
-          ),
-        );
-        break;
-      default:
-        children.add(
-          TextSpan(
-            text: '暂不支持对本步骤的处理',
-          ),
-        );
-        break;
-    }
-    return Text.rich(
-      TextSpan(
-        text: '',
-        children: children,
-      ),
-      style: TextStyle(
-        color: Colors.grey[500],
-        fontSize: 12,
-      ),
-    );
-  }
+
 }
 
 class _DoneListWorkitemWidget extends StatefulWidget {
@@ -609,7 +489,14 @@ class __DoneListWorkitemWidgetState extends State<_DoneListWorkitemWidget> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              _showForm(widget.context, context, item);
+              _showForm(widget.context, context, item).then((value){
+                if (StringUtil.isEmpty(value)) {
+                  return;
+                }
+                _workitems.clear();
+                _offset = 0;
+                _onload();
+              });
             },
             child: Column(
               children: <Widget>[
@@ -667,7 +554,7 @@ class __DoneListWorkitemWidgetState extends State<_DoneListWorkitemWidget> {
                           SizedBox(
                             height: 5,
                           ),
-                          _renderData(item),
+                          _renderData(widget.context,item),
                           Padding(
                             padding: EdgeInsets.only(
                               top: 5,
@@ -747,123 +634,7 @@ class __DoneListWorkitemWidgetState extends State<_DoneListWorkitemWidget> {
     return workitems;
   }
 
-  void _showForm(PageContext pageContext, BuildContext context, WorkItem item) {
-    var inst = item.workInst;
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptISP',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      case 'workflow.la.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptLA',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      default:
-        break;
-    }
-  }
 
-  Widget _renderData(WorkItem item) {
-    var inst = item.workInst;
-    var event = item.workEvent;
-    var children = <InlineSpan>[];
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        var data = event.data;
-        var form = jsonDecode(data);
-        children.add(
-          TextSpan(
-            text: '公司:${form['cropName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '运营区域:${form['bussinessAreaTitle']}\n',
-          ),
-        );
-
-        children.add(
-          TextSpan(
-            text: '运营期限:${form['operatePeriod']}个月\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '服务费:¥${((form['fee'] as int) / 1000000).toStringAsFixed(2)}万元\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '支付凭证:${StringUtil.isEmpty(form['payEvidence']) ? '无' : '已上传'}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '\n申请人:${inst.creator}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '真实名:${form['masterRealName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '电话:${form['masterPhone']}',
-          ),
-        );
-        break;
-      default:
-        children.add(
-          TextSpan(
-            text: '暂不支持对本步骤的处理',
-          ),
-        );
-        break;
-    }
-    return Text.rich(
-      TextSpan(
-        text: '',
-        children: children,
-      ),
-      style: TextStyle(
-        color: Colors.grey[500],
-        fontSize: 12,
-      ),
-    );
-  }
 }
 
 class _CreatedInstWorkitemWidget extends StatefulWidget {
@@ -954,7 +725,14 @@ class __CreatedInstWorkitemWidgetState
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              _showForm(widget.context, context, item);
+              _showForm(widget.context, context, item).then((value){
+                if (StringUtil.isEmpty(value)) {
+                  return;
+                }
+                _workitems.clear();
+                _offset = 0;
+                _onload();
+              });
             },
             child: Column(
               children: <Widget>[
@@ -1012,7 +790,7 @@ class __CreatedInstWorkitemWidgetState
                           SizedBox(
                             height: 5,
                           ),
-                          _renderData(item),
+                          _renderData(widget.context,item),
                           Padding(
                             padding: EdgeInsets.only(
                               top: 5,
@@ -1088,121 +866,209 @@ class __CreatedInstWorkitemWidgetState
     return workitems;
   }
 
-  void _showForm(PageContext pageContext, BuildContext context, WorkItem item) {
-    var inst = item.workInst;
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptISP',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      case 'workflow.la.apply':
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return pageContext.part(
-              '/work/workitem/adoptLA',
-              context,
-              arguments: {'workitem': item},
-            );
-          },
-        ).then((value) async {
-          if (StringUtil.isEmpty(value)) {
-            return;
-          }
-          _workitems.clear();
-          _offset = 0;
-          _onload();
-        });
-        break;
-      default:
-        break;
-    }
+
+}
+
+Widget _renderData(PageContext context,WorkItem item) {
+  var inst = item.workInst;
+  var event = item.workEvent;
+  var data = event.data;
+  var form = jsonDecode(data);
+  var itemWidgets = <Widget>[];
+  switch (inst.workflow) {
+    case 'workflow.isp.apply':
+      var children = <InlineSpan>[];
+      children.add(
+        TextSpan(
+          text: '公司:${form['cropName']}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '运营区域:${form['bussinessAreaTitle']}\n',
+        ),
+      );
+
+      children.add(
+        TextSpan(
+          text: '运营期限:${form['operatePeriod']}个月\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text:
+          '服务费:¥${((form['fee'] as int) / 1000000).toStringAsFixed(2)}万元\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text:
+          '支付凭证:${StringUtil.isEmpty(form['payEvidence']) ? '无' : '已上传'}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '\n申请人:${inst.creator}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '真实名:${form['masterRealName']}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '电话:${form['masterPhone']}',
+        ),
+      );
+      itemWidgets.add(
+        Text.rich(
+          TextSpan(
+            text: '',
+            children: children,
+          ),
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 12,
+          ),
+        ),
+      );
+      break;
+    case 'workflow.la.apply':
+      var children = <InlineSpan>[];
+      children.add(
+        TextSpan(
+          text: '公司:${form['cropName']}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '运营区域:${form['bussinessAreaTitle']}\n',
+        ),
+      );
+
+      children.add(
+        TextSpan(
+          text: '运营期限:${form['operatePeriod']}个月\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text:
+          '服务费:¥${((form['fee'] as int) / 1000000).toStringAsFixed(2)}万元\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text:
+          '支付凭证:${StringUtil.isEmpty(form['payEvidence']) ? '无' : '已上传'}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '\n申请人:${inst.creator}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '真实名:${form['masterRealName']}\n',
+        ),
+      );
+      children.add(
+        TextSpan(
+          text: '电话:${form['masterPhone']}',
+        ),
+      );
+      itemWidgets.add(
+        Text.rich(
+          TextSpan(
+            text: '',
+            children: children,
+          ),
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 12,
+          ),
+        ),
+      );
+      break;
+    case 'workflow.wybank.apply':
+      itemWidgets.add(
+        Row(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(
+                right: 5,
+              ),
+              child: FadeInImage.assetNetwork(
+                placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                image:
+                '${form['icon']}?accessToken=${context.principal.accessToken}',
+                width: 20,
+                height: 20,
+                fit: BoxFit.fill,
+              ),
+            ),
+            Text(
+              '${form['title']}',
+            ),
+          ],
+        ),
+      );
+      itemWidgets.add(
+        Text(
+          '申请地区: ${form['districtTitle']}',
+        ),
+      );
+      break;
+    default:
+      itemWidgets.add(
+        Text(
+          '暂不支持对本流程数据的展示',
+        ),
+      );
+      break;
   }
+  return Wrap(
+    direction: Axis.vertical,
+    crossAxisAlignment: WrapCrossAlignment.start,
+    spacing: 5,
+    runSpacing: 10,
+    children: itemWidgets,
+  );
+}
 
-  Widget _renderData(WorkItem item) {
-    var inst = item.workInst;
-    var event = item.workEvent;
-    var children = <InlineSpan>[];
-    switch (inst.workflow) {
-      case 'workflow.isp.apply':
-        var data = event.data;
-        var form = jsonDecode(data);
-        children.add(
-          TextSpan(
-            text: '公司:${form['cropName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '运营区域:${form['bussinessAreaTitle']}\n',
-          ),
-        );
-
-        children.add(
-          TextSpan(
-            text: '运营期限:${form['operatePeriod']}个月\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '服务费:¥${((form['fee'] as int) / 1000000).toStringAsFixed(2)}万元\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text:
-                '支付凭证:${StringUtil.isEmpty(form['payEvidence']) ? '无' : '已上传'}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '\n申请人:${inst.creator}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '真实名:${form['masterRealName']}\n',
-          ),
-        );
-        children.add(
-          TextSpan(
-            text: '电话:${form['masterPhone']}',
-          ),
-        );
-        break;
-      default:
-        children.add(
-          TextSpan(
-            text: '暂不支持对本步骤的处理',
-          ),
-        );
-        break;
-    }
-    return Text.rich(
-      TextSpan(
-        text: '',
-        children: children,
-      ),
-      style: TextStyle(
-        color: Colors.grey[500],
-        fontSize: 12,
-      ),
-    );
+Future<dynamic> _showForm(PageContext pageContext, BuildContext context, WorkItem item) {
+  var inst = item.workInst;
+  switch (inst.workflow) {
+    case 'workflow.isp.apply':
+     return showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return pageContext.part(
+            '/work/workitem/adoptISP',
+            context,
+            arguments: {'workitem': item},
+          );
+        },
+      );
+    case 'workflow.la.apply':
+      return showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return pageContext.part(
+            '/work/workitem/adoptLA',
+            context,
+            arguments: {'workitem': item},
+          );
+        },
+      );
+    case 'workflow.wybank.apply':
+     return pageContext.forward(
+        '/work/workitem/adoptWybank',
+        arguments: {'workitem': item},
+      );
+    default:
+      return ()async{}();
   }
 }

@@ -152,6 +152,7 @@ flutter:
     - lib/portals/gbera/data/depth.json
     - lib/portals/gbera/data/kline.json
     - lib/portals/gbera/images/default_watting.gif
+    - lib/portals/nodepower/assets/wybank_config_template.yaml
   fonts:
     - family: geo_discovery
       fonts:
