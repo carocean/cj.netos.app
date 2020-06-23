@@ -10,16 +10,18 @@ import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_la.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/ttm_config_dialog.dart';
+import 'package:netos_app/portals/nodepower/pages/colleagues.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
-import 'package:netos_app/portals/nodepower/pages/organization.dart';
+import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
 import 'package:netos_app/portals/nodepower/pages/workbench.dart';
 import 'package:netos_app/portals/nodepower/pages/workflow_details.dart';
 import 'package:netos_app/portals/nodepower/pages/workflow_manager.dart';
 import 'package:netos_app/portals/nodepower/pages/workgroup_details.dart';
 import 'package:netos_app/portals/nodepower/pages/workgroup_manager.dart';
+import 'package:netos_app/portals/nodepower/remote/uc_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
 import 'package:netos_app/portals/nodepower/scaffolds.dart';
@@ -106,6 +108,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/remote/org/isp': IspRemote(),
           '/remote/org/la': LaRemote(),
           '/remote/org/licence':LicenceRemote(),
+          '/uc/app':AppRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -137,11 +140,11 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
         LogicPage(
-          title: '组织架构',
+          title: '同事',
           subtitle: '',
           icon: Icons.business,
-          url: '/organization',
-          buildPage: (PageContext pageContext) => Organization(
+          url: '/colleagues',
+          buildPage: (PageContext pageContext) => ColleaguePage(
             context: pageContext,
           ),
         ),
@@ -283,6 +286,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/adopt/wybank/ttm',
           buildPage: (PageContext pageContext) => TtmConfigDialog(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看同事',
+          subtitle: '',
+          icon: null,
+          url: '/viewer/colleague',
+          buildPage: (PageContext pageContext) => ColleagueViewer(
             context: pageContext,
           ),
         ),

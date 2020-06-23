@@ -23,7 +23,7 @@ class _NodePowerScaffoldState extends State<NodePowerScaffold> {
       widget.context.part('/workbench', context),
     );
     _parts.add(
-      widget.context.part('/organization', context),
+      widget.context.part('/colleagues', context),
     );
     _parts.add(
       widget.context.part('/mine', context),
