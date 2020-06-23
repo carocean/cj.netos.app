@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:city_pickers/city_pickers.dart';
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
@@ -62,6 +64,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
   int _verifyCode_result = 0; //验证结果.0还没验证；1成功；-1失败
   List<WorkItem> _workitems = [];
   WorkItem _currentWorkItem;
+  bool _existsAreaCode = false;
 
   @override
   void initState() {
@@ -90,6 +93,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
       for (var item in list) {
         _bussinessAreaTitle = await item.adName;
         _bussinessAreaCode = await item.adCode;
+        await _existsBusinessAreaCode();
         setState(() {});
         break;
       }
@@ -112,6 +116,14 @@ class _RequestLandagentState extends State<RequestLandagent> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _existsBusinessAreaCode() async {
+    ILicenceRemote licenceRemote =
+        widget.context.site.getService('/remote/org/licence');
+    OrgLicenceOL licenceOL =
+        await licenceRemote.getLicenceByAreaCode(0, _bussinessAreaCode);
+    _existsAreaCode = licenceOL == null ? false : true;
   }
 
   Future<void> _loadWorkitem() async {
@@ -151,8 +163,9 @@ class _RequestLandagentState extends State<RequestLandagent> {
     IWorkflowRemote workflowRemote =
         widget.context.site.getService('/remote/org/workflow');
     var isDone = await workflowRemote.doMyWorkItem(
-        _currentWorkItem.workInst.id, 'revied', true,null);
+        _currentWorkItem.workInst.id, 'revied', true, null);
     if (isDone) {
+      _workitems.clear();
       await _loadWorkitem();
       if (mounted) {
         setState(() {});
@@ -180,7 +193,8 @@ class _RequestLandagentState extends State<RequestLandagent> {
   }
 
   bool _checkNextButtonEnabled() {
-    return !StringUtil.isEmpty(_cropName.text) &&
+    return !_existsAreaCode &&
+        !StringUtil.isEmpty(_cropName.text) &&
         !StringUtil.isEmpty(_simpleName.text) &&
         !StringUtil.isEmpty(_cropCode.text) &&
         !StringUtil.isEmpty(_licenceSrc) &&
@@ -990,12 +1004,72 @@ class _RequestLandagentState extends State<RequestLandagent> {
                 ),
               ),
               Expanded(
-                child: Text(
-                  '${_bussinessAreaTitle ?? '定位中...'}',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  alignment: WrapAlignment.start,
+                  runAlignment: WrapAlignment.start,
+                  spacing: 5,
+                  children: <Widget>[
+                    Text.rich(
+                      TextSpan(
+                        text: '${_bussinessAreaTitle ?? '定位中...'}',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          TextSpan(text: '       '),
+                          TextSpan(
+                            text: '选择',
+                            style: TextStyle(
+                              color: Colors.blueGrey,
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                Result result =
+                                    await CityPickers.showCityPicker(
+                                  context: context,
+                                  confirmWidget: FlatButton(
+                                    child: Text('确认'),
+                                  ),
+                                  cancelWidget: FlatButton(
+                                    child: Text('取消'),
+                                  ),
+                                  showType: ShowType.pca,
+                                  locationCode: _bussinessAreaCode,
+                                );
+                                if (result == null) {
+                                  return;
+                                }
+                                _bussinessAreaCode = result.areaId;
+                                _bussinessAreaTitle = result.areaName;
+                                await _existsBusinessAreaCode();
+                                if (mounted) setState(() {});
+                              },
+                          ),
+                        ],
+                      ),
+                    ),
+                    !_existsAreaCode
+                        ? SizedBox(
+                            width: 0,
+                            height: 0,
+                          )
+                        : Text.rich(
+                            TextSpan(
+                              text: '该地区已被申请，请',
+                              children: [TextSpan(text: '选择其它地区')],
+                            ),
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ],
                 ),
               ),
             ],

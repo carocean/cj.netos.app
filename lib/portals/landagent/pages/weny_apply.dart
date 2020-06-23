@@ -8,7 +8,9 @@ import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 class ApplyWyBank extends StatefulWidget {
@@ -30,6 +32,7 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
   int _upload_logo_i = 0;
   int _upload_logo_j = 1;
   String _wybankLogo;
+  BankInfo _existsBank;
 
   @override
   void initState() {
@@ -48,7 +51,9 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
   }
 
   bool _checkButoonEnabled() {
-    return _orgLicenceOL != null && !StringUtil.isEmpty(_wybankLogo);
+    return _orgLicenceOL != null &&
+        _existsBank == null &&
+        !StringUtil.isEmpty(_wybankLogo);
   }
 
   Future<void> _onload() async {
@@ -60,6 +65,8 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
   Future<void> _selectedLa(OrgLAOL la) async {
     IOrgLaRemote laRemote = widget.context.site.getService('/org/la');
     _orgLicenceOL = await laRemote.getLicence(la.id, 0);
+    IWyBankRemote wyBankRemote = widget.context.site.getService('/wybank/info');
+    _existsBank = await wyBankRemote.getWenyBankByLicence(_orgLicenceOL.id);
     _orgLAOL = la;
     _showDistrict = true;
     if (mounted) {
@@ -101,7 +108,8 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
     });
     var workitem =
         await workflowRemote.createWorkInstance('workflow.wybank.apply', data);
-    await workflowRemote.doWorkItemAndSend(workitem.workInst.id, 'created', false,null,'\$g.netos.market.checker','platformChecker','平台审核');
+    await workflowRemote.doWorkItemAndSend(workitem.workInst.id, 'created',
+        false, null, '\$g.netos.market.checker', 'platformChecker', '平台审核');
     widget.context.backward(result: workitem);
   }
 
@@ -216,28 +224,39 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
                               width: 0,
                               height: 0,
                             )
-                          : CardItem(
-                              title: '营业区域',
-                              subtitle: Text(
-                                '${_orgLicenceOL.title}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[500],
+                          : _existsBank != null
+                              ? CardItem(
+                                  title: '本地区已有纹银银行！',
+                                  titleColor: Colors.amber,
+                                  paddingRight: 20,
+                                  paddingLeft: 50,
+                                  tail: SizedBox(
+                                    height: 0,
+                                    width: 0,
+                                  ),
+                                )
+                              : CardItem(
+                                  title: '营业区域',
+                                  subtitle: Text(
+                                    '${_orgLicenceOL.title}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                  paddingRight: 20,
+                                  paddingLeft: 50,
+                                  tipsText:
+                                      '${_orgLicenceOL.bussinessAreaTitle}\n${_orgLicenceOL.bussinessAreaCode}',
+                                  onItemTap: () {
+                                    widget.context.forward('/viewer/licence',
+                                        scene: 'gbera',
+                                        arguments: {
+                                          'organ': _orgLicenceOL.organ,
+                                          'type': _orgLicenceOL.privilegeLevel,
+                                        });
+                                  },
                                 ),
-                              ),
-                              paddingRight: 20,
-                              paddingLeft: 50,
-                              tipsText:
-                                  '${_orgLicenceOL.bussinessAreaTitle}\n${_orgLicenceOL.bussinessAreaCode}',
-                              onItemTap: () {
-                                widget.context.forward('/viewer/licence',
-                                    scene: 'gbera',
-                                    arguments: {
-                                      'organ': _orgLicenceOL.organ,
-                                      'type': _orgLicenceOL.privilegeLevel,
-                                    });
-                              },
-                            ),
                       Divider(
                         height: 1,
                         indent: 20,

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:city_pickers/city_pickers.dart';
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
@@ -61,6 +63,7 @@ class _RequestISPState extends State<RequestISP> {
   int _verifyCode_result = 0; //验证结果.0还没验证；1成功；-1失败
   List<WorkItem> _workitems = [];
   WorkItem _currentWorkItem;
+  bool _existsAreaCode = false;
 
   @override
   void initState() {
@@ -89,6 +92,7 @@ class _RequestISPState extends State<RequestISP> {
       for (var item in list) {
         _bussinessAreaTitle = await item.provinceName;
         _bussinessAreaCode = await item.provinceCode;
+        await _existsBusinessAreaCode();
         setState(() {});
         break;
       }
@@ -111,6 +115,14 @@ class _RequestISPState extends State<RequestISP> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _existsBusinessAreaCode() async {
+    ILicenceRemote licenceRemote =
+        widget.context.site.getService('/remote/org/licence');
+    OrgLicenceOL licenceOL =
+        await licenceRemote.getLicenceByAreaCode(2, _bussinessAreaCode);
+    _existsAreaCode = licenceOL == null ? false : true;
   }
 
   Future<void> _loadWorkitem() async {
@@ -162,7 +174,8 @@ class _RequestISPState extends State<RequestISP> {
   }
 
   bool _checkNextButtonEnabled() {
-    return !StringUtil.isEmpty(_cropName.text) &&
+    return !_existsAreaCode &&
+        !StringUtil.isEmpty(_cropName.text) &&
         !StringUtil.isEmpty(_simpleName.text) &&
         !StringUtil.isEmpty(_cropCode.text) &&
         !StringUtil.isEmpty(_licenceSrc) &&
@@ -910,7 +923,7 @@ class _RequestISPState extends State<RequestISP> {
                           ),
                         ),
                         Text(
-                          '¥${(_fee / 100.00).toStringAsFixed(2)}=${(_fee / 1000000.00).toStringAsFixed(4)}万元',
+                          '¥${(_fee / 1000000.00).toStringAsFixed(2)}万元',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.redAccent,
@@ -934,7 +947,7 @@ class _RequestISPState extends State<RequestISP> {
                           ),
                         ),
                         Text(
-                          '按月计费，每月服务费是:¥${(_isp_fee_per_month / 100.0).toStringAsFixed(2)}=${(_isp_fee_per_month / 1000000.0).toStringAsFixed(4)}万元',
+                          '按月计费，每月服务费是:${(_isp_fee_per_month / 1000000.0).toStringAsFixed(2)}万元',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 12,
@@ -972,12 +985,72 @@ class _RequestISPState extends State<RequestISP> {
                 ),
               ),
               Expanded(
-                child: Text(
-                  '${_bussinessAreaTitle ?? '定位中...'}',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  alignment: WrapAlignment.start,
+                  runAlignment: WrapAlignment.start,
+                  spacing: 5,
+                  children: <Widget>[
+                    Text.rich(
+                      TextSpan(
+                        text: '${_bussinessAreaTitle ?? '定位中...'}',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          TextSpan(text: '       '),
+                          TextSpan(
+                            text: '选择',
+                            style: TextStyle(
+                              color: Colors.blueGrey,
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                Result result =
+                                    await CityPickers.showCityPicker(
+                                  context: context,
+                                  confirmWidget: FlatButton(
+                                    child: Text('确认'),
+                                  ),
+                                  cancelWidget: FlatButton(
+                                    child: Text('取消'),
+                                  ),
+                                  showType: ShowType.p,
+                                  locationCode: _bussinessAreaCode,
+                                );
+                                if (result == null) {
+                                  return;
+                                }
+                                _bussinessAreaCode = result.provinceId;
+                                _bussinessAreaTitle = result.provinceName;
+                                await _existsBusinessAreaCode();
+                                if (mounted) setState(() {});
+                              },
+                          ),
+                        ],
+                      ),
+                    ),
+                    !_existsAreaCode
+                        ? SizedBox(
+                            width: 0,
+                            height: 0,
+                          )
+                        : Text.rich(
+                            TextSpan(
+                              text: '该地区已被申请，请',
+                              children: [TextSpan(text: '选择其它地区')],
+                            ),
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ],
                 ),
               ),
             ],

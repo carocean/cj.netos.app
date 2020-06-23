@@ -79,6 +79,7 @@ dependencies:
   tobias: ^1.6.1
   #保存图片到相册
   image_gallery_saver: ^1.2.2
+  city_pickers: ^0.1.30
 dev_dependencies:
   flutter_test:
     sdk: flutter

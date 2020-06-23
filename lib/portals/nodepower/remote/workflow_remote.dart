@@ -219,6 +219,7 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
             recipient: workEventObj['recipient'],
             sender: workEventObj['sender'],
             stepNo: workEventObj['stepNo'],
+            note: workEventObj['note'],
           ),
           workInst: WorkInst(
             isDone: workInstObj['isDone'],
@@ -360,6 +361,7 @@ class WorkflowRemote implements IWorkflowRemote, IServiceBuilder {
         recipient: workEventObj['recipient'],
         sender: workEventObj['sender'],
         stepNo: workEventObj['stepNo'],
+        note: workEventObj['note'],
       ),
       workInst: WorkInst(
         isDone: workInstObj['isDone'],

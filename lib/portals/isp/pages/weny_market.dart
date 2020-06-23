@@ -15,6 +15,7 @@ class WenyMarket extends StatefulWidget {
 
 class _WenyMarketState extends State<WenyMarket> {
   EasyRefreshController _controller;
+  int _index_panel = 0;
 
   @override
   void initState() {
@@ -41,166 +42,219 @@ class _WenyMarketState extends State<WenyMarket> {
             title: Text(
               '纹银市场',
             ),
-            actions: <Widget>[
-
-            ],
+            actions: <Widget>[],
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.only(
+                top: 30,
+                bottom: 30,
+              ),
+              alignment: Alignment.center,
+              child: Wrap(
+                direction: Axis.vertical,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 5,
+                runSpacing: 5,
+                children: <Widget>[
+                  Text(
+                    '账金余额',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  Text(
+                    '¥20293.23',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           SliverPersistentHeader(
             pinned: true,
             delegate: _DemoHeader(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        left: 30,
-                        bottom: 20,
-                      ),
-                      child: Wrap(
-                        direction: Axis.vertical,
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 5,
-                        runSpacing: 5,
-                        children: <Widget>[
-                          Text(
-                            '账金余额',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                          Text(
-                            '¥20293.23',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 10,
                     ),
-                  )
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                            left: 5,
+                            bottom: 6,
+                          ),
+                          child: Icon(
+                            FontAwesomeIcons.wonSign,
+                            size: 14,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: <Widget>[
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  if (_index_panel == 0) {
+                                    return;
+                                  }
+                                  _index_panel=0;
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                                child: Container(
+                                  color:_index_panel!=0?null: Colors.white,
+                                  padding: EdgeInsets.only(
+                                    left: 20,
+                                    right: 20,
+                                    top: 5,
+                                    bottom: 5,
+                                  ),
+                                  child: Text(
+                                    '直营',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color:_index_panel!=0?null: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  if (_index_panel == 1) {
+                                    return;
+                                  }
+                                  _index_panel=1;
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                                child: Container(
+                                  color: _index_panel!=1?null:Colors.white,
+                                  padding: EdgeInsets.only(
+                                    left: 20,
+                                    right: 20,
+                                    top: 5,
+                                    bottom: 5,
+                                  ),
+                                  child: Text(
+                                    '伙伴',
+                                    style: TextStyle(
+                                      color: _index_panel!=1?null:Colors.red,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-//          SliverToBoxAdapter(
-//            child: Padding(
-//              padding: EdgeInsets.only(
-//                left: 30,
-//                right: 40,
-//                top: 20,
-//              ),
-//              child: Column(
-//                children: <Widget>[
-//                  Row(
-//                    children: <Widget>[
-//                      Padding(
-//                        padding: EdgeInsets.only(
-//                          right: 5,
-//                        ),
-//                        child: Image.network(
-//                          'http://47.105.165.186:7100/avatars/28ab4dbc08306fde51923becef0bd721.jpg?accessToken=${widget.context.principal.accessToken}',
-//                          width: 40,
-//                          height: 40,
-//                        ),
-//                      ),
-//                      Expanded(
-//                        child: Wrap(
-//                          direction: Axis.vertical,
-//                          spacing: 2,
-//                          children: <Widget>[
-//                            Text(
-//                              '大丰发展',
-//                              style: TextStyle(
-//                                fontWeight: FontWeight.w500,
-//                                fontSize: 16,
-//                              ),
-//                            ),
-//                            Text.rich(
-//                              TextSpan(
-//                                text: '账金余额:',
-//                                children: [
-//                                  TextSpan(text: '¥28383.23'),
-//                                ],
-//                              ),
-//                              style: TextStyle(
-//                                color: Colors.grey[500],
-//                                fontSize: 12,
-//                              ),
-//                            ),
-//                          ],
-//                        ),
-//                      ),
-//                    ],
-//                  ),
-//                ],
-//              ),
-//            ),
-//          ),
-//          SliverToBoxAdapter(
-//            child: SizedBox(
-//              height: 40,
-//            ),
-//          ),
         ];
       },
       body: Container(
         constraints: BoxConstraints.expand(),
         color: Colors.white,
-        child: EasyRefresh(
-          controller: _controller,
-          onLoad: _onLoad,
-          child: ListView(
-            padding: EdgeInsets.all(0),
-            children: <Widget>[
-              _WenyBank(
-                context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    masterType: 0,
-                    icon: '',
-                    masterId: '',
-                    masterPerson: '',
-                    creator: 'cj@gbera.netos',
+        child: IndexedStack(
+          index: _index_panel,
+          children: <Widget>[
+            EasyRefresh(
+              controller: _controller,
+              onLoad: _onLoad,
+              child: ListView(
+                padding: EdgeInsets.all(0),
+                children: <Widget>[
+                  _WenyBank(
+                    context: widget.context,
+                    bank: WenyBank(
+                      bank: 'xxxxx',
+                      stock: 2388382.3332238883,
+                      freezen: 2303,
+                      profit: 23983,
+                      price: 0.00233248848484,
+                      info: BankInfo(
+                        title: '农业发展',
+                        ctime: '20200603122816333',
+                        id: 'xxxx',
+                        state: 1,
+                        icon: '',
+                        creator: 'cj@gbera.netos',
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              _WenyBank(
-                context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    masterType: 0,
-                    icon: '',
-                    masterId: '',
-                    masterPerson: '',
-                    creator: 'cj@gbera.netos',
+                  _WenyBank(
+                    context: widget.context,
+                    bank: WenyBank(
+                      bank: 'xxxxx',
+                      stock: 2388382.3332238883,
+                      freezen: 2303,
+                      profit: 23983,
+                      price: 0.00233248848484,
+                      info: BankInfo(
+                        title: '农业发展',
+                        ctime: '20200603122816333',
+                        id: 'xxxx',
+                        state: 1,
+                        icon: '',
+                        creator: 'cj@gbera.netos',
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            EasyRefresh(
+              controller: _controller,
+              onLoad: _onLoad,
+              child: ListView(
+                padding: EdgeInsets.all(0),
+                children: <Widget>[
+                  _WenyBank(
+                    context: widget.context,
+                    bank: WenyBank(
+                      bank: 'xxxxx',
+                      stock: 2388382.3332238883,
+                      freezen: 2303,
+                      profit: 23983,
+                      price: 0.00233248848484,
+                      info: BankInfo(
+                        title: '农业发展',
+                        ctime: '20200603122816333',
+                        id: 'xxxx',
+                        state: 1,
+                        icon: '',
+                        creator: 'cj@gbera.netos',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -360,6 +414,7 @@ class _WenyBank extends StatelessWidget {
 
 class _DemoHeader extends SliverPersistentHeaderDelegate {
   Widget child;
+  double height = 30;
 
   _DemoHeader({this.child});
 
@@ -377,11 +432,11 @@ class _DemoHeader extends SliverPersistentHeaderDelegate {
 
   @override
   double get maxExtent {
-    return 90;
+    return height;
   } // 最大高度
 
   @override
-  double get minExtent => 70; // 最小高度
+  double get minExtent => height; // 最小高度
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) =>

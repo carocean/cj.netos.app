@@ -26,6 +26,7 @@ import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
@@ -92,6 +93,7 @@ var buildPortal = (IServiceProvider site) => Portal(
         return <String, dynamic>{
           '/org/la': OrgLaRemote(),
           '/org/workflow':WorkflowRemote(),
+          '/wybank/info':WybankRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[

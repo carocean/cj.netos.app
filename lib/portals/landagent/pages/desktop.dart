@@ -4,6 +4,7 @@ import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
@@ -73,10 +74,88 @@ class _LandagentDesktopState extends State<LandagentDesktop>
             actions: <Widget>[
               IconButton(
                 icon: Icon(
-                  Icons.add,
+                  Icons.more_vert,
                 ),
                 onPressed: () {
-                  widget.context.forward('/apply/wybank');
+                  showCupertinoModalPopup(
+                    context: context,
+                    builder: (ctx) {
+                      return CupertinoAlertDialog(
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            child: Wrap(
+                              direction: Axis.horizontal,
+                              spacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: <Widget>[
+                                Icon(
+                                  FontAwesomeIcons.comment,
+                                  size: 16,
+                                  color: Colors.grey[500],
+                                ),
+                                Text("发资讯"),
+                              ],
+                            ),
+                            onPressed: () {
+                              widget.context.backward(result: 'sendNews');
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            child: Wrap(
+                              direction: Axis.horizontal,
+                              spacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: <Widget>[
+                                Icon(
+                                  FontAwesomeIcons.userCheck,
+                                  size: 16,
+                                  color: Colors.grey[500],
+                                ),
+                                Text("发工单"),
+                              ],
+                            ),
+                            onPressed: () {
+                              widget.context.backward(result: 'sendWorkOrder');
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            child: Wrap(
+                              direction: Axis.horizontal,
+                              spacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: <Widget>[
+                                Icon(
+                                  FontAwesomeIcons.wonSign,
+                                  size: 16,
+                                  color: Colors.grey[500],
+                                ),
+                                Text("申请纹银银行"),
+                              ],
+                            ),
+                            onPressed: () {
+                              widget.context.backward(result: 'applyWybank');
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ).then((value) {
+                    if (value == null) {
+                      return;
+                    }
+                    switch (value) {
+                      case 'applyWybank':
+                        widget.context.forward('/apply/wybank');
+                        break;
+                      case 'sendWorkOrder':
+                        break;
+                      case 'sendNews':
+                        break;
+                      default:
+                        print('不支持的命令:$value');
+                        break;
+                    }
+                  });
                 },
               )
             ],
@@ -194,7 +273,7 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _onRefresh();
+    _onload();
     super.initState();
   }
 
@@ -205,6 +284,14 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
   }
 
   Future<void> _onRefresh() async {
+    _offset = 0;
+    _workitems.clear();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _onload() async {
     IWorkflowRemote workflowRemote =
         widget.context.site.getService('/org/workflow');
     var items = await workflowRemote.pageMyWorkItemByFilter(0, _limit, _offset);
@@ -258,12 +345,11 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              TimelineUtil.formatByDateTime(
+              intl.DateFormat('hh:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
                 ),
-                dayFormat: DayFormat.Full,
               ) +
               (StringUtil.isEmpty(event.sender)
                   ? ''
@@ -272,14 +358,23 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
             showModalBottomSheet(
                 context: context,
                 builder: (ctx) {
-                  return widget.context.part('/event/details', context);
-                });
+                  return widget.context
+                      .part('/event/details', context, arguments: {
+                    'workitem': item,
+                  });
+                }).then((value) {
+              if (value == null) {
+                return;
+              }
+              _onRefresh();
+            });
           },
         ),
       );
     }
     return EasyRefresh(
       onRefresh: _onRefresh,
+      onLoad: _onload,
       controller: _controller,
       child: ListView(
         padding: EdgeInsets.only(
@@ -378,12 +473,11 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              TimelineUtil.formatByDateTime(
+              intl.DateFormat('hh:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
                 ),
-                dayFormat: DayFormat.Full,
               ) +
               (StringUtil.isEmpty(event.sender)
                   ? ''
@@ -395,8 +489,16 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
             showModalBottomSheet(
                 context: context,
                 builder: (ctx) {
-                  return widget.context.part('/event/details', context);
-                });
+                  return widget.context
+                      .part('/event/details', context, arguments: {
+                    'workitem': item,
+                  });
+                }).then((value) {
+              if (value == null) {
+                return;
+              }
+              _onRefresh();
+            });
           },
         ),
       );
@@ -502,12 +604,11 @@ class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              TimelineUtil.formatByDateTime(
+              intl.DateFormat('hh:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
                 ),
-                dayFormat: DayFormat.Full,
               ) +
               (StringUtil.isEmpty(event.recipient)
                   ? ''
@@ -516,8 +617,16 @@ class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
             showModalBottomSheet(
                 context: context,
                 builder: (ctx) {
-                  return widget.context.part('/event/details', context);
-                });
+                  return widget.context
+                      .part('/event/details', context, arguments: {
+                    'workitem': item,
+                  });
+                }).then((value) {
+              if (value == null) {
+                return;
+              }
+              _onRefresh();
+            });
           },
         ),
       );

@@ -52,10 +52,13 @@ class BankInfo {
   String id;
   int state;
   String title;
-  String masterId;
-  int masterType;
-  String masterPerson;
+  String districtTitle;
+  String districtCode;
+  String licence;
   String icon;
+  double principalRatio;
+  double reserveRatio;
+  double freeRatio;
 
   BankInfo({
     this.creator,
@@ -63,10 +66,13 @@ class BankInfo {
     this.id,
     this.state,
     this.title,
-    this.masterId,
-    this.masterPerson,
-    this.masterType,
     this.icon,
+    this.districtCode,
+    this.districtTitle,
+    this.licence,
+    this.reserveRatio,
+    this.principalRatio,
+    this.freeRatio,
   });
 }
 
@@ -220,9 +226,12 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       creator: map['creator'],
       ctime: map['ctime'],
       icon: map['icon'],
-      masterId: map['masterId'],
-      masterPerson: map['masterPerson'],
-      masterType: map['masterType'],
+      districtCode: map['districtCode'],
+      districtTitle: map['districtTitle'],
+      licence: map['licence'],
+      principalRatio: map['principalRatio'],
+      reserveRatio: map['reserveRatio'],
+      freeRatio: map['freeRatio'],
     );
   }
 

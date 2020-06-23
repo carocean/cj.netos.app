@@ -43,7 +43,20 @@ class _OrgLAPageState extends State<OrgLAPage> {
   @override
   Widget build(BuildContext context) {
     if (_orgLAOL == null||_orgISPOL==null) {
-      return Container();
+      return Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Center(
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return Scaffold(
       body: Column(

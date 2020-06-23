@@ -142,6 +142,7 @@ class WorkEvent {
   String prevEvent;
   String dtime;
   String data;
+  String note;
 
   WorkEvent(
       {this.id,
@@ -156,6 +157,7 @@ class WorkEvent {
       this.isDone,
       this.prevEvent,
       this.dtime,
+      this.note,
       this.data});
 }
 
@@ -278,12 +280,18 @@ mixin ILaRemote {
   Future<void> checkApplyRegisterByPlatform(
       String id, bool bool, String ispid) {}
 
-  Future<List<OrgLAOL>> pageLaOfIspList(List<String> list,int limit,int offset) {}
+  Future<List<OrgLAOL>> pageLaOfIspList(
+      List<String> list, int limit, int offset) {}
+
+  Future<List<OrgLAOL>> listLaOfMasters(List<String> persons) {}
 }
 mixin ILicenceRemote {
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
 
   Future<OrgLicenceOL> getLicenceByID(form) {}
+
+  Future<OrgLicenceOL> getLicenceByAreaCode(
+      int privilegeLevel, String businessAreaCode) {}
 }
 mixin IIspRemote {
   Future<WorkItem> applyRegisterByPerson(IspApplayBO ispApplayBO) {}
@@ -453,6 +461,7 @@ class IspRemote implements IIspRemote, IServiceBuilder {
         recipient: workEventObj['recipient'],
         sender: workEventObj['sender'],
         stepNo: workEventObj['stepNo'],
+        note:  workEventObj['note'],
       ),
       workInst: WorkInst(
         isDone: workInstObj['isDone'],
@@ -494,6 +503,7 @@ class IspRemote implements IIspRemote, IServiceBuilder {
         recipient: workEventObj['recipient'],
         sender: workEventObj['sender'],
         stepNo: workEventObj['stepNo'],
+        note: workEventObj['note'],
       ),
       workInst: WorkInst(
         isDone: workInstObj['isDone'],
@@ -540,6 +550,7 @@ class IspRemote implements IIspRemote, IServiceBuilder {
             recipient: workEventObj['recipient'],
             sender: workEventObj['sender'],
             stepNo: workEventObj['stepNo'],
+            note: workEventObj['note'],
           ),
           workInst: WorkInst(
             isDone: workInstObj['isDone'],
@@ -686,7 +697,7 @@ class LaRemote implements ILaRemote, IServiceBuilder {
       corpLogo: obj['corpLogo'],
       corpName: obj['corpName'],
       corpSimple: obj['corpSimple'],
-      ctime: obj['ctime'],
+      ctime: obj['time'],
       id: obj['id'],
       licenceSrc: obj['licenceSrc'],
       masterPerson: obj['masterPerson'],
@@ -725,6 +736,7 @@ class LaRemote implements ILaRemote, IServiceBuilder {
         recipient: workEventObj['recipient'],
         sender: workEventObj['sender'],
         stepNo: workEventObj['stepNo'],
+        note: workEventObj['note'],
       ),
       workInst: WorkInst(
         isDone: workInstObj['isDone'],
@@ -771,6 +783,7 @@ class LaRemote implements ILaRemote, IServiceBuilder {
             recipient: workEventObj['recipient'],
             sender: workEventObj['sender'],
             stepNo: workEventObj['stepNo'],
+            note: workEventObj['note'],
           ),
           workInst: WorkInst(
             isDone: workInstObj['isDone'],
@@ -815,6 +828,7 @@ class LaRemote implements ILaRemote, IServiceBuilder {
         recipient: workEventObj['recipient'],
         sender: workEventObj['sender'],
         stepNo: workEventObj['stepNo'],
+        note: workEventObj['note'],
       ),
       workInst: WorkInst(
         isDone: workInstObj['isDone'],
@@ -844,14 +858,12 @@ class LaRemote implements ILaRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<OrgLAOL>> pageLaOfIspList(List<String> ispList,int limit,int offset) async {
-    var list = await remotePorts.portGET(
+  Future<List<OrgLAOL>> listLaOfMasters(List<String> personList) async {
+    var list = await remotePorts.portPOST(
       laPorts,
-      'pageLaOfIspList',
-      parameters: {
-        'ispList': jsonEncode(ispList),
-        'limit':limit,
-        'offset':offset,
+      'listLaOfMasters',
+      data: {
+        'masters': jsonEncode(personList),
       },
     );
     var retList = <OrgLAOL>[];
@@ -862,7 +874,40 @@ class LaRemote implements ILaRemote, IServiceBuilder {
           corpLogo: obj['corpLogo'],
           corpName: obj['corpName'],
           corpSimple: obj['corpSimple'],
-          ctime: obj['ctime'],
+          ctime: obj['time'],
+          id: obj['id'],
+          licenceSrc: obj['licenceSrc'],
+          masterPerson: obj['masterPerson'],
+          masterPhone: obj['masterPhone'],
+          masterRealName: obj['masterRealName'],
+          isp: obj['isp'],
+        ),
+      );
+    }
+    return retList;
+  }
+
+  @override
+  Future<List<OrgLAOL>> pageLaOfIspList(
+      List<String> ispList, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      laPorts,
+      'pageLaOfIspList',
+      parameters: {
+        'ispList': jsonEncode(ispList),
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var retList = <OrgLAOL>[];
+    for (var obj in list) {
+      retList.add(
+        OrgLAOL(
+          corpCode: obj['corpCode'],
+          corpLogo: obj['corpLogo'],
+          corpName: obj['corpName'],
+          corpSimple: obj['corpSimple'],
+          ctime: obj['time'],
           id: obj['id'],
           licenceSrc: obj['licenceSrc'],
           masterPerson: obj['masterPerson'],
@@ -891,6 +936,38 @@ class LicenceRemote implements ILicenceRemote, IServiceBuilder {
   Future<void> builder(IServiceProvider site) {
     this.site = site;
     return null;
+  }
+
+  @override
+  Future<OrgLicenceOL> getLicenceByAreaCode(
+      int privilegeLevel, String businessAreaCode) async {
+    var obj = await remotePorts.portGET(
+      licencePorts,
+      'getLicenceByAreaCode',
+      parameters: {
+        'privilegeLevel': privilegeLevel,
+        'businessAreaCode': businessAreaCode,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return OrgLicenceOL(
+      id: obj['id'],
+      bussinessAreaCode: obj['bussinessAreaCode'],
+      bussinessAreaTitle: obj['bussinessAreaTitle'],
+      bussinessScop: obj['bussinessScop'],
+      endTime: obj['endTime'],
+      fee: obj['fee'],
+      operatePeriod: obj['operatePeriod'],
+      organ: obj['organ'],
+      payEvidence: obj['payEvidence'],
+      privilegeLevel: obj['privilegeLevel'],
+      pubTime: obj['pubTime'],
+      signText: obj['signText'],
+      state: obj['state'],
+      title: obj['title'],
+    );
   }
 
   @override

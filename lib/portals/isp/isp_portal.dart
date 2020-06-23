@@ -3,11 +3,13 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/isp/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/isp/pages/desktop.dart';
 import 'package:netos_app/portals/isp/pages/event_details.dart';
 import 'package:netos_app/portals/isp/pages/land_agents.dart';
 import 'package:netos_app/portals/isp/pages/mine.dart';
 import 'package:netos_app/portals/isp/pages/org_isp.dart';
+import 'package:netos_app/portals/isp/pages/org_la.dart';
 import 'package:netos_app/portals/isp/pages/shunter_rules.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_free.dart';
@@ -17,6 +19,8 @@ import 'package:netos_app/portals/isp/pages/weny_account_platform.dart';
 import 'package:netos_app/portals/isp/pages/weny_bank.dart';
 import 'package:netos_app/portals/isp/pages/weny_market.dart';
 import 'package:netos_app/portals/isp/styles/orange_styles.dart' as orange;
+import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'scaffolds.dart';
 
 var buildPortal = (IServiceProvider site) => Portal(
@@ -79,7 +83,9 @@ var buildPortal = (IServiceProvider site) => Portal(
         return <String, dynamic>{
           '/org/isp': IspRemote(),
           '/org/la':LaRemote(),
+          '/org/la2':OrgLaRemote(),
           '/org/licence':LicenceRemote(),
+          '/org/workflow':WorkflowRemote(),
         };
       },
       buildDesklets: (site) => <Desklet>[],
@@ -135,6 +141,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/org/isp',
           buildPage: (PageContext pageContext) => OrgISPPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看运营商信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/org/la',
+          buildPage: (PageContext pageContext) => OrgLAPage(
             context: pageContext,
           ),
         ),
@@ -225,6 +240,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/wenybank/shunters',
           buildPage: (PageContext pageContext) => ShunterRuleWidget(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银银行已阅',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/adopt/wenybank',
+          buildPage: (PageContext pageContext) => AdoptWybank(
             context: pageContext,
           ),
         ),

@@ -43,17 +43,17 @@ class WybankForm {
       'districtTitle': districtTitle,
       'districtCode': districtCode,
       'creator': creator,
-      'ispManagers':ispManagers,
-      'serviceFeeRatio': serviceFeeRatio.toStringAsFixed(4),
-      'reserveRatio': reserveRatio.toStringAsFixed(4),
-      'principalRatio': principalRatio.toStringAsFixed(4),
+      'ispManagers': ispManagers,
+      'serviceFeeRatio': double.parse(serviceFeeRatio.toStringAsFixed(4)),
+      'reserveRatio': double.parse(reserveRatio.toStringAsFixed(4)),
+      'principalRatio': double.parse(principalRatio.toStringAsFixed(4)),
       'ttmConfig': ttmConfig.map((info) {
         return info.toMap();
       }).toList(),
-      'platformRatio': platformRatio.toStringAsFixed(4),
-      'ispRatio': ispRatio.toStringAsFixed(4),
-      'laRatio': laRatio.toStringAsFixed(4),
-      'absorbRatio': absorbRatio.toStringAsFixed(4),
+      'platformRatio': double.parse(platformRatio.toStringAsFixed(4)),
+      'ispRatio': double.parse(ispRatio.toStringAsFixed(4)),
+      'laRatio': double.parse(laRatio.toStringAsFixed(4)),
+      'absorbRatio': double.parse(absorbRatio.toStringAsFixed(4)),
     };
   }
 
@@ -80,7 +80,7 @@ class TtmInfo {
 
   Map<String, dynamic> toMap() {
     return {
-      'ttm': ttm.toStringAsFixed(4),
+      'ttm': double.parse(ttm.toStringAsFixed(4)),
       'maxAmount': maxAmount,
       'minAmount': minAmount,
     };

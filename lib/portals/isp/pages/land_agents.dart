@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
@@ -116,48 +117,111 @@ class _LandAgentsPageState extends State<LandAgentsPage>
       var la = _laList[i];
       items.add(
         SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-            ),
-            color: Colors.white,
-            child: Row(
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 10,
-                    top: 10,
-                    bottom: 10,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(6)),
-                    child: FadeInImage.assetNetwork(
-                      placeholder:
-                          'lib/portals/gbera/images/default_watting.gif',
-                      image:
-                          '${la.corpLogo}?accessToken=${widget.context.principal.accessToken}',
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.fill,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward('/org/la', arguments: {'la': la});
+            },
+            child: Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 10,
+                bottom: 10,
+              ),
+              color: Colors.white,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                      bottom: 10,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                      child: FadeInImage.assetNetwork(
+                        placeholder:
+                            'lib/portals/gbera/images/default_watting.gif',
+                        image:
+                            '${la.corpLogo}?accessToken=${widget.context.principal.accessToken}',
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.fill,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        '${la.corpSimple}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                  Expanded(
+                    child: Wrap(
+                      direction: Axis.vertical,
+                      spacing: 2,
+                      children: <Widget>[
+                        Text(
+                          '${la.corpSimple}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                    ],
+                        Wrap(
+                          spacing: 5,
+                          direction: Axis.horizontal,
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              '业主',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              '${la.masterPerson}(${la.masterRealName})',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Wrap(
+                          spacing: 5,
+                          direction: Axis.horizontal,
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              '电话',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                var data = ClipboardData(
+                                  text: la.masterPhone,
+                                );
+                                Clipboard.setData(data);
+                                Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text('复制电话号码成功'),
+                                ));
+                              },
+                              child: Text(
+                                '${la.masterPhone}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
