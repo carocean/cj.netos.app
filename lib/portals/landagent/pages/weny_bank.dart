@@ -8,6 +8,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class WenyBankWidget extends StatefulWidget {
   PageContext context;
@@ -20,24 +21,15 @@ class WenyBankWidget extends StatefulWidget {
 
 class _WenyBankWidgetState extends State<WenyBankWidget>
     with SingleTickerProviderStateMixin {
-  WenyBank _bank;
+  BankInfo _bank;
+  Stream _stream;
   TabController tabController;
   List<TabPageView> tabPageViews;
-  StreamController<double> _newPriceNotifyController;
-  double _newPrice;
-  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
-    _newPrice = _bank.price;
-    _newPriceNotifyController = StreamController.broadcast();
-    _streamSubscription = _newPriceNotifyController.stream.listen((price) {
-      _newPrice = price;
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _stream = widget.context.parameters['stream'];
     this.tabPageViews = [
       TabPageView(
         title: '申购',
@@ -64,8 +56,6 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
 
   @override
   void dispose() {
-    _streamSubscription?.cancel();
-    _newPriceNotifyController?.close();
     tabController.dispose();
     tabPageViews.clear();
     super.dispose();
@@ -73,6 +63,11 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
 
   @override
   Widget build(BuildContext context) {
+    if (_stream == null || _bank == null) {
+      return Scaffold(
+        body: Container(),
+      );
+    }
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -89,20 +84,24 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
                       right: 10,
                     ),
                     height: 30,
-                    child: Icon(
-                      Icons.threed_rotation,
+                    child: FadeInImage.assetNetwork(
+                      placeholder:
+                          'lib/portals/gbera/images/default_avatar.png',
+                      image:
+                          '${_bank?.icon}?accessToken=${widget.context.principal.accessToken}',
+                      fit: BoxFit.cover,
                     ),
                   ),
                   Text.rich(
                     TextSpan(
-                      text: '${_bank?.info?.title ?? ''}',
+                      text: '${_bank?.title ?? ''}',
                       style: TextStyle(
                         fontSize: 18,
                       ),
                       children: [
                         TextSpan(text: '\r\n'),
                         TextSpan(
-                          text: '${_bank?.bank ?? ''}',
+                          text: '${_bank.id ?? ''}',
                           style: TextStyle(
                             fontSize: 10,
                           ),
@@ -112,12 +111,57 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
                   ),
                 ],
               ),
+              actions: <Widget>[
+                PopupMenuButton<String>(
+                  offset: Offset(
+                    0,
+                    50,
+                  ),
+                  itemBuilder: (context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem(
+                      child: Row(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: Icon(
+                              Icons.bubble_chart,
+                              size: 20,
+                            ),
+                          ),
+                          Text('查看市盈率'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuDivider(
+                      height: 1,
+                    ),
+                    PopupMenuItem(
+                      child: Row(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: Icon(
+                              Icons.pie_chart_outlined,
+                              size: 20,
+                            ),
+                          ),
+                          Text('查看账比'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             SliverToBoxAdapter(
               child: _PriceCard(
                 bank: _bank,
                 context: widget.context,
-                newPriceNotifyController: _newPriceNotifyController,
+                stream: _stream.asBroadcastStream(),
               ),
             ),
             SliverToBoxAdapter(
@@ -145,6 +189,7 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
               child: _AccountsCard(
                 bank: _bank,
                 context: widget.context,
+                stream: _stream.asBroadcastStream(),
               ),
             ),
             SliverToBoxAdapter(
@@ -188,11 +233,11 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
 }
 
 class _PriceCard extends StatefulWidget {
-  WenyBank bank;
+  BankInfo bank;
   PageContext context;
-  StreamController<double> newPriceNotifyController;
+  Stream stream;
 
-  _PriceCard({this.bank, this.context, this.newPriceNotifyController});
+  _PriceCard({this.bank, this.context, this.stream});
 
   @override
   _PriceCardState createState() => _PriceCardState();
@@ -203,20 +248,34 @@ class _PriceCardState extends State<_PriceCard> {
   List<KLineEntity> _klineEntities = [];
   int _purchaseFundOfDay = 0;
   int _exchangeFundOfDay = 0;
-  double _newPrice;
-
-  ///最后一个价格，向服务器拉取该时间后的价格列表
-  Timer _timer;
+  StreamSubscription _streamSubscription;
+  BusinessBuckets _businessBuckets;
+  ShuntBuckets _shuntBuckets;
 
   @override
   void initState() {
-    _newPrice = widget.bank.price;
+    widget.stream.listen((event) {
+      BankInfo bank = event['bank'];
+      if (bank.id == widget.bank.id) {
+        return;
+      }
+      var buckets = event['buckets'];
+      if (buckets is BusinessBuckets) {
+        _businessBuckets = buckets;
+      }
+      if (buckets is ShuntBuckets) {
+        _shuntBuckets = buckets;
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _streamSubscription?.cancel();
     _klineEntities.clear();
     super.dispose();
   }
@@ -247,15 +306,15 @@ class _PriceCardState extends State<_PriceCard> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: <Widget>[
                       Text(
-                        '价    格: ',
+                        '价格: ',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        '¥${(_newPrice ?? 0).toStringAsFixed(14)}',
+                        '¥${(_businessBuckets?.price ?? 0).toStringAsFixed(14)}',
                         style: TextStyle(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -274,38 +333,15 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '市盈率: ',
+                            '涨跌: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
                             style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 5,
-                        bottom: 5,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            '账比: ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -332,37 +368,17 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '今日申购量: ',
+                            '昨收: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
-                            '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
+                            '¥0.00323838847547',
                             style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 5,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            '今日承兑量: ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -382,15 +398,54 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '本月申购量: ',
+                            '今开: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '¥0.00323838847582',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  height: 16,
+                  child: Divider(
+                    height: 1,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 5,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '月进: ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
                             '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
                             style: TextStyle(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -404,15 +459,17 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '本月承兑量: ',
+                            '月出: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
                             '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -432,15 +489,17 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '本月进场资金: ',
+                            '年进: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
                             '¥${(_purchaseFundOfDay / 100.00).toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -454,15 +513,17 @@ class _PriceCardState extends State<_PriceCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Text(
-                            '本月出场资金: ',
+                            '年出: ',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -508,16 +569,31 @@ class _PriceCardState extends State<_PriceCard> {
 }
 
 class _AccountsCard extends StatefulWidget {
-  WenyBank bank;
+  BankInfo bank;
   PageContext context;
+  Stream stream;
 
-  _AccountsCard({this.bank, this.context});
+  _AccountsCard({this.bank, this.context, this.stream});
 
   @override
   __AccountsCardState createState() => __AccountsCardState();
 }
 
 class __AccountsCardState extends State<_AccountsCard> {
+  StreamSubscription _streamSubscription;
+
+  @override
+  void initState() {
+    _streamSubscription = widget.stream.listen((event) {});
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -530,7 +606,7 @@ class __AccountsCardState extends State<_AccountsCard> {
         children: <Widget>[
           _getCardItem(
             title: '纹银存量',
-            tips: '₩${(widget.bank?.stock ?? 0).toStringAsFixed(14)}',
+            tips: '₩',
             onTap: () {
               widget.context.forward('/wenybank/account/stock', arguments: {
                 'bank': widget.bank,
@@ -554,9 +630,21 @@ class __AccountsCardState extends State<_AccountsCard> {
           ),
           _getCardItem(
             title: '冻结资金',
-            tips: '¥${widget.bank?.freezenYan ?? '-'}',
+            tips: '¥',
             onTap: () {
               widget.context.forward('/wenybank/account/freezen', arguments: {
+                'bank': widget.bank,
+              });
+            },
+          ),
+          Divider(
+            height: 1,
+          ),
+          _getCardItem(
+            title: '自由资金',
+            tips: '¥',
+            onTap: () {
+              widget.context.forward('/wenybank/account/free', arguments: {
                 'bank': widget.bank,
               });
             },

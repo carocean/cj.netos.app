@@ -93,7 +93,7 @@ var buildPortal = (IServiceProvider site) => Portal(
         return <String, dynamic>{
           '/org/la': OrgLaRemote(),
           '/org/workflow':WorkflowRemote(),
-          '/wybank/info':WybankRemote(),
+          '/wybank/remote':WybankRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[

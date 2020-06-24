@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class WenyMarket extends StatefulWidget {
   PageContext context;
@@ -15,20 +18,73 @@ class WenyMarket extends StatefulWidget {
 
 class _WenyMarketState extends State<WenyMarket> {
   EasyRefreshController _controller;
+  int _limit = 20, _offset = 0;
+  List<BankInfo> _banks = [];
+  StreamController _streamController;
+  Timer _timer;
+  bool _isFetching = false;
+  int _laAmount = -1;
 
   @override
   void initState() {
     _controller = EasyRefreshController();
+    _streamController = StreamController.broadcast();
+    _onLoad().then((value) {
+      _timer = Timer.periodic(
+          Duration(
+            seconds: 5,
+          ), (timer) {
+        _updateManager();
+      });
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller?.dispose();
+    _streamController?.close();
     super.dispose();
   }
 
-  Future<void> _onLoad() async {}
+  Future<void> _updateManager() async {
+    if (_isFetching) {
+      return;
+    }
+    _isFetching = true;
+    _laAmount = 0;
+    if (mounted) {
+      setState(() {});
+    }
+    IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
+    for (var bank in _banks) {
+      BusinessBuckets businessBuckets =
+          await bankRemote.getBusinessBucketsOfBank(bank.id);
+      _streamController.add({'bank': bank, 'buckets': businessBuckets});
+      ShuntBuckets shuntBuckets =
+          await bankRemote.getShuntBucketsOfBank(bank.id);
+      _streamController.add({'bank': bank, 'buckets': shuntBuckets});
+      _laAmount += shuntBuckets.laAmount;
+    }
+    if (mounted) {
+      setState(() {});
+    }
+    _isFetching = false;
+  }
+
+  Future<void> _onLoad() async {
+    IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
+    List<BankInfo> banks = await bankRemote.pageWyBankOnUser(_limit, _offset);
+    if (banks.isEmpty) {
+      _controller.finishLoad(noMore: true, success: true);
+    }
+    _offset += banks.length;
+    _banks.addAll(banks);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +97,7 @@ class _WenyMarketState extends State<WenyMarket> {
             title: Text(
               '纹银市场',
             ),
-            actions: <Widget>[
-
-            ],
+            actions: <Widget>[],
           ),
           SliverPersistentHeader(
             pinned: true,
@@ -53,7 +107,6 @@ class _WenyMarketState extends State<WenyMarket> {
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.only(
-                        left: 30,
                         bottom: 20,
                       ),
                       child: Wrap(
@@ -72,7 +125,9 @@ class _WenyMarketState extends State<WenyMarket> {
                             ),
                           ),
                           Text(
-                            '¥20293.23',
+                            _laAmount < 0
+                                ? '-'
+                                : '¥${(_laAmount / 100).toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.bold,
@@ -87,65 +142,6 @@ class _WenyMarketState extends State<WenyMarket> {
               ),
             ),
           ),
-//          SliverToBoxAdapter(
-//            child: Padding(
-//              padding: EdgeInsets.only(
-//                left: 30,
-//                right: 40,
-//                top: 20,
-//              ),
-//              child: Column(
-//                children: <Widget>[
-//                  Row(
-//                    children: <Widget>[
-//                      Padding(
-//                        padding: EdgeInsets.only(
-//                          right: 5,
-//                        ),
-//                        child: Image.network(
-//                          'http://47.105.165.186:7100/avatars/28ab4dbc08306fde51923becef0bd721.jpg?accessToken=${widget.context.principal.accessToken}',
-//                          width: 40,
-//                          height: 40,
-//                        ),
-//                      ),
-//                      Expanded(
-//                        child: Wrap(
-//                          direction: Axis.vertical,
-//                          spacing: 2,
-//                          children: <Widget>[
-//                            Text(
-//                              '大丰发展',
-//                              style: TextStyle(
-//                                fontWeight: FontWeight.w500,
-//                                fontSize: 16,
-//                              ),
-//                            ),
-//                            Text.rich(
-//                              TextSpan(
-//                                text: '账金余额:',
-//                                children: [
-//                                  TextSpan(text: '¥28383.23'),
-//                                ],
-//                              ),
-//                              style: TextStyle(
-//                                color: Colors.grey[500],
-//                                fontSize: 12,
-//                              ),
-//                            ),
-//                          ],
-//                        ),
-//                      ),
-//                    ],
-//                  ),
-//                ],
-//              ),
-//            ),
-//          ),
-//          SliverToBoxAdapter(
-//            child: SizedBox(
-//              height: 40,
-//            ),
-//          ),
         ];
       },
       body: Container(
@@ -156,44 +152,14 @@ class _WenyMarketState extends State<WenyMarket> {
           onLoad: _onLoad,
           child: ListView(
             padding: EdgeInsets.all(0),
-            children: <Widget>[
-              _WenyBank(
+            children: _banks.map((bank) {
+              return _WenyBank(
                 context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    icon: '',
-                    creator: 'cj@gbera.netos',
-                  ),
-                ),
-              ),
-              _WenyBank(
-                context: widget.context,
-                bank: WenyBank(
-                  bank: 'xxxxx',
-                  stock: 2388382.3332238883,
-                  freezen: 2303,
-                  profit: 23983,
-                  price: 0.00233248848484,
-                  info: BankInfo(
-                    title: '农业发展',
-                    ctime: '20200603122816333',
-                    id: 'xxxx',
-                    state: 1,
-                    icon: '',
-                    creator: 'cj@gbera.netos',
-                  ),
-                ),
-              ),
-            ],
+                bank: bank,
+                isBottom: false,
+                stream: _streamController.stream,
+              );
+            }).toList(),
           ),
         ),
       ),
@@ -201,12 +167,64 @@ class _WenyMarketState extends State<WenyMarket> {
   }
 }
 
-class _WenyBank extends StatelessWidget {
+class _WenyBank extends StatefulWidget {
   PageContext context;
-  WenyBank bank;
+  BankInfo bank;
   bool isBottom;
+  Stream stream;
 
-  _WenyBank({this.context, this.bank, this.isBottom = false});
+  _WenyBank({
+    this.context,
+    this.bank,
+    this.isBottom = false,
+    this.stream,
+  });
+
+  @override
+  __WenyBankState createState() => __WenyBankState();
+}
+
+class __WenyBankState extends State<_WenyBank> {
+  StreamSubscription _streamSubscription;
+  BusinessBuckets _businessBuckets;
+  ShuntBuckets _shuntBuckets;
+
+  @override
+  void initState() {
+    _streamSubscription = widget.stream.listen((event) {
+      BankInfo bank = event['bank'];
+      if (bank.id == widget.bank.id) {
+        return;
+      }
+      var buckets = event['buckets'];
+      if (buckets is BusinessBuckets) {
+        _businessBuckets = buckets;
+      }
+      if (buckets is ShuntBuckets) {
+        _shuntBuckets = buckets;
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_WenyBank oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bank.id != widget.bank.id ||
+        oldWidget.isBottom != widget.isBottom) {
+      oldWidget.bank = widget.bank;
+      oldWidget.isBottom = widget.isBottom;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +242,9 @@ class _WenyBank extends StatelessWidget {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => this.context.forward('/wenybank', arguments: {
-                'bank': bank,
+              onTap: () => widget.context.forward('/wenybank', arguments: {
+                'bank': widget.bank,
+                'stream':widget.stream.asBroadcastStream(),
               }),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -236,10 +255,14 @@ class _WenyBank extends StatelessWidget {
                     padding: EdgeInsets.only(
                       right: 10,
                     ),
-                    child: Icon(
-                      FontAwesomeIcons.image,
-                      size: 30,
-                      color: Colors.black87,
+                    child: FadeInImage.assetNetwork(
+                      placeholder:
+                          'lib/portals/gbera/images/default_watting.gif',
+                      image:
+                          '${widget.bank.icon}?accessToken=${widget.context.principal.accessToken}',
+                      width: 30,
+                      height: 30,
+                      fit: BoxFit.fill,
                     ),
                   ),
                   Expanded(
@@ -248,29 +271,56 @@ class _WenyBank extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '${bank.info.title}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                '${widget.bank.title}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: 10,
-                                bottom: 4,
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 4,
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    Container(
+                                      width: 35,
+                                      padding: EdgeInsets.only(
+                                        right: 4,
+                                      ),
+                                      child: Text(
+                                        '现价:',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '¥${_businessBuckets?.price ?? '0.00'}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              child: Row(
+                              Row(
                                 children: <Widget>[
                                   Container(
-                                    width: 35,
+                                    width: 60,
                                     padding: EdgeInsets.only(
                                       right: 4,
                                     ),
                                     child: Text(
-                                      '现价:',
+                                      '资金存量:',
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w500,
@@ -279,7 +329,7 @@ class _WenyBank extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '¥${bank.price}',
+                                    '¥${((_businessBuckets?.fundAmount ?? 0) / 100).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 12,
@@ -287,42 +337,19 @@ class _WenyBank extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 50,
-                                  padding: EdgeInsets.only(
-                                    right: 4,
-                                  ),
-                                  child: Text(
-                                    '日申购:',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  '¥299288.23',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
                             Padding(
                               padding: EdgeInsets.only(
                                 right: 5,
                               ),
                               child: Text(
-                                  '¥${(bank.stock * bank.price / 100.0).toStringAsFixed(2)}'),
+                                  '¥${((_shuntBuckets?.laAmount ?? 0) / 100).toStringAsFixed(2)}'),
                             ),
                             Icon(
                               Icons.keyboard_arrow_right,
@@ -338,7 +365,7 @@ class _WenyBank extends StatelessWidget {
               ),
             ),
           ),
-          isBottom
+          widget.isBottom
               ? SizedBox(
                   width: 0,
                   height: 0,
