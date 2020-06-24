@@ -367,7 +367,7 @@ class __TodoWorkitemState extends State<_TodoWorkitem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              intl.DateFormat('hh:mm yyyy/MM/dd').format(
+              intl.DateFormat('HH:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
@@ -488,7 +488,7 @@ class __DoneWorkitemState extends State<_DoneWorkitem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              intl.DateFormat('hh:mm yyyy/MM/dd').format(
+              intl.DateFormat('HH:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
@@ -608,7 +608,7 @@ class __MyCreatedInstWorkItemState extends State<_MyCreatedInstWorkItem> {
           eventName: '${inst.name}',
           eventDetails: '当前处理: ${event.title}' +
               '\n送达时间: ' +
-              intl.DateFormat('hh:mm yyyy/MM/dd').format(
+              intl.DateFormat('HH:mm yyyy/MM/dd').format(
                 parseStrTime(
                   event.ctime,
                   len: 17,
