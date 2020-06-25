@@ -36,6 +36,13 @@ class ShuntBuckets {
   });
 }
 
+class BulletinBoard {
+  double openPrice;
+  double closePrice;
+
+  BulletinBoard({this.openPrice, this.closePrice});
+}
+
 mixin IWyBankRemote {
   Future<BankInfo> getWenyBankByLicence(String licence) {}
 
@@ -44,6 +51,16 @@ mixin IWyBankRemote {
   Future<BusinessBuckets> getBusinessBucketsOfBank(String bank) {}
 
   Future<ShuntBuckets> getShuntBucketsOfBank(String bank) {}
+
+  Future<BulletinBoard> getBulletinBoard(String bank,DateTime dateTime) {}
+
+  Future<int> totalInBillOfMonth(String bankid) {}
+
+  Future<int> totalInBillOfYear(String bankid) {}
+
+  Future<int> totalOutBillOfMonth(String bankid) {}
+
+  Future<int> totalOutBillOfYear(String bankid) {}
 }
 
 class WybankRemote implements IWyBankRemote, IServiceBuilder {
@@ -57,6 +74,10 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   get wybankPorts => site.getService('@.prop.ports.wybank');
 
   get balancePorts => site.getService('@.prop.ports.wybank.balance');
+
+  get pricePorts => site.getService('@.prop.ports.wybank.bill.price');
+
+  get fundPorts => site.getService('@.prop.ports.wybank.bill.fund');
 
   get personPorts => site.getService('@.prop.ports.uc.person');
 
@@ -216,5 +237,81 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
       laAmount: la,
       platformAmount: platform,
     );
+  }
+
+  @override
+  Future<BulletinBoard> getBulletinBoard(String bankid,DateTime date) async {
+    var obj = await remotePorts.portGET(
+      pricePorts,
+      'getBulletinBoard',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': date.year,
+        'month': date.month - 1,
+        'day': date.day,
+      },
+    );
+    return BulletinBoard(
+      closePrice: obj['closePrice'] ?? 0.001,
+      openPrice: obj['openPrice'] ?? 0.001,
+    );
+  }
+
+  @override
+  Future<int> totalInBillOfMonth(String bankid) async {
+    var date = DateTime.now();
+    var obj = await remotePorts.portGET(
+      fundPorts,
+      'totalInBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': date.year,
+        'month': date.month - 1,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<int> totalInBillOfYear(String bankid) async {
+    var date = DateTime.now();
+    var obj = await remotePorts.portGET(
+      fundPorts,
+      'totalInBillOfYear',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': date.year,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<int> totalOutBillOfMonth(String bankid) async {
+    var date = DateTime.now();
+    var obj = await remotePorts.portGET(
+      fundPorts,
+      'totalOutBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': date.year,
+        'month': date.month - 1,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<int> totalOutBillOfYear(String bankid) async {
+    var date = DateTime.now();
+    var obj = await remotePorts.portGET(
+      fundPorts,
+      'totalOutBillOfYear',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': date.year,
+      },
+    );
+    return obj;
   }
 }

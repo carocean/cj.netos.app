@@ -54,17 +54,23 @@ class _WenyMarketState extends State<WenyMarket> {
     }
     _isFetching = true;
     _laAmount = 0;
-    if (mounted) {
-      setState(() {});
-    }
     IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
+    IWyBankRemote wyBankRemote =
+        widget.context.site.getService('/wybank/remote');
     for (var bank in _banks) {
       BusinessBuckets businessBuckets =
           await bankRemote.getBusinessBucketsOfBank(bank.id);
-      _streamController.add({'bank': bank, 'buckets': businessBuckets});
       ShuntBuckets shuntBuckets =
           await bankRemote.getShuntBucketsOfBank(bank.id);
-      _streamController.add({'bank': bank, 'buckets': shuntBuckets});
+      BulletinBoard bulletinBoard =
+          await wyBankRemote.getBulletinBoard(bank.id, DateTime.now());
+
+      _streamController.add({
+        'bank': bank,
+        'businessBuckets': businessBuckets,
+        'shuntBuckets': shuntBuckets,
+        'board': bulletinBoard
+      });
       _laAmount += shuntBuckets.laAmount;
     }
     if (mounted) {
@@ -188,21 +194,20 @@ class __WenyBankState extends State<_WenyBank> {
   StreamSubscription _streamSubscription;
   BusinessBuckets _businessBuckets;
   ShuntBuckets _shuntBuckets;
+  BulletinBoard _bulletinBoard;
+
+  Color _changeColor;
 
   @override
   void initState() {
     _streamSubscription = widget.stream.listen((event) {
       BankInfo bank = event['bank'];
-      if (bank.id == widget.bank.id) {
+      if (bank.id != widget.bank.id) {
         return;
       }
-      var buckets = event['buckets'];
-      if (buckets is BusinessBuckets) {
-        _businessBuckets = buckets;
-      }
-      if (buckets is ShuntBuckets) {
-        _shuntBuckets = buckets;
-      }
+      _businessBuckets = event['businessBuckets'];
+      _shuntBuckets = event['shuntBuckets'];
+      _bulletinBoard = event['board'];
       if (mounted) {
         setState(() {});
       }
@@ -244,7 +249,7 @@ class __WenyBankState extends State<_WenyBank> {
               behavior: HitTestBehavior.opaque,
               onTap: () => widget.context.forward('/wenybank', arguments: {
                 'bank': widget.bank,
-                'stream':widget.stream.asBroadcastStream(),
+                'stream': widget.stream.asBroadcastStream(),
               }),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -313,14 +318,16 @@ class __WenyBankState extends State<_WenyBank> {
                                 ),
                               ),
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Container(
-                                    width: 60,
+                                    width: 35,
                                     padding: EdgeInsets.only(
                                       right: 4,
                                     ),
                                     child: Text(
-                                      '资金存量:',
+                                      '涨跌:',
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w500,
@@ -329,9 +336,10 @@ class __WenyBankState extends State<_WenyBank> {
                                     ),
                                   ),
                                   Text(
-                                    '¥${((_businessBuckets?.fundAmount ?? 0) / 100).toStringAsFixed(2)}',
+                                    '${_getChange().toStringAsFixed(2)}%',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.w500,
+                                      fontWeight: FontWeight.bold,
+                                      color: _changeColor,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -376,6 +384,23 @@ class __WenyBankState extends State<_WenyBank> {
         ],
       ),
     );
+  }
+
+  double _getChange() {
+    if (_bulletinBoard == null || _businessBuckets == null) {
+      return 0.0;
+    }
+    double value = ((_businessBuckets.price - _bulletinBoard.closePrice) /
+            _bulletinBoard.closePrice) *
+        100.00;
+    if (value > 0) {
+      _changeColor = Colors.red;
+    } else if (value == 0) {
+      _changeColor = null;
+    } else {
+      _changeColor = Colors.green;
+    }
+    return value;
   }
 }
 

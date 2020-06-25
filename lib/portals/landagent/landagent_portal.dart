@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/profile/editor.dart';
 import 'package:netos_app/portals/gbera/pages/profile/more.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/pages/mine.dart';
@@ -25,7 +26,10 @@ import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
+import 'package:netos_app/portals/landagent/pages/weny_parameters.dart';
+import 'package:netos_app/portals/landagent/pages/weny_trades.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
@@ -94,6 +98,8 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/org/la': OrgLaRemote(),
           '/org/workflow':WorkflowRemote(),
           '/wybank/remote':WybankRemote(),
+          '/wybank/bill/prices':PriceRemote(),
+          '/wybank/records':WybankRecordRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -238,6 +244,24 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/apply/wybank',
           buildPage: (PageContext pageContext) => ApplyWyBank(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '银行交易明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/trades',
+          buildPage: (PageContext pageContext) => WenyTradesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '银行参数',
+          subtitle: '市盈率、账比等',
+          icon: Icons.business,
+          url: '/weny/parameters',
+          buildPage: (PageContext pageContext) => WenyParametersPage(
             context: pageContext,
           ),
         ),
