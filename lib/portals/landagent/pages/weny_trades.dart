@@ -1,8 +1,17 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/pages/weny_exchange.dart';
+import 'package:netos_app/portals/landagent/pages/weny_purchase.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class WenyTradesPage extends StatefulWidget {
   PageContext context;
@@ -18,43 +27,43 @@ class _WenyTradesPageState extends State<WenyTradesPage>
   EasyRefreshController _controller;
   TabController tabController;
   List<TabPageView> tabPageViews;
+  BankInfo _bank;
+  DateTime _selected;
+  int _totalInFundOfMonth = 0, _totalOutFundOfMonth = 0;
+  StreamController _datePickerNotify;
 
   @override
   void initState() {
     _controller = EasyRefreshController();
+    _datePickerNotify = StreamController.broadcast();
+    _selected = DateTime.now();
+    _bank = widget.context.parameters['bank'];
+    Stream stream = widget.context.parameters['stream'];
+    _loadFundIndexer().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     this.tabPageViews = [
       TabPageView(
         title: '申购',
-        view: Container(),
-//        view: MinePurchases(
-//          context: widget.context,
-//          bank: _bank,
-//          newPriceNotify: _newPriceNotifyController.stream,
-//        ),
+        view: WenyPurchases(
+          context: widget.context,
+          bank: _bank,
+          stream: stream.asBroadcastStream(),
+          datePicker: _datePickerNotify.stream.asBroadcastStream(),
+          defaultDate:_selected,
+        ),
       ),
       TabPageView(
         title: '承兑',
-        view: Container(),
-//        view: MineExchanges(
-//          context: widget.context,
-//          bank: _bank,
-//        ),
-      ),
-      TabPageView(
-        title: '分账',
-        view: Container(),
-//        view: MineExchanges(
-//          context: widget.context,
-//          bank: _bank,
-//        ),
-      ),
-      TabPageView(
-        title: '提现',
-        view: Container(),
-//        view: MineExchanges(
-//          context: widget.context,
-//          bank: _bank,
-//        ),
+        view: WenyExchanges(
+          context: widget.context,
+          bank: _bank,
+          datePicker: _datePickerNotify.stream.asBroadcastStream(),
+          defaultDate:_selected,
+          stream: stream.asBroadcastStream(),
+        ),
       ),
     ];
     this.tabController =
@@ -64,6 +73,7 @@ class _WenyTradesPageState extends State<WenyTradesPage>
 
   @override
   void dispose() {
+    _datePickerNotify?.close();
     _controller?.dispose();
     tabController?.dispose();
     tabPageViews?.clear();
@@ -73,6 +83,15 @@ class _WenyTradesPageState extends State<WenyTradesPage>
   Future<void> _onLoad() async {}
 
   Future<void> _onRefresh() async {}
+
+  Future<void> _loadFundIndexer() async {
+    IWyBankRemote wyBankRemote =
+        widget.context.site.getService('/wybank/remote');
+    _totalInFundOfMonth =
+        await wyBankRemote.totalInBillOfMonth(_bank.id, _selected);
+    _totalOutFundOfMonth =
+        await wyBankRemote.totalOutBillOfMonth(_bank.id, _selected);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +116,67 @@ class _WenyTradesPageState extends State<WenyTradesPage>
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    Container(
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
+                      ),
+                      padding: EdgeInsets.only(
+                        bottom: 30,
+                        right: 10,
+                      ),
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          DatePicker.showDatePicker(
+                            context,
+                            dateFormat: 'yyyy年-MM月',
+                            locale: DateTimePickerLocale.zh_cn,
+                            pickerMode: DateTimePickerMode.date,
+                            initialDateTime: _selected,
+                            onConfirm: (date, list) async {
+                              print('----$date----$list');
+                              _selected = date;
+                              _datePickerNotify.add({'date': date});
+                              await _loadFundIndexer();
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              padding: EdgeInsets.only(
+                                left: 2,
+                                right: 2,
+                              ),
+                              margin: EdgeInsets.only(
+                                right: 4,
+                              ),
+                              child: Text(
+                                '${intl.DateFormat(
+                                  'yyyy年MM月',
+                                ).format(_selected)}',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              FontAwesomeIcons.filter,
+                              size: 20,
+                              color: Colors.grey[700],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     Stack(
                       overflow: Overflow.visible,
                       children: <Widget>[
@@ -136,7 +216,7 @@ class _WenyTradesPageState extends State<WenyTradesPage>
                                       ),
                                     ),
                                     Text(
-                                      '0.223',
+                                      '¥${(_totalInFundOfMonth / 100.00).toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -160,7 +240,7 @@ class _WenyTradesPageState extends State<WenyTradesPage>
                                       ),
                                     ),
                                     Text(
-                                      '0.223',
+                                      '¥${(_totalOutFundOfMonth / 100.00).toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -191,30 +271,6 @@ class _WenyTradesPageState extends State<WenyTradesPage>
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
-                              Row(
-                                children: <Widget>[
-                                  Container(
-                                    color: Colors.white,
-                                    padding: EdgeInsets.only(
-                                      left: 2,
-                                      right: 2,
-                                    ),
-                                    margin: EdgeInsets.only(
-                                      right: 4,
-                                    ),
-                                    child: Text(
-                                      '4月',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  Icon(
-                                    FontAwesomeIcons.filter,
-                                    size: 14,
-                                  ),
-                                ],
                               ),
                             ],
                           ),

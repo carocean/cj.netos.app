@@ -13,8 +13,10 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
+import 'package:netos_app/portals/landagent/pages/exchange_details.dart';
 import 'package:netos_app/portals/landagent/pages/mine.dart';
 import 'package:netos_app/portals/landagent/pages/org_la.dart';
+import 'package:netos_app/portals/landagent/pages/purchase_details.dart';
 import 'package:netos_app/portals/landagent/pages/shunter_rules.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_free.dart';
@@ -96,10 +98,10 @@ var buildPortal = (IServiceProvider site) => Portal(
       builderSceneServices: (site) async {
         return <String, dynamic>{
           '/org/la': OrgLaRemote(),
-          '/org/workflow':WorkflowRemote(),
-          '/wybank/remote':WybankRemote(),
-          '/wybank/bill/prices':PriceRemote(),
-          '/wybank/records':WybankRecordRemote(),
+          '/org/workflow': WorkflowRemote(),
+          '/wybank/remote': WybankRemote(),
+          '/wybank/bill/prices': PriceRemote(),
+          '/wybank/records': WybankRecordRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -262,6 +264,24 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/parameters',
           buildPage: (PageContext pageContext) => WenyParametersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申购明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/details/purchase',
+          buildPage: (PageContext pageContext) => LAPurchaseDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '承兑明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/details/exchange',
+          buildPage: (PageContext pageContext) => LAExchangeDetails(
             context: pageContext,
           ),
         ),

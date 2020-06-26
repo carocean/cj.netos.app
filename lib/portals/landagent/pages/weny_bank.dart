@@ -97,10 +97,14 @@ class _WenyBankWidgetState extends State<WenyBankWidget>
               }
               switch (value) {
                 case 'trades':
-                  widget.context.forward('/weny/trades');
+                  widget.context.forward('/weny/trades', arguments: {
+                    'bank': _bank,
+                    'stream': _stream,
+                  });
                   break;
                 case 'parameters':
-                  widget.context.forward('/weny/parameters');
+                  widget.context
+                      .forward('/weny/parameters', arguments: {'bank': _bank});
                   break;
               }
             },
@@ -204,8 +208,6 @@ class _PriceCard extends StatefulWidget {
 class _PriceCardState extends State<_PriceCard> {
   int _limit = 400, _offset = 0;
   List<KLineEntity> _klineEntities = [];
-  int _purchaseFundOfDay = 0;
-  int _exchangeFundOfDay = 0;
   StreamSubscription _streamSubscription;
   BusinessBuckets _businessBuckets;
   ShuntBuckets _shuntBuckets;
@@ -262,10 +264,10 @@ class _PriceCardState extends State<_PriceCard> {
   Future<void> _fetchIndexers() async {
     IWyBankRemote wyBankRemote =
         widget.context.site.getService('/wybank/remote');
-    _totalInFundOfMonth = await wyBankRemote.totalInBillOfMonth(widget.bank.id);
+    _totalInFundOfMonth = await wyBankRemote.totalInBillOfMonth(widget.bank.id,DateTime.now());
     _totalInFundOfYear = await wyBankRemote.totalInBillOfYear(widget.bank.id);
     _totalOutFundOfMonth =
-        await wyBankRemote.totalOutBillOfMonth(widget.bank.id);
+        await wyBankRemote.totalOutBillOfMonth(widget.bank.id,DateTime.now());
     _totalOutFundOfYear = await wyBankRemote.totalOutBillOfYear(widget.bank.id);
   }
 

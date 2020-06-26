@@ -12,46 +12,41 @@ import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:intl/intl.dart' as intl;
 
-class WenyPurchases extends StatefulWidget {
+class WenyExchanges extends StatefulWidget {
   PageContext context;
   BankInfo bank;
-  Stream<dynamic> stream;
   Stream datePicker;
   DateTime defaultDate;
-
-  WenyPurchases({
+  Stream stream;
+  WenyExchanges({
     this.context,
     this.bank,
-    this.stream,
     this.datePicker,
     this.defaultDate,
+    this.stream,
   });
 
   @override
-  _WenyPurchasesState createState() => _WenyPurchasesState();
+  _WenyExchangesState createState() => _WenyExchangesState();
 }
 
-class _WenyPurchasesState extends State<WenyPurchases> {
-  List<PurchaseOR> _purchases = [];
+class _WenyExchangesState extends State<WenyExchanges> {
+  List<ExchangeOR> _exchanges = [];
   EasyRefreshController _controller;
   int _limit = 20, _offset = 0;
   DateTime _selectedDateTime;
-
-  //-1申购失败
-//  0申购中
-//  1申购成功
-//  2承兑中
-//  3已承兑
-  int _tabPurchasesFilter = 1;
-  StreamSubscription _streamSubscription;
+  double _nowPrice=0;
+//  -1失败
+//  0承兑中
+//  1完成
+  int _tabFilter = 1;
   StreamSubscription _date_picker_streamSubscription;
-  double _nowPrice = 0.00;
-
+  StreamSubscription _streamSubscription;
   @override
   void initState() {
     _selectedDateTime = widget.defaultDate;
     _controller = EasyRefreshController();
-    _date_picker_streamSubscription = widget.datePicker.listen((event)async {
+    _date_picker_streamSubscription = widget.datePicker.listen((event) async {
       _selectedDateTime = event['date'];
       await _onRefresh();
       if (mounted) {
@@ -69,7 +64,6 @@ class _WenyPurchasesState extends State<WenyPurchases> {
         setState(() {});
       }
     });
-
     _onload();
     super.initState();
   }
@@ -77,29 +71,31 @@ class _WenyPurchasesState extends State<WenyPurchases> {
   @override
   void dispose() {
     _date_picker_streamSubscription?.cancel();
-    _controller.dispose();
     _streamSubscription?.cancel();
+    _controller.dispose();
     super.dispose();
   }
-  Future<void> _onRefresh()async{
-    _offset=0;
-    _purchases.clear();
+
+  Future<void> _onRefresh() async {
+    _offset = 0;
+    _exchanges.clear();
     await _onload();
   }
+
   Future<void> _onload() async {
     IWyBankRecordRemote recordRemote =
         widget.context.site.getService("/wybank/records");
-    var purchases = await recordRemote.pagePurchase(
-        widget.bank.id,_selectedDateTime, _tabPurchasesFilter, _limit, _offset);
-    if (purchases.isEmpty) {
+    var exchanges = await recordRemote.pageExchange(
+        widget.bank.id, _selectedDateTime, _tabFilter, _limit, _offset);
+    if (exchanges.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
         setState(() {});
       }
       return;
     }
-    _purchases.addAll(purchases);
-    _offset += purchases.length;
+    _exchanges.addAll(exchanges);
+    _offset += exchanges.length;
     if (mounted) {
       setState(() {});
     }
@@ -133,9 +129,9 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    _purchases.clear();
+                    _exchanges.clear();
                     _offset = 0;
-                    _tabPurchasesFilter = 1;
+                    _tabFilter = 1;
                     _onload();
                   },
                   child: Container(
@@ -144,13 +140,13 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                         text: '',
                         children: [
                           TextSpan(
-                            text: _tabPurchasesFilter == 1 ? '| ' : '',
+                            text: _tabFilter == 1 ? '| ' : '',
                             style: TextStyle(
                               color: Colors.green,
                             ),
                           ),
                           TextSpan(
-                            text: '未承兑',
+                            text: '成功',
                           ),
                         ],
                       ),
@@ -163,9 +159,9 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    _purchases.clear();
+                    _exchanges.clear();
                     _offset = 0;
-                    _tabPurchasesFilter = 3;
+                    _tabFilter = -1;
                     _onload();
                   },
                   child: Container(
@@ -174,37 +170,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                         text: '',
                         children: [
                           TextSpan(
-                            text: _tabPurchasesFilter == 3 ? '| ' : '',
-                            style: TextStyle(
-                              color: Colors.green,
-                            ),
-                          ),
-                          TextSpan(
-                            text: '已承兑',
-                          ),
-                        ],
-                      ),
-                    ),
-                    padding: EdgeInsets.only(
-                      right: 20,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    _purchases.clear();
-                    _offset = 0;
-                    _tabPurchasesFilter = -1;
-                    _onload();
-                  },
-                  child: Container(
-                    child: Text.rich(
-                      TextSpan(
-                        text: '',
-                        children: [
-                          TextSpan(
-                            text: _tabPurchasesFilter == -1 ? '| ' : '',
+                            text: _tabFilter == -1 ? '| ' : '',
                             style: TextStyle(
                               color: Colors.green,
                             ),
@@ -227,14 +193,14 @@ class _WenyPurchasesState extends State<WenyPurchases> {
             child: EasyRefresh.custom(
               controller: _controller,
               onLoad: _onload,
-              slivers: _purchases.map((purch) {
+              slivers: _exchanges.map((exch) {
                 return SliverToBoxAdapter(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
                       widget.context.forward(
-                        '/weny/details/purchase',
-                        arguments: {'purch': purch, 'bank': widget.bank,'nowPrice':_nowPrice},
+                        '/weny/details/exchange',
+                        arguments: {'exchange': exch, 'bank': widget.bank,'nowPrice':_nowPrice},
                       ).then((value) {
 //                        if (purch.exchangeState == 0) {
 //                          return;
@@ -273,7 +239,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                         Row(
                                           children: <Widget>[
                                             Text(
-                                              '${purch.sn}',
+                                              '${exch.sn}',
                                             ),
                                           ],
                                         ),
@@ -288,7 +254,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 WrapCrossAlignment.end,
                                             children: <Widget>[
                                               Text(
-                                                '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(purch.ptime, len: 14))}',
+                                                '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(exch.ctime, len: 14))}',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                   color: Colors.grey[500],
@@ -308,7 +274,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    '${purch.state == 1 ? '已完成' : purch.state == 3 ? '已承兑' : purch.state == -1 ? '已失败' : ''}',
+                                                    '${exch.state == 1 ? '已完成' : exch.state == 3 ? '已承兑' : exch.state == -1 ? '已失败' : ''}',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -322,7 +288,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: <Widget>[
                                                   Text(
-                                                    '${purch.status}  ',
+                                                    '${exch.status}  ',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -331,7 +297,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    '${purch.message}',
+                                                    '${exch.message}',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -361,7 +327,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${((purch.amount ?? 0.0) / 100.0).toStringAsFixed(2)}',
+                                                '${((exch.amount ?? 0.0) / 100.0).toStringAsFixed(2)}',
                                               ),
                                             ],
                                           ),
@@ -383,7 +349,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.price ?? 0.0).toStringAsFixed(14)}',
+                                                '${(exch.price ?? 0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -405,7 +371,7 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.stock ?? 0.0).toStringAsFixed(14)}',
+                                                '${(exch.stock ?? 0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -421,58 +387,24 @@ class _WenyPurchasesState extends State<WenyPurchases> {
                                                 WrapCrossAlignment.end,
                                             children: <Widget>[
                                               Text(
-                                                '市盈:',
+                                                '收益:',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.ttm).toStringAsFixed(4)}',
+                                                '${(exch.profit / 100.0).toStringAsFixed(2)}',
+                                                style: TextStyle(
+                                                  color: exch.profit > 0
+                                                      ? Colors.red
+                                                      : exch.profit == 0
+                                                          ? null
+                                                          : Colors.green,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        purch.state == 1
-                                            ? Padding(
-                                                padding: EdgeInsets.only(
-                                                  top: 4,
-                                                  bottom: 4,
-                                                ),
-                                                child: Wrap(
-                                                  spacing: 5,
-                                                  crossAxisAlignment:
-                                                      WrapCrossAlignment.end,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      '现值:',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      '¥${((purch.stock * _nowPrice) / 100).toStringAsFixed(2)}',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: purch.stock *
-                                                                    _nowPrice >
-                                                                purch.amount
-                                                            ? Colors.red
-                                                            : purch.stock *
-                                                                        _nowPrice ==
-                                                                    purch.amount
-                                                                ? null
-                                                                : Colors.green,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            : SizedBox(
-                                                height: 0,
-                                                width: 0,
-                                              ),
                                       ],
                                     ),
                                   ),

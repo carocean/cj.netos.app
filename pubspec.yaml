@@ -80,6 +80,7 @@ dependencies:
   #保存图片到相册
   image_gallery_saver: ^1.2.2
   city_pickers: ^0.1.30
+  flutter_cupertino_date_picker: ^1.0.26+2
 dev_dependencies:
   flutter_test:
     sdk: flutter

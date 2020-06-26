@@ -54,11 +54,11 @@ mixin IWyBankRemote {
 
   Future<BulletinBoard> getBulletinBoard(String bank,DateTime dateTime) {}
 
-  Future<int> totalInBillOfMonth(String bankid) {}
+  Future<int> totalInBillOfMonth(String bankid,DateTime dateTime) {}
 
   Future<int> totalInBillOfYear(String bankid) {}
 
-  Future<int> totalOutBillOfMonth(String bankid) {}
+  Future<int> totalOutBillOfMonth(String bankid,DateTime dateTime) {}
 
   Future<int> totalOutBillOfYear(String bankid) {}
 }
@@ -258,8 +258,8 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<int> totalInBillOfMonth(String bankid) async {
-    var date = DateTime.now();
+  Future<int> totalInBillOfMonth(String bankid,DateTime dateTime) async {
+    var date = dateTime;
     var obj = await remotePorts.portGET(
       fundPorts,
       'totalInBillOfMonth',
@@ -287,8 +287,8 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<int> totalOutBillOfMonth(String bankid) async {
-    var date = DateTime.now();
+  Future<int> totalOutBillOfMonth(String bankid,DateTime dateTime) async {
+    var date = dateTime;
     var obj = await remotePorts.portGET(
       fundPorts,
       'totalOutBillOfMonth',
