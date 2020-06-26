@@ -87,6 +87,7 @@ class _WenyMarketState extends State<WenyMarket> {
     }
     _offset += banks.length;
     _banks.addAll(banks);
+    await _updateManager();
     if (mounted) {
       setState(() {});
     }
@@ -178,12 +179,18 @@ class _WenyBank extends StatefulWidget {
   BankInfo bank;
   bool isBottom;
   Stream stream;
+  BusinessBuckets businessBuckets;
+  ShuntBuckets shuntBuckets;
+  BulletinBoard bulletinBoard;
 
   _WenyBank({
     this.context,
     this.bank,
     this.isBottom = false,
     this.stream,
+    this.businessBuckets,
+    this.bulletinBoard,
+    this.shuntBuckets,
   });
 
   @override
@@ -200,6 +207,9 @@ class __WenyBankState extends State<_WenyBank> {
 
   @override
   void initState() {
+    _shuntBuckets = widget.shuntBuckets;
+    _businessBuckets = widget.businessBuckets;
+    _bulletinBoard = widget.bulletinBoard;
     _streamSubscription = widget.stream.listen((event) {
       BankInfo bank = event['bank'];
       if (bank.id != widget.bank.id) {
@@ -228,6 +238,9 @@ class __WenyBankState extends State<_WenyBank> {
         oldWidget.isBottom != widget.isBottom) {
       oldWidget.bank = widget.bank;
       oldWidget.isBottom = widget.isBottom;
+      oldWidget.bulletinBoard = widget.bulletinBoard;
+      oldWidget.businessBuckets = widget.businessBuckets;
+      oldWidget.shuntBuckets = widget.shuntBuckets;
     }
   }
 

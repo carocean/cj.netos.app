@@ -137,6 +137,8 @@ mixin IWyBankRecordRemote {
       int tabFilter, int limit, int offset) {}
 
   Future<PurchaseOR> getPurchaseRecord(String sn) {}
+
+  Future<ExchangeOR> getExchangeRecord(String recordSn) {}
 }
 
 class WybankRecordRemote implements IWyBankRecordRemote, IServiceBuilder {
@@ -255,6 +257,9 @@ class WybankRecordRemote implements IWyBankRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return PurchaseOR(
       stock: obj['stock'],
       price: obj['price'],
@@ -282,6 +287,41 @@ class WybankRecordRemote implements IWyBankRecordRemote, IServiceBuilder {
       sn: obj['sn'],
       status: obj['status'],
       tailAmount: obj['tailAmount'],
+    );
+  }
+
+  @override
+  Future<ExchangeOR> getExchangeRecord(String recordSn) async {
+    var obj = await remotePorts.portGET(
+      recordsPorts,
+      'getExchangeRecord',
+      parameters: {
+        'record_sn': recordSn,
+      },
+    );
+    return ExchangeOR(
+      stock: obj['stock'],
+      price: obj['price'],
+      note: obj['note'],
+      ttm: obj['ttm'],
+      state: obj['state'],
+      amount: obj['amount'],
+      bankid: obj['bankid'],
+      currency: obj['currency'],
+      dtime: obj['dtime'],
+      message: obj['message'],
+      outTradeSn: obj['outTradeSn'],
+      personName: obj['personName'],
+      principalAmount: obj['principalAmount'],
+      sn: obj['sn'],
+      status: obj['status'],
+      ctime: obj['ctime'],
+      exchanger: obj['exchanger'],
+      profit: obj['profit'],
+      purchaseAmount: obj['purchaseAmount'],
+      purchasePrice: obj['purchasePrice'],
+      refPurchase: obj['refPurchase'],
+      serviceFeeAmount: obj['serviceFeeAmount'],
     );
   }
 }

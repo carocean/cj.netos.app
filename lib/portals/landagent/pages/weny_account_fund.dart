@@ -82,10 +82,7 @@ class _FundWenyAccountState extends State<FundWenyAccount> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                widget.context.forward(
-                  '/wybank/bill/freezen',
-                  arguments: {'bank': _bank},
-                );
+                widget.context.forward('/weny/bill/fund',arguments: {'bank':_bank});
               },
               textColor: Colors.white,
               color: Colors.green,

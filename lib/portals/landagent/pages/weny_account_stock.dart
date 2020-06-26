@@ -83,8 +83,7 @@ class _StockWenyAccountState extends State<StockWenyAccount> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                debugPrint('查看明细');
-                widget.context.forward('/wybank/bill/stock',arguments: {'bank':_bank});
+                widget.context.forward('/weny/bill/stock',arguments: {'bank':_bank});
               },
               textColor: Colors.white,
               color: Colors.green,

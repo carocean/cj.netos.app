@@ -1,15 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
-import 'package:netos_app/common/avatar.dart';
-import 'package:netos_app/portals/gbera/pages/profile/edit_nickname.dart';
-import 'package:netos_app/portals/gbera/pages/profile/edit_realname.dart';
-import 'package:netos_app/portals/gbera/pages/profile/edit_sex.dart';
-import 'package:netos_app/portals/gbera/pages/profile/edit_signature.dart';
-import 'package:netos_app/portals/gbera/pages/profile/editor.dart';
-import 'package:netos_app/portals/gbera/pages/profile/more.dart';
-import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
-import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
@@ -28,9 +18,13 @@ import 'package:netos_app/portals/landagent/pages/weny_account_shunters.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_fund.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/pages/weny_parameters.dart';
+import 'package:netos_app/portals/landagent/pages/weny_records.dart';
 import 'package:netos_app/portals/landagent/pages/weny_trades.dart';
+import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
 import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
@@ -103,6 +97,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wybank/remote': WybankRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/wybank/records': WybankRecordRemote(),
+          '/wybank/bills': WenyBillRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -292,6 +287,42 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/wenybank/account/shunters',
           buildPage: (PageContext pageContext) => ShuntersWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/stock',
+          buildPage: (PageContext pageContext) => LAStockWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申购记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/purchase',
+          buildPage: (PageContext pageContext) => PurchaseRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '承兑记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/exchange',
+          buildPage: (PageContext pageContext) => ExchangeRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '资金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/fund',
+          buildPage: (PageContext pageContext) => LAFundWenyBill(
             context: pageContext,
           ),
         ),

@@ -72,7 +72,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
   }
 
   Widget _AmountCard(PurchaseOR purch, BankInfo bank) {
-    if(purch.state==3) {
+    if(purch==null) {
       return SizedBox(width: 0,height: 0,);
     }
     return Container(
@@ -89,7 +89,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
               bottom: 4,
             ),
             child: Text(
-              '现值:',
+              '申购金额:',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[400],
@@ -99,17 +99,10 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
           ),
           Center(
             child: Text(
-              _nowPrice == 0
-                  ? '-'
-                  : '¥${((purch.stock * _nowPrice) / 100).toStringAsFixed(14)}',
+              '¥${(_purch.amount/100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 25,
-                color: purch.stock * _nowPrice > purch.amount
-                    ? Colors.red
-                    : purch.stock * _nowPrice == purch.amount
-                        ? null
-                        : Colors.green,
               ),
             ),
           ),
@@ -224,14 +217,26 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '申购金额:',
+                    '现值:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Text('¥${(purch.amount / 100.00).toStringAsFixed(2)}'),
+                  child: Text(
+                    _nowPrice == 0
+                        ? '-'
+                        : '¥${((purch.stock * _nowPrice) / 100).toStringAsFixed(14)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: purch.stock * _nowPrice > purch.amount
+                          ? Colors.red
+                          : purch.stock * _nowPrice == purch.amount
+                          ? null
+                          : Colors.green,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -383,7 +388,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(purch.ptime, len: 14))}'),
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(purch.ptime, len: purch.ptime.length))}'),
                 ),
               ],
             ),

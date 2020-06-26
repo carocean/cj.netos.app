@@ -213,7 +213,7 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context.forward('/wenybank/account/shunters',
+                      widget.context.forward('/weny/parameters',
                           arguments: {'bank': _bank});
                     },
                     child: Text(

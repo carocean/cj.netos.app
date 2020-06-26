@@ -89,6 +89,7 @@ void main() => platformRun(
             '@.prop.ports.wybank.balance':'http://47.105.165.186/wybank/balance.ports',
             '@.prop.ports.wybank.bill.price':'http://47.105.165.186/wybank/bill/price.ports',
             '@.prop.ports.wybank.bill.fund':'http://47.105.165.186/wybank/bill/fund.ports',
+            '@.prop.ports.wybank.bill.stock':'http://47.105.165.186/wybank/bill/stock.ports',
             '@.prop.ports.wybank.records':'http://47.105.165.186/wybank/record.ports',
             '@.prop.ports.org.isp':'http://47.105.165.186/org/isp.ports',
             '@.prop.ports.org.la':'http://47.105.165.186/org/la.ports',

@@ -264,10 +264,11 @@ class _PriceCardState extends State<_PriceCard> {
   Future<void> _fetchIndexers() async {
     IWyBankRemote wyBankRemote =
         widget.context.site.getService('/wybank/remote');
-    _totalInFundOfMonth = await wyBankRemote.totalInBillOfMonth(widget.bank.id,DateTime.now());
+    _totalInFundOfMonth =
+        await wyBankRemote.totalInBillOfMonth(widget.bank.id, DateTime.now());
     _totalInFundOfYear = await wyBankRemote.totalInBillOfYear(widget.bank.id);
     _totalOutFundOfMonth =
-        await wyBankRemote.totalOutBillOfMonth(widget.bank.id,DateTime.now());
+        await wyBankRemote.totalOutBillOfMonth(widget.bank.id, DateTime.now());
     _totalOutFundOfYear = await wyBankRemote.totalOutBillOfYear(widget.bank.id);
   }
 
@@ -294,7 +295,7 @@ class _PriceCardState extends State<_PriceCard> {
         await priceRemote.getAfterTimePrices(widget.bank.id, timeStr);
     var entities = <KLineEntity>[];
     for (var price in list) {
-      var time = parseStrTime(price.ctime, len: 14);
+      var time = parseStrTime(price.ctime, len: price.ctime.length);
       var id = (time.millisecondsSinceEpoch / 1000).floor();
       entities.insert(
         0,
@@ -726,9 +727,17 @@ class __AccountsCardState extends State<_AccountsCard> {
             title: '纹银存量',
             tips: '₩${(_businessBuckets?.stock ?? 0.00).toStringAsFixed(14)}',
             onTap: () {
+              if (_businessBuckets == null) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('当前页还在加载中，等稍候再试.'),
+                  ),
+                );
+                return;
+              }
               widget.context.forward('/wenybank/account/stock', arguments: {
                 'bank': widget.bank,
-                'businessBuckets':_businessBuckets,
+                'businessBuckets': _businessBuckets,
               });
             },
           ),
@@ -740,9 +749,17 @@ class __AccountsCardState extends State<_AccountsCard> {
             tips:
                 '¥${((_businessBuckets?.fundAmount ?? 0.00) / 100).toStringAsFixed(2)}',
             onTap: () {
+              if (_businessBuckets == null) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('当前页还在加载中，等稍候再试.'),
+                  ),
+                );
+                return;
+              }
               widget.context.forward('/wenybank/account/fund', arguments: {
                 'bank': widget.bank,
-                'businessBuckets':_businessBuckets,
+                'businessBuckets': _businessBuckets,
               });
             },
           ),
@@ -754,9 +771,17 @@ class __AccountsCardState extends State<_AccountsCard> {
             tips:
                 '¥${((_businessBuckets?.freezenAmount ?? 0.00) / 100).toStringAsFixed(2)}',
             onTap: () {
+              if (_businessBuckets == null) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('当前页还在加载中，等稍候再试.'),
+                  ),
+                );
+                return;
+              }
               widget.context.forward('/wenybank/account/freezen', arguments: {
                 'bank': widget.bank,
-                'businessBuckets':_businessBuckets,
+                'businessBuckets': _businessBuckets,
               });
             },
           ),
@@ -768,9 +793,17 @@ class __AccountsCardState extends State<_AccountsCard> {
             tips:
                 '¥${((_businessBuckets?.freeAmount ?? 0.00) / 100).toStringAsFixed(2)}',
             onTap: () {
+              if (_businessBuckets == null) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('当前页还在加载中，等稍候再试.'),
+                  ),
+                );
+                return;
+              }
               widget.context.forward('/wenybank/account/free', arguments: {
                 'bank': widget.bank,
-                'businessBuckets':_businessBuckets,
+                'businessBuckets': _businessBuckets,
               });
             },
           ),
@@ -782,9 +815,17 @@ class __AccountsCardState extends State<_AccountsCard> {
             tips:
                 '¥${((_shuntBuckets?.laAmount ?? 0.00) / 100).toStringAsFixed(2)}',
             onTap: () {
+              if (_shuntBuckets == null) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('当前页还在加载中，等稍候再试.'),
+                  ),
+                );
+                return;
+              }
               widget.context.forward('/wenybank/account/shunters', arguments: {
                 'bank': widget.bank,
-                'shuntBuckets':_shuntBuckets,
+                'shuntBuckets': _shuntBuckets,
               });
             },
           ),
