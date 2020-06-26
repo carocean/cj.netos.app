@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class StockWenyAccount extends StatefulWidget {
   PageContext context;
@@ -12,11 +13,12 @@ class StockWenyAccount extends StatefulWidget {
 }
 
 class _StockWenyAccountState extends State<StockWenyAccount> {
-  WenyBank _bank;
-
+  BankInfo _bank;
+  BusinessBuckets _businessBuckets;
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _businessBuckets=widget.context.parameters['businessBuckets'];
     super.initState();
   }
 
@@ -57,7 +59,7 @@ class _StockWenyAccountState extends State<StockWenyAccount> {
                 ),
               ),
               Text(
-                '${_bank?.stock ?? '-'}',
+                '${_businessBuckets?.stock ?? '-'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(

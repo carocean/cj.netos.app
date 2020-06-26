@@ -52,15 +52,19 @@ mixin IWyBankRemote {
 
   Future<ShuntBuckets> getShuntBucketsOfBank(String bank) {}
 
-  Future<BulletinBoard> getBulletinBoard(String bank,DateTime dateTime) {}
+  Future<BulletinBoard> getBulletinBoard(String bank, DateTime dateTime) {}
 
-  Future<int> totalInBillOfMonth(String bankid,DateTime dateTime) {}
+  Future<int> totalInBillOfMonth(String bankid, DateTime dateTime) {}
 
   Future<int> totalInBillOfYear(String bankid) {}
 
-  Future<int> totalOutBillOfMonth(String bankid,DateTime dateTime) {}
+  Future<int> totalOutBillOfMonth(String bankid, DateTime dateTime) {}
 
   Future<int> totalOutBillOfYear(String bankid) {}
+
+  Future<List> getShunters(String bankid) {}
+
+  Future<List> getTtmConfig(String bankid) {}
 }
 
 class WybankRemote implements IWyBankRemote, IServiceBuilder {
@@ -240,7 +244,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<BulletinBoard> getBulletinBoard(String bankid,DateTime date) async {
+  Future<BulletinBoard> getBulletinBoard(String bankid, DateTime date) async {
     var obj = await remotePorts.portGET(
       pricePorts,
       'getBulletinBoard',
@@ -258,7 +262,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<int> totalInBillOfMonth(String bankid,DateTime dateTime) async {
+  Future<int> totalInBillOfMonth(String bankid, DateTime dateTime) async {
     var date = dateTime;
     var obj = await remotePorts.portGET(
       fundPorts,
@@ -287,7 +291,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<int> totalOutBillOfMonth(String bankid,DateTime dateTime) async {
+  Future<int> totalOutBillOfMonth(String bankid, DateTime dateTime) async {
     var date = dateTime;
     var obj = await remotePorts.portGET(
       fundPorts,
@@ -313,5 +317,29 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
       },
     );
     return obj;
+  }
+
+  @override
+  Future<List> getShunters(String bankid) async {
+    var list = await remotePorts.portGET(
+      wybankPorts,
+      'getShunters',
+      parameters: {
+        'banksn': bankid,
+      },
+    );
+    return list;
+  }
+
+  @override
+  Future<List> getTtmConfig(String bankid) async {
+    var list = await remotePorts.portGET(
+      wybankPorts,
+      'getTTMTable',
+      parameters: {
+        'banksn': bankid,
+      },
+    );
+    return list;
   }
 }

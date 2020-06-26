@@ -65,6 +65,9 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
   Future<void> _selectedLa(OrgLAOL la) async {
     IOrgLaRemote laRemote = widget.context.site.getService('/org/la');
     _orgLicenceOL = await laRemote.getLicence(la.id, 0);
+    if(_orgLicenceOL==null) {
+      return;
+    }
     IWyBankRemote wyBankRemote = widget.context.site.getService('/wybank/remote');
     _existsBank = await wyBankRemote.getWenyBankByLicence(_orgLicenceOL.id);
     _orgLAOL = la;

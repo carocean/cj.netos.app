@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class FreezenWenyAccount extends StatefulWidget {
   PageContext context;
@@ -12,11 +13,12 @@ class FreezenWenyAccount extends StatefulWidget {
 }
 
 class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
-  WenyBank _bank;
-
+  BankInfo _bank;
+  BusinessBuckets _businessBuckets;
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _businessBuckets=widget.context.parameters['businessBuckets'];
     super.initState();
   }
 
@@ -56,7 +58,7 @@ class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
                 ),
               ),
               Text(
-                '${((_bank?.freezen ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '${((_businessBuckets?.freezenAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(

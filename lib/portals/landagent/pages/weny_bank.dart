@@ -728,6 +728,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             onTap: () {
               widget.context.forward('/wenybank/account/stock', arguments: {
                 'bank': widget.bank,
+                'businessBuckets':_businessBuckets,
               });
             },
           ),
@@ -741,6 +742,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             onTap: () {
               widget.context.forward('/wenybank/account/fund', arguments: {
                 'bank': widget.bank,
+                'businessBuckets':_businessBuckets,
               });
             },
           ),
@@ -754,6 +756,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             onTap: () {
               widget.context.forward('/wenybank/account/freezen', arguments: {
                 'bank': widget.bank,
+                'businessBuckets':_businessBuckets,
               });
             },
           ),
@@ -767,6 +770,7 @@ class __AccountsCardState extends State<_AccountsCard> {
             onTap: () {
               widget.context.forward('/wenybank/account/free', arguments: {
                 'bank': widget.bank,
+                'businessBuckets':_businessBuckets,
               });
             },
           ),
@@ -778,8 +782,9 @@ class __AccountsCardState extends State<_AccountsCard> {
             tips:
                 '¥${((_shuntBuckets?.laAmount ?? 0.00) / 100).toStringAsFixed(2)}',
             onTap: () {
-              widget.context.forward('/wenybank/account/free', arguments: {
+              widget.context.forward('/wenybank/account/shunters', arguments: {
                 'bank': widget.bank,
+                'shuntBuckets':_shuntBuckets,
               });
             },
           ),

@@ -24,6 +24,7 @@ import 'package:netos_app/portals/landagent/pages/weny_account_freezen.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_fund.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_isp.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_platform.dart';
+import 'package:netos_app/portals/landagent/pages/weny_account_shunters.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
@@ -282,6 +283,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/details/exchange',
           buildPage: (PageContext pageContext) => LAExchangeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '账金账户',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/shunters',
+          buildPage: (PageContext pageContext) => ShuntersWenyAccount(
             context: pageContext,
           ),
         ),
