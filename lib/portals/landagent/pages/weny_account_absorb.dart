@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class AbsorbWenyAccount extends StatefulWidget {
   PageContext context;
@@ -12,11 +13,13 @@ class AbsorbWenyAccount extends StatefulWidget {
 }
 
 class _AbsorbWenyAccountState extends State<AbsorbWenyAccount> {
-  WenyBank _bank;
+  BankInfo _bank;
+  ShuntBuckets _shuntBuckets;
 
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _shuntBuckets = widget.context.parameters['shuntBuckets'];
     super.initState();
   }
 
@@ -56,7 +59,7 @@ class _AbsorbWenyAccountState extends State<AbsorbWenyAccount> {
                 ),
               ),
               Text(
-                '${((_bank?.freezen ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '${((_shuntBuckets?.absorbsAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
@@ -81,8 +84,8 @@ class _AbsorbWenyAccountState extends State<AbsorbWenyAccount> {
             child: RaisedButton(
               onPressed: () {
                 widget.context.forward(
-                  '/wybank/bill/freezen',
-                  arguments: {'bank': _bank},
+                  '/weny/bill/shunt',
+                  arguments: {'bank': _bank, 'shunter': 'absorbs'},
                 );
               },
               textColor: Colors.white,

@@ -256,6 +256,34 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
+                    '申购人:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                      '${purch.purchaser}(${purch.personName})'),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
                     '申购价格:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
@@ -268,6 +296,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
               ],
             ),
           ),
+
           Padding(
             padding: EdgeInsets.only(
               left: 40,

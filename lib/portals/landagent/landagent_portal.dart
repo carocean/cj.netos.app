@@ -18,7 +18,10 @@ import 'package:netos_app/portals/landagent/pages/weny_account_shunters.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_apply.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_free.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_freezen.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_fund.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_shunt.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/pages/weny_parameters.dart';
@@ -323,6 +326,42 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/bill/fund',
           buildPage: (PageContext pageContext) => LAFundWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '分账记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/shunt',
+          buildPage: (PageContext pageContext) => ShuntRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '冻结账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/freezen',
+          buildPage: (PageContext pageContext) => LAFreezenWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '自由金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/free',
+          buildPage: (PageContext pageContext) => LAFreeWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '地商分账账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/shunt',
+          buildPage: (PageContext pageContext) => ShuntWenyBill(
             context: pageContext,
           ),
         ),

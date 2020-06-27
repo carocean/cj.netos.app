@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 import 'package:intl/intl.dart' as intl;
@@ -129,6 +131,64 @@ class ExchangeOR {
   });
 }
 
+class ShuntOR {
+  String sn;
+  String operator;
+  String personName;
+  int reqAmount;
+  int realAmount;
+  int state;
+  String bankid;
+  String ctime;
+  String dtime;
+  String note;
+  String status;
+  String message;
+  int source;
+  Map<String, Shunter> shunters;
+  Map<String, ShuntDetailsOR> details;
+  String outTradeSn;
+
+  ShuntOR({
+    this.sn,
+    this.operator,
+    this.personName,
+    this.reqAmount,
+    this.realAmount,
+    this.state,
+    this.bankid,
+    this.ctime,
+    this.dtime,
+    this.note,
+    this.status,
+    this.message,
+    this.source,
+    this.shunters,
+    this.outTradeSn,
+    this.details,
+  });
+}
+
+class Shunter {
+  String bankid;
+  String code;
+  String alias;
+  double ratio;
+
+  Shunter({this.bankid, this.code, this.alias, this.ratio});
+}
+
+class ShuntDetailsOR {
+  String id;
+  String shunter;
+  int amount;
+  double ratio;
+  String shuntSn;
+
+  ShuntDetailsOR(
+      {this.id, this.shunter, this.amount, this.ratio, this.shuntSn});
+}
+
 mixin IWyBankRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(
       String bankid, DateTime dateTime, int state, int limit, int offset) {}
@@ -139,6 +199,8 @@ mixin IWyBankRecordRemote {
   Future<PurchaseOR> getPurchaseRecord(String sn) {}
 
   Future<ExchangeOR> getExchangeRecord(String recordSn) {}
+
+  Future<ShuntOR> getShuntRecord(String recordSn) {}
 }
 
 class WybankRecordRemote implements IWyBankRecordRemote, IServiceBuilder {
@@ -322,6 +384,56 @@ class WybankRecordRemote implements IWyBankRecordRemote, IServiceBuilder {
       purchasePrice: obj['purchasePrice'],
       refPurchase: obj['refPurchase'],
       serviceFeeAmount: obj['serviceFeeAmount'],
+    );
+  }
+
+  @override
+  Future<ShuntOR> getShuntRecord(String recordSn) async {
+    var obj = await remotePorts.portGET(
+      recordsPorts,
+      'getShuntRecord',
+      parameters: {
+        'record_sn': recordSn,
+      },
+    );
+    var shunters = <String, Shunter>{};
+    var list = jsonDecode(obj['shunters']);
+    for (var sh in list) {
+      shunters[sh['code']] = Shunter(
+        ratio: sh['ratio'],
+        bankid: sh['bankid'],
+        alias: sh['alias'],
+        code: sh['code'],
+      );
+    }
+    var dlist = obj['details'];
+    var details = <String, ShuntDetailsOR>{};
+    for (var item in dlist) {
+      details[item['shunter']] = ShuntDetailsOR(
+        shuntSn: item['shuntSn'],
+        shunter: item['shunter'],
+        ratio: item['ratio'],
+        id: item['id'],
+        amount: item['amount'],
+      );
+    }
+    return ShuntOR(
+      note: obj['note'],
+      state: obj['state'],
+      bankid: obj['bankid'],
+      dtime: obj['dtime'],
+      message: obj['message'],
+      outTradeSn: obj['outTradeSn'],
+      personName: obj['personName'],
+      sn: obj['sn'],
+      status: obj['status'],
+      ctime: obj['ctime'],
+      operator: obj['operator'],
+      realAmount: obj['realAmount'],
+      reqAmount: obj['reqAmount'],
+      shunters: shunters,
+      source: obj['source'],
+      details: details,
     );
   }
 }

@@ -148,12 +148,12 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
           ),
           Center(
             child: Text(
-              '¥${(purch.stock * bank.price)/100.00}',
+              '¥${((purch.stock??0) * bank.price)/100.00}',
               style: TextStyle(
                 fontSize: 30,
-                color: (purch.stock * bank.price) < purch.purchAmount
+                color: ((purch.stock??0) * bank.price) < purch.purchAmount
                     ? Colors.green
-                    : (purch.stock * bank.price) > purch.purchAmount
+                    : ((purch.stock??0) * bank.price) > purch.purchAmount
                         ? Colors.red
                         : null,
               ),
@@ -258,7 +258,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('₩${purch.stock}'),
+                  child: Text('₩${(purch.stock??0.00).toStringAsFixed(14)}'),
                 ),
               ],
             ),
@@ -314,7 +314,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '¥${(purch.price).toStringAsFixed(14)}'),
+                      '¥${(purch.price??0).toStringAsFixed(14)}'),
                 ),
               ],
             ),
@@ -342,7 +342,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '¥${(purch.serviceFee / 100.00).toStringAsFixed(2)}'),
+                      '¥${((purch.serviceFee??0) / 100.00).toStringAsFixed(2)}'),
                 ),
               ],
             ),
@@ -372,7 +372,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   child: Text.rich(
                     TextSpan(
                       text:
-                          '¥${(purch.principalAmount / 100.00).toStringAsFixed(2)}',
+                          '¥${((purch.principalAmount??0) / 100.00).toStringAsFixed(2)}',
                       children: [
                         TextSpan(
                           text: ' (在您的冻结账户余额中，成功承兑后自动解冻并转入您的收益金账户中)',

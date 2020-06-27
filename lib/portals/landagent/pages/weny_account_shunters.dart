@@ -167,8 +167,8 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
           FlatButton(
             onPressed: () {
               widget.context.forward(
-                '/wybank/bill/profit',
-                arguments: {'bank': _bank},
+                '/weny/bill/shunt',
+                arguments: {'bank': _bank,'shunter':'la'},
               );
             },
             child: Text('明细'),
@@ -232,6 +232,8 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
             Expanded(
               child: _CardOtherAccounts(
                 context: widget.context,
+                shuntBuckets: _shuntBuckets,
+                bank: _bank,
               ),
             ),
           ],
@@ -243,8 +245,9 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
 
 class _CardOtherAccounts extends StatefulWidget {
   PageContext context;
-
-  _CardOtherAccounts({this.context});
+  ShuntBuckets shuntBuckets;
+  BankInfo bank;
+  _CardOtherAccounts({this.context,this.shuntBuckets,this.bank,});
 
   @override
   __CardOtherAccountsState createState() => __CardOtherAccountsState();
@@ -265,9 +268,9 @@ class __CardOtherAccountsState extends State<_CardOtherAccounts> {
         children: <Widget>[
           _getCardItem(
             title: '平台',
-            tips: '283.32',
+            tips: '¥${((widget.shuntBuckets?.platformAmount??0)/100.00).toStringAsFixed(2)}',
             onTap: () {
-              widget.context.forward('/wenybank/account/platform');
+              widget.context.forward('/wenybank/account/platform',arguments: {'bank':widget.bank,'shuntBuckets':widget.shuntBuckets},);
             },
           ),
           Divider(
@@ -275,9 +278,9 @@ class __CardOtherAccountsState extends State<_CardOtherAccounts> {
           ),
           _getCardItem(
             title: '运营商',
-            tips: '283.32',
+            tips: '¥${((widget.shuntBuckets?.ispAmount??0)/100.00).toStringAsFixed(2)}',
             onTap: () {
-              widget.context.forward('/wenybank/account/isp');
+              widget.context.forward('/wenybank/account/isp',arguments: {'bank':widget.bank,'shuntBuckets':widget.shuntBuckets},);
             },
           ),
           Divider(
@@ -285,9 +288,9 @@ class __CardOtherAccountsState extends State<_CardOtherAccounts> {
           ),
           _getCardItem(
             title: '网络洇金',
-            tips: '283.32',
+            tips: '¥${((widget.shuntBuckets?.absorbsAmount??0)/100.00).toStringAsFixed(2)}',
             onTap: () {
-              widget.context.forward('/wenybank/account/absorb');
+              widget.context.forward('/wenybank/account/absorb',arguments: {'bank':widget.bank,'shuntBuckets':widget.shuntBuckets},);
             },
           ),
         ],

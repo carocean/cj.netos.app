@@ -243,6 +243,34 @@ class _LAExchangeDetailsState extends State<LAExchangeDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
+                    '承兑人:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                      '${exchange.exchanger}(${exchange.personName})'),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
                     '承兑价格:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,

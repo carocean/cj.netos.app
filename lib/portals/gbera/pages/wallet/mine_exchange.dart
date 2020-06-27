@@ -8,7 +8,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
-
+import 'package:intl/intl.dart' as intl;
 class MineExchanges extends StatefulWidget {
   PageContext context;
   WenyBank bank;
@@ -119,10 +119,7 @@ class _MineExchangesState extends State<MineExchanges> {
                                           WrapCrossAlignment.end,
                                       children: <Widget>[
                                         Text(
-                                          '${TimelineUtil.formatByDateTime(
-                                            parseStrTime(exchange.ctime),
-                                            dayFormat: DayFormat.Full,
-                                          )}',
+                                          '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(exchange.ctime))}',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: Colors.grey[500],

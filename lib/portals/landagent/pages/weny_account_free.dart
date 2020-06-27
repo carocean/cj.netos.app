@@ -88,7 +88,7 @@ class _FreeWenyAccountState extends State<FreeWenyAccount> {
             child: RaisedButton(
               onPressed: () {
                 widget.context.forward(
-                  '/wybank/bill/freezen',
+                  '/weny/bill/free',
                   arguments: {'bank': _bank},
                 );
               },

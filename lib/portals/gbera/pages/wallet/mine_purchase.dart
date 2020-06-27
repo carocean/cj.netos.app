@@ -9,7 +9,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
-
+import 'package:intl/intl.dart' as intl;
 class MinePurchases extends StatefulWidget {
   PageContext context;
   WenyBank bank;
@@ -59,13 +59,16 @@ class _MinePurchasesState extends State<MinePurchases> {
     var purchases;
     switch (_tabPurchasesFilter) {
       case 0:
-        purchases = await recordRemote.pagePurchaseUnExchange(widget.bank.bank,_limit, _offset);
+        purchases = await recordRemote.pagePurchaseUnExchange(
+            widget.bank.bank, _limit, _offset);
         break;
       case 1:
-        purchases = await recordRemote.pagePurchaseExchanged(widget.bank.bank,_limit, _offset);
+        purchases = await recordRemote.pagePurchaseExchanged(
+            widget.bank.bank, _limit, _offset);
         break;
       case 2:
-        purchases = await recordRemote.pagePurchase(widget.bank.bank,_limit, _offset);
+        purchases =
+            await recordRemote.pagePurchase(widget.bank.bank, _limit, _offset);
         break;
       default:
         throw FlutterError('不支持');
@@ -231,46 +234,51 @@ class _MinePurchasesState extends State<MinePurchases> {
                                             top: 4,
                                             bottom: 4,
                                           ),
-                                          child: Wrap(
-                                            spacing: 5,
+                                          child: Column(
                                             crossAxisAlignment:
-                                                WrapCrossAlignment.end,
+                                                CrossAxisAlignment.start,
                                             children: <Widget>[
                                               Text(
-                                                '${TimelineUtil.formatByDateTime(
-                                                  parseStrTime(purch.ctime),
-                                                  dayFormat: DayFormat.Full,
-                                                )}',
+                                                '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(purch.ctime))}',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                   color: Colors.grey[500],
                                                   fontSize: 12,
                                                 ),
                                               ),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: <Widget>[
-                                                  Text(
-                                                    '状态: ',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: Colors.grey[500],
-                                                      fontSize: 12,
+                                              Padding(
+                                                padding: EdgeInsets.only(
+                                                  top: 5,
+                                                  bottom: 5,
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      '状态: ',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.grey[500],
+                                                        fontSize: 12,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    '${purch.state == 1 ? '已完成' : '申购中'}',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: Colors.grey[500],
-                                                      fontSize: 12,
+                                                    Text(
+                                                      '${purch.state == 1 ? '已完成' : '申购中'}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.grey[500],
+                                                        fontSize: 12,
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                               Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: <Widget>[
                                                   Text(
@@ -282,13 +290,15 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                       color: Colors.grey[400],
                                                     ),
                                                   ),
-                                                  Text(
-                                                    '${purch.message}',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 12,
-                                                      color: Colors.grey[400],
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${purch.message}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontSize: 12,
+                                                        color: Colors.grey[400],
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
@@ -313,7 +323,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${((purch.purchAmount??0.0) / 100.0).toStringAsFixed(2)}',
+                                                '${((purch.purchAmount ?? 0.0) / 100.0).toStringAsFixed(2)}',
                                               ),
                                             ],
                                           ),
@@ -335,7 +345,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.price??0.0).toStringAsFixed(14)}',
+                                                '${(purch.price ?? 0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -357,7 +367,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${(purch.stock??0.0).toStringAsFixed(14)}',
+                                                '${(purch.stock ?? 0.0).toStringAsFixed(14)}',
                                               ),
                                             ],
                                           ),
@@ -379,14 +389,14 @@ class _MinePurchasesState extends State<MinePurchases> {
                                                 ),
                                               ),
                                               Text(
-                                                '${((purch.stock??0.00) * _newPrice) / 100.00}',
+                                                '${((purch.stock ?? 0.00) * _newPrice) / 100.00}',
                                                 style: TextStyle(
-                                                  color: purch.stock *
+                                                  color: (purch.stock ?? 0) *
                                                               widget
                                                                   .bank.price <
                                                           purch.purchAmount
                                                       ? Colors.green
-                                                      : purch.stock *
+                                                      : (purch.stock ?? 0) *
                                                                   widget.bank
                                                                       .price >
                                                               purch.purchAmount
