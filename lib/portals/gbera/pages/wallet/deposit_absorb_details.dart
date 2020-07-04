@@ -108,7 +108,7 @@ class _DepositAbsorbDetailsState extends State<DepositAbsorbDetails> {
           ),
           Center(
             child: Text(
-              '¥${(record.realAmount/100.00).toStringAsFixed(2)}',
+              '¥${(record.realAmount/100.00).toStringAsFixed(14)}',
               style: TextStyle(
                 fontSize: 30,
               ),
@@ -179,7 +179,7 @@ class _DepositAbsorbDetailsState extends State<DepositAbsorbDetails> {
                 ),
                 Expanded(
                   child: Text(
-                    '¥${(record.demandAmount/100).toStringAsFixed(2)}',
+                    '¥${(record.demandAmount/100).toStringAsFixed(14)}',
                   ),
                 ),
               ],

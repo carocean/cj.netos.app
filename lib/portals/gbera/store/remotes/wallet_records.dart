@@ -246,8 +246,8 @@ class DepositAbsorbOR {
   String person;
   String personName;
   String currency;
-  int demandAmount;
-  int realAmount;
+  double demandAmount;
+  double realAmount;
   int state;
   String ctime;
   String lutime;

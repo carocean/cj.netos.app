@@ -131,10 +131,10 @@ class _AbsorbBillState extends State<AbsorbBill> {
                       bottom: 5,
                     ),
                     child:
-                        Text('¥${(bill.amount / 100.00).toStringAsFixed(2)}'),
+                        Text('¥${(bill.amount / 100.00).toStringAsFixed(14)}'),
                   ),
                   Text(
-                    '余额 ¥${(bill.balance / 100.00).toStringAsFixed(2)}',
+                    '余额 ¥${(bill.balance / 100.00).toStringAsFixed(14)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

@@ -133,7 +133,7 @@ class AbsorbBillOR {
   String accountid;
   String title;
   int order;
-  int amount;
+  double amount;
   int balance;
   String refsn;
   String ctime;
@@ -370,7 +370,7 @@ class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
       bills.add(
         AbsorbBillOR(
           ctime: obj['ctime'],
-          amount: (obj['amount'] as double).floor(),
+          amount: (obj['amount'] as double),
           refsn: obj['refsn'],
           order: (obj['order'] as double).floor(),
           title: obj['title'],

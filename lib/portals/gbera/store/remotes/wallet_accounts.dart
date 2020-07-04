@@ -3,7 +3,7 @@ import 'package:framework/framework.dart';
 class MyWallet {
   int total;
   int change;
-  int absorb;
+  double absorb;
   int onorder;
   List<WenyBank> banks;
 
@@ -11,12 +11,12 @@ class MyWallet {
 
   String get changeYan => ((change ?? 0) / 100.00).toStringAsFixed(2);
 
-  String get absorbYan => ((absorb ?? 0) / 100.00).toStringAsFixed(2);
+  String get absorbYan => ((absorb ?? 0) / 100.00).toStringAsFixed(14);
 
   String get onorderYan => ((onorder ?? 0) / 100.00).toStringAsFixed(2);
 
   MyWallet({this.change, this.absorb, this.onorder, this.banks}) {
-    var total = change + absorb + onorder;
+    var total = change + (absorb.floor()) + onorder;
     for (WenyBank bank in banks) {
       total += bank.freezen + bank.profit;
     }
@@ -195,7 +195,7 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
     }
     return MyWallet(
       onorder: (root['onorderAmount'] as double).floor(),
-      absorb: (all['absorbAccount']['amount'] as double).floor(),
+      absorb: (all['absorbAccount']['amount'] as double),
       change: (all['balanceAccount']['amount'] as double).floor(),
       banks: banks,
     );

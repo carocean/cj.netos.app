@@ -20,11 +20,12 @@ class _AbsorbState extends State<Absorb> {
   MyWallet _myWallet;
   bool _enableButton = false;
   String _buttonText = '提取到零钱';
-  GlobalKey<ScaffoldState> _key=GlobalKey();
+  GlobalKey<ScaffoldState> _key = GlobalKey();
+
   @override
   void initState() {
     _myWallet = widget.context.parameters['wallet'];
-    _enableButton = _myWallet.absorb > 0;
+    _enableButton = _myWallet.absorb.floor() > 0;
     super.initState();
   }
 
@@ -44,7 +45,7 @@ class _AbsorbState extends State<Absorb> {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService('/wallet/records');
     TransAbsorbResult result =
-        await tradeRemote.transAbsorb(_myWallet.absorb, '');
+        await tradeRemote.transAbsorb(_myWallet.absorb.floor(), '');
     Timer.periodic(
         Duration(
           seconds: 1,
@@ -73,7 +74,6 @@ class _AbsorbState extends State<Absorb> {
       _key.currentState.showSnackBar(SnackBar(
         content: Text('$_message'),
       ));
-
     });
   }
 
@@ -109,7 +109,10 @@ class _AbsorbState extends State<Absorb> {
                 '${_myWallet?.absorbYan ?? '0.00'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
-                style: widget.context.style('/wallet/change/money.text'),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
               ),
             ],
           ),
@@ -158,7 +161,9 @@ class _AbsorbState extends State<Absorb> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              widget.context.forward('/wallet/absorb/bill',arguments: {'wallet': _myWallet,});
+              widget.context.forward('/wallet/absorb/bill', arguments: {
+                'wallet': _myWallet,
+              });
             },
             child: Text('明细'),
           ),
