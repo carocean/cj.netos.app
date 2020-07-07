@@ -8,6 +8,9 @@ import 'package:netos_app/portals/landagent/pages/mine.dart';
 import 'package:netos_app/portals/landagent/pages/org_la.dart';
 import 'package:netos_app/portals/landagent/pages/purchase_details.dart';
 import 'package:netos_app/portals/landagent/pages/shunter_rules.dart';
+import 'package:netos_app/portals/landagent/pages/weny_absorber_details.dart';
+import 'package:netos_app/portals/landagent/pages/weny_absorber_details_more.dart';
+import 'package:netos_app/portals/landagent/pages/weny_absorber_location.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_free.dart';
 import 'package:netos_app/portals/landagent/pages/weny_account_freezen.dart';
@@ -26,10 +29,13 @@ import 'package:netos_app/portals/landagent/pages/weny_bill_stock.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/pages/weny_parameters.dart';
 import 'package:netos_app/portals/landagent/pages/weny_records.dart';
+import 'package:netos_app/portals/landagent/pages/weny_robot.dart';
+import 'package:netos_app/portals/landagent/pages/weny_robot_absorbers.dart';
 import 'package:netos_app/portals/landagent/pages/weny_trades.dart';
 import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
 import 'package:netos_app/portals/landagent/remote/records.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
@@ -101,6 +107,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wybank/bill/prices': PriceRemote(),
           '/wybank/records': WybankRecordRemote(),
           '/wybank/bills': WenyBillRemote(),
+          '/wybank/robot':RobotRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -362,6 +369,51 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/bill/shunt',
           buildPage: (PageContext pageContext) => ShuntWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取中心',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot',
+          buildPage: (PageContext pageContext) => RobotPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器列表',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers',
+          buildPage: (PageContext pageContext) => RobotAbsorbersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器详情',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers/details',
+          buildPage: (PageContext pageContext) => AbsorberDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器详情',
+          subtitle: '更多配置',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers/details/more',
+          buildPage: (PageContext pageContext) => WenyAbsorberDetailsMorePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看洇取器位置',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/absorber/location',
+          buildPage: (PageContext pageContext) => AbsorberLocationPage(
             context: pageContext,
           ),
         ),
