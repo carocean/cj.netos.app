@@ -61,7 +61,7 @@ class _WenyAbsorberDetailsMorePageState extends State<WenyAbsorberDetailsMorePag
               CardItem(
                 title: '已洇资金',
                 tipsText:
-                '¥${_absorberOR.currentAmount.toStringAsFixed(14)}',
+                '¥${(_absorberOR.currentAmount/100).toStringAsFixed(14)}',
                 paddingLeft: 20,
                 paddingRight: 20,
                 tail: SizedBox(

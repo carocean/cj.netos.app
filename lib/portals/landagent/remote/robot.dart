@@ -80,6 +80,7 @@ class RecipientsOR {
   String encourageCode;
   String encourageCause;
   int desireAmount;
+  double distance;
 
   RecipientsOR({
     this.id,
@@ -91,7 +92,26 @@ class RecipientsOR {
     this.encourageCode,
     this.encourageCause,
     this.desireAmount,
+    this.distance,
   });
+}
+
+class RecipientsSummaryOR {
+  String person;
+  String absorber;
+  String personName;
+  String ctime;
+  double weights;
+  String encourageCauses;
+
+  RecipientsSummaryOR(
+      {this.person,
+      this.absorber,
+      this.personName,
+      this.ctime,
+      this.weights,
+      this.encourageCauses,
+      });
 }
 
 mixin IRobotRemote {
@@ -110,6 +130,14 @@ mixin IRobotRemote {
       int amount, int type, Map<String, dynamic> details, note);
 
   Future<AbsorberOR> getAbsorber(String absorberid) {}
+
+  Future<double> totalRecipientsRecord(String absorber, String person) {}
+
+  Future<List<RecipientsSummaryOR>> pageSimpleRecipients(
+      String absorber, int limit, int offset) {}
+
+  Future<double>   totalRecipientsRecordById(String recipientsId) {}
+
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -119,7 +147,9 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
 
-  get robotPorts => site.getService('@.prop.ports.robot');
+  get robotHubPorts => site.getService('@.prop.ports.robot.hub');
+
+  get robotRecordPorts => site.getService('@.prop.ports.robot.record');
 
   get walletTradePorts => site.getService('@.prop.ports.wallet.trade.receipt');
 
@@ -132,7 +162,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   @override
   Future<double> getHubTails(String bankid) async {
     var obj = await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'getHubTails',
       parameters: {
         'bankid': bankid,
@@ -148,7 +178,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   Future<List<AbsorberOR>> pageAbsorber(
       String bankid, int type, int limit, int offset) async {
     var list = await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'pageAbsorber',
       parameters: {
         'bankid': bankid,
@@ -192,7 +222,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   Future<List<RecipientsOR>> pageRecipients(
       String absorberid, int limit, int offset) async {
     var list = await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'pageRecipients',
       parameters: {
         'absorberid': absorberid,
@@ -213,6 +243,9 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
           encourageCause: obj['encourageCause'],
           encourageCode: obj['encourageCode'],
           person: obj['person'],
+          distance: obj['distance'] == null
+              ? null
+              : double.parse('${obj['distance']}'),
         ),
       );
     }
@@ -222,7 +255,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   @override
   Future<void> startAbsorber(String absorberid) async {
     await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'startAbsorber',
       parameters: {
         'absorberid': absorberid,
@@ -233,7 +266,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   @override
   Future<void> stopAbsorber(String absorberid, String exitCause) async {
     await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'stopAbsorber',
       parameters: {
         'absorberid': absorberid,
@@ -262,7 +295,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   @override
   Future<AbsorberOR> getAbsorber(String absorberid) async {
     var obj = await remotePorts.portGET(
-      robotPorts,
+      robotHubPorts,
       'getAbsorber',
       parameters: {
         'absorberid': absorberid,
@@ -291,5 +324,56 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       radius: obj['radius'],
       weight: obj['weight'],
     );
+  }
+
+  @override
+  Future<double> totalRecipientsRecord(String absorber, String person) async {
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalRecipientsRecord',
+      parameters: {
+        'absorber': absorber,
+        'recipients': person,
+      },
+    );
+  }
+
+  @override
+  Future<double> totalRecipientsRecordById(String recipientsId) async{
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalRecipientsRecordById',
+      parameters: {
+        'recipientsId': recipientsId,
+      },
+    );
+  }
+
+  @override
+  Future<List<RecipientsSummaryOR>> pageSimpleRecipients(
+      String absorber, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageSimpleRecipients',
+      parameters: {
+        'absorberid': absorber,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recipients = <RecipientsSummaryOR>[];
+    for (var obj in list) {
+      recipients.add(
+        RecipientsSummaryOR(
+          weights: obj['weights'],
+          ctime: obj['ctime'],
+          personName: obj['personName'],
+          absorber: obj['absorber'],
+          encourageCauses: obj['encourageCauses'],
+          person: obj['person'],
+        ),
+      );
+    }
+    return recipients;
   }
 }

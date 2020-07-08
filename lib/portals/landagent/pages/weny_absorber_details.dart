@@ -27,49 +27,20 @@ class AbsorberDetails extends StatefulWidget {
 
 class _AbsorberDetailsState extends State<AbsorberDetails> {
   AbsorberOR _absorberOR;
-  EasyRefreshController _controller;
-  List<RecipientsOR> _recipients = [];
-  int _limit = 40, _offset = 0;
+
   Future<Person> _future_creator;
 
   @override
   void initState() {
     _absorberOR = widget.context.parameters['absorber'];
-    _controller = EasyRefreshController();
-    _future_creator = _getPerson(_absorberOR.creator);
-    _onLoad();
+    _future_creator = _getPerson(widget.context.site, _absorberOR.creator);
     super.initState();
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
     _future_creator = null;
     super.dispose();
-  }
-
-  Future<void> _onRefresh() async {
-    _recipients.clear();
-    _offset = 0;
-    await _onLoad();
-  }
-
-  Future<void> _onLoad() async {
-    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    List<RecipientsOR> recipients =
-        await robotRemote.pageRecipients(_absorberOR.id, _limit, _offset);
-    if (recipients.isEmpty) {
-      _controller.finishLoad(noMore: true, success: true);
-      if (mounted) {
-        setState(() {});
-      }
-      return;
-    }
-    _offset += recipients.length;
-    _recipients.addAll(recipients);
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   Future<void> _updateAbsorberState() async {
@@ -93,15 +64,8 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
     }
   }
 
-  Future<Person> _getPerson(String person) async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    return await personService.getPerson(person);
-  }
-
   @override
   Widget build(BuildContext context) {
-    bool _state = false;
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (cxt, v) {
@@ -314,7 +278,8 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                               text: '洇取人',
                               children: [
                                 TextSpan(
-                                  text: ' ${_recipients.length}人',
+                                  text:
+                                      ' 已发≈¥${(_absorberOR.currentAmount / 100).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,
@@ -369,21 +334,90 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
         },
         body: Container(
           color: Colors.white,
-          child: EasyRefresh(
-            onLoad: _onLoad,
-            onRefresh: _onRefresh,
-            controller: _controller,
-            child: ListView(
-              shrinkWrap: true,
-              children: _renderRecipients(),
-            ),
-          ),
+          child: _absorberOR.type == 1
+              ? _GeoAbsorberRecipients(
+                  context: widget.context,
+                  absorberOR: _absorberOR,
+                )
+              : _SimpleAbsorberRecipients(
+                  context: widget.context,
+                  absorberOR: _absorberOR,
+                ),
         ),
       ),
     );
   }
+}
 
-  List<Widget> _renderRecipients() {
+class _GeoAbsorberRecipients extends StatefulWidget {
+  PageContext context;
+  AbsorberOR absorberOR;
+
+  _GeoAbsorberRecipients({this.context, this.absorberOR});
+
+  @override
+  __GeoAbsorberRecipientsState createState() => __GeoAbsorberRecipientsState();
+}
+
+class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
+  AbsorberOR _absorberOR;
+  EasyRefreshController _controller;
+  List<RecipientsOR> _recipients = [];
+  int _limit = 40, _offset = 0;
+
+  @override
+  void initState() {
+    _absorberOR = widget.absorberOR;
+    _controller = EasyRefreshController();
+    _onLoad();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_GeoAbsorberRecipients oldWidget) {
+    if (oldWidget.absorberOR.id != widget.absorberOR.id) {
+      widget.absorberOR = oldWidget.absorberOR;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _onRefresh() async {
+    _recipients.clear();
+    _offset = 0;
+    await _onLoad();
+  }
+
+  Future<void> _onLoad() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    List<RecipientsOR> recipients =
+        await robotRemote.pageRecipients(_absorberOR.id, _limit, _offset);
+    if (recipients.isEmpty) {
+      _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _offset += recipients.length;
+    _recipients.addAll(recipients);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<double> _totalRecipientsRecordById(String recipientsId) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    return await robotRemote.totalRecipientsRecordById(recipientsId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var items = <Widget>[];
     if (_recipients.isEmpty) {
       items.add(
@@ -419,7 +453,278 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                               right: 10,
                             ),
                             child: FutureBuilder<Person>(
-                              future: _getPerson(item.person),
+                              future:
+                                  _getPerson(widget.context.site, item.person),
+                              builder: (ctx, snapshot) {
+                                if (snapshot.connectionState !=
+                                    ConnectionState.done) {
+                                  return Image.asset(
+                                    'lib/portals/gbera/images/default_watting.gif',
+                                    width: 40,
+                                    height: 40,
+                                  );
+                                }
+                                var person = snapshot.data;
+                                var avatar = person.avatar;
+                                if (StringUtil.isEmpty(avatar)) {
+                                  return Image.asset(
+                                    'lib/portals/gbera/images/default_avatar.png',
+                                    width: 40,
+                                    height: 40,
+                                  );
+                                }
+                                if (avatar.startsWith('/')) {
+                                  return Image.file(
+                                    File(avatar),
+                                    width: 40,
+                                    height: 40,
+                                  );
+                                }
+                                return FadeInImage.assetNetwork(
+                                  placeholder:
+                                      'lib/portals/gbera/images/default_watting.gif',
+                                  image:
+                                      '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                  width: 40,
+                                  height: 40,
+                                );
+                              },
+                            ),
+                          ),
+                          Expanded(
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 5,
+                              runSpacing: 5,
+                              crossAxisAlignment: WrapCrossAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  '${item.personName}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${item.person}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                _absorberOR.type == 0
+                                    ? SizedBox(
+                                        height: 0,
+                                        width: 0,
+                                      )
+                                    : Text(
+                                        '距中心: ${item.distance?.toStringAsFixed(2)}米',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                Text(
+                                  '激励原因: ${item.encourageCause ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Wrap(
+                        direction: Axis.vertical,
+                        spacing: 5,
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '${item.weight.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          FutureBuilder<double>(
+                            future: _totalRecipientsRecordById(item.id),
+                            builder: (ctx, snapshot) {
+                              if (snapshot.connectionState !=
+                                  ConnectionState.done) {
+                                return Text(
+                                  '-',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              }
+                              var v = snapshot.data;
+                              if (v == null) {
+                                v = 0.00;
+                              }
+                              return Text(
+                                '¥${(v / 100.00).toStringAsFixed(14)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 5,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              height: 1,
+              indent: 55,
+            ),
+          ],
+        ),
+      );
+    }
+    return EasyRefresh(
+      onLoad: _onLoad,
+      onRefresh: _onRefresh,
+      controller: _controller,
+      child: ListView(
+        shrinkWrap: true,
+        children: items,
+      ),
+    );
+  }
+}
+
+class _SimpleAbsorberRecipients extends StatefulWidget {
+  PageContext context;
+  AbsorberOR absorberOR;
+
+  _SimpleAbsorberRecipients({this.context, this.absorberOR});
+
+  @override
+  __SimpleAbsorberRecipientsState createState() =>
+      __SimpleAbsorberRecipientsState();
+}
+
+class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
+  AbsorberOR _absorberOR;
+  EasyRefreshController _controller;
+  List<RecipientsSummaryOR> _recipients = [];
+  int _limit = 40, _offset = 0;
+
+  @override
+  void initState() {
+    _absorberOR = widget.absorberOR;
+    _controller = EasyRefreshController();
+    _onLoad();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_SimpleAbsorberRecipients oldWidget) {
+    if (oldWidget.absorberOR.id != widget.absorberOR.id) {
+      widget.absorberOR = oldWidget.absorberOR;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _onRefresh() async {
+    _recipients.clear();
+    _offset = 0;
+    await _onLoad();
+  }
+
+  Future<void> _onLoad() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    List<RecipientsSummaryOR> recipients =
+        await robotRemote.pageSimpleRecipients(_absorberOR.id, _limit, _offset);
+    if (recipients.isEmpty) {
+      _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _offset += recipients.length;
+    _recipients.addAll(recipients);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<double> _totalRecipientsRecord(String absorber, person) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    return await robotRemote.totalRecipientsRecord(absorber, person);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var items = <Widget>[];
+    if (_recipients.isEmpty) {
+      items.add(
+        Center(
+          child: Text('没有成员'),
+        ),
+      );
+    }
+    for (var item in _recipients) {
+      items.add(
+        Column(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(
+                left: 15,
+                right: 15,
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: 20,
+                        bottom: 20,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            width: 40,
+                            height: 40,
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: FutureBuilder<Person>(
+                              future:
+                                  _getPerson(widget.context.site, item.person),
                               builder: (ctx, snapshot) {
                                 if (snapshot.connectionState !=
                                     ConnectionState.done) {
@@ -477,13 +782,13 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                                   ),
                                 ),
                                 Text(
-                                  '激励原因: ${item.encourageCause ?? ''}',
+                                  '激励原因: ${item.encourageCauses ?? ''}',
                                   style: TextStyle(
                                     fontSize: 12,
                                   ),
                                 ),
                                 Text(
-                                  '${intl.DateFormat('yy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
+                                  '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
                                   style: TextStyle(
                                     fontSize: 12,
                                   ),
@@ -503,18 +808,43 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                         crossAxisAlignment: WrapCrossAlignment.end,
                         children: <Widget>[
                           Text(
-                            '${item.weight.toStringAsFixed(2)}',
+                            '${item.weights.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
                             ),
                           ),
-                          Text(
-                            '¥0.00000',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                          FutureBuilder<double>(
+                            future: _totalRecipientsRecord(
+                                item.absorber, item.person),
+                            builder: (ctx, snapshot) {
+                              if (snapshot.connectionState != ConnectionState.done) {
+                                return Text(
+                                  '-',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              }
+                              var v = snapshot.data;
+                              if (v == null) {
+                                return Text(
+                                  '¥0.00',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              }
+                              return Text(
+                                '¥${(v / 100.0).toStringAsFixed(14)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -541,7 +871,15 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
         ),
       );
     }
-    return items;
+    return EasyRefresh(
+      onLoad: _onLoad,
+      onRefresh: _onRefresh,
+      controller: _controller,
+      child: ListView(
+        shrinkWrap: true,
+        children: items,
+      ),
+    );
   }
 }
 
@@ -690,4 +1028,9 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
       ],
     );
   }
+}
+
+Future<Person> _getPerson(IServiceProvider site, String person) async {
+  IPersonService personService = site.getService('/gbera/persons');
+  return await personService.getPerson(person);
 }

@@ -101,7 +101,8 @@ void main() => platformRun(
             '@.prop.org.workflow.isp':'workflow.isp.apply',//isp申请的工作流标识
             '@.prop.org.workflow.la':'workflow.la.apply',//isp申请的工作流标识
             '@.prop.ports.org.receivingBank':'http://47.105.165.186/org/receivingBank.ports',
-            '@.prop.ports.robot':'http://47.105.165.186/robot/hub.ports',
+            '@.prop.ports.robot.hub':'http://47.105.165.186/robot/hub.ports',
+            '@.prop.ports.robot.record':'http://47.105.165.186/robot/record.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
