@@ -24,14 +24,19 @@ import 'package:netos_app/portals/landagent/pages/weny_bank.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_free.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_freezen.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_fund.dart';
+import 'package:netos_app/portals/landagent/pages/weny_bill_hubtails.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_shunt.dart';
 import 'package:netos_app/portals/landagent/pages/weny_bill_stock.dart';
+import 'package:netos_app/portals/landagent/pages/weny_geo_recipients_records.dart';
+import 'package:netos_app/portals/landagent/pages/weny_invest_records.dart';
 import 'package:netos_app/portals/landagent/pages/weny_market.dart';
 import 'package:netos_app/portals/landagent/pages/weny_parameters.dart';
+import 'package:netos_app/portals/landagent/pages/weny_simple_recipients_records.dart';
 import 'package:netos_app/portals/landagent/pages/weny_records.dart';
 import 'package:netos_app/portals/landagent/pages/weny_robot.dart';
 import 'package:netos_app/portals/landagent/pages/weny_robot_absorbers.dart';
 import 'package:netos_app/portals/landagent/pages/weny_trades.dart';
+import 'package:netos_app/portals/landagent/pages/weny_withdraw_records.dart';
 import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
 import 'package:netos_app/portals/landagent/remote/records.dart';
@@ -107,7 +112,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wybank/bill/prices': PriceRemote(),
           '/wybank/records': WybankRecordRemote(),
           '/wybank/bills': WenyBillRemote(),
-          '/wybank/robot':RobotRemote(),
+          '/wybank/robot': RobotRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -414,6 +419,53 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/absorber/location',
           buildPage: (PageContext pageContext) => AbsorberLocationPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取人资金记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/recipients/records/simple',
+          buildPage: (PageContext pageContext) =>
+              SimpleAbsorberRecipientsRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取人资金记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/recipients/records/geo',
+          buildPage: (PageContext pageContext) =>
+              GeoAbsorberRecipientsRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '投资记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/records/invest',
+          buildPage: (PageContext pageContext) => InvestRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '投资记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/records/withdraw',
+          buildPage: (PageContext pageContext) => WithdrawRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '尾金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/hubTails',
+          buildPage: (PageContext pageContext) => HubTailsWenyBill(
             context: pageContext,
           ),
         ),

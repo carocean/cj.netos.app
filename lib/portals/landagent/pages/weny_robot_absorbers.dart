@@ -263,7 +263,7 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
             FlatButton(
               onPressed: () {
                 widget.context.forward(
-                  '/weny/record/withdraw',
+                  '/weny/records/withdraw',
                   arguments: {
                     'bank': _bank,
                   },

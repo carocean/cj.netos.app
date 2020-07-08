@@ -104,14 +104,129 @@ class RecipientsSummaryOR {
   double weights;
   String encourageCauses;
 
-  RecipientsSummaryOR(
-      {this.person,
-      this.absorber,
-      this.personName,
+  RecipientsSummaryOR({
+    this.person,
+    this.absorber,
+    this.personName,
+    this.ctime,
+    this.weights,
+    this.encourageCauses,
+  });
+}
+
+class RecipientsRecordOR {
+  String sn;
+  String recipient;
+  double amount;
+  String ctime;
+  String refsn;
+  String absorber;
+  String encourageCode;
+  String encourageCause;
+  String recipientsId;
+
+  RecipientsRecordOR(
+      {this.sn,
+      this.recipient,
+      this.amount,
       this.ctime,
-      this.weights,
-      this.encourageCauses,
-      });
+      this.refsn,
+      this.absorber,
+      this.encourageCode,
+      this.encourageCause,
+      this.recipientsId});
+}
+
+class InvestRecordOR {
+  String sn;
+  String absorber;
+  int amount;
+  String invester;
+  String ctime;
+  String personName;
+  String outTradeSn;
+  String investOrderNo;
+  String investOrderTitle;
+  String note;
+
+  InvestRecordOR({
+    this.sn,
+    this.absorber,
+    this.amount,
+    this.invester,
+    this.ctime,
+    this.personName,
+    this.outTradeSn,
+    this.investOrderNo,
+    this.investOrderTitle,
+    this.note,
+  });
+}
+
+class WithdrawRecordOR {
+  String sn;
+  String bankid;
+  String shunter;
+  String alias;
+  String withdrawer;
+  String personName;
+  int reqAmount;
+  int realAmount;
+  String ctime;
+  String cBtime;
+  int state;
+  String refsn;
+  String status;
+  String message;
+
+  WithdrawRecordOR(
+      {this.sn,
+      this.bankid,
+      this.shunter,
+      this.alias,
+      this.withdrawer,
+      this.personName,
+      this.reqAmount,
+      this.realAmount,
+      this.ctime,
+      this.cBtime,
+      this.state,
+      this.refsn,
+      this.status,
+      this.message});
+}
+
+class HubTailsBillOR {
+  String sn;
+  String person;
+  String refsn;
+  double amount;
+  int order;
+  String bankid;
+  double balance;
+  String ctime;
+  String note;
+  String workday;
+  int day;
+  int month;
+  int season;
+  int year;
+
+  HubTailsBillOR(
+      {this.sn,
+      this.person,
+      this.refsn,
+      this.amount,
+      this.order,
+      this.bankid,
+      this.balance,
+      this.ctime,
+      this.note,
+      this.workday,
+      this.day,
+      this.month,
+      this.season,
+      this.year});
 }
 
 mixin IRobotRemote {
@@ -136,8 +251,33 @@ mixin IRobotRemote {
   Future<List<RecipientsSummaryOR>> pageSimpleRecipients(
       String absorber, int limit, int offset) {}
 
-  Future<double>   totalRecipientsRecordById(String recipientsId) {}
+  Future<double> totalRecipientsRecordById(String recipientsId) {}
 
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByPerson(
+      String absorberid, String recipients, int limit, int offset) {}
+
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordById(
+      String recipientsId, int limit, int offset) {}
+
+  Future<List<InvestRecordOR>> pageInvestRecord(
+      String absorber, int limit, int offset);
+
+  Future<int> totalAmountInvests(String absorber);
+
+  Future<List<WithdrawRecordOR>> pageWithdrawRecord(
+      String bankid, int limit, int offset);
+
+  Future<int> totalAmountWithdraws(String bankid);
+
+  Future<double> totalInBillOfMonth(String bankid, DateTime selected) {}
+
+  Future<double> totalOutBillOfMonth(String bankid, DateTime selected) {}
+
+  Future<List<HubTailsBillOR>> pageBillOfMonth(
+      String bankid, DateTime selected, int order, int limit, int offset) {}
+
+  Future<List<HubTailsBillOR>> getBillOfMonth(
+      String bankid, DateTime selected, int limit, int offset) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -152,6 +292,9 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   get robotRecordPorts => site.getService('@.prop.ports.robot.record');
 
   get walletTradePorts => site.getService('@.prop.ports.wallet.trade.receipt');
+
+  get robotHubTailsPorts =>
+      site.getService('@.prop.ports.robot.hubTails');
 
   @override
   Future<void> builder(IServiceProvider site) {
@@ -339,7 +482,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
-  Future<double> totalRecipientsRecordById(String recipientsId) async{
+  Future<double> totalRecipientsRecordById(String recipientsId) async {
     return await remotePorts.portGET(
       robotRecordPorts,
       'totalRecipientsRecordById',
@@ -375,5 +518,269 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       );
     }
     return recipients;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByPerson(
+      String absorberid, String recipients, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageRecipientsRecordByPerson',
+      parameters: {
+        'absorberid': absorberid,
+        'recipients': recipients,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR(
+          encourageCode: obj['encourageCode'],
+          encourageCause: obj['encourageCause'],
+          absorber: obj['absorber'],
+          ctime: obj['ctime'],
+          amount: obj['amount'],
+          refsn: obj['refsn'],
+          sn: obj['sn'],
+          recipient: obj['recipient'],
+          recipientsId: obj['recipientsId'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordById(
+      String recipientsId, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageRecipientsRecordById',
+      parameters: {
+        'recipientsId': recipientsId,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR(
+          encourageCode: obj['encourageCode'],
+          encourageCause: obj['encourageCause'],
+          absorber: obj['absorber'],
+          ctime: obj['ctime'],
+          amount: obj['amount'],
+          refsn: obj['refsn'],
+          sn: obj['sn'],
+          recipient: obj['recipient'],
+          recipientsId: obj['recipientsId'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<InvestRecordOR>> pageInvestRecord(
+      String absorber, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageInvestRecord',
+      parameters: {
+        'absorber': absorber,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <InvestRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        InvestRecordOR(
+          sn: obj['sn'],
+          amount: obj['amount'],
+          ctime: obj['ctime'],
+          absorber: obj['absorber'],
+          personName: obj['personName'],
+          outTradeSn: obj['outTradeSn'],
+          note: obj['note'],
+          invester: obj['invester'],
+          investOrderNo: obj['investOrderNo'],
+          investOrderTitle: obj['investOrderTitle'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<int> totalAmountInvests(String absorber) async {
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalAmountInvests',
+      parameters: {
+        'absorber': absorber,
+      },
+    );
+  }
+
+  @override
+  Future<List<WithdrawRecordOR>> pageWithdrawRecord(
+      String bankid, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageWithdrawRecord',
+      parameters: {
+        'bankid': bankid,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <WithdrawRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        WithdrawRecordOR(
+          personName: obj['personName'],
+          ctime: obj['ctime'],
+          sn: obj['sn'],
+          refsn: obj['refsn'],
+          state: obj['state'],
+          bankid: obj['bankid'],
+          shunter: obj['shunter'],
+          alias: obj['alias'],
+          reqAmount: obj['reqAmount'],
+          realAmount: obj['realAmount'],
+          status: obj['status'],
+          message: obj['message'],
+          cBtime: obj['cBtime'],
+          withdrawer: obj['withdrawer'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<int> totalAmountWithdraws(String bankid) async {
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalAmountWithdraws',
+      parameters: {
+        'bankid': bankid,
+      },
+    );
+  }
+
+  @override
+  Future<double> totalInBillOfMonth(String bankid, DateTime selected) async {
+    var v = await remotePorts.portGET(
+      robotHubTailsPorts,
+      'totalInBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': selected.year,
+        'month': selected.month - 1,
+      },
+    );
+    if (v == null) {
+      return 0.00;
+    }
+    return double.parse(v);
+  }
+
+  @override
+  Future<double> totalOutBillOfMonth(String bankid, DateTime selected) async {
+    var v = await remotePorts.portGET(
+      robotHubTailsPorts,
+      'totalOutBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': selected.year,
+        'month': selected.month - 1,
+      },
+    );
+    if (v == null) {
+      return 0.00;
+    }
+    return double.parse(v);
+  }
+
+  @override
+  Future<List<HubTailsBillOR>> getBillOfMonth(
+      String bankid, DateTime selected, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubTailsPorts,
+      'getBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'year': selected.year,
+        'month': selected.month - 1,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <HubTailsBillOR>[];
+    for (var obj in list) {
+      recordList.add(
+        HubTailsBillOR(
+          bankid: obj['bankid'],
+          refsn: obj['refsn'],
+          sn: obj['sn'],
+          ctime: obj['ctime'],
+          note: obj['note'],
+          amount: obj['amount'],
+          person: obj['person'],
+          year: obj['year'],
+          workday: obj['workday'],
+          season: obj['season'],
+          order: obj['order'],
+          month: obj['month'],
+          day: obj['day'],
+          balance: obj['balance'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<HubTailsBillOR>> pageBillOfMonth(String bankid, DateTime selected,
+      int order, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubTailsPorts,
+      'pageBillOfMonth',
+      parameters: {
+        'wenyBankID': bankid,
+        'order': order,
+        'year': selected.year,
+        'month': selected.month - 1,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <HubTailsBillOR>[];
+    for (var obj in list) {
+      recordList.add(
+        HubTailsBillOR(
+          bankid: obj['bankid'],
+          refsn: obj['refsn'],
+          sn: obj['sn'],
+          ctime: obj['ctime'],
+          note: obj['note'],
+          amount: obj['amount'],
+          person: obj['person'],
+          year: obj['year'],
+          workday: obj['workday'],
+          season: obj['season'],
+          order: obj['order'],
+          month: obj['month'],
+          day: obj['day'],
+          balance: obj['balance'],
+        ),
+      );
+    }
+    return recordList;
   }
 }

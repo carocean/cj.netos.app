@@ -103,6 +103,7 @@ void main() => platformRun(
             '@.prop.ports.org.receivingBank':'http://47.105.165.186/org/receivingBank.ports',
             '@.prop.ports.robot.hub':'http://47.105.165.186/robot/hub.ports',
             '@.prop.ports.robot.record':'http://47.105.165.186/robot/record.ports',
+            '@.prop.ports.robot.hubTails':'http://47.105.165.186/robot/bill/hubTails.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

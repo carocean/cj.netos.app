@@ -78,7 +78,7 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                 FlatButton(
                   onPressed: () {
                     widget.context.forward(
-                      '/weny/record/investAndRecipients',
+                      '/weny/records/invest',
                       arguments: {
                         'absorber': _absorberOR,
                       },
@@ -428,182 +428,189 @@ class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
     }
     for (var item in _recipients) {
       items.add(
-        Column(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(
-                left: 15,
-                right: 15,
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: 20,
-                        bottom: 20,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Container(
-                            width: 40,
-                            height: 40,
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: FutureBuilder<Person>(
-                              future:
-                                  _getPerson(widget.context.site, item.person),
-                              builder: (ctx, snapshot) {
-                                if (snapshot.connectionState !=
-                                    ConnectionState.done) {
-                                  return Image.asset(
-                                    'lib/portals/gbera/images/default_watting.gif',
-                                    width: 40,
-                                    height: 40,
-                                  );
-                                }
-                                var person = snapshot.data;
-                                var avatar = person.avatar;
-                                if (StringUtil.isEmpty(avatar)) {
-                                  return Image.asset(
-                                    'lib/portals/gbera/images/default_avatar.png',
-                                    width: 40,
-                                    height: 40,
-                                  );
-                                }
-                                if (avatar.startsWith('/')) {
-                                  return Image.file(
-                                    File(avatar),
-                                    width: 40,
-                                    height: 40,
-                                  );
-                                }
-                                return FadeInImage.assetNetwork(
-                                  placeholder:
-                                      'lib/portals/gbera/images/default_watting.gif',
-                                  image:
-                                      '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
-                                  width: 40,
-                                  height: 40,
-                                );
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: Wrap(
-                              direction: Axis.vertical,
-                              spacing: 5,
-                              runSpacing: 5,
-                              crossAxisAlignment: WrapCrossAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  '${item.personName}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  '${item.person}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                _absorberOR.type == 0
-                                    ? SizedBox(
-                                        height: 0,
-                                        width: 0,
-                                      )
-                                    : Text(
-                                        '距中心: ${item.distance?.toStringAsFixed(2)}米',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                Text(
-                                  '激励原因: ${item.encourageCause ?? ''}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Wrap(
-                        direction: Axis.vertical,
-                        spacing: 5,
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            '${item.weight.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          FutureBuilder<double>(
-                            future: _totalRecipientsRecordById(item.id),
-                            builder: (ctx, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return Text(
-                                  '-',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              }
-                              var v = snapshot.data;
-                              if (v == null) {
-                                v = 0.00;
-                              }
-                              return Text(
-                                '¥${(v / 100.00).toStringAsFixed(14)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: 5,
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Divider(
-              height: 1,
-              indent: 55,
-            ),
-          ],
-        ),
+       GestureDetector(
+         behavior: HitTestBehavior.opaque,
+         onTap: (){
+           widget.context.forward('/weny/recipients/records/geo',
+               arguments: {'recipients': item, 'absorber': _absorberOR});
+         },
+         child:  Column(
+           children: <Widget>[
+             Padding(
+               padding: EdgeInsets.only(
+                 left: 15,
+                 right: 15,
+               ),
+               child: Row(
+                 children: <Widget>[
+                   Expanded(
+                     child: Padding(
+                       padding: EdgeInsets.only(
+                         top: 20,
+                         bottom: 20,
+                       ),
+                       child: Row(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: <Widget>[
+                           Container(
+                             width: 40,
+                             height: 40,
+                             padding: EdgeInsets.only(
+                               right: 10,
+                             ),
+                             child: FutureBuilder<Person>(
+                               future:
+                               _getPerson(widget.context.site, item.person),
+                               builder: (ctx, snapshot) {
+                                 if (snapshot.connectionState !=
+                                     ConnectionState.done) {
+                                   return Image.asset(
+                                     'lib/portals/gbera/images/default_watting.gif',
+                                     width: 40,
+                                     height: 40,
+                                   );
+                                 }
+                                 var person = snapshot.data;
+                                 var avatar = person.avatar;
+                                 if (StringUtil.isEmpty(avatar)) {
+                                   return Image.asset(
+                                     'lib/portals/gbera/images/default_avatar.png',
+                                     width: 40,
+                                     height: 40,
+                                   );
+                                 }
+                                 if (avatar.startsWith('/')) {
+                                   return Image.file(
+                                     File(avatar),
+                                     width: 40,
+                                     height: 40,
+                                   );
+                                 }
+                                 return FadeInImage.assetNetwork(
+                                   placeholder:
+                                   'lib/portals/gbera/images/default_watting.gif',
+                                   image:
+                                   '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                   width: 40,
+                                   height: 40,
+                                 );
+                               },
+                             ),
+                           ),
+                           Expanded(
+                             child: Wrap(
+                               direction: Axis.vertical,
+                               spacing: 5,
+                               runSpacing: 5,
+                               crossAxisAlignment: WrapCrossAlignment.start,
+                               children: <Widget>[
+                                 Text(
+                                   '${item.personName}',
+                                   style: TextStyle(
+                                     fontSize: 16,
+                                     fontWeight: FontWeight.w500,
+                                   ),
+                                 ),
+                                 Text(
+                                   '${item.person}',
+                                   style: TextStyle(
+                                     fontSize: 12,
+                                   ),
+                                 ),
+                                 _absorberOR.type == 0
+                                     ? SizedBox(
+                                   height: 0,
+                                   width: 0,
+                                 )
+                                     : Text(
+                                   '距中心: ${item.distance?.toStringAsFixed(2)}米',
+                                   style: TextStyle(
+                                     fontSize: 12,
+                                   ),
+                                 ),
+                                 Text(
+                                   '激励原因: ${item.encourageCause ?? ''}',
+                                   style: TextStyle(
+                                     fontSize: 12,
+                                   ),
+                                 ),
+                                 Text(
+                                   '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
+                                   style: TextStyle(
+                                     fontSize: 12,
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   ),
+                   Row(
+                     children: <Widget>[
+                       Wrap(
+                         direction: Axis.vertical,
+                         spacing: 5,
+                         crossAxisAlignment: WrapCrossAlignment.end,
+                         children: <Widget>[
+                           Text(
+                             '${item.weight.toStringAsFixed(2)}',
+                             style: TextStyle(
+                               fontSize: 12,
+                               color: Colors.grey,
+                             ),
+                           ),
+                           FutureBuilder<double>(
+                             future: _totalRecipientsRecordById(item.id),
+                             builder: (ctx, snapshot) {
+                               if (snapshot.connectionState !=
+                                   ConnectionState.done) {
+                                 return Text(
+                                   '-',
+                                   style: TextStyle(
+                                     fontSize: 12,
+                                     color: Colors.grey,
+                                   ),
+                                 );
+                               }
+                               var v = snapshot.data;
+                               if (v == null) {
+                                 v = 0.00;
+                               }
+                               return Text(
+                                 '¥${(v / 100.00).toStringAsFixed(14)}',
+                                 style: TextStyle(
+                                   fontSize: 12,
+                                   color: Colors.grey,
+                                 ),
+                               );
+                             },
+                           ),
+                         ],
+                       ),
+                       Padding(
+                         padding: EdgeInsets.only(
+                           left: 5,
+                         ),
+                         child: Icon(
+                           Icons.arrow_forward_ios,
+                           size: 16,
+                           color: Colors.grey,
+                         ),
+                       ),
+                     ],
+                   ),
+                 ],
+               ),
+             ),
+             Divider(
+               height: 1,
+               indent: 55,
+             ),
+           ],
+         ),
+       ),
       );
     }
     return EasyRefresh(
@@ -697,8 +704,13 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
       );
     }
     for (var item in _recipients) {
-      items.add(
-        Column(
+      items.add(GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          widget.context.forward('/weny/recipients/records/simple',
+              arguments: {'recipients': item, 'absorber': _absorberOR});
+        },
+        child: Column(
           children: <Widget>[
             Padding(
               padding: EdgeInsets.only(
@@ -818,7 +830,8 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
                             future: _totalRecipientsRecord(
                                 item.absorber, item.person),
                             builder: (ctx, snapshot) {
-                              if (snapshot.connectionState != ConnectionState.done) {
+                              if (snapshot.connectionState !=
+                                  ConnectionState.done) {
                                 return Text(
                                   '-',
                                   style: TextStyle(
@@ -869,7 +882,7 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
             ),
           ],
         ),
-      );
+      ));
     }
     return EasyRefresh(
       onLoad: _onLoad,
