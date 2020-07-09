@@ -455,7 +455,7 @@ class _PriceCardState extends State<_PriceCard> {
                             ),
                           ),
                           Text(
-                            '¥${_bulletinBoard?.closePrice ?? '-'}',
+                            '¥${(_bulletinBoard?.closePrice ?? 0.00).toStringAsFixed(14)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
@@ -485,7 +485,7 @@ class _PriceCardState extends State<_PriceCard> {
                             ),
                           ),
                           Text(
-                            '¥${_bulletinBoard?.openPrice ?? '-'}',
+                            '¥${(_bulletinBoard?.openPrice ?? 0.00).toStringAsFixed(14)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,

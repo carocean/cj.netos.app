@@ -416,6 +416,129 @@ class TransShunterActivityOR {
       this.id});
 }
 
+class DepositHubTailsOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int amount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+  String bankid;
+
+  DepositHubTailsOR({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.amount,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.note,
+    this.bankid,
+  });
+}
+
+class DepositHubTailsActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  DepositHubTailsActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
+class PayOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int amount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+  PayDetailsOR details;
+
+  PayOR({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.amount,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.note,
+    this.details,
+  });
+}
+
+class PayDetailsOR {
+  String id;
+  String payeeCode;
+  String payeeName;
+  String payeeType;
+  String orderNo;
+  String orderTitle;
+  String serviceId;
+  String serviceName;
+  String note;
+  String paySn;
+
+  PayDetailsOR(
+      {this.id,
+      this.payeeCode,
+      this.payeeName,
+      this.payeeType,
+      this.orderNo,
+      this.orderTitle,
+      this.serviceId,
+      this.serviceName,
+      this.note,
+      this.paySn});
+}
+
+class PayActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  PayActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(String bankid, int limit, int offset) {}
 
@@ -458,6 +581,16 @@ mixin IWalletRecordRemote {
   Future<TransShunterOR> getTransShunter(String sn) {}
 
   Future<List<TransShunterActivityOR>> getTransShunterActivies(sn) {}
+
+  Future<DepositHubTailsOR> getDepositHubTails(String sn) {}
+
+  Future<List<DepositHubTailsActivityOR>> getDepositHubTailsActivies(sn) {}
+
+  Future<PayOR> getPayTrade(String sn) {}
+
+  Future<PayDetailsOR> getPayDetails(String sn) {}
+
+  Future<List<PayActivityOR>> getPayActivies(sn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -1023,7 +1156,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<TransShunterActivityOR>> getTransShunterActivies(sn)async {
+  Future<List<TransShunterActivityOR>> getTransShunterActivies(sn) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'getTransShunterActivities',
@@ -1046,5 +1179,146 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       );
     }
     return activities;
+  }
+
+  @override
+  Future<DepositHubTailsOR> getDepositHubTails(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositHubTailsRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return DepositHubTailsOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      amount: obj['amount'],
+      bankid: obj['bankid'],
+    );
+  }
+
+  @override
+  Future<List<DepositHubTailsActivityOR>> getDepositHubTailsActivies(sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositHubTailsActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<DepositHubTailsActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        DepositHubTailsActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<List<PayActivityOR>> getPayActivies(sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPayActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<PayActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        PayActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<PayDetailsOR> getPayDetails(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPayDetails',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return PayDetailsOR(
+      note: obj['note'],
+      id: obj['id'],
+      orderNo: obj['orderNo'],
+      orderTitle: obj['orderTitle'],
+      payeeCode: obj['payeeCode'],
+      payeeName: obj['payeeName'],
+      payeeType: obj['payeeType'],
+      paySn: obj['paySn'],
+      serviceId: obj['serviceId'],
+      serviceName: obj['serviceName'],
+    );
+  }
+
+  @override
+  Future<PayOR> getPayTrade(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPayRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    var detailsMap = obj['details'];
+    var details;
+    if (detailsMap != null) {
+      details = PayDetailsOR(
+        note: detailsMap['note'],
+        id: detailsMap['id'],
+        orderNo: detailsMap['orderNo'],
+        orderTitle: detailsMap['orderTitle'],
+        payeeCode: detailsMap['payeeCode'],
+        payeeName: detailsMap['payeeName'],
+        payeeType: detailsMap['payeeType'],
+        paySn: detailsMap['paySn'],
+        serviceId: detailsMap['serviceId'],
+        serviceName: detailsMap['serviceName'],
+      );
+    }
+    return PayOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      amount: obj['amount'],
+      details: details,
+    );
   }
 }

@@ -106,7 +106,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
     return BankInfo(
       title: map['title'],
       id: map['id'],
-      state: (map['state'] as double).floor(),
+      state:map['state'] ,
       creator: map['creator'],
       ctime: map['ctime'],
       icon: map['icon'],

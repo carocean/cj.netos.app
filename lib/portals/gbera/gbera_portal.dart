@@ -13,12 +13,12 @@ import 'package:netos_app/portals/gbera/pages/desktop/portlet_list.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/GeoNearByAmap.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_filter.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_lord.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_background.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_fans.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_lord.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_mines.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
@@ -32,10 +32,10 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_ne
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_person.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
 import 'package:netos_app/portals/gbera/pages/golink.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
@@ -107,11 +107,8 @@ import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/view_licence.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/amount_settings.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/card_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/cards.dart';
@@ -119,13 +116,19 @@ import 'package:netos_app/portals/gbera/pages/wallet/cashout.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/change_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/pay_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_absorb_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_profit_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/trans_shunter_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
@@ -162,7 +165,6 @@ import 'package:netos_app/portals/gbera/styles/pink-styles.dart';
 import 'package:netos_app/portals/gbera/styles/purple-styles.dart';
 import 'package:netos_app/portals/gbera/styles/teal-styles.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
-import 'package:netos_app/system/local/entities.dart';
 
 import 'desklets/chats/add_friend.dart';
 import 'desklets/chats/chat_talk.dart';
@@ -1680,6 +1682,36 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wybank/trans_profit/details',
           buildPage: (PageContext pageContext) => TransProfitDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '账金入账明细',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/trans_shunter/details',
+          buildPage: (PageContext pageContext) => TransShunterDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '经营尾金入账明细',
+          icon: GalleryIcons.shrine,
+          url: '/wybank/deposit_hubtails/details',
+          buildPage: (PageContext pageContext) => DepositHubTailsDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '支付明细',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/pay/details',
+          buildPage: (PageContext pageContext) => PayDetails(
             context: pageContext,
           ),
         ),

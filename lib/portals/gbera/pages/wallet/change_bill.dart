@@ -19,7 +19,6 @@ class ChangeBill extends StatefulWidget {
 }
 
 class _ChangeBillState extends State<ChangeBill> {
-
   MyWallet _wallet;
   int _limit = 50, _offset = 0;
   List<BalanceBillOR> _bills = [];
@@ -42,9 +41,9 @@ class _ChangeBillState extends State<ChangeBill> {
 
   Future<void> _loadBills() async {
     IWalletBillRemote billRemote =
-    widget.context.site.getService('/wallet/bills');
+        widget.context.site.getService('/wallet/bills');
     List<BalanceBillOR> list =
-    await billRemote.pageBalanceBill( _limit, _offset);
+        await billRemote.pageBalanceBill(_limit, _offset);
     if (list.isEmpty) {
       return;
     }
@@ -55,31 +54,38 @@ class _ChangeBillState extends State<ChangeBill> {
     }
   }
 
-  _forwardDetails(BalanceBillOR bill) async{
+  _forwardDetails(BalanceBillOR bill) async {
     IWalletRecordRemote recordRemote =
-    widget.context.site.getService('/wallet/records');
+        widget.context.site.getService('/wallet/records');
 
     switch (bill.order) {
-      case 1://充值
-        var recharge =await recordRemote.getRechargeRecord(bill.refsn);
+      case 1: //充值
+        var recharge = await recordRemote.getRechargeRecord(bill.refsn);
         widget.context.forward(
           '/wallet/recharge/details',
           arguments: {'recharge': recharge, 'wallet': _wallet},
         );
         break;
-      case 2://提现
-        var withdraw =await recordRemote.getWithdrawRecord(bill.refsn);
+      case 2: //提现
+        var withdraw = await recordRemote.getWithdrawRecord(bill.refsn);
         widget.context.forward(
           '/wallet/withdraw/details',
           arguments: {'withdraw': withdraw, 'wallet': _wallet},
         );
         break;
-      case 8://申购
+      case 4: //支付
+        var payTrade = await recordRemote.getPayTrade(bill.refsn);
+        widget.context.forward(
+          '/wallet/pay/details',
+          arguments: {'pay': payTrade, 'wallet': _wallet},
+        );
+        break;
+      case 8: //申购
         var purch = await recordRemote.getPurchaseRecord(bill.refsn);
         var bank;
-        for(var b in _wallet.banks) {
-          if(b.bank==purch.bankid) {
-            bank=b;
+        for (var b in _wallet.banks) {
+          if (b.bank == purch.bankid) {
+            bank = b;
             break;
           }
         }
@@ -88,25 +94,53 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'purch': purch, 'bank': bank},
         );
         break;
-      case 10://洇金
-        var absorb =await recordRemote.getTransAbsorb(bill.refsn);
+      case 10: //洇金
+        var absorb = await recordRemote.getTransAbsorb(bill.refsn);
         widget.context.forward(
           '/wallet/trans_absorb/details',
           arguments: {'transAbsorb': absorb, 'wallet': _wallet},
         );
         break;
-      case 11://洇金
-        var profit =await recordRemote.getTransProfit(bill.refsn);
+      case 11: //收益金
+        var profit = await recordRemote.getTransProfit(bill.refsn);
         var wenybank;
-        for(var bank in _wallet.banks) {
-          if(bank.bank==profit.bankid) {
-            wenybank=bank;
+        for (var bank in _wallet.banks) {
+          if (bank.bank == profit.bankid) {
+            wenybank = bank;
             break;
           }
         }
         widget.context.forward(
           '/wybank/trans_profit/details',
           arguments: {'transProfit': profit, 'bank': wenybank},
+        );
+        break;
+      case 12: //纹银银行账金转入
+        var shunter = await recordRemote.getTransShunter(bill.refsn);
+        var wenybank;
+        for (var bank in _wallet.banks) {
+          if (bank.bank == shunter.bankid) {
+            wenybank = bank;
+            break;
+          }
+        }
+        widget.context.forward(
+          '/wybank/trans_shunter/details',
+          arguments: {'transShunter': shunter, 'bank': wenybank},
+        );
+        break;
+      case 13: //洇取器尾金存入
+        var hubTails = await recordRemote.getDepositHubTails(bill.refsn);
+        var wenybank;
+        for (var bank in _wallet.banks) {
+          if (bank.bank == hubTails.bankid) {
+            wenybank = bank;
+            break;
+          }
+        }
+        widget.context.forward(
+          '/wybank/deposit_hubtails/details',
+          arguments: {'transHubtails': hubTails, 'bank': wenybank},
         );
         break;
       default:
@@ -166,10 +200,11 @@ class _ChangeBillState extends State<ChangeBill> {
                     padding: EdgeInsets.only(
                       bottom: 5,
                     ),
-                    child: Text('¥${(bill.amount/100.00).toStringAsFixed(2)}'),
+                    child:
+                        Text('¥${(bill.amount / 100.00).toStringAsFixed(2)}'),
                   ),
                   Text(
-                    '余额 ¥${(bill.balance/100.00).toStringAsFixed(2)}',
+                    '余额 ¥${(bill.balance / 100.00).toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],

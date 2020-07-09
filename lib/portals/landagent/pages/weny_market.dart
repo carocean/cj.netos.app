@@ -30,6 +30,7 @@ class _WenyMarketState extends State<WenyMarket> {
     _controller = EasyRefreshController();
     _streamController = StreamController.broadcast();
     _onLoad().then((value) {
+      _updateManager();
       _timer = Timer.periodic(
           Duration(
             seconds: 5,
