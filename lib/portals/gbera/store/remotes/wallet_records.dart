@@ -364,6 +364,58 @@ class DepositProfitActivityOR {
       this.id});
 }
 
+class TransShunterOR {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int realAmount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  String note;
+  String bankid;
+  String shunter;
+
+  TransShunterOR(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.realAmount,
+      this.state,
+      this.ctime,
+      this.lutime,
+      this.status,
+      this.message,
+      this.note,
+      this.bankid,
+      this.shunter});
+}
+
+class TransShunterActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  TransShunterActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(String bankid, int limit, int offset) {}
 
@@ -402,6 +454,10 @@ mixin IWalletRecordRemote {
   Future<List<DepositProfitActivityOR>> getDepositAbsorbActivies(sn) {}
 
   Future<DepositAbsorbOR> getDepositAbsorb(String refsn) {}
+
+  Future<TransShunterOR> getTransShunter(String sn) {}
+
+  Future<List<TransShunterActivityOR>> getTransShunterActivies(sn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -937,5 +993,58 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       sourceCode: obj['sourceCode'],
       sourceTitle: obj['sourceTitle'],
     );
+  }
+
+  @override
+  Future<TransShunterOR> getTransShunter(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransShunterRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    return TransShunterOR(
+      ctime: obj['ctime'],
+      lutime: obj['lutime'],
+      state: obj['state'],
+      message: obj['message'],
+      note: obj['note'],
+      sn: obj['sn'],
+      status: obj['status'],
+      personName: obj['personName'],
+      currency: obj['currency'],
+      person: obj['person'],
+      demandAmount: obj['demandAmount'],
+      realAmount: obj['realAmount'],
+      shunter: obj['shunter'],
+      bankid: obj['bankid'],
+    );
+  }
+
+  @override
+  Future<List<TransShunterActivityOR>> getTransShunterActivies(sn)async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getTransShunterActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<TransShunterActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        TransShunterActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
   }
 }

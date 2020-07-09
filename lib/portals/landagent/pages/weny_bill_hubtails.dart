@@ -462,170 +462,136 @@ class _HubTailsBillTabViewState extends State<_HubTailsBillTabView> {
               onRefresh: _onRefresh,
               slivers: _bills.map((bill) {
                 return SliverToBoxAdapter(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      switch (bill.order) {
-                        case 0:
-                          widget.context.forward(
-                            '/weny/record/purchase',
-                            arguments: {
-                              'record_sn': bill.refsn,
-                              'bank': widget.bank,
-                            },
-                          ).then((value) {});
-                          break;
-                        case 1:
-                          widget.context.forward(
-                            '/weny/record/exchange',
-                            arguments: {
-                              'record_sn': bill.refsn,
-                              'bank': widget.bank,
-                            },
-                          ).then((value) {});
-                          break;
-                        case 2:
-                          widget.context.forward(
-                            '/weny/record/shunt',
-                            arguments: {
-                              'record_sn': bill.refsn,
-                              'bank': widget.bank,
-                            },
-                          ).then((value) {});
-                          break;
-                      }
-                    },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 5,
-                          ),
-                          child: Icon(
-                            FontAwesomeIcons.buysellads,
-                            color: Colors.grey[800],
-                            size: 35,
-                          ),
+                  child:  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 5,
                         ),
-                        Expanded(
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Row(
+                        child: Icon(
+                          FontAwesomeIcons.buysellads,
+                          color: Colors.grey[800],
+                          size: 35,
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Row(
+                                        children: <Widget>[
+                                          Text(
+                                            '${bill.sn}',
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 4,
+                                          bottom: 4,
+                                        ),
+                                        child: Wrap(
+                                          spacing: 5,
+                                          crossAxisAlignment:
+                                          WrapCrossAlignment.end,
                                           children: <Widget>[
+                                            widget.order > -1
+                                                ? SizedBox(
+                                              height: 0,
+                                              width: 0,
+                                            )
+                                                : Text(
+                                              '类型:${_getOrderType(bill)}',
+                                              style: TextStyle(
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 12,
+                                                color: Colors.grey[500],
+                                              ),
+                                            ),
                                             Text(
-                                              '${bill.sn}',
+                                              '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime, len: 14))}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey[500],
+                                                fontSize: 12,
+                                              ),
                                             ),
                                           ],
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                WrapCrossAlignment.end,
-                                            children: <Widget>[
-                                              widget.order > -1
-                                                  ? SizedBox(
-                                                      height: 0,
-                                                      width: 0,
-                                                    )
-                                                  : Text(
-                                                      '类型:${_getOrderType(bill)}',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        fontSize: 12,
-                                                        color: Colors.grey[500],
-                                                      ),
-                                                    ),
-                                              Text(
-                                                '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime, len: 14))}',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.grey[500],
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 4,
+                                          bottom: 4,
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                WrapCrossAlignment.end,
-                                            children: <Widget>[
-                                              Text(
-                                                '金额:',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                        child: Wrap(
+                                          spacing: 5,
+                                          crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                          children: <Widget>[
+                                            Text(
+                                              '金额:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
                                               ),
-                                              Text(
-                                                '¥${((bill.amount ?? 0.0) / 100.00).toStringAsFixed(2)}',
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                            Text(
+                                              '¥${((bill.amount ?? 0.0) / 100.00).toStringAsFixed(14)}',
+                                            ),
+                                          ],
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                WrapCrossAlignment.end,
-                                            children: <Widget>[
-                                              Text(
-                                                '余额:',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              Text(
-                                                '¥${((bill.balance ?? 0.0) / 100.00).toStringAsFixed(2)}',
-                                              ),
-                                            ],
-                                          ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 4,
+                                          bottom: 4,
                                         ),
-                                      ],
-                                    ),
+                                        child: Wrap(
+                                          spacing: 5,
+                                          crossAxisAlignment:
+                                          WrapCrossAlignment.end,
+                                          children: <Widget>[
+                                            Text(
+                                              '余额:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            Text(
+                                              '¥${((bill.balance ?? 0.0) / 100.00).toStringAsFixed(14)}',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.grey[500],
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                height: 20,
-                                child: Divider(
-                                  height: 1,
-                                  color: Colors.grey[300],
                                 ),
+//                                Icon(
+//                                  Icons.arrow_forward_ios,
+//                                  size: 16,
+//                                  color: Colors.grey[500],
+//                                ),
+                              ],
+                            ),
+                            Container(
+                              height: 20,
+                              child: Divider(
+                                height: 1,
+                                color: Colors.grey[300],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),

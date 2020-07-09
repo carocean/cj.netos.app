@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/landagent/pages/desktop.dart';
 import 'package:netos_app/portals/landagent/pages/event_details.dart';
@@ -113,6 +115,8 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wybank/records': WybankRecordRemote(),
           '/wybank/bills': WenyBillRemote(),
           '/wybank/robot': RobotRemote(),
+          '/wallet/records': WalletRecordRemote(),
+          '/wallet/trades': WalletTradeRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[

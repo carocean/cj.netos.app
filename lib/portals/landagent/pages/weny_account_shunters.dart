@@ -32,48 +32,48 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
     super.initState();
   }
 
-//  Future<void> _transProfit() async {
-//    _enableButton = false;
-//    _buttonText = '提取中...';
-//    if (mounted) {
-//      setState(() {});
-//    }
-//    IWalletTradeRemote tradeRemote =
-//        widget.context.site.getService('/wallet/trades');
-//    IWalletRecordRemote recordRemote =
-//        widget.context.site.getService('/wallet/records');
-//    TransProfitResult result =
-//        await tradeRemote.transProfit(_bank.bank, _bank.profit, '');
-//    Timer.periodic(
-//        Duration(
-//          seconds: 1,
-//        ), (timer) async {
-//      TransProfitOR record;
-//      try {
-//        record = await recordRemote.getTransProfit(result.sn);
-//      } catch (ex) {
-//        timer.cancel();
-//        throw FlutterError(ex);
-//      }
-//      if (record.state == 1) {
-//        timer.cancel();
-//      }
-//      if (result.status < 300) {
-//        _bank.profit = 0;
-//        _buttonText = '成功';
-//      } else {
-//        _buttonText = '失败';
-//      }
-//      if (mounted) {
-//        setState(() {});
-//      }
-//      String _message = '${result.status} ${result.message}';
-//
-//      _key.currentState.showSnackBar(SnackBar(
-//        content: Text('$_message'),
-//      ));
-//    });
-//  }
+  Future<void> _transferShunter() async {
+    _enableButton = false;
+    _buttonText = '提取中...';
+    if (mounted) {
+      setState(() {});
+    }
+    IWalletTradeRemote tradeRemote =
+        widget.context.site.getService('/wallet/trades');
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService('/wallet/records');
+    TransShunterResult result =
+        await tradeRemote.transShunter(_bank.id,'la',_shuntBuckets.laAmount,'地商账金收入');
+    Timer.periodic(
+        Duration(
+          seconds: 1,
+        ), (timer) async {
+      TransShunterOR record;
+      try {
+        record = await recordRemote.getTransShunter(result.sn);
+      } catch (ex) {
+        timer.cancel();
+        throw FlutterError(ex);
+      }
+      if (record.state == 1) {
+        timer.cancel();
+      }
+      if (result.status < 300) {
+        _shuntBuckets.laAmount = 0;
+        _buttonText = '成功';
+      } else {
+        _buttonText = '失败';
+      }
+      if (mounted) {
+        setState(() {});
+      }
+      String _message = '${result.status} ${result.message}';
+
+      _key.currentState.showSnackBar(SnackBar(
+        content: Text('$_message'),
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +140,7 @@ class _ShuntersWenyAccountState extends State<ShuntersWenyAccount> {
               onPressed: !_enableButton
                   ? null
                   : () {
-//                      _transProfit();
+                _transferShunter();
                     },
               textColor: Colors.white,
               color: Colors.green,

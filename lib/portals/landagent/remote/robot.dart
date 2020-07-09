@@ -278,6 +278,8 @@ mixin IRobotRemote {
 
   Future<List<HubTailsBillOR>> getBillOfMonth(
       String bankid, DateTime selected, int limit, int offset) {}
+
+  withdrawHubTails(String bankid) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -293,8 +295,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   get walletTradePorts => site.getService('@.prop.ports.wallet.trade.receipt');
 
-  get robotHubTailsPorts =>
-      site.getService('@.prop.ports.robot.hubTails');
+  get robotHubTailsPorts => site.getService('@.prop.ports.robot.hubTails');
 
   @override
   Future<void> builder(IServiceProvider site) {
@@ -782,5 +783,16 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       );
     }
     return recordList;
+  }
+
+  @override
+  withdrawHubTails(String bankid) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'withdrawHubTails',
+      parameters: {
+        'bankid': bankid,
+      },
+    );
   }
 }

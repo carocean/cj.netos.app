@@ -15,7 +15,8 @@ class RobotPage extends StatefulWidget {
 class _RobotPageState extends State<RobotPage> {
   BankInfo _bank;
   double _hubTails = 0.00;
-  bool _enableButton=false;
+  bool _enableButton = false;
+
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
@@ -36,7 +37,18 @@ class _RobotPageState extends State<RobotPage> {
   Future<void> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
     _hubTails = await robotRemote.getHubTails(_bank.id);
-    _enableButton=_hubTails.floor()>0?true:false;
+    _enableButton = _hubTails.floor() > 0 ? true : false;
+  }
+
+  Future<void> _transToWallet() async {
+    _enableButton = false;
+    setState(() {});
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    await robotRemote.withdrawHubTails(_bank.id);
+    await _load();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -72,7 +84,7 @@ class _RobotPageState extends State<RobotPage> {
                         right: 3,
                       ),
                       child: Text(
-                        '¥${(_hubTails/100).toStringAsFixed(14)}',
+                        '¥${(_hubTails / 100).toStringAsFixed(14)}',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -103,9 +115,11 @@ class _RobotPageState extends State<RobotPage> {
                   width: 160,
                   height: 36,
                   child: RaisedButton(
-                    onPressed: !_enableButton?null:() {
-//                      _transProfit();
-                    },
+                    onPressed: !_enableButton
+                        ? null
+                        : () {
+                            _transToWallet();
+                          },
                     textColor: Colors.white,
                     color: Colors.green,
                     disabledColor: Colors.grey[300],
@@ -129,7 +143,8 @@ class _RobotPageState extends State<RobotPage> {
           title: '洇取器管理',
           tips: '¥',
           onTap: () {
-            widget.context.forward('/weny/robot/absorbers', arguments: {'bank': _bank});
+            widget.context
+                .forward('/weny/robot/absorbers', arguments: {'bank': _bank});
           },
         ),
       ],

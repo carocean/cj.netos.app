@@ -83,12 +83,44 @@ class TransProfitResult {
   });
 }
 
+class TransShunterResult {
+  String sn;
+  String person;
+  String personName;
+  String currency;
+  int demandAmount;
+  int state;
+  String ctime;
+  int status;
+  String message;
+  String note;
+  String bankid;
+  String shunter;
+
+  TransShunterResult(
+      {this.sn,
+      this.person,
+      this.personName,
+      this.currency,
+      this.demandAmount,
+      this.state,
+      this.ctime,
+      this.status,
+      this.message,
+      this.note,
+      this.bankid,
+      this.shunter});
+}
+
 mixin IWalletTradeRemote {
   Future<ExchangeResult> exchange(String sn) {}
 
   Future<TransAbsorbResult> transAbsorb(int amount, String note) {}
 
   Future<TransProfitResult> transProfit(String bank, int profit, String s) {}
+
+  Future<TransShunterResult> transShunter(
+      String bank, String shunter, int amount, String note) {}
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -180,6 +212,36 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
       message: obj['message'],
       status: obj['status'],
       bankid: obj['bankid'],
+    );
+  }
+
+  @override
+  Future<TransShunterResult> transShunter(
+      String bank, String shunter, int amount, String note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'transferShunter',
+      parameters: {
+        'wenyBankID': bank,
+        'shunter': shunter,
+        'amount': amount,
+        'note': note,
+      },
+    );
+    return TransShunterResult(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      demandAmount: obj['demandAmount'],
+      sn: obj['sn'],
+      currency: obj['currency'],
+      personName: obj['personName'],
+      person: obj['person'],
+      note: obj['note'],
+      message: obj['message'],
+      status:
+          (obj['status'] is String) ? int.parse(obj['status']) : obj['status'],
+      bankid: obj['bankid'],
+      shunter: obj['shunter'],
     );
   }
 }
