@@ -3,6 +3,9 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/isp/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/isp/pages/desktop.dart';
 import 'package:netos_app/portals/isp/pages/event_details.dart';
@@ -19,7 +22,10 @@ import 'package:netos_app/portals/isp/pages/weny_account_platform.dart';
 import 'package:netos_app/portals/isp/pages/weny_bank.dart';
 import 'package:netos_app/portals/isp/pages/weny_market.dart';
 import 'package:netos_app/portals/isp/styles/orange_styles.dart' as orange;
+import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/landagent/remote/records.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'scaffolds.dart';
@@ -88,6 +94,12 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/org/licence':LicenceRemote(),
           '/org/workflow':WorkflowRemote(),
           '/wybank/remote': WybankRemote(),
+          '/wybank/bill/prices': PriceRemote(),
+          '/wybank/records': WybankRecordRemote(),
+          '/wybank/bills': WenyBillRemote(),
+          '/wybank/robot': RobotRemote(),
+          '/wallet/records': WalletRecordRemote(),
+          '/wallet/trades': WalletTradeRemote(),
         };
       },
       buildDesklets: (site) => <Desklet>[],
