@@ -539,6 +539,59 @@ class PayActivityOR {
       this.id});
 }
 
+class P2PRecordOR {
+  String sn;
+  String payer;
+  String payerName;
+  String payee;
+  String payeeName;
+  String currency;
+  int amount;
+  int state;
+  String ctime;
+  String lutime;
+  int status;
+  String message;
+  int type;
+  String direct;
+
+  P2PRecordOR({
+    this.sn,
+    this.payer,
+    this.payerName,
+    this.payee,
+    this.payeeName,
+    this.currency,
+    this.amount,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.type,
+    this.direct,
+  });
+}
+
+class P2PActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  P2PActivityOR(
+      {this.activityNo,
+      this.activityName,
+      this.record_sn,
+      this.status,
+      this.message,
+      this.ctime,
+      this.id});
+}
+
 mixin IWalletRecordRemote {
   Future<List<PurchaseOR>> pagePurchase(String bankid, int limit, int offset) {}
 
@@ -591,6 +644,10 @@ mixin IWalletRecordRemote {
   Future<PayDetailsOR> getPayDetails(String sn) {}
 
   Future<List<PayActivityOR>> getPayActivies(sn) {}
+
+  Future<P2PRecordOR> getP2PRecord(String sn) {}
+
+  Future<List<P2PActivityOR>> getP2PActivities(sn) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -820,6 +877,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return PurchaseOR(
       ctime: obj['ctime'],
       state: obj['state'],
@@ -849,6 +909,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return ExchangeOR(
       ctime: obj['ctime'],
       dtime: obj['lutime'],
@@ -903,6 +966,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': refsn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return RechargeOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -981,6 +1047,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return TransAbsorbOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -1006,6 +1075,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return TransProfitOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -1110,6 +1182,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return DepositAbsorbOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -1137,6 +1212,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return TransShunterOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -1190,6 +1268,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return DepositHubTailsOR(
       ctime: obj['ctime'],
       lutime: obj['lutime'],
@@ -1267,6 +1348,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': sn,
       },
     );
+    if (obj == null) {
+      return null;
+    }
     return PayDetailsOR(
       note: obj['note'],
       id: obj['id'],
@@ -1319,6 +1403,62 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       person: obj['person'],
       amount: obj['amount'],
       details: details,
+    );
+  }
+
+  @override
+  Future<List<P2PActivityOR>> getP2PActivities(sn) async {
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getP2PActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<P2PActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        P2PActivityOR(
+          id: obj['id'],
+          ctime: obj['ctime'],
+          status: obj['status'],
+          message: obj['message'],
+          activityName: obj['activityName'],
+          activityNo: obj['activityNo'],
+          record_sn: obj['recordSn'],
+        ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<P2PRecordOR> getP2PRecord(String sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getP2PRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return P2PRecordOR(
+      payeeName: obj['payeeName'],
+      amount: obj['amount'],
+      ctime: obj['ctime'],
+      sn: obj['sn'],
+      message: obj['message'],
+      status: obj['status'],
+      state: obj['state'],
+      type: obj['type'],
+      currency: obj['currency'],
+      direct: obj['direct'],
+      lutime: obj['lutime'],
+      payee: obj['payee'],
+      payer: obj['payer'],
+      payerName: obj['payerName'],
     );
   }
 }

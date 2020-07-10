@@ -121,6 +121,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.da
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/p2p_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/pay_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
@@ -1712,6 +1713,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/pay/details',
           buildPage: (PageContext pageContext) => PayDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '转账明细',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/p2p/details',
+          buildPage: (PageContext pageContext) => P2PDetails(
             context: pageContext,
           ),
         ),

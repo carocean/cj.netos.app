@@ -73,6 +73,13 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'withdraw': withdraw, 'wallet': _wallet},
         );
         break;
+      case 3: //提现
+        var p2pRecord = await recordRemote.getP2PRecord(bill.refsn);
+        widget.context.forward(
+          '/wallet/p2p/details',
+          arguments: {'p2p': p2pRecord, 'wallet': _wallet},
+        );
+        break;
       case 4: //支付
         var payTrade = await recordRemote.getPayTrade(bill.refsn);
         widget.context.forward(
