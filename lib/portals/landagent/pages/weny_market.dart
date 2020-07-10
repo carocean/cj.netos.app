@@ -56,15 +56,13 @@ class _WenyMarketState extends State<WenyMarket> {
     _isFetching = true;
     _laAmount = 0;
     IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
-    IWyBankRemote wyBankRemote =
-        widget.context.site.getService('/wybank/remote');
     for (var bank in _banks) {
       BusinessBuckets businessBuckets =
           await bankRemote.getBusinessBucketsOfBank(bank.id);
       ShuntBuckets shuntBuckets =
           await bankRemote.getShuntBucketsOfBank(bank.id);
       BulletinBoard bulletinBoard =
-          await wyBankRemote.getBulletinBoard(bank.id, DateTime.now());
+          await bankRemote.getBulletinBoard(bank.id, DateTime.now());
 
       _streamController.add({
         'bank': bank,
@@ -85,6 +83,10 @@ class _WenyMarketState extends State<WenyMarket> {
     List<BankInfo> banks = await bankRemote.pageWyBankOnUser(_limit, _offset);
     if (banks.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
     }
     _offset += banks.length;
     _banks.addAll(banks);

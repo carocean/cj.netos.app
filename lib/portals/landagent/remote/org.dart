@@ -10,6 +10,9 @@ mixin IOrgLaRemote {
   Future<OrgISPOL> getIsp(String ispid) {}
 
   Future<OrgLicenceOL> getLicence(String organ, int privilegeLevel) {}
+
+  Future<List<OrgLicenceOL>> pageLicenceByIsps(
+      List<String> isps, int limit, int offset);
 }
 
 class OrgLaRemote implements IOrgLaRemote, IServiceBuilder {
@@ -98,6 +101,42 @@ class OrgLaRemote implements IOrgLaRemote, IServiceBuilder {
       masterPhone: obj['masterPhone'],
       masterRealName: obj['masterRealName'],
     );
+  }
+
+  @override
+  Future<List<OrgLicenceOL>> pageLicenceByIsps(
+      List<String> isps, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      licencePorts,
+      'pageLicenceByIsps',
+      parameters: {
+        'isps': jsonEncode(isps),
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<OrgLicenceOL> licences = [];
+    for (var obj in list) {
+      licences.add(
+        OrgLicenceOL(
+          id: obj['id'],
+          bussinessAreaCode: obj['bussinessAreaCode'],
+          bussinessAreaTitle: obj['bussinessAreaTitle'],
+          bussinessScop: obj['bussinessScop'],
+          endTime: obj['endTime'],
+          fee: obj['fee'],
+          operatePeriod: obj['operatePeriod'],
+          organ: obj['organ'],
+          payEvidence: obj['payEvidence'],
+          privilegeLevel: obj['privilegeLevel'],
+          pubTime: obj['pubTime'],
+          signText: obj['signText'],
+          state: obj['state'],
+          title: obj['title'],
+        ),
+      );
+    }
+    return licences;
   }
 
   @override

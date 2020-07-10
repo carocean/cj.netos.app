@@ -48,6 +48,8 @@ mixin IWyBankRemote {
 
   Future<List<BankInfo>> pageWyBankOnUser(int limit, int offset) {}
 
+  Future<List<BankInfo>> pageWyBankOnISP(int limit, int offset);
+
   Future<BusinessBuckets> getBusinessBucketsOfBank(String bank) {}
 
   Future<ShuntBuckets> getShuntBucketsOfBank(String bank) {}
@@ -84,10 +86,14 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   get fundPorts => site.getService('@.prop.ports.wybank.bill.fund');
 
   get personPorts => site.getService('@.prop.ports.uc.person');
+  IIspRemote ispRemote;
+  IOrgLaRemote orgLaRemote;
 
   @override
   Future<void> builder(IServiceProvider site) {
     this.site = site;
+    ispRemote = site.getService('/org/isp');
+    orgLaRemote = site.getService('/org/la2');
     return null;
   }
 
@@ -106,7 +112,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
     return BankInfo(
       title: map['title'],
       id: map['id'],
-      state:map['state'] ,
+      state: map['state'],
       creator: map['creator'],
       ctime: map['ctime'],
       icon: map['icon'],
@@ -137,6 +143,50 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
       'pageWenyBankByCreators',
       parameters: {
         'creators': jsonEncode(persons),
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<BankInfo> banks = [];
+    for (var map in bankList) {
+      banks.add(
+        BankInfo(
+          title: map['title'],
+          id: map['id'],
+          state: map['state'],
+          creator: map['creator'],
+          ctime: map['ctime'],
+          icon: map['icon'],
+          districtCode: map['districtCode'],
+          districtTitle: map['districtTitle'],
+          licence: map['licence'],
+          principalRatio: map['principalRatio'],
+          reserveRatio: map['reserveRatio'],
+          freeRatio: map['freeRatio'],
+        ),
+      );
+    }
+    return banks;
+  }
+
+  @override
+  Future<List<BankInfo>> pageWyBankOnISP(
+      int limit, int offset) async {
+    List<OrgISPOL> ispList = await ispRemote.listMyOrgIsp();
+    var isps = <String>[];
+    for (var obj in ispList) {
+      isps.add(obj.id);
+    }
+    var licenceList = await orgLaRemote.pageLicenceByIsps(isps, 10000, 0);
+    var licences = <String>[];
+    for (var obj in licenceList) {
+      licences.add(obj.id);
+    }
+    var bankList = await remotePorts.portGET(
+      wybankPorts,
+      'pageWenyBankByLicences',
+      parameters: {
+        'licences': jsonEncode(licences),
         'limit': limit,
         'offset': offset,
       },

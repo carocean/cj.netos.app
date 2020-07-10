@@ -27,6 +27,8 @@ PODS:
     - AMapFoundation (~> 1.6.1)
   - AMapSearch (6.9.0):
     - AMapFoundation (~> 1.4)
+  - city_pickers (0.0.1):
+    - Flutter
   - device_info (0.0.1):
     - Flutter
   - Flutter (1.0.0)
@@ -95,6 +97,7 @@ DEPENDENCIES:
   - amap_location_fluttify (from `.symlinks/plugins/amap_location_fluttify/ios`)
   - amap_map_fluttify (from `.symlinks/plugins/amap_map_fluttify/ios`)
   - amap_search_fluttify (from `.symlinks/plugins/amap_search_fluttify/ios`)
+  - city_pickers (from `.symlinks/plugins/city_pickers/ios`)
   - device_info (from `.symlinks/plugins/device_info/ios`)
   - Flutter (from `Flutter`)
   - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
@@ -143,6 +146,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/amap_map_fluttify/ios"
   amap_search_fluttify:
     :path: ".symlinks/plugins/amap_search_fluttify/ios"
+  city_pickers:
+    :path: ".symlinks/plugins/city_pickers/ios"
   device_info:
     :path: ".symlinks/plugins/device_info/ios"
   Flutter:
@@ -210,6 +215,7 @@ SPEC CHECKSUMS:
   AMapFoundation: 672dc3a4759cb733f447c1e1b020f7ba2729f4ab
   AMapLocation: b4162db67f813508a14ee7e05c7ee4073785221d
   AMapSearch: af02822537e55b85a4752e9df5c19e4b9da82031
+  city_pickers: b0370f4c35c201723b5b7fcce10ec29b59d5bc35
   device_info: cbf09d2ec12aa7110e0b09fabe54b5bd6c8efe74
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_plugin_android_lifecycle: 47de533a02850f070f5696a623995e93eddcdb9b
