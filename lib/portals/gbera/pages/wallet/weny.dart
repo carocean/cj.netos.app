@@ -15,6 +15,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'mine_exchange.dart';
 import 'mine_purchase.dart';
 import 'package:intl/intl.dart' as intl;
@@ -243,7 +244,6 @@ class _PriceCardState extends State<_PriceCard> {
   int _purchaseFundOfDay = 0;
   int _exchangeFundOfDay = 0;
   double _newPrice;
-
   ///最后一个价格，向服务器拉取该时间后的价格列表
   Timer _timer;
 
@@ -298,6 +298,7 @@ class _PriceCardState extends State<_PriceCard> {
     old.profit = bank.profit;
     old.freezen = bank.freezen;
     old.stock = bank.stock;
+    old.board=bank.board;
   }
 
   Future<void> _updateNewPrice() async {
@@ -311,7 +312,6 @@ class _PriceCardState extends State<_PriceCard> {
     await _refreshWenyAccount();
     await _loadIndex(DateTime.now());
   }
-
   Future<List<KLineEntity>> _loadAfterPricesUpdate() async {
     if (_klineEntities.isEmpty) {
       return <KLineEntity>[];
@@ -330,6 +330,9 @@ class _PriceCardState extends State<_PriceCard> {
     for (var price in list) {
       var time = parseStrTime(price.ctime, len: 14);
       var id = (time.millisecondsSinceEpoch / 1000).floor();
+      if(id==sec) {//如果先前的最后一个价格的时间id等于取出的最后一个id则排除
+        continue;
+      }
       entities.insert(
         0,
         KLineEntity(
@@ -420,27 +423,60 @@ class _PriceCardState extends State<_PriceCard> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 5,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Text(
-                        '价    格: ',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                        ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 5,
                       ),
-                      Text(
-                        '¥${(_newPrice ?? 0).toStringAsFixed(14)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '最新: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${(_newPrice ?? 0).toStringAsFixed(14)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: widget.bank.change > 0
+                                  ? Colors.red
+                                  : widget.bank.change < 0 ? Colors.green : null,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 5,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(
+                            '涨跌: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${( widget.bank.change ?? 0.00).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: widget.bank.change > 0
+                                  ? Colors.red
+                                  : widget.bank.change < 0 ? Colors.green : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.max,

@@ -1,4 +1,5 @@
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class MyWallet {
   int total;
@@ -31,10 +32,16 @@ class WenyBank {
   double price;
   String bank;
   BankInfo info;
+  BulletinBoard board;
 
   String get freezenYan => ((freezen ?? 0) / 100.00).toStringAsFixed(2);
 
   String get profitYan => ((profit ?? 0) / 100.00).toStringAsFixed(2);
+
+  double get change => double.parse(
+      (((price - (board.closePrice ?? 0.001)) / (board.closePrice ?? 0.001)) *
+              100.00)
+          .toStringAsFixed(2));
 
   WenyBank({
     this.freezen,
@@ -43,6 +50,7 @@ class WenyBank {
     this.bank,
     this.info,
     this.price,
+    this.board,
   });
 }
 
@@ -80,6 +88,8 @@ mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
 
   Future<WenyBank> getWenyBankAcount(String bank) {}
+
+  Future<BulletinBoard> getBulletinBoard(bank, DateTime today);
 }
 
 class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
@@ -94,6 +104,8 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
   get walletPorts => site.getService('@.prop.ports.wallet');
 
   get bankBalancePorts => site.getService('@.prop.ports.wybank.balance');
+
+  get pricePorts => site.getService('@.prop.ports.wybank.bill.price');
 
   get bankPorts => site.getService('@.prop.ports.wybank');
 
@@ -132,11 +144,13 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         'wenyBankID': bank,
       },
     );
+    var bulletinBoard = await getBulletinBoard(bank, DateTime.now());
     return new WenyBank(
       price: priceAccount['price'],
       profit: (profitAccount['amount'] as double).floor(),
       stock: stockAccount['stock'],
       freezen: (freezenAccount['amount'] as double).floor(),
+      board: bulletinBoard,
     );
   }
 
@@ -167,6 +181,7 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       if (bankInfo == null) {
         continue;
       }
+      var bulletinBoard = await getBulletinBoard(bank, DateTime.now());
       var price = await _getPrice(bank);
       var freezen = 0;
       for (var freezenAccount in freezenAccounts) {
@@ -190,6 +205,7 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
           profit: profit,
           stock: account['stock'] as double,
           info: bankInfo,
+          board: bulletinBoard,
         ),
       );
     }
@@ -244,5 +260,23 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       },
     );
     return map['price'] as double;
+  }
+
+  @override
+  Future<BulletinBoard> getBulletinBoard(bank, DateTime today) async {
+    var obj = await remotePorts.portGET(
+      pricePorts,
+      'getBulletinBoard',
+      parameters: {
+        'wenyBankID': bank,
+        'year': today.year,
+        'month': today.month - 1,
+        'day': today.day,
+      },
+    );
+    return BulletinBoard(
+      closePrice: obj['closePrice'] ?? 0.001,
+      openPrice: obj['openPrice'] ?? 0.001,
+    );
   }
 }

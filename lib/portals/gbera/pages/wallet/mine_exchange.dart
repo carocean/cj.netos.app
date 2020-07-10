@@ -39,7 +39,11 @@ class _MineExchangesState extends State<MineExchanges> {
     _controller.dispose();
     super.dispose();
   }
-
+  Future<void> _onRefresh()async{
+    _offset=0;
+    _exchanges.clear();
+    await _onload();
+  }
   Future<void> _onload() async {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
@@ -68,6 +72,7 @@ class _MineExchangesState extends State<MineExchanges> {
       constraints: BoxConstraints.expand(),
       child: EasyRefresh.custom(
         controller: _controller,
+        onRefresh: _onRefresh,
         onLoad: _onload,
         slivers: _exchanges.map((exchange) {
           return SliverToBoxAdapter(

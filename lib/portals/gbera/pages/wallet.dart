@@ -148,7 +148,9 @@ class _WalletState extends State<Wallet> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => widget.context.forward('/wallet/absorb',arguments: {'wallet': _myWallet,}),
+              onTap: () => widget.context.forward('/wallet/absorb', arguments: {
+                'wallet': _myWallet,
+              }),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -209,7 +211,10 @@ class _WalletState extends State<Wallet> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => widget.context.forward('/wallet/onorder',arguments: {'wallet': _myWallet,}),
+              onTap: () =>
+                  widget.context.forward('/wallet/onorder', arguments: {
+                'wallet': _myWallet,
+              }),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -486,132 +491,9 @@ class _WalletState extends State<Wallet> {
         ),
         child: Column(
           children: _myWallet.banks.map((bank) {
-            return Column(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.only(
-                    top: 15,
-                    bottom: 15,
-                  ),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () =>
-                        widget.context.forward('/wallet/weny', arguments: {
-                      'bank': bank,
-                    }),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            FontAwesomeIcons.image,
-                            size: 30,
-                            color: widget.context
-                                .style('/profile/list/item-icon.color'),
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    '${bank.info.title}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      top: 10,
-                                      bottom: 4,
-                                    ),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Container(
-                                          width: 35,
-                                          padding: EdgeInsets.only(
-                                            right: 4,
-                                          ),
-                                          child: Text(
-                                            '现价:',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          '¥${bank.price}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      Container(
-                                        width: 35,
-                                        padding: EdgeInsets.only(
-                                          right: 4,
-                                        ),
-                                        child: Text(
-                                          '买入:',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        '₩${bank.stock}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      right: 5,
-                                    ),
-                                    child: Text(
-                                        '¥${(bank.stock * bank.price / 100.0).toStringAsFixed(2)}'),
-                                  ),
-                                  Icon(
-                                    Icons.keyboard_arrow_right,
-                                    size: 20,
-                                    color: Colors.grey[400],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            return WenyItemWidget(
+              context: widget.context,
+              bank: bank,
             );
           }).toList(),
         ),
@@ -661,14 +543,41 @@ class _WalletState extends State<Wallet> {
                 padding: EdgeInsets.only(
                   left: 15,
                   bottom: 2,
+                  right: 15,
                 ),
-                child: Text(
-                  '纹银账户',
-                  style: TextStyle(
-                    color: Colors.black45,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      '纹银账户',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        _loadAccounts().then((value) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 4,
+                          right: 2,
+                        ),
+                        child: Icon(
+                          Icons.refresh,
+                          size: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -683,6 +592,179 @@ class _WalletState extends State<Wallet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class WenyItemWidget extends StatefulWidget {
+  PageContext context;
+  WenyBank bank;
+
+  WenyItemWidget({this.context, this.bank});
+
+  @override
+  _WenyItemWidgetState createState() => _WenyItemWidgetState();
+}
+
+class _WenyItemWidgetState extends State<WenyItemWidget> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(WenyItemWidget oldWidget) {
+    if (widget.bank.bank != oldWidget.bank.bank) {
+      oldWidget.bank = widget.bank;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var bank = widget.bank;
+    return Column(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.only(
+            top: 15,
+            bottom: 15,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => widget.context.forward('/wallet/weny', arguments: {
+              'bank': bank,
+            }).then((value) {
+              if (mounted) {
+                setState(() {});
+              }
+            }),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 10,
+                  ),
+                  child: Icon(
+                    FontAwesomeIcons.image,
+                    size: 30,
+                    color:
+                        widget.context.style('/profile/list/item-icon.color'),
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            '${bank.info.title}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10,
+                              bottom: 4,
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 35,
+                                  padding: EdgeInsets.only(
+                                    right: 4,
+                                  ),
+                                  child: Text(
+                                    '现价:',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '¥${bank.price}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                    color: bank.change > 0
+                                        ? Colors.red
+                                        : bank.change < 0 ? Colors.green : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Container(
+                                width: 35,
+                                padding: EdgeInsets.only(
+                                  right: 4,
+                                ),
+                                child: Text(
+                                  '涨跌:',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${bank.change.toStringAsFixed(2)}%',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: bank.change > 0
+                                      ? Colors.red
+                                      : bank.change < 0 ? Colors.green : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 5,
+                            ),
+                            child: Text(
+                                '¥${(bank.stock * bank.price / 100.0).toStringAsFixed(2)}'),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_right,
+                            size: 20,
+                            color: Colors.grey[400],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

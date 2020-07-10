@@ -52,7 +52,11 @@ class _MinePurchasesState extends State<MinePurchases> {
     _controller.dispose();
     super.dispose();
   }
-
+  Future<void> _onRefresh()async{
+    _offset=0;
+    _purchases.clear();
+    await _onload();
+  }
   Future<void> _onload() async {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
@@ -178,6 +182,7 @@ class _MinePurchasesState extends State<MinePurchases> {
           Expanded(
             child: EasyRefresh.custom(
               controller: _controller,
+              onRefresh: _onRefresh,
               onLoad: _onload,
               slivers: _purchases.map((purch) {
                 return SliverToBoxAdapter(
@@ -372,6 +377,7 @@ class _MinePurchasesState extends State<MinePurchases> {
                                             ],
                                           ),
                                         ),
+                                        _tabPurchasesFilter==1?SizedBox(height: 0,width: 0,):
                                         Padding(
                                           padding: EdgeInsets.only(
                                             top: 4,

@@ -297,6 +297,9 @@ class _PriceCardState extends State<_PriceCard> {
     for (var price in list) {
       var time = parseStrTime(price.ctime, len: price.ctime.length);
       var id = (time.millisecondsSinceEpoch / 1000).floor();
+      if(id==sec) {//如果先前的最后一个价格的时间id等于取出的最后一个id则排除
+        continue;
+      }
       entities.insert(
         0,
         KLineEntity(
@@ -384,7 +387,7 @@ class _PriceCardState extends State<_PriceCard> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: <Widget>[
                       Text(
-                        '价格: ',
+                        '最新: ',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
