@@ -4,16 +4,16 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class WenyParametersPage extends StatefulWidget {
+class PlatformWenyParametersPage extends StatefulWidget {
   PageContext context;
 
-  WenyParametersPage({this.context});
+  PlatformWenyParametersPage({this.context});
 
   @override
-  _WenyParametersPageState createState() => _WenyParametersPageState();
+  _PlatformWenyParametersPageState createState() => _PlatformWenyParametersPageState();
 }
 
-class _WenyParametersPageState extends State<WenyParametersPage> {
+class _PlatformWenyParametersPageState extends State<PlatformWenyParametersPage> {
   BankInfo _bank;
   Map<String, dynamic> _shunters = {};
   List _ttmConfig = [];

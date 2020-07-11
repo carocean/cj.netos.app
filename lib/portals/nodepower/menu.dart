@@ -50,7 +50,7 @@ Workbench nodePowerWorkbench = Workbench(
   menus: [
     Menu(
       id: 'workService',
-      title: '工作服务',
+      title: '工作类服务',
       items: [
         MenuItem(
           title: '工作流管理',
@@ -59,6 +59,22 @@ Workbench nodePowerWorkbench = Workbench(
           onTap: (context) {
             context.forward(
               '/work/workflow',
+            );
+          },
+        ),
+      ],
+    ),
+    Menu(
+      id: 'operatorService',
+      title: '经营类服务',
+      items: [
+        MenuItem(
+          title: '纹银市场',
+          id: 'weny.market.manage',
+          icon: 'http://47.105.165.186:7100/app/system/bi.png',
+          onTap: (context) {
+            context.forward(
+              '/weny/market',
             );
           },
         ),

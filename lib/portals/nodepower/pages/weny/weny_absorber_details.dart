@@ -16,16 +16,16 @@ import 'package:uuid/uuid.dart';
 
 import 'weny_robot_absorbers.dart';
 
-class IspAbsorberDetails extends StatefulWidget {
+class PlatformAbsorberDetails extends StatefulWidget {
   PageContext context;
 
-  IspAbsorberDetails({this.context});
+  PlatformAbsorberDetails({this.context});
 
   @override
-  _IspAbsorberDetailsState createState() => _IspAbsorberDetailsState();
+  _PlatformAbsorberDetailsState createState() => _PlatformAbsorberDetailsState();
 }
 
-class _IspAbsorberDetailsState extends State<IspAbsorberDetails> {
+class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
   AbsorberOR _absorberOR;
 
   Future<Person> _future_creator;
@@ -974,12 +974,12 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
         "payeeName": "${widget.absorberOR.title}",
         "payeeType": "absorber",
         "orderno": "${new Uuid().v1()}",
-        "orderTitle": "运营商派发",
-        "serviceid": "isp.netos",
-        "serviceName": "运营商系统",
+        "orderTitle": "平台派发",
+        "serviceid": "system.netos",
+        "serviceName": "平台系统",
         "note": "欢迎惠顾"
       },
-      '运营商派发',
+      '平台派发',
     );
     widget.context.backward(result: {'succeed': true});
   }

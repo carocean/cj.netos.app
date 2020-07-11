@@ -8,16 +8,16 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class IspShuntersWenyAccount extends StatefulWidget {
+class PlatformShuntersWenyAccount extends StatefulWidget {
   PageContext context;
 
-  IspShuntersWenyAccount({this.context});
+  PlatformShuntersWenyAccount({this.context});
 
   @override
-  _IspShuntersWenyAccountState createState() => _IspShuntersWenyAccountState();
+  _PlatformShuntersWenyAccountState createState() => _PlatformShuntersWenyAccountState();
 }
 
-class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
+class _PlatformShuntersWenyAccountState extends State<PlatformShuntersWenyAccount> {
   BankInfo _bank;
   ShuntBuckets _shuntBuckets;
   bool _enableButton = false;
@@ -28,7 +28,7 @@ class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
   void initState() {
     _bank = widget.context.parameters['bank'];
     _shuntBuckets = widget.context.parameters['shuntBuckets'];
-    _enableButton = _shuntBuckets.ispAmount > 0;
+    _enableButton = _shuntBuckets.platformAmount > 0;
     super.initState();
   }
 
@@ -43,7 +43,7 @@ class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
     IWalletRecordRemote recordRemote =
         widget.context.site.getService('/wallet/records');
     TransShunterResult result =
-        await tradeRemote.transShunter(_bank.id,'isp',_shuntBuckets.ispAmount,'运营商账金收入');
+        await tradeRemote.transShunter(_bank.id,'platform',_shuntBuckets.platformAmount,'平台账金收入');
     Timer.periodic(
         Duration(
           seconds: 1,
@@ -59,7 +59,7 @@ class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
         timer.cancel();
       }
       if (result.status < 300) {
-        _shuntBuckets.ispAmount = 0;
+        _shuntBuckets.platformAmount = 0;
         _buttonText = '成功';
       } else {
         _buttonText = '失败';
@@ -111,15 +111,15 @@ class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
                 ),
               ),
               Text(
-                '${((_shuntBuckets?.ispAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '${((_shuntBuckets?.platformAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: _shuntBuckets?.ispAmount < 0
+                  color: _shuntBuckets?.platformAmount < 0
                       ? Colors.green
-                      : _shuntBuckets?.ispAmount == 0 ? null : Colors.redAccent,
+                      : _shuntBuckets?.platformAmount == 0 ? null : Colors.redAccent,
                 ),
               ),
             ],
@@ -168,7 +168,7 @@ class _IspShuntersWenyAccountState extends State<IspShuntersWenyAccount> {
             onPressed: () {
               widget.context.forward(
                 '/weny/bill/shunt',
-                arguments: {'bank': _bank,'shunter':'isp'},
+                arguments: {'bank': _bank,'shunter':'platform'},
               );
             },
             child: Text('明细'),
@@ -267,10 +267,10 @@ class __CardOtherAccountsState extends State<_CardOtherAccounts> {
         physics: NeverScrollableScrollPhysics(),
         children: <Widget>[
           _getCardItem(
-            title: '平台',
-            tips: '¥${((widget.shuntBuckets?.platformAmount??0)/100.00).toStringAsFixed(2)}',
+            title: '运营商',
+            tips: '¥${((widget.shuntBuckets?.ispAmount??0)/100.00).toStringAsFixed(2)}',
             onTap: () {
-              widget.context.forward('/wenybank/account/platform',arguments: {'bank':widget.bank,'shuntBuckets':widget.shuntBuckets},);
+              widget.context.forward('/wenybank/account/isp',arguments: {'bank':widget.bank,'shuntBuckets':widget.shuntBuckets},);
             },
           ),
           Divider(

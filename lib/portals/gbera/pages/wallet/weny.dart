@@ -465,7 +465,7 @@ class _PriceCardState extends State<_PriceCard> {
                             ),
                           ),
                           Text(
-                            '¥${( widget.bank.change ?? 0.00).toStringAsFixed(2)}',
+                            '${( widget.bank.change ?? 0.00).toStringAsFixed(2)}%',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: widget.bank.change > 0

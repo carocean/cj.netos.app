@@ -67,6 +67,9 @@ mixin IWyBankRemote {
   Future<List> getShunters(String bankid) {}
 
   Future<List> getTtmConfig(String bankid) {}
+
+  Future<List<BankInfo>> pageWenyBank(int limit, int offset) {}
+
 }
 
 class WybankRemote implements IWyBankRemote, IServiceBuilder {
@@ -123,6 +126,38 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
       reserveRatio: map['reserveRatio'],
       freeRatio: map['freeRatio'],
     );
+  }
+
+  @override
+  Future<List<BankInfo>> pageWenyBank(int limit, int offset) async{
+    var bankList = await remotePorts.portGET(
+      wybankPorts,
+      'pageWenyBank',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<BankInfo> banks = [];
+    for (var map in bankList) {
+      banks.add(
+        BankInfo(
+          title: map['title'],
+          id: map['id'],
+          state: map['state'],
+          creator: map['creator'],
+          ctime: map['ctime'],
+          icon: map['icon'],
+          districtCode: map['districtCode'],
+          districtTitle: map['districtTitle'],
+          licence: map['licence'],
+          principalRatio: map['principalRatio'],
+          reserveRatio: map['reserveRatio'],
+          freeRatio: map['freeRatio'],
+        ),
+      );
+    }
+    return banks;
   }
 
   @override
