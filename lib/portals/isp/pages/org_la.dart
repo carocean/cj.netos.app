@@ -9,6 +9,7 @@ import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
 class OrgLAPage extends StatefulWidget {
   PageContext context;
@@ -24,6 +25,8 @@ class _OrgLAPageState extends State<OrgLAPage> {
   OrgISPOL _orgISPOL;
   OrgLicenceOL _orgIspLicenceOL;
   OrgLicenceOL _orgLALicenceOL;
+  BankInfo _bank;
+  String _tipsText = '...正在加载';
 
   @override
   void initState() {
@@ -42,6 +45,9 @@ class _OrgLAPageState extends State<OrgLAPage> {
     _orgISPOL = await laRemote.getIsp(_orgLAOL.isp);
     _orgIspLicenceOL = await laRemote.getLicence(_orgLAOL.isp, 2);
     _orgLALicenceOL = await laRemote.getLicence(_orgLAOL.id, 0);
+    IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
+    _bank = await bankRemote.getWenyBankByLicence(_orgLALicenceOL.id);
+    _tipsText = '';
   }
 
   @override
@@ -244,25 +250,14 @@ class _OrgLAPageState extends State<OrgLAPage> {
                     title: '纹银银行',
                     paddingLeft: 20,
                     paddingRight: 20,
-                    onItemTap: () {
-                      widget.context.forward('/wenybank', arguments: {
-                        'bank': WenyBank(
-                          bank: 'xxxxx',
-                          stock: 2388382.3332238883,
-                          freezen: 2303,
-                          profit: 23983,
-                          price: 0.00233248848484,
-                          info: BankInfo(
-                            title: '农业发展',
-                            ctime: '20200603122816333',
-                            id: 'xxxx',
-                            state: 1,
-                            icon: '',
-                            creator: 'cj@gbera.netos',
-                          ),
-                        ),
-                      });
-                    },
+                    tipsText: _tipsText,
+                    onItemTap: _bank == null
+                        ? null
+                        : () {
+                            widget.context.forward('/weny/bank/info', arguments: {
+                              'bank': _bank,
+                            });
+                          },
                   ),
                 ],
               ),

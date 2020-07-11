@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class IspWenyAccount extends StatefulWidget {
+class LaWenyAccount extends StatefulWidget {
   PageContext context;
 
-  IspWenyAccount({this.context});
+  LaWenyAccount({this.context});
 
   @override
-  _IspWenyAccountState createState() => _IspWenyAccountState();
+  _LaWenyAccountState createState() => _LaWenyAccountState();
 }
 
-class _IspWenyAccountState extends State<IspWenyAccount> {
-  WenyBank _bank;
-
+class _LaWenyAccountState extends State<LaWenyAccount> {
+  BankInfo _bank;
+  ShuntBuckets _shuntBuckets;
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _shuntBuckets=widget.context.parameters['shuntBuckets'];
     super.initState();
   }
 
@@ -32,7 +34,7 @@ class _IspWenyAccountState extends State<IspWenyAccount> {
               bottom: 10,
             ),
             child: Text(
-              '运营商账金',
+              '地商账金',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -56,7 +58,7 @@ class _IspWenyAccountState extends State<IspWenyAccount> {
                 ),
               ),
               Text(
-                '${((_bank?.freezen ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '${((_shuntBuckets?.laAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
@@ -81,8 +83,8 @@ class _IspWenyAccountState extends State<IspWenyAccount> {
             child: RaisedButton(
               onPressed: () {
                 widget.context.forward(
-                  '/wybank/bill/freezen',
-                  arguments: {'bank': _bank},
+                  '/weny/bill/shunt',
+                  arguments: {'bank': _bank,'shunter':'la'},
                 );
               },
               textColor: Colors.white,

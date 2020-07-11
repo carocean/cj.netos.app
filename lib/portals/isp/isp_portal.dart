@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
-import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
@@ -9,18 +7,42 @@ import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
 import 'package:netos_app/portals/isp/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/isp/pages/desktop.dart';
 import 'package:netos_app/portals/isp/pages/event_details.dart';
+import 'package:netos_app/portals/isp/pages/exchange_details.dart';
 import 'package:netos_app/portals/isp/pages/land_agents.dart';
 import 'package:netos_app/portals/isp/pages/mine.dart';
 import 'package:netos_app/portals/isp/pages/org_isp.dart';
 import 'package:netos_app/portals/isp/pages/org_la.dart';
+import 'package:netos_app/portals/isp/pages/purchase_details.dart';
 import 'package:netos_app/portals/isp/pages/shunter_rules.dart';
+import 'package:netos_app/portals/isp/pages/weny_absorber_details.dart';
+import 'package:netos_app/portals/isp/pages/weny_absorber_details_more.dart';
+import 'package:netos_app/portals/isp/pages/weny_absorber_location.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_absorb.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_free.dart';
+import 'package:netos_app/portals/isp/pages/weny_account_freezen.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_fund.dart';
-import 'package:netos_app/portals/isp/pages/weny_account_isp.dart';
+import 'package:netos_app/portals/isp/pages/weny_account_la.dart';
 import 'package:netos_app/portals/isp/pages/weny_account_platform.dart';
+import 'package:netos_app/portals/isp/pages/weny_account_shunters.dart';
+import 'package:netos_app/portals/isp/pages/weny_account_stock.dart';
 import 'package:netos_app/portals/isp/pages/weny_bank.dart';
+import 'package:netos_app/portals/isp/pages/weny_bank_info.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_free.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_freezen.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_fund.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_hubtails.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_shunt.dart';
+import 'package:netos_app/portals/isp/pages/weny_bill_stock.dart';
+import 'package:netos_app/portals/isp/pages/weny_geo_recipients_records.dart';
+import 'package:netos_app/portals/isp/pages/weny_invest_records.dart';
 import 'package:netos_app/portals/isp/pages/weny_market.dart';
+import 'package:netos_app/portals/isp/pages/weny_parameters.dart';
+import 'package:netos_app/portals/isp/pages/weny_records.dart';
+import 'package:netos_app/portals/isp/pages/weny_robot.dart';
+import 'package:netos_app/portals/isp/pages/weny_robot_absorbers.dart';
+import 'package:netos_app/portals/isp/pages/weny_simple_recipients_records.dart';
+import 'package:netos_app/portals/isp/pages/weny_trades.dart';
+import 'package:netos_app/portals/isp/pages/weny_withdraw_records.dart';
 import 'package:netos_app/portals/isp/styles/orange_styles.dart' as orange;
 import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/org.dart';
@@ -28,6 +50,7 @@ import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
+
 import 'scaffolds.dart';
 
 var buildPortal = (IServiceProvider site) => Portal(
@@ -89,10 +112,10 @@ var buildPortal = (IServiceProvider site) => Portal(
       builderSceneServices: (site) async {
         return <String, dynamic>{
           '/org/isp': IspRemote(),
-          '/org/la':LaRemote(),
-          '/org/la2':OrgLaRemote(),
-          '/org/licence':LicenceRemote(),
-          '/org/workflow':WorkflowRemote(),
+          '/org/la': LaRemote(),
+          '/org/la2': OrgLaRemote(),
+          '/org/licence': LicenceRemote(),
+          '/org/workflow': WorkflowRemote(),
           '/wybank/remote': WybankRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/wybank/records': WybankRecordRemote(),
@@ -190,7 +213,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/stock',
-          buildPage: (PageContext pageContext) => StockWenyAccount(
+          buildPage: (PageContext pageContext) => IspStockWenyAccount(
             context: pageContext,
           ),
         ),
@@ -199,7 +222,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/fund',
-          buildPage: (PageContext pageContext) => FundWenyAccount(
+          buildPage: (PageContext pageContext) => IspFundWenyAccount(
             context: pageContext,
           ),
         ),
@@ -208,7 +231,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/freezen',
-          buildPage: (PageContext pageContext) => FreezenWenyAccount(
+          buildPage: (PageContext pageContext) => IspFreezenWenyAccount(
             context: pageContext,
           ),
         ),
@@ -217,7 +240,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/free',
-          buildPage: (PageContext pageContext) => FreeWenyAccount(
+          buildPage: (PageContext pageContext) => IspFreeWenyAccount(
             context: pageContext,
           ),
         ),
@@ -226,16 +249,16 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/platform',
-          buildPage: (PageContext pageContext) => PlatformWenyAccount(
+          buildPage: (PageContext pageContext) => IspPlatformWenyAccount(
             context: pageContext,
           ),
         ),
         LogicPage(
-          title: '运营商',
+          title: '地商',
           subtitle: '',
           icon: Icons.business,
-          url: '/wenybank/account/isp',
-          buildPage: (PageContext pageContext) => IspWenyAccount(
+          url: '/wenybank/account/la',
+          buildPage: (PageContext pageContext) => LaWenyAccount(
             context: pageContext,
           ),
         ),
@@ -244,7 +267,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank/account/absorb',
-          buildPage: (PageContext pageContext) => AbsorbWenyAccount(
+          buildPage: (PageContext pageContext) => IspAbsorbWenyAccount(
             context: pageContext,
           ),
         ),
@@ -263,6 +286,225 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/adopt/wenybank',
           buildPage: (PageContext pageContext) => AdoptWybank(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '银行交易明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/trades',
+          buildPage: (PageContext pageContext) => WenyTradesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '银行参数',
+          subtitle: '市盈率、账比等',
+          icon: Icons.business,
+          url: '/weny/parameters',
+          buildPage: (PageContext pageContext) => WenyParametersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申购明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/details/purchase',
+          buildPage: (PageContext pageContext) => IspPurchaseDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '承兑明细',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/details/exchange',
+          buildPage: (PageContext pageContext) => IspExchangeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '纹银账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/stock',
+          buildPage: (PageContext pageContext) => IspStockWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申购记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/purchase',
+          buildPage: (PageContext pageContext) => IspPurchaseRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '承兑记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/exchange',
+          buildPage: (PageContext pageContext) => IspExchangeRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '分账记录单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/record/shunt',
+          buildPage: (PageContext pageContext) => IspShuntRecordPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '账金账户',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/wenybank/account/shunters',
+          buildPage: (PageContext pageContext) => IspShuntersWenyAccount(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '资金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/fund',
+          buildPage: (PageContext pageContext) => IspFundWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '冻结账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/freezen',
+          buildPage: (PageContext pageContext) => IspFreezenWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '自由金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/free',
+          buildPage: (PageContext pageContext) => IspFreeWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '运营商分账账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/shunt',
+          buildPage: (PageContext pageContext) => IspShuntWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取中心',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot',
+          buildPage: (PageContext pageContext) => IspRobotPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器列表',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers',
+          buildPage: (PageContext pageContext) => IspRobotAbsorbersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '尾金账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bill/hubTails',
+          buildPage: (PageContext pageContext) => IspHubTailsWenyBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取人资金记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/recipients/records/simple',
+          buildPage: (PageContext pageContext) =>
+              IspSimpleAbsorberRecipientsRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取人资金记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/recipients/records/geo',
+          buildPage: (PageContext pageContext) =>
+              IspGeoAbsorberRecipientsRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '投资记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/records/invest',
+          buildPage: (PageContext pageContext) => IspInvestRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '投资记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/records/withdraw',
+          buildPage: (PageContext pageContext) => IspWithdrawRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器详情',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers/details',
+          buildPage: (PageContext pageContext) => IspAbsorberDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器详情',
+          subtitle: '更多配置',
+          icon: Icons.business,
+          url: '/weny/robot/absorbers/details/more',
+          buildPage: (PageContext pageContext) =>
+              IspWenyAbsorberDetailsMorePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看洇取器位置',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/absorber/location',
+          buildPage: (PageContext pageContext) => IspAbsorberLocationPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看纹银银行信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/weny/bank/info',
+          buildPage: (PageContext pageContext) => IspWenyBankInfoPage(
             context: pageContext,
           ),
         ),

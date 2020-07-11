@@ -2,27 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
-import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class IspAbsorbWenyAccount extends StatefulWidget {
+class IspRobotPage extends StatefulWidget {
   PageContext context;
 
-  IspAbsorbWenyAccount({this.context});
+  IspRobotPage({this.context});
 
   @override
-  _IspAbsorbWenyAccountState createState() => _IspAbsorbWenyAccountState();
+  _IspRobotPageState createState() => _IspRobotPageState();
 }
 
-class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
+class _IspRobotPageState extends State<IspRobotPage> {
   BankInfo _bank;
-  ShuntBuckets _shuntBuckets;
   double _hubTails = 0.00;
+  bool _enableButton = false;
 
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
-    _shuntBuckets = widget.context.parameters['shuntBuckets'];
-    _load().then((v) {
+    _load().then((value) {
       if (mounted) {
         setState(() {});
       }
@@ -30,28 +28,46 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
   Future<void> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
     _hubTails = await robotRemote.getHubTails(_bank.id);
+    _enableButton = _hubTails.floor() > 0 ? true : false;
+  }
+
+  Future<void> _transToWallet() async {
+    _enableButton = false;
+    setState(() {});
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
+    await robotRemote.withdrawHubTails(_bank.id);
+    await _load();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     var card_main = Container(
+      padding: EdgeInsets.only(bottom: 20,top: 20,),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(
-              bottom: 10,
             ),
             child: Text(
-              '网络洇金',
+              '地商经营尾金',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
+                color: Colors.grey[500],
               ),
             ),
           ),
@@ -60,10 +76,9 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.only(
-                  right: 3,
                 ),
                 child: Text(
-                  '¥',
+                  '¥${(_hubTails / 100).toStringAsFixed(14)}',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -71,7 +86,7 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
                 ),
               ),
               Text(
-                '${((_shuntBuckets?.absorbsAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
@@ -84,41 +99,37 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
         ],
       ),
     );
-    var card_actions = ListView(
+    var card_items = ListView(
       shrinkWrap: true,
       padding: EdgeInsets.all(0),
       physics: NeverScrollableScrollPhysics(),
       children: <Widget>[
         _getCardItem(
-          title: '派发中心',
-          tips: '¥${(_hubTails/100).toStringAsFixed(14)}',
+          title: '洇取器管理',
           onTap: () {
             widget.context
-                .forward('/weny/robot', arguments: {'bank': _bank});
+                .forward('/weny/robot/absorbers', arguments: {'bank': _bank});
           },
         ),
       ],
     );
-
     return Scaffold(
       appBar: AppBar(
-//        title: Text(
-//          widget.context.page?.title,
-//        ),
+        title: Text("派发中心"),
+        elevation: 0,
         actions: <Widget>[
           FlatButton(
             onPressed: () {
               widget.context.forward(
-                '/weny/bill/shunt',
-                arguments: {'bank': _bank, 'shunter': 'absorbs'},
+                '/weny/bill/hubTails',
+                arguments: {
+                  'bank': _bank,
+                },
               );
             },
             child: Text('明细'),
           ),
         ],
-        titleSpacing: 0,
-        elevation: 0,
-        automaticallyImplyLeading: true,
       ),
       body: Container(
         padding: EdgeInsets.only(
@@ -130,9 +141,7 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            Expanded(
-              child: card_main,
-            ),
+            card_main,
             Expanded(
               child: Container(
                 color: Colors.white,
@@ -142,7 +151,7 @@ class _IspAbsorbWenyAccountState extends State<IspAbsorbWenyAccount> {
                   top: 10,
                   bottom: 10,
                 ),
-                child: card_actions,
+                child: card_items,
               ),
             ),
           ],

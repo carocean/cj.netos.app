@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class FreezenWenyAccount extends StatefulWidget {
+class IspFreezenWenyAccount extends StatefulWidget {
   PageContext context;
 
-  FreezenWenyAccount({this.context});
+  IspFreezenWenyAccount({this.context});
 
   @override
-  _FreezenWenyAccountState createState() => _FreezenWenyAccountState();
+  _IspFreezenWenyAccountState createState() => _IspFreezenWenyAccountState();
 }
 
-class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
-  WenyBank _bank;
-
+class _IspFreezenWenyAccountState extends State<IspFreezenWenyAccount> {
+  BankInfo _bank;
+  BusinessBuckets _businessBuckets;
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _businessBuckets=widget.context.parameters['businessBuckets'];
     super.initState();
   }
 
@@ -56,7 +58,7 @@ class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
                 ),
               ),
               Text(
-                '${((_bank?.freezen ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                '${((_businessBuckets?.freezenAmount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
@@ -81,7 +83,7 @@ class _FreezenWenyAccountState extends State<FreezenWenyAccount> {
             child: RaisedButton(
               onPressed: () {
                 widget.context.forward(
-                  '/wybank/bill/freezen',
+                  '/weny/bill/freezen',
                   arguments: {'bank': _bank},
                 );
               },

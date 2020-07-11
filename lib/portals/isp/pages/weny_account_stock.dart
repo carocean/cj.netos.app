@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class StockWenyAccount extends StatefulWidget {
+class IspStockWenyAccount extends StatefulWidget {
   PageContext context;
 
-  StockWenyAccount({this.context});
+  IspStockWenyAccount({this.context});
 
   @override
-  _StockWenyAccountState createState() => _StockWenyAccountState();
+  _IspStockWenyAccountState createState() => _IspStockWenyAccountState();
 }
 
-class _StockWenyAccountState extends State<StockWenyAccount> {
-  WenyBank _bank;
-
+class _IspStockWenyAccountState extends State<IspStockWenyAccount> {
+  BankInfo _bank;
+  BusinessBuckets _businessBuckets;
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _businessBuckets=widget.context.parameters['businessBuckets'];
     super.initState();
   }
 
@@ -57,7 +59,7 @@ class _StockWenyAccountState extends State<StockWenyAccount> {
                 ),
               ),
               Text(
-                '${_bank?.stock ?? '-'}',
+                '${_businessBuckets?.stock ?? '-'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: TextStyle(
@@ -81,8 +83,7 @@ class _StockWenyAccountState extends State<StockWenyAccount> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                debugPrint('查看明细');
-                widget.context.forward('/wybank/bill/stock',arguments: {'bank':_bank});
+                widget.context.forward('/weny/bill/stock',arguments: {'bank':_bank});
               },
               textColor: Colors.white,
               color: Colors.green,
