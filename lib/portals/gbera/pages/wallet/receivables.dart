@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:framework/framework.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,11 +22,22 @@ class Receivables extends StatefulWidget {
 class _ReceivablesState extends State<Receivables> {
   bool has_result = false; //控制显示返回结果
   bool has_clear = true; //返回结果被清除
-  Map result = {};
+  _PayeeInfo _payeeInfo;
   var qrcodeKey = GlobalKey();
+  Map<String, dynamic> _qrcodeData;
+  GlobalKey<ScaffoldState> __globalKey = GlobalKey();
+
+  @override
+  void initState() {
+    _qrcodeData = {
+      'itis': 'wallet.receivables',
+      'data': null,
+    };
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-
     var card_head = Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -59,254 +72,239 @@ class _ReceivablesState extends State<Receivables> {
         padding: EdgeInsets.only(
           bottom: 20,
         ),
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: 10,
-                top: 20,
-              ),
-              child: Text(
-                '地微扫一扫，向我付钱',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: 10,
-              ),
-              child: RepaintBoundary(
-                key: qrcodeKey,
-                child: QrImage(
-                  ///二维码数据
-                  data: "1234567890",
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  gapless: false,
-                  embeddedImage:
-                      AssetImage('lib/portals/gbera/images/gbera_bk.png'),
-                  embeddedImageStyle: QrEmbeddedImageStyle(
-                    size: Size(40, 40),
-                  ),
-                ),
-              ),
-            ),
-            has_clear
-                ? Container(
-                    width: 0,
-                    height: 0,
-                  )
-                : Container(
-                    padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 15,
-                          ),
-                          child: Text(
-                            result['amount'] != null
-                                ? '¥${(formatNum(double.parse(result['amount'])))}'
-                                : '',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            softWrap: true,
-                          ),
-                        ),
-                        Text(
-                          result['memo'] ?? '',
-                          softWrap: true,
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-            has_result
-                ? Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 20,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        FlatButton(
-                          child: Text(
-                            '清除金额',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              has_clear = true;
-                              has_result = false;
-                            });
-                          },
-                        ),
-                        Container(
-                          height: 16,
-                          padding: EdgeInsets.only(
-                            top: 2,
-                            bottom: 2,
-                          ),
-                          child: VerticalDivider(
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                        FlatButton(
-                          onPressed: () async {
-                            RenderRepaintBoundary boundary =
-                                qrcodeKey.currentContext.findRenderObject();
-                            var image = await boundary.toImage();
-                            var byteData = await image.toByteData(
-                                format: ImageByteFormat.png);
-                            var pngBytes = byteData.buffer.asUint8List();
-
-                            ///本来应该保存到相册，但相册是手机的共享目录，得找第三方插件才能实现,下面先保存到应用目录，用户是看不到的。
-                            Directory dir =
-                                await getApplicationDocumentsDirectory();
-                            File('${dir.path}/qr_code.png')
-                                .writeAsBytes(pngBytes);
-                          },
-                          child: Text(
-                            '保存收款码',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 20,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        FlatButton(
-                          child: Text(
-                            '设置金额',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          onPressed: () {
-                            var result = widget.context
-                                .forward('/wallet/receivables/settings');
-                            result.then((v) {
-                              if (v is Map) {
-                                setState(() {
-                                  has_result = true;
-                                  has_clear = false;
-                                  this.result = v;
-                                });
-                              }
-                            });
-                          },
-                        ),
-                        Container(
-                          height: 16,
-                          padding: EdgeInsets.only(
-                            top: 2,
-                            bottom: 2,
-                          ),
-                          child: VerticalDivider(
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                        FlatButton(
-                          onPressed: () async {
-                            RenderRepaintBoundary boundary =
-                                qrcodeKey.currentContext.findRenderObject();
-                            var image = await boundary.toImage();
-                            var byteData = await image.toByteData(
-                                format: ImageByteFormat.png);
-                            var pngBytes = byteData.buffer.asUint8List();
-
-                            ///本来应该保存到相册，但相册是手机的共享目录，得找第三方插件才能实现,下面先保存到应用目录，用户是看不到的。
-                            Directory dir =
-                                await getApplicationDocumentsDirectory();
-                            File('${dir.path}/qr_code.png')
-                                .writeAsBytes(pngBytes);
-                          },
-                          child: Text(
-                            '保存收款码',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-            Divider(
-              height: 1,
-              indent: 20,
-              endIndent: 20,
-            ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context.forward('/wallet/receivables/record');
-              },
-              child: Padding(
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: Column(
+            children: <Widget>[
+              Padding(
                 padding: EdgeInsets.only(
-                  top: 15,
                   bottom: 10,
-                  left: 20,
-                  right: 20,
+                  top: 20,
+                ),
+                child: Text(
+                  '地微扫一扫，向我付钱',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: 10,
+                ),
+                child: RepaintBoundary(
+                  key: qrcodeKey,
+                  child: QrImage(
+                    ///二维码数据
+                    data: jsonEncode(_qrcodeData),
+                    version: QrVersions.auto,
+                    size: 200.0,
+                    gapless: false,
+                    embeddedImage:
+                        FileImage(File(widget.context.principal.avatarOnLocal)),
+                    embeddedImageStyle: QrEmbeddedImageStyle(
+                      size: Size(40, 40),
+                    ),
+                  ),
+                ),
+              ),
+              has_clear
+                  ? Container(
+                      width: 0,
+                      height: 0,
+                    )
+                  : Container(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 15,
+                            ),
+                            child: Text(
+                              '¥${((_payeeInfo?.reqAmount ?? 0) / 100.0).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                          Text(
+                            _payeeInfo?.note ?? '',
+                            softWrap: true,
+                            style: TextStyle(
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: 20,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
+                    !has_result
+                        ? FlatButton(
+                            child: Text(
+                              '设置金额',
+                              style: TextStyle(
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            onPressed: () {
+                              var result = widget.context
+                                  .forward('/wallet/receivables/settings');
+                              result.then((v) {
+                                if (v is Map) {
+                                  setState(() {
+                                    has_result = true;
+                                    has_clear = false;
+                                    this._payeeInfo = _PayeeInfo(
+                                      payee: widget.context.principal.person,
+                                      note: v['memo'],
+                                      reqAmount:
+                                          (double.parse(v['amount'] + '') *
+                                                  100.0)
+                                              .floor(),
+                                    );
+                                    this._qrcodeData['data'] = jsonEncode(_payeeInfo.toMap());
+                                  });
+                                }
+                              });
+                            },
+                          )
+                        : FlatButton(
+                            child: Text(
+                              '清除金额',
+                              style: TextStyle(
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                has_clear = true;
+                                has_result = false;
+                                _payeeInfo = null;
+                                this._qrcodeData['data'] = null;
+                              });
+                            },
                           ),
-                          child: Icon(
-                            Icons.assignment,
-                            size: 14,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                        Text('收款记录'),
-                      ],
+                    Container(
+                      height: 16,
+                      padding: EdgeInsets.only(
+                        top: 2,
+                        bottom: 2,
+                      ),
+                      child: VerticalDivider(
+                        color: Colors.grey[400],
+                      ),
                     ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 14,
-                      color: Colors.grey[400],
+                    FlatButton(
+                      onPressed: has_clear
+                          ? null
+                          : () async {
+                              if (_payeeInfo == null) {
+                                __globalKey.currentState.showSnackBar(
+                                  SnackBar(
+                                    content: Text('未设置金额'),
+                                  ),
+                                );
+                                return;
+                              }
+                              RenderRepaintBoundary boundary =
+                                  qrcodeKey.currentContext.findRenderObject();
+                              var image = await boundary.toImage();
+                              var byteData = await image.toByteData(
+                                  format: ImageByteFormat.png);
+                              var pngBytes = byteData.buffer.asUint8List();
+
+                              ///本来应该保存到相册，但相册是手机的共享目录，得找第三方插件才能实现,下面先保存到应用目录，用户是看不到的。
+                              Directory dir =
+                                  await getApplicationDocumentsDirectory();
+                              File('${dir.path}/qr_code.png')
+                                  .writeAsBytes(pngBytes);
+                              await ImageGallerySaver.saveFile(
+                                  '${dir.path}/qr_code.png');
+                              __globalKey.currentState.showSnackBar(
+                                SnackBar(
+                                  content: Text('保存成功'),
+                                ),
+                              );
+                            },
+                      child: Text(
+                        '保存收款码',
+                        style: TextStyle(
+                          color: has_clear ? Colors.grey[300] : Colors.blueGrey,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              Divider(
+                height: 1,
+                indent: 20,
+                endIndent: 20,
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  widget.context.forward('/wallet/receivables/record');
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: 15,
+                    bottom: 10,
+                    left: 20,
+                    right: 20,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: Icon(
+                              Icons.assignment,
+                              size: 14,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                          Text('收款记录'),
+                        ],
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: Colors.grey[400],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
     return Scaffold(
+      key: __globalKey,
       appBar: AppBar(
         title: Text(
           widget.context.page?.title,
@@ -326,5 +324,21 @@ class _ReceivablesState extends State<Receivables> {
         ),
       ),
     );
+  }
+}
+
+class _PayeeInfo {
+  String payee; //收款人
+  int reqAmount; //要收款项
+  String note;
+
+  _PayeeInfo({this.payee, this.reqAmount, this.note}); //备注
+
+  Map toMap() {
+    return {
+      'payee': payee,
+      'reqAmount': reqAmount,
+      'note': note,
+    };
   }
 }

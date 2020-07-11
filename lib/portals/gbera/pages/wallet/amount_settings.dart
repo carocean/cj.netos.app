@@ -15,11 +15,40 @@ class _AmountSettingsState extends State<AmountSettings> {
   bool _add_button_clicked = false;
   var _amount_focus_node = new FocusNode();
   var _memo_focus_node = new FocusNode();
-  var _amount_value = '';
-  var _memo_value = '';
+  TextEditingController _amountController;
+  TextEditingController _noteController;
 
 //表单状态
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    _amountController = TextEditingController();
+    _noteController = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _amountController?.dispose();
+    _noteController?.dispose();
+    super.dispose();
+  }
+
+  bool _isEnabledSaveButtom() {
+    var v = _amountController.text;
+    if (StringUtil.isEmpty(v)) {
+      return false;
+    }
+    int pos = v.indexOf('.');
+    if (pos > 0) {
+      String xs = v.substring(pos + 1);
+      if (xs.length != 2) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +58,13 @@ class _AmountSettingsState extends State<AmountSettings> {
         right: 20,
       ),
       child: TextFormField(
+        controller: _amountController,
         autofocus: false,
         focusNode: _amount_focus_node,
         keyboardType: TextInputType.numberWithOptions(),
         validator: amountValidator,
-        onSaved: (value) {
-          _amount_value = value;
+        onChanged: (v) {
+          setState(() {});
         },
         decoration: InputDecoration(
           prefixText: '¥ ',
@@ -74,10 +104,8 @@ class _AmountSettingsState extends State<AmountSettings> {
       child: TextFormField(
         autofocus: false,
         focusNode: _memo_focus_node,
+        controller: _noteController,
         keyboardType: TextInputType.text,
-        onSaved: (value) {
-          _memo_value = value;
-        },
         decoration: InputDecoration(
           labelText: '收款理由',
           hintText: '输入收款理由',
@@ -95,19 +123,24 @@ class _AmountSettingsState extends State<AmountSettings> {
       ),
       child: RaisedButton(
         child: Text('保存'),
-        color: Colors.white,
-        onPressed: () {
-          _memo_focus_node.unfocus();
-          _amount_focus_node.unfocus();
-          if (_formKey.currentState.validate()) {
-            //只有输入通过验证，才会执行这里
-            _formKey.currentState.save();
-          }
-          widget.context.backward(result:{
-            'amount': _amount_value,
-            'memo': _memo_value,
-          });
-        },
+        disabledTextColor:Colors.grey[400] ,
+        disabledColor: Colors.grey[300],
+        color: Colors.green,
+        textColor: Colors.white,
+        onPressed: !_isEnabledSaveButtom()
+            ? null
+            : () {
+                _memo_focus_node.unfocus();
+                _amount_focus_node.unfocus();
+                if (_formKey.currentState.validate()) {
+                  //只有输入通过验证，才会执行这里
+                  _formKey.currentState.save();
+                }
+                widget.context.backward(result: {
+                  'amount': _amountController.text,
+                  'memo': _noteController.text,
+                });
+              },
       ),
     );
     return Scaffold(
@@ -148,7 +181,7 @@ class _AmountSettingsState extends State<AmountSettings> {
     if (StringUtil.isEmpty(value)) {
       return '金额不能为空';
     }
-    if(double.parse(value)>100000000){
+    if (double.parse(value) > 100000000) {
       return '收款一个亿，太牛B了，但我不支持';
     }
     return null;

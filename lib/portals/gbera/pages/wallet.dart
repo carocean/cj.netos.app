@@ -397,6 +397,7 @@ class _WalletState extends State<Wallet> {
               ),
             ),
           ),
+          /*
           Divider(
             height: 1,
             indent: 40,
@@ -458,6 +459,8 @@ class _WalletState extends State<Wallet> {
               ),
             ),
           ),
+
+           */
         ],
       ),
     );
@@ -530,14 +533,14 @@ class _WalletState extends State<Wallet> {
               ),
             ),
 //第一阶段暂不实现
-//            SliverToBoxAdapter(
-//              child: Padding(
-//                padding: EdgeInsets.only(
-//                  bottom: 10,
-//                ),
-//                child: card_op,
-//              ),
-//            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: 10,
+                ),
+                child: card_op,
+              ),
+            ),
             SliverToBoxAdapter(
               child: Container(
                 padding: EdgeInsets.only(
