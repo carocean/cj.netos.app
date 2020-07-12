@@ -2163,6 +2163,24 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
+        LogicPage(
+          title: '扫码付款结果',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/receivables/result',
+          buildPage: (PageContext pageContext) => ReceivableResultPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '扫码收款结果',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/payables/result',
+          buildPage: (PageContext pageContext) => PayableResultPage(
+            context: pageContext,
+          ),
+        ),
       ],
     );
   }

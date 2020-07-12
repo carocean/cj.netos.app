@@ -112,6 +112,34 @@ class TransShunterResult {
       this.shunter});
 }
 
+class P2PEvidence {
+  String sn;
+  String principal;
+  String nickName;
+  String actor;
+  int pubTime;
+  int expire;
+  int useTimes;
+
+  P2PEvidence(
+      {this.sn,
+      this.principal,
+      this.nickName,
+      this.actor,
+      this.pubTime,
+      this.expire,
+      this.useTimes});
+}
+class PayChannel{
+  String code;
+  String channelName;
+  String url;
+  int limitAmount;
+  String note;
+
+  PayChannel(
+      {this.code, this.channelName, this.url, this.limitAmount, this.note});
+}
 mixin IWalletTradeRemote {
   Future<ExchangeResult> exchange(String sn) {}
 
@@ -121,6 +149,18 @@ mixin IWalletTradeRemote {
 
   Future<TransShunterResult> transShunter(
       String bank, String shunter, int amount, String note) {}
+
+  Future<String> genReceivableEvidence(int expire, int useTimes) {}
+
+  Future<String> genPayableEvidence(int expire, int useTimes) {}
+
+  Future<P2PRecordOR> payToEvidence(
+      String evidence, int amount, int type, String note);
+
+  Future<P2PRecordOR> receiveFromEvidence(
+      String evidence, int amount, int type, String note);
+
+  Future<P2PEvidence> checkEvidence(String evidence) {}
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -242,6 +282,121 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
           (obj['status'] is String) ? int.parse(obj['status']) : obj['status'],
       bankid: obj['bankid'],
       shunter: obj['shunter'],
+    );
+  }
+
+  @override
+  Future<String> genPayableEvidence(int expire, int useTimes) async {
+    return await remotePorts.portGET(
+      walletTradePorts,
+      'genPayableEvidence',
+      parameters: {
+        'expire': expire,
+        'useTimes': useTimes,
+      },
+    );
+  }
+
+  @override
+  Future<String> genReceivableEvidence(int expire, int useTimes) async {
+    return await remotePorts.portGET(
+      walletTradePorts,
+      'genReceivableEvidence',
+      parameters: {
+        'expire': expire,
+        'useTimes': useTimes,
+      },
+    );
+  }
+
+  @override
+  Future<P2PRecordOR> payToEvidence(
+      String evidence, int amount, int type, String note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'payToEvidence',
+      parameters: {
+        'evidence': evidence,
+        'amount': amount,
+        'type': type,
+        'note': note,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return P2PRecordOR(
+      payeeName: obj['payeeName'],
+      amount: obj['amount'],
+      ctime: obj['ctime'],
+      sn: obj['sn'],
+      message: obj['message'],
+      status: obj['status'],
+      state: obj['state'],
+      type: obj['type'],
+      currency: obj['currency'],
+      direct: obj['direct'],
+      lutime: obj['lutime'],
+      payee: obj['payee'],
+      payer: obj['payer'],
+      payerName: obj['payerName'],
+    );
+  }
+
+  @override
+  Future<P2PRecordOR> receiveFromEvidence(
+      String evidence, int amount, int type, String note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'receiveFromEvidence',
+      parameters: {
+        'evidence': evidence,
+        'amount': amount,
+        'type': type,
+        'note': note,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return P2PRecordOR(
+      payeeName: obj['payeeName'],
+      amount: obj['amount'],
+      ctime: obj['ctime'],
+      sn: obj['sn'],
+      message: obj['message'],
+      status: obj['status'],
+      state: obj['state'],
+      type: obj['type'],
+      currency: obj['currency'],
+      direct: obj['direct'],
+      lutime: obj['lutime'],
+      payee: obj['payee'],
+      payer: obj['payer'],
+      payerName: obj['payerName'],
+    );
+  }
+
+  @override
+  Future<P2PEvidence> checkEvidence(String evidence) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'checkEvidence',
+      parameters: {
+        'evidence': evidence,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return P2PEvidence(
+      sn: obj['sn'],
+      nickName: obj['nickName'],
+      pubTime: obj['pubTime'],
+      actor: obj['actor'],
+      expire: obj['expire'],
+      principal: obj['principal'],
+      useTimes: obj['useTimes'],
     );
   }
 }

@@ -358,7 +358,7 @@ class _WalletState extends State<Wallet> {
                       right: 10,
                     ),
                     child: Icon(
-                      FontAwesomeIcons.sprayCan,
+                      FontAwesomeIcons.paypal,
                       size: 30,
                       color:
                           widget.context.style('/profile/list/item-icon.color'),

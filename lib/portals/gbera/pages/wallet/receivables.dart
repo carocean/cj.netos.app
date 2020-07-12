@@ -6,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:framework/framework.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -34,6 +38,25 @@ class _ReceivablesState extends State<Receivables> {
       'data': null,
     };
     super.initState();
+  }
+
+  Future<void> _setQrcode(Map v) async {
+    has_result = true;
+    has_clear = false;
+    setState(() {});
+    IWalletTradeRemote tradeRemote =
+        widget.context.site.getService('/wallet/trades');
+    String evidence =
+        await tradeRemote.genReceivableEvidence(1 * 60 * 1000, 1);
+    this._payeeInfo = _PayeeInfo(
+      evidence: evidence,
+      note: v['memo'],
+      amount: (double.parse(v['amount'] + '') * 100.0).floor(),
+    );
+    this._qrcodeData['data'] = jsonEncode(_payeeInfo.toMap());
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -126,7 +149,7 @@ class _ReceivablesState extends State<Receivables> {
                               bottom: 15,
                             ),
                             child: Text(
-                              '¥${((_payeeInfo?.reqAmount ?? 0) / 100.0).toStringAsFixed(2)}',
+                              '¥${((_payeeInfo?.amount ?? 0) / 100.0).toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 30,
                                 fontWeight: FontWeight.w500,
@@ -164,21 +187,9 @@ class _ReceivablesState extends State<Receivables> {
                             onPressed: () {
                               var result = widget.context
                                   .forward('/wallet/receivables/settings');
-                              result.then((v) {
+                              result.then((v) async {
                                 if (v is Map) {
-                                  setState(() {
-                                    has_result = true;
-                                    has_clear = false;
-                                    this._payeeInfo = _PayeeInfo(
-                                      payee: widget.context.principal.person,
-                                      note: v['memo'],
-                                      reqAmount:
-                                          (double.parse(v['amount'] + '') *
-                                                  100.0)
-                                              .floor(),
-                                    );
-                                    this._qrcodeData['data'] = jsonEncode(_payeeInfo.toMap());
-                                  });
+                                  _setQrcode(v);
                                 }
                               });
                             },
@@ -328,17 +339,191 @@ class _ReceivablesState extends State<Receivables> {
 }
 
 class _PayeeInfo {
-  String payee; //收款人
-  int reqAmount; //要收款项
+  String evidence; //收款凭证
+  int amount; //要收款项
   String note;
 
-  _PayeeInfo({this.payee, this.reqAmount, this.note}); //备注
+  _PayeeInfo({this.evidence, this.amount, this.note}); //备注
 
   Map toMap() {
     return {
-      'payee': payee,
-      'reqAmount': reqAmount,
+      'evidence': evidence,
+      'amount': amount,
+      'type': 1,
       'note': note,
     };
+  }
+}
+
+void registerQrcodeAction(PageContext context) {
+  if (!qrcodeScanner.actions.containsKey('wallet.receivables')) {
+    qrcodeScanner.actions['wallet.receivables'] = QrcodeAction(
+      doit: (info) async {
+        IWalletTradeRemote tradeRemote =
+            context.site.getService('/wallet/trades');
+        try {
+          await tradeRemote.payToEvidence(info.props['evidence'],
+              info.props['amount'], info.props['type'], info.props['note']);
+          WidgetsBinding.instance.addPostFrameCallback((d) {
+            context.forward(
+              '/receivables/result',
+              arguments: {'result': '付款成功！'},
+            );
+          });
+        } catch (e) {
+          WidgetsBinding.instance.addPostFrameCallback((d) {
+            context.forward(
+              '/receivables/result',
+              arguments: {'result': e},
+            );
+          });
+        }
+      },
+      parse: (itis, data) async {
+        Map<String, dynamic> props = jsonDecode(data);
+        IWalletTradeRemote tradeRemote =
+            context.site.getService('/wallet/trades');
+        P2PEvidence evidence;
+        try {
+          evidence = await tradeRemote.checkEvidence(props['evidence']);
+        } catch (e) {
+          return QrcodeInfo(
+            title: '付款给',
+            isHidenNoButton: false,
+            isHidenYesButton: true,
+            itis: 'wallet.receivables',
+            props: props,
+            tips: Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 5,
+                    ),
+                    child: Text('验证收款凭证异常:$e'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        if (evidence == null) {
+          return QrcodeInfo(
+            title: '付款给',
+            isHidenNoButton: false,
+            isHidenYesButton: true,
+            itis: 'wallet.receivables',
+            props: props,
+            tips: Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 5,
+                    ),
+                    child: Text('系统未发现该收款凭证'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        var person = await _getPerson(context.site, evidence.principal);
+        var avatar = person.avatar;
+        var img;
+        if (StringUtil.isEmpty(avatar)) {
+          img = Image.asset('lib/portals/gbera/images/default_avatar.png');
+        } else {
+          if (avatar.startsWith('/')) {
+            img = Image.file(File(avatar));
+          } else {
+            img = FadeInImage.assetNetwork(
+              placeholder: 'lib/portals/gbera/images/default_watting.gif',
+              image: '${avatar}?accessToken=${context.principal.accessToken}',
+            );
+          }
+        }
+
+        return QrcodeInfo(
+          title: '付款给',
+          isHidenNoButton: false,
+          isHidenYesButton: false,
+          itis: 'wallet.receivables',
+          props: props,
+          tips: Container(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 10,
+                  ),
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: img,
+                  ),
+                ),
+                Wrap(
+                  direction: Axis.vertical,
+                  spacing: 10,
+                  children: <Widget>[
+                    Text(
+                      '${person.nickName}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '¥${((props['amount'] as int) / 100.00).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 26,
+                        color: Colors.red,
+                      ),
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Future<Person> _getPerson(IServiceProvider site, String person) async {
+  IPersonService personService = site.getService('/gbera/persons');
+  return await personService.getPerson(person);
+}
+
+class ReceivableResultPage extends StatefulWidget {
+  PageContext context;
+
+  ReceivableResultPage({
+    this.context,
+  });
+
+  @override
+  _ReceivableResultPageState createState() => _ReceivableResultPageState();
+}
+
+class _ReceivableResultPageState extends State<ReceivableResultPage> {
+  @override
+  Widget build(BuildContext context) {
+    var error = widget.context.parameters['result'];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('付款结果'),
+        elevation: 0,
+      ),
+      body: Center(
+        child: Text('$error'),
+      ),
+    );
   }
 }

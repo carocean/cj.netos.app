@@ -2,14 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
-
-import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
-import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
+    as receivables;
+import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
 
 class Desktop extends StatefulWidget {
   PageContext context;
@@ -42,6 +41,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
         setState(() {});
       }
     });
+    _registerQrcodeActions();
     super.initState();
   }
 
@@ -51,6 +51,11 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     _desklets.clear();
     _isloaded = false;
     super.dispose();
+  }
+
+  _registerQrcodeActions() {
+    receivables.registerQrcodeAction(widget.context);
+    payables.registerQrcodeAction(widget.context);
   }
 
   Future<void> _load() async {
