@@ -140,6 +140,15 @@ class PayChannel{
   PayChannel(
       {this.code, this.channelName, this.url, this.limitAmount, this.note});
 }
+class P2PResultOR{
+  String sn;
+  String payer;
+  String payee;
+  String status;
+  String message;
+
+  P2PResultOR({this.sn, this.payer, this.payee, this.status, this.message});
+}
 mixin IWalletTradeRemote {
   Future<ExchangeResult> exchange(String sn) {}
 
