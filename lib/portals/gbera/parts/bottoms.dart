@@ -35,10 +35,10 @@ class _GberaBottomNavigationBarState extends State<GberaBottomNavigationBar> {
           title: Text('追链'),
           icon: Icon(Icons.device_hub),
         ),
-        BottomNavigationBarItem(
-          title: Text('市场'),
-          icon: Icon(Icons.business_center),
-        ),
+//        BottomNavigationBarItem(
+//          title: Text('市场'),
+//          icon: Icon(Icons.business_center),
+//        ),
       ],
       currentIndex: widget.selectedIndex,
       type: BottomNavigationBarType.fixed,
