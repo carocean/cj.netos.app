@@ -110,7 +110,6 @@ class _TaskBarState extends State<TaskBar> {
                 flowGeoPortsUrl,
                 'pushGeoDocumentMedia',
                 parameters: {
-                  'interval': '100',
                 },
                 data: {
                   'media':jsonEncode(media),
@@ -382,7 +381,6 @@ class _TaskBarState extends State<TaskBar> {
                 'pushChannelDocumentMedia',
                 callbackUrl: '/network/channel/media',
                 parameters: {
-                  'interval': 10,
                 },
                 data: {
                   'media': jsonEncode(map),

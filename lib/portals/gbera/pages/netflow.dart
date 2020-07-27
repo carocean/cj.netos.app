@@ -234,7 +234,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         channelMessageService: channelMessageService,
       );
       _channelStateBars[ch.id] = (statebar);
-      await statebar.update('loadChannelsCommand', null);
+      await statebar.update('loadChannelsCommand', (id, args) {
+        if (mounted) setState(() {});
+      });
       _items.add(
         _ChannelItem(
           context: widget.context,
@@ -1176,7 +1178,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   Future<List<InsiteMessage>> _loadMessages() async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
-    return await messageService.pageMessage(_msgListMaxLength, 0);
+    return await messageService.pageMessageWhere('inbox',_msgListMaxLength, 0);
   }
 
   @override
@@ -1475,7 +1477,7 @@ class __ChannelItemState extends State<_ChannelItem> {
   @override
   void initState() {
     widget.stateBar.refresh = (command, args) {
-      setState(() {});
+      if (mounted) setState(() {});
     };
     super.initState();
   }

@@ -96,6 +96,7 @@ class _ChannelPageState extends State<ChannelPage> {
       SliverToBoxAdapter(
         child: Header(
           context: widget.context,
+          channel:_channel,
           refresh: () {
             _reloadChannel();
             _refreshMessages();
@@ -284,10 +285,11 @@ class DialogItem extends StatelessWidget {
 class Header extends StatefulWidget {
   PageContext context;
   Function() refresh;
-
+  Channel channel;
   Header({
     this.context,
     this.refresh,
+    this.channel,
   });
 
   @override
@@ -303,6 +305,12 @@ class _HeaderState extends State<Header> {
   void initState() {
     _workingChannel = widget.context.parameters['workingChannel'];
     _workingChannel.onRefreshChannelState = (command, args) {
+      if("pushDocumentCommand"==command&&args is Map) {
+        var msg=args['message'];
+        if(msg.onChannel!=widget.channel?.id){
+          return;
+        }
+      }
       _arrivedMessageCount++;
 //      switch(command) {
 //        case 'likeDocumentCommand':
