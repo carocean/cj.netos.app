@@ -43,8 +43,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   void initState() {
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
     _notifyStreamController = StreamController.broadcast();
-    if (!widget.context.isListening(matchPath: '/chat/room/message')) {
-      widget.context.listenNetwork(_onmessage, matchPath: '/chat/room/message');
+    if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
+      widget.context.listenMessage(_onmessage, matchPath: '/chat/room/message');
     }
     _load().then((v) {
       if (mounted) {
@@ -73,7 +73,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     taskbarProgress = null;
     _notifyStreamController.close();
     _models.clear();
-    widget.context.unlistenNetwork(matchPath: '/chat/room/message');
+    widget.context.unlistenMessage(matchPath: '/chat/room/message');
     super.dispose();
   }
 
@@ -282,7 +282,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       print('消息为空，被丢弃。');
       return null;
     }
-    if (frame.head("sender") == widget.context.principal.person) {
+    if (frame.head('sender-person') == widget.context.principal.person) {
 //      print('自已的消息又发给自己，被丢弃。');
       return null;
     }
@@ -291,7 +291,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var msgid = frame.parameter('msgid');
     var ctime = frame.parameter('ctime');
     var roomCreator = frame.parameter('roomCreator');
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IP2PMessageService messageService =

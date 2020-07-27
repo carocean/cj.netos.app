@@ -277,9 +277,9 @@ class DefaultLocalPrincipalManager
 
   @override
   Future<Function> online() async{
-    IPeerManager peerManager = _site.getService('@.peer.manager');
-    if (peerManager != null) {
-      await peerManager.start(_site);
+    IDeviceManager deviceManager = _site.getService('@.device.manager');
+    if (deviceManager != null) {
+      await deviceManager.start(_site);
     }
   }
 

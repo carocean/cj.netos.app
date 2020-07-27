@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+
+import 'package:framework/core_lib/_device.dart';
 
 import '_frame.dart';
 import '_utimate.dart';
 
 typedef Onmessage = void Function(Frame frame);
-typedef Onopen = void Function();
+typedef Onopen = void Function(IConnection connection);
 typedef Onclose = void Function();
 typedef Onerror = void Function(dynamic e);
+typedef Onevent = void Function(Frame frame);
 typedef Onreconnect = void Function(int tryTimes);
-typedef Online = void Function();
 
 mixin IConnection {
   String get host;
@@ -23,36 +26,44 @@ mixin IConnection {
 
   bool get isActived;
 
+  get isOnline => null;
+
   void close();
 
   void send(Frame frame);
 }
+
 IConnection _currentConnection;
 
 class Connection implements IConnection {
-
   WebSocket _webSocket;
   Timer _timer;
   bool _isDone = false;
   String _url;
-  Onreconnect _onreconnect;
+  bool _isOnline = false;
   Duration _pingInterval;
   Onopen _onopen;
   Onclose _onclose;
-  Onmessage _onmessage;
+  Onevent _onevent;
   Onerror _onerror;
+  Onmessage _onmessage;
+  Onreconnect _onreconnect;
+
   Duration _reconnectDelayed;
   int _conntimes = 0;
 
   @override
   bool get isActived => _webSocket.readyState == WebSocket.open;
 
+  @override
+  get isOnline => _isOnline;
+
   Connection._();
 
   _doReconnect(Timer timer) async {
     if (isActived || _isDone) {
       timer.cancel();
-      timer=null;
+      timer = null;
       return;
     }
     if (_onreconnect != null) {
@@ -61,7 +72,7 @@ class Connection implements IConnection {
     _conntimes++;
     try {
       _webSocket = await WebSocket.connect(_url);
-      if (_isDone||(_timer != null && _timer.isActive)) {
+      if (_isDone || (_timer != null && _timer.isActive)) {
         _timer.cancel();
         _timer = null;
       }
@@ -72,24 +83,26 @@ class Connection implements IConnection {
     }
   }
 
-  Future<void> _init(
+  Future<void> _init({
     String url,
     Duration pingInterval,
     Onopen onopen,
     Onclose onclose,
     Onmessage onmessage,
     Onerror onerror,
+    Onevent onevent,
     Onreconnect onreconnect,
     Duration reconnectDelayed,
-  ) async {
+  }) async {
     _url = url;
     _isDone = false;
-    _onreconnect = onreconnect;
+    _onevent = onevent;
     _pingInterval = pingInterval;
     _onopen = onopen;
     _onclose = onclose;
     _onmessage = onmessage;
     _onerror = onerror;
+    _onreconnect = onreconnect;
     _reconnectDelayed = reconnectDelayed;
 
     try {
@@ -102,7 +115,7 @@ class Connection implements IConnection {
       _afterInit();
     } catch (e) {
       print('连接失败。$e');
-      if (_isDone||(_timer != null && _timer.isActive)) {
+      if (_isDone || (_timer != null && _timer.isActive)) {
         return;
       }
       _timer = Timer.periodic(reconnectDelayed, _doReconnect);
@@ -119,7 +132,33 @@ class Connection implements IConnection {
       (frameRaw) {
         if (_onmessage != null) {
 //          print(utf8.decode(frameRaw));
-          _onmessage(Frame.load(frameRaw));
+          var frame = Frame.load(frameRaw);
+          if ('NET/1.0' == frame.protocol.toUpperCase()) {
+            var status = frame.head("status");
+            if (StringUtil.isEmpty(status)) {
+              status = "200";
+            }
+            var statusInt = double.parse(status).floor();
+            if (statusInt >= 400) {
+              if (_onerror != null) {
+                String message = frame.head("message");
+                _onerror(Exception('$statusInt $message'));
+              }
+              return;
+            }
+            if (_onevent != null) {
+              if ('online' == frame.command) {
+                _isOnline = true;
+              }
+              if ('offline' == frame.command) {
+                _isOnline = false;
+              }
+              _onevent(frame);
+            }
+            return;
+          }
+
+          _onmessage(frame);
         }
       },
       onError: (e) {
@@ -129,9 +168,9 @@ class Connection implements IConnection {
       },
       cancelOnError: false,
       onDone: () async {
-        print(
-            '连接完成状态:${_webSocket.readyState}');
-        if (_webSocket.readyState==WebSocket.closed) {
+        _isOnline = false;
+        print('连接完成状态:${_webSocket.readyState}');
+        if (_webSocket.readyState == WebSocket.closed) {
           if (_onclose != null) {
             _onclose();
           }
@@ -142,7 +181,7 @@ class Connection implements IConnection {
       },
     );
     if (_onopen != null) {
-      _onopen();
+      _onopen(this);
     }
   }
 
@@ -154,16 +193,26 @@ class Connection implements IConnection {
     Onclose onclose,
     Onmessage onmessage,
     Onerror onerror,
+    Onevent onevent,
     Onreconnect onreconnect,
     Duration reconnectDelayed,
   }) async {
-    if(_currentConnection!=null) {
+    if (_currentConnection != null) {
       _currentConnection.close();
     }
     Connection conn = Connection._();
-    await conn._init(url, pingInterval, onopen, onclose, onmessage, onerror,
-        onreconnect, reconnectDelayed);
-    _currentConnection=conn;
+    await conn._init(
+      url: url,
+      onclose: onclose,
+      onerror: onerror,
+      onevent: onevent,
+      onmessage: onmessage,
+      onopen: onopen,
+      onreconnect: onreconnect,
+      pingInterval: pingInterval,
+      reconnectDelayed: reconnectDelayed,
+    );
+    _currentConnection = conn;
     return conn;
   }
 
@@ -188,7 +237,7 @@ class Connection implements IConnection {
   void close() {
     _isDone = true;
     _webSocket.close();
-    _currentConnection=null;
+    _currentConnection = null;
   }
 
   static void _parseUrl(String url, Connection conn) {

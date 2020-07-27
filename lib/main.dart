@@ -8,7 +8,7 @@ import 'package:netos_app/system/task_bar.dart';
 import 'system/local/dao/database.dart';
 import 'system/system.dart';
 
-final _peerStatus = _PeerStatus(
+final _deviceStatus = _DeviceStatus(
   state: _State.closed,
   unreadCount: 0,
   reconnectTrytimes: 0,
@@ -58,8 +58,7 @@ void main() => platformRun(
             '@.prop.ports.uc.app': 'http://47.105.165.186/uc/app/self.service',
             '@.prop.ports.uc.platform':
                 'http://47.105.165.186/uc/platform/self.service',
-            '@.prop.ports.nameserver':
-                'http://47.105.165.186/ns/nameports.service',
+            '@.prop.ports.asc': 'http://47.105.165.186/asc/center.ports',
             '@.prop.fs.delfile': 'http://47.105.165.186:7110/del/file/',
             '@.prop.fs.uploader':
                 'http://47.105.165.186:7110/upload/uploader.service',
@@ -75,35 +74,57 @@ void main() => platformRun(
                 'http://47.105.165.186/document/geo/category.service',
             '@.prop.ports.document.geo.receptor':
                 'http://47.105.165.186/document/geo/receptor.service',
-            '@.prop.ports.wallet':'http://47.105.165.186/wallet/wallet.ports',
-            '@.prop.ports.wallet.balance':'http://47.105.165.186/wallet/balance.ports',
-            '@.prop.ports.wallet.record':'http://47.105.165.186/wallet/record.ports',
-            '@.prop.ports.wallet.trade.receipt':'http://47.105.165.186/wallet/trade/receipt.ports',
-            '@.prop.ports.wallet.bill.stock':'http://47.105.165.186/wallet/bill/stock.ports',
-            '@.prop.ports.wallet.bill.freezen':'http://47.105.165.186/wallet/bill/freezen.ports',
-            '@.prop.ports.wallet.bill.profit':'http://47.105.165.186/wallet/bill/profit.ports',
-            '@.prop.ports.wallet.bill.balance':'http://47.105.165.186/wallet/bill/balance.ports',
-            '@.prop.ports.wallet.bill.onorder':'http://47.105.165.186/wallet/bill/onorder.ports',
-            '@.prop.ports.wallet.bill.absorb':'http://47.105.165.186/wallet/bill/absorb.ports',
-            '@.prop.ports.wybank':'http://47.105.165.186/wybank/bank.ports',
-            '@.prop.ports.wybank.balance':'http://47.105.165.186/wybank/balance.ports',
-            '@.prop.ports.wybank.bill.price':'http://47.105.165.186/wybank/bill/price.ports',
-            '@.prop.ports.wybank.bill.fund':'http://47.105.165.186/wybank/bill/fund.ports',
-            '@.prop.ports.wybank.bill.stock':'http://47.105.165.186/wybank/bill/stock.ports',
-            '@.prop.ports.wybank.bill.freezen':'http://47.105.165.186/wybank/bill/freezen.ports',
-            '@.prop.ports.wybank.bill.free':'http://47.105.165.186/wybank/bill/free.ports',
-            '@.prop.ports.wybank.bill.shunt':'http://47.105.165.186/wybank/bill/shunt.ports',
-            '@.prop.ports.wybank.records':'http://47.105.165.186/wybank/record.ports',
-            '@.prop.ports.org.isp':'http://47.105.165.186/org/isp.ports',
-            '@.prop.ports.org.la':'http://47.105.165.186/org/la.ports',
-            '@.prop.ports.org.licence':'http://47.105.165.186/org/licence.ports',
-            '@.prop.ports.org.workflow':'http://47.105.165.186/org/workflow.ports',
-            '@.prop.org.workflow.isp':'workflow.isp.apply',//isp申请的工作流标识
-            '@.prop.org.workflow.la':'workflow.la.apply',//isp申请的工作流标识
-            '@.prop.ports.org.receivingBank':'http://47.105.165.186/org/receivingBank.ports',
-            '@.prop.ports.robot.hub':'http://47.105.165.186/robot/hub.ports',
-            '@.prop.ports.robot.record':'http://47.105.165.186/robot/record.ports',
-            '@.prop.ports.robot.hubTails':'http://47.105.165.186/robot/bill/hubTails.ports',
+            '@.prop.ports.wallet': 'http://47.105.165.186/wallet/wallet.ports',
+            '@.prop.ports.wallet.balance':
+                'http://47.105.165.186/wallet/balance.ports',
+            '@.prop.ports.wallet.record':
+                'http://47.105.165.186/wallet/record.ports',
+            '@.prop.ports.wallet.trade.receipt':
+                'http://47.105.165.186/wallet/trade/receipt.ports',
+            '@.prop.ports.wallet.bill.stock':
+                'http://47.105.165.186/wallet/bill/stock.ports',
+            '@.prop.ports.wallet.bill.freezen':
+                'http://47.105.165.186/wallet/bill/freezen.ports',
+            '@.prop.ports.wallet.bill.profit':
+                'http://47.105.165.186/wallet/bill/profit.ports',
+            '@.prop.ports.wallet.bill.balance':
+                'http://47.105.165.186/wallet/bill/balance.ports',
+            '@.prop.ports.wallet.bill.onorder':
+                'http://47.105.165.186/wallet/bill/onorder.ports',
+            '@.prop.ports.wallet.bill.absorb':
+                'http://47.105.165.186/wallet/bill/absorb.ports',
+            '@.prop.ports.wybank': 'http://47.105.165.186/wybank/bank.ports',
+            '@.prop.ports.wybank.balance':
+                'http://47.105.165.186/wybank/balance.ports',
+            '@.prop.ports.wybank.bill.price':
+                'http://47.105.165.186/wybank/bill/price.ports',
+            '@.prop.ports.wybank.bill.fund':
+                'http://47.105.165.186/wybank/bill/fund.ports',
+            '@.prop.ports.wybank.bill.stock':
+                'http://47.105.165.186/wybank/bill/stock.ports',
+            '@.prop.ports.wybank.bill.freezen':
+                'http://47.105.165.186/wybank/bill/freezen.ports',
+            '@.prop.ports.wybank.bill.free':
+                'http://47.105.165.186/wybank/bill/free.ports',
+            '@.prop.ports.wybank.bill.shunt':
+                'http://47.105.165.186/wybank/bill/shunt.ports',
+            '@.prop.ports.wybank.records':
+                'http://47.105.165.186/wybank/record.ports',
+            '@.prop.ports.org.isp': 'http://47.105.165.186/org/isp.ports',
+            '@.prop.ports.org.la': 'http://47.105.165.186/org/la.ports',
+            '@.prop.ports.org.licence':
+                'http://47.105.165.186/org/licence.ports',
+            '@.prop.ports.org.workflow':
+                'http://47.105.165.186/org/workflow.ports',
+            '@.prop.org.workflow.isp': 'workflow.isp.apply', //isp申请的工作流标识
+            '@.prop.org.workflow.la': 'workflow.la.apply', //isp申请的工作流标识
+            '@.prop.ports.org.receivingBank':
+                'http://47.105.165.186/org/receivingBank.ports',
+            '@.prop.ports.robot.hub': 'http://47.105.165.186/robot/hub.ports',
+            '@.prop.ports.robot.record':
+                'http://47.105.165.186/robot/record.ports',
+            '@.prop.ports.robot.hubTails':
+                'http://47.105.165.186/robot/bill/hubTails.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
@@ -117,40 +138,46 @@ void main() => platformRun(
           buildPortals: buildPortals,
           localPrincipal: DefaultLocalPrincipal(),
           messageNetwork: 'interactive-center',
-          peerOnmessageCount: (count) {
-            _peerStatus.unreadCount = count;
-            _peerStatus.state = _State.online;
-            if (_peerStatus.refresh != null) {
-              _peerStatus.refresh();
+          deviceOnmessageCount: (count) {
+            _deviceStatus.unreadCount = count;
+            _deviceStatus.state = _State.online;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
             }
           },
-          peerOnopen: () {
-            _peerStatus.state = _State.opened;
-            if (_peerStatus.refresh != null) {
-              _peerStatus.refresh();
+          deviceOnopen: (connection) {
+            _deviceStatus.state = _State.opened;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
             }
           },
-          peerOnclose: () {
-            _peerStatus.state = _State.closed;
-            if (_peerStatus.refresh != null) {
-              _peerStatus.refresh();
+          deviceOnclose: () {
+            _deviceStatus.state = _State.closed;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
             }
           },
-          peerOnline: () {
-            _peerStatus.state = _State.online;
-            if (_peerStatus.refresh != null) {
-              _peerStatus.refresh();
+          deviceOnline: () {
+            _deviceStatus.state = _State.online;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
             }
           },
-          peerOnreconnect: (trytimes) {
-            _peerStatus.state = _State.reconnecting;
-            _peerStatus.reconnectTrytimes = trytimes;
-            if (_peerStatus.refresh != null) {
-              _peerStatus.refresh();
+          deviceOffline: () {
+            _deviceStatus.state = _State.offline;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
+            }
+          },
+          deviceOnreconnect: (trytimes) {
+            _deviceStatus.state = _State.reconnecting;
+            _deviceStatus.reconnectTrytimes = trytimes;
+            if (_deviceStatus.refresh != null) {
+              _deviceStatus.refresh();
             }
           },
 
-          ///以下可装饰窗口区，比如在peer连接状态改变时提醒用户
+          ///以下可装饰窗口区，比如在device连接状态改变时提醒用户
           appDecorator: (ctx, viewport, site) {
             return Window(
               viewport: viewport,
@@ -198,21 +225,22 @@ class _StatusBarState extends State<StatusBar> {
   @override
   void initState() {
     super.initState();
-    _peerStatus.refresh = () {
+    _deviceStatus.refresh = () {
       setState(() {});
     };
   }
 
   @override
   void dispose() {
-    _peerStatus.refresh = null;
+    _deviceStatus.refresh = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     var stateText = '';
-    switch (_peerStatus.state) {
+    switch (_deviceStatus.state) {
+      case _State.offline:
       case _State.opened:
         stateText = '离线';
         break;
@@ -223,7 +251,7 @@ class _StatusBarState extends State<StatusBar> {
         stateText = '未连接';
         break;
       case _State.reconnecting:
-        stateText = '重试${_peerStatus.reconnectTrytimes}次';
+        stateText = '重试${_deviceStatus.reconnectTrytimes}次';
         break;
     }
     return Container(
@@ -245,7 +273,7 @@ class _StatusBarState extends State<StatusBar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                '${_peerStatus.unreadCount}',
+                '${_deviceStatus.unreadCount}',
                 style: TextStyle(
                   fontSize: 7,
                   color: Colors.black54,
@@ -271,18 +299,19 @@ class _StatusBarState extends State<StatusBar> {
 enum _State {
   opened,
   online,
+  offline,
   closed,
   reconnecting,
 }
 
-class _PeerStatus {
+class _DeviceStatus {
   _State state;
   int unreadCount = 0;
 
   int reconnectTrytimes;
   Function() refresh;
 
-  _PeerStatus({
+  _DeviceStatus({
     this.state,
     this.unreadCount,
     this.reconnectTrytimes,

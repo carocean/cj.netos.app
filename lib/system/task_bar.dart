@@ -341,7 +341,6 @@ class _TaskBarState extends State<TaskBar> {
                 parameters: {
                   'channel': frame.parameter('channel'),
                   'docid': frame.parameter('docid'),
-                  'interval': 100,
                 },
               );
               break;

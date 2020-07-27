@@ -638,8 +638,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   @override
   void initState() {
     _listenMeidaFileDownload();
-    if (!widget.context.isListening(matchPath: '/netflow/channel')) {
-      widget.context.listenNetwork((frame) {
+    if (!widget.context.isListeningMessage(matchPath: '/netflow/channel')) {
+      widget.context.listenMessage((frame) {
         switch (frame.command) {
           case 'pushDocument':
             _arrivedPushDocumentCommand(frame).then((message) {
@@ -690,7 +690,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   void dispose() {
     _unlistenMeidaFileDownload();
     _streamSubscription?.cancel();
-    widget.context.unlistenNetwork(matchPath: '/netflow/channel');
+    widget.context.unlistenMessage(matchPath: '/netflow/channel');
     _messages.clear();
     super.dispose();
   }
@@ -701,7 +701,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if (frame.head('sender') == widget.context.principal.person) {
+    if (frame.head('sender-person') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -750,7 +750,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if (frame.head('sender') == widget.context.principal.person) {
+    if (frame.head('sender-person') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -924,7 +924,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if (frame.head('sender') == widget.context.principal.person) {
+    if (frame.head('sender-person') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -989,7 +989,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       print('消息为空，已丢弃。');
       return null;
     }
-    if (frame.head('sender') == widget.context.principal.person) {
+    if (frame.head('sender-person') == widget.context.principal.person) {
       print('自已发送的动态又发还自己，因此丢弃。');
       return null;
     }
@@ -1065,7 +1065,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var message = InsiteMessage(
       Uuid().v1(),
       docMap['id'],
-      frame.head('sender'),
+      frame.head('sender-person'),
       docMap['channel'],
       null,
       null,
@@ -1127,7 +1127,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
             message.upstreamPerson, message.upstreamChannel)
         : false;
 
-    if (frame.head('sender') != widget.context.principal.person &&
+    if (frame.head('sender-person') != widget.context.principal.person &&
         exitsInputPerson) {
       if (!(await personService.existsPerson(message.upstreamPerson))) {
         var person = await personService.fetchPerson(message.upstreamPerson,

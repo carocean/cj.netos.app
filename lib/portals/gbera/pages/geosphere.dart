@@ -93,8 +93,8 @@ class _GeosphereState extends State<Geosphere>
     _checkMobileReceptor();
 
     _listenMeidaFileDownload();
-    if (!widget.context.isListening(matchPath: '/geosphere/receptor')) {
-      widget.context.listenNetwork(
+    if (!widget.context.isListeningMessage(matchPath: '/geosphere/receptor')) {
+      widget.context.listenMessage(
         (frame) {
           switch (frame.command) {
             case 'pushDocument':
@@ -171,7 +171,7 @@ class _GeosphereState extends State<Geosphere>
   @override
   void dispose() {
     widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
-    widget.context.unlistenNetwork(matchPath: '/geosphere/receptor');
+    widget.context.unlistenMessage(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
     _location.stop();
     _receptorStreamController.close();
@@ -286,7 +286,7 @@ class _GeosphereState extends State<Geosphere>
     var receptor = docMap['receptor'];
     var category = docMap['category'];
     var docid = docMap['docid'];
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
 
     if (sender == widget.context.principal.person) {
       print('自已的点赞操作又发给自己，被丢弃。');
@@ -332,7 +332,7 @@ class _GeosphereState extends State<Geosphere>
     var receptor = frame.parameter('receptor');
     var category = frame.parameter('category');
     var docid = frame.parameter('docid');
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
 
     if (sender == widget.context.principal.person) {
       print('自已的点赞操作又发给自己，被丢弃。');
@@ -372,7 +372,7 @@ class _GeosphereState extends State<Geosphere>
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
       _notifyStreamController.add({
         'command': 'likeDocumentCommand',
-        'sender': frame.head('sender'),
+        'sender': frame.head('sender-person'),
         'receptor': receptor,
         'category': category,
         'like': like,
@@ -394,7 +394,7 @@ class _GeosphereState extends State<Geosphere>
     var receptor = frame.parameter('receptor');
     var category = frame.parameter('category');
     var docid = frame.parameter('docid');
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
 
     if (sender == widget.context.principal.person) {
       print('自已的取消赞操作又发给自己，被丢弃。');
@@ -424,7 +424,7 @@ class _GeosphereState extends State<Geosphere>
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
       _notifyStreamController.add({
         'command': 'unlikeDocumentCommand',
-        'sender': frame.head('sender'),
+        'sender': frame.head('sender-person'),
         'receptor': receptor,
         'category': category,
         'message': exists,
@@ -446,7 +446,7 @@ class _GeosphereState extends State<Geosphere>
     var docid = frame.parameter('docid');
     var commentid = frame.parameter('commentid');
     var comments = docMap['comments'];
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
     var toPerson = frame.head('to-person');
 
     if (sender == toPerson) {
@@ -488,7 +488,7 @@ class _GeosphereState extends State<Geosphere>
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
       _notifyStreamController.add({
         'command': 'commentDocumentCommand',
-        'sender': frame.head('sender'),
+        'sender': frame.head('sender-person'),
         'receptor': receptor,
         'category': category,
         'commentid': commentid,
@@ -512,7 +512,7 @@ class _GeosphereState extends State<Geosphere>
     var receptor = frame.parameter('receptor');
     var category = frame.parameter('category');
     var docid = frame.parameter('docid');
-    var sender = frame.head('sender');
+    var sender = frame.head('sender-person');
     var commentid = frame.parameter('commentid');
 
     if (sender == widget.context.principal.person) {
@@ -559,7 +559,7 @@ class _GeosphereState extends State<Geosphere>
       return null;
     }
     var toPerson = frame.head('to-person');
-    if (frame.head("sender") == toPerson) {
+    if (frame.head('sender-person') == toPerson) {
       print('自已的消息又发给自己，被丢弃。');
       return null;
     }
@@ -570,7 +570,7 @@ class _GeosphereState extends State<Geosphere>
         GeosphereMessageOL.from(docMap, widget.context.principal.person);
     message.state = 'arrived';
     message.atime = DateTime.now().millisecondsSinceEpoch;
-    message.upstreamPerson = frame.head("sender");
+    message.upstreamPerson = frame.head('sender-person');
     message.category = frame.parameter('category');
 
     if (message.creator == message.upstreamPerson) {
@@ -613,7 +613,7 @@ class _GeosphereState extends State<Geosphere>
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
       _notifyStreamController.add({
         'command': 'pushDocumentCommand',
-        'sender': frame.head('sender'),
+        'sender': frame.head('sender-person'),
         'receptor': message.receptor,
         'category': message.category,
         'message': message,

@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_connection.dart';
-import 'package:framework/core_lib/_network_container.dart';
+import 'package:framework/core_lib/_device_manager.dart';
+import 'package:framework/core_lib/_frame.dart';
 import 'package:framework/core_lib/_notifications.dart';
-import 'package:framework/core_lib/_peer.dart';
+import 'package:framework/core_lib/_device.dart';
 import 'package:framework/core_lib/_pump.dart';
 import 'package:framework/core_lib/_remote_ports.dart';
 import 'package:uuid/uuid.dart';
@@ -252,7 +253,7 @@ class PageContext {
     return !name.startsWith(url);
   }
 
-  bool isListening({String matchPath}) {
+  bool isListeningMessage({String matchPath}) {
     String path;
     if (!StringUtil.isEmpty(matchPath)) {
       path = matchPath;
@@ -260,11 +261,11 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    var isListening = pump.networkPumpWell?.isListening(principal, path);
+    var isListening = pump.messagePumpWell?.isListening(principal, path);
     return isListening ?? false;
   }
 
-  void listenNetwork(Onmessage onmessage, {String matchPath}) {
+  void listenMessage(Onmessage onmessage, {String matchPath}) {
     String path;
     if (!StringUtil.isEmpty(matchPath)) {
       path = matchPath;
@@ -272,10 +273,10 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    pump.networkPumpWell?.listen(principal, path, onmessage);
+    pump.messagePumpWell?.listen(principal, path, onmessage);
   }
 
-  void unlistenNetwork({String matchPath}) {
+  void unlistenMessage({String matchPath}) {
     String path;
     if (!StringUtil.isEmpty(matchPath)) {
       path = matchPath;
@@ -283,7 +284,7 @@ class PageContext {
       path = getPath(page.url);
     }
     IPump pump = site.getService('@.pump');
-    pump.networkPumpWell?.unlisten(principal, path);
+    pump.messagePumpWell?.unlisten(principal, path);
   }
 
   void listenError(Onerror onerror) {
@@ -291,7 +292,7 @@ class PageContext {
     pump.errorPumpWell?.listen(principal, page.url, onerror);
   }
 
-  void listenNotify(Onmessage onmessage) {
+  void listenEvent(Onmessage onmessage) {
     IPump pump = site.getService('@.pump');
     pump.nofityPumpWell?.listen(principal, page.url, onmessage);
   }
@@ -301,22 +302,8 @@ class PageContext {
     pump.errorPumpWell?.unlisten(principal, page.url);
   }
 
-  void unlistenNotify() {
+  void unlistenEvent() {
     IPump pump = site.getService('@.pump');
     pump.nofityPumpWell?.unlisten(principal, page.url);
-  }
-
-  ILogicNetwork openNetwork(String networkName,
-      {ListenMode listenMode, EndOrientation endOrientation}) {
-    ILogicNetworkContainer container =
-        site.getService('@.logic.network.container');
-    return container.openNetwork(networkName,
-        listenMode: listenMode, endOrientation: endOrientation);
-  }
-
-  void closeNetwork(String networkName, {bool leave}) {
-    ILogicNetworkContainer container =
-        site.getService('@.logic.network.container');
-    container.closeNetwork(networkName, leave: leave);
   }
 }

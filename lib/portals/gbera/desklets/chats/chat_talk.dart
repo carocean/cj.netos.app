@@ -1235,7 +1235,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       case 'image':
         var json = widget.p2pMessage.content;
         Map<String, dynamic> map = jsonDecode(json);
-        var file = map['path'];
+        String file = map['path'];
         return Container(
           padding: EdgeInsets.only(
             top: 5,
@@ -1243,8 +1243,11 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child: Image.file(
+          child:file.startsWith('/')? Image.file(
             File(file),
+            fit: BoxFit.fitWidth,
+          ):Image.network(
+            '$file?accessToken=${widget.context.principal.accessToken}',
             fit: BoxFit.fitWidth,
           ),
         );

@@ -10,7 +10,7 @@ import 'package:framework/core_lib/_principal.dart';
 import 'package:framework/core_lib/_utimate.dart';
 
 mixin IPump {
-  IPumpWell get networkPumpWell;
+  IPumpWell get messagePumpWell;
 
   IPumpWell get errorPumpWell;
 
@@ -263,7 +263,7 @@ class DefaultPump implements IPump {
   IPumpWell get errorPumpWell => _errorPumpWell;
 
   @override
-  IPumpWell get networkPumpWell => _networkPumpWell;
+  IPumpWell get messagePumpWell => _networkPumpWell;
 
   @override
   IPumpWell get nofityPumpWell => _notifyPumpWell;

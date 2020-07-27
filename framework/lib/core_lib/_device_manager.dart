@@ -4,22 +4,27 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:framework/core_lib/_app_surface.dart';
+import 'package:framework/core_lib/_frame.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
-import 'package:uuid/uuid.dart';
-import '_event_queue.dart';
-import '_frame.dart';
-import '_network_container.dart';
-import '_peer.dart';
+
+import '_device.dart';
 import '_principal.dart';
 import '_pump.dart';
 import '_service_containers.dart';
 import '_utimate.dart';
 
-mixin IPeerManager {
+mixin IDeviceManager {
+  IDevice get device;
+
   Future<void> start(ShareServiceContainer site) {}
 }
 
-class DefaultPeerManager implements IPeerManager {
+class DefaultDeviceManager implements IDeviceManager {
+  IDevice _device;
+
+  @override
+  IDevice get device => _device;
+
   _getQueuePath() async {
     var appHomeDir = await path_provider.getApplicationDocumentsDirectory();
     var appHomePath = appHomeDir.path;
@@ -40,12 +45,12 @@ class DefaultPeerManager implements IPeerManager {
   Future<List<dynamic>> _getNameservers(
       ShareServiceContainer site, String accessToken) async {
     Dio dio = site.getService('@.http');
-    var path = site.getService('@.prop.ports.nameserver');
+    var path = site.getService('@.prop.ports.asc');
     var response = await dio.get(
       path,
       options: Options(
         headers: {
-          'Rest-Command': 'workablePortList',
+          'Rest-Command': 'getTerminalAddressList',
           'cjtoken': accessToken,
         },
       ),
@@ -82,78 +87,80 @@ class DefaultPeerManager implements IPeerManager {
     var nameserver = nameservers[
         MD5Util.MD5(principal.person).hashCode % nameservers.length];
     IPump pump = site.getService('@.pump');
-    ILogicNetworkContainer logicNetworkContainer =
-        site.getService('@.logic.network.container');
     AppCreator appCreator = site.getService('@.app.creator');
 
     var queuePath = await _getQueuePath();
     var errorQueuePath = '$queuePath/errorQueuePath.db';
-    var networkQueuePath = '$queuePath/networkQueuePath.db';
+    var messageQueuePath = '$queuePath/messageQueuePath.db';
     var systemQueuePath = '$queuePath/systemQueuePath.db';
 
     await _entryPoint(
       errorQueuePath: errorQueuePath,
-      networkQueuePath: networkQueuePath,
+      messageQueuePath: messageQueuePath,
       systemQueuePath: systemQueuePath,
       accessToken: accessToken,
       nameServer: nameserver,
       pump: pump,
-      logicNetworkContainer: logicNetworkContainer,
       appCreator: appCreator,
     );
   }
 
   Future<void> _entryPoint({
     errorQueuePath,
-    networkQueuePath,
+    messageQueuePath,
     systemQueuePath,
     String accessToken,
     String nameServer,
     IPump pump,
-    ILogicNetworkContainer logicNetworkContainer,
     AppCreator appCreator,
   }) async {
-    await pump.start(networkQueuePath, errorQueuePath, systemQueuePath,
-        appCreator.peerOnmessageCount);
+    await pump.start(messageQueuePath, errorQueuePath, systemQueuePath,
+        appCreator.deviceOnmessageCount);
 
-    IPeer peer = await Peer.connect(
+    _device = await Device.connect(
       nameServer,
       pingInterval: Duration(seconds: 5),
       reconnectDelayed: Duration(seconds: 10),
       onreconnect: (trytimes) {
-        if (appCreator.peerOnreconnect != null)
-          appCreator.peerOnreconnect(trytimes);
+        if (appCreator.deviceOnreconnect != null)
+          appCreator.deviceOnreconnect(trytimes);
       },
-      onopen: () async {
+      onopen: (connection) async {
+        // 等同于   _device.on(accessToken);
+        var frame = Frame("login / NET/1.0");
+        frame.setHead('accessToken', accessToken);
+        connection.send(frame);
+
         pump.errorPumpWell.addTask({});
-        pump.networkPumpWell.addTask({});
+        pump.messagePumpWell.addTask({});
         pump.nofityPumpWell.addTask({});
-        if (appCreator.peerOnopen != null) {
-          appCreator.peerOnopen();
+        if (appCreator.deviceOnopen != null) {
+          appCreator.deviceOnopen(connection);
         }
       },
       onclose: () {
-        if (appCreator.peerOnclose != null) appCreator.peerOnclose();
+        if (appCreator.deviceOnclose != null) appCreator.deviceOnclose();
       },
       onerror: (frame) {
         pump.errorPumpWell.addFrame(frame);
       },
-      onmessage: (frame) {
+      onevent: (frame) {
         pump.nofityPumpWell.addFrame(frame);
         if ('online' == frame.command) {
-          if (appCreator.peerOnline != null) {
-            appCreator.peerOnline();
+          if (appCreator.deviceOnline != null) {
+            appCreator.deviceOnline();
+          }
+        }
+        if ('offline' == frame.command) {
+          if (appCreator.deviceOffline != null) {
+            appCreator.deviceOffline();
           }
         }
       },
+      onmessage: (frame) {
+        pump.messagePumpWell.addFrame(frame);
+      },
     );
-    peer.authByAccessToken(accessToken);
-    var network = peer.listen(appCreator.messageNetwork,
-        EndOrientation.frontend, ListenMode.downstream);
-    network.onmessage((frame) async {
-      pump.networkPumpWell.addFrame(frame);
-    });
-    logicNetworkContainer.peer = peer;
-    logicNetworkContainer.addNetwork(network);
+
   }
 }

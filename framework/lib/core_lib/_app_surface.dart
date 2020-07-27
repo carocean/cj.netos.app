@@ -5,16 +5,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_connection.dart';
 import 'package:framework/core_lib/_desklet.dart';
-import 'package:framework/core_lib/_network_container.dart';
 import 'package:framework/core_lib/_pump.dart';
 import 'package:framework/core_lib/_scene.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_theme.dart';
 
 import '_app_keypair.dart';
+import '_device.dart';
 import '_exceptions.dart';
 import '_page.dart';
-import '_peer_manager.dart';
+import '_device_manager.dart';
 import '_portal.dart';
 import '_principal.dart';
 import '_remote_ports.dart';
@@ -70,13 +70,15 @@ class AppCreator {
   final AppKeyPair appKeyPair;
   final ILocalPrincipal localPrincipal;
   final AppDecorator appDecorator;
-  final Onreconnect peerOnreconnect;
-  final Onopen peerOnopen;
-  final Onclose peerOnclose;
-  final Online peerOnline;
+  final Onreconnect deviceOnreconnect;
+  final Onopen deviceOnopen;
+  final Onclose deviceOnclose;
+  final Onevent deviceOnevent;
+  final Online deviceOnline;
+  final Offline deviceOffline;
   final String messageNetwork;
 
-  final OnMessageCount peerOnmessageCount;
+  final OnMessageCount deviceOnmessageCount;
 
   AppCreator({
     this.title,
@@ -91,11 +93,13 @@ class AppCreator {
     this.buildServices,
     this.appKeyPair,
     this.localPrincipal,
-    this.peerOnreconnect,
-    this.peerOnclose,
-    this.peerOnopen,
-    this.peerOnline,
-    this.peerOnmessageCount,
+    this.deviceOnreconnect,
+    this.deviceOnclose,
+    this.deviceOnopen,
+    this.deviceOnevent,
+    this.deviceOnline,
+    this.deviceOffline,
+    this.deviceOnmessageCount,
   });
 }
 
@@ -226,9 +230,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
 
     _fillDevice(creator.appKeyPair);
 
-    ILogicNetworkContainer _logicNetworkContainer =
-        DefaultLogicNetworkContainer();
-    IPeerManager _peerManager = DefaultPeerManager();
+    IDeviceManager _deviceManager = DefaultDeviceManager();
     IPump _pump = DefaultPump();
 
     _shareServiceContainer.addServices(<String, dynamic>{
@@ -236,9 +238,8 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
       '@.principal': principal,
       '@.appKeyPair': creator.appKeyPair,
       '@.http': _dio,
-      '@.peer.manager': _peerManager,
+      '@.device.manager': _deviceManager,
       '@.pump': _pump,
-      '@.logic.network.container': _logicNetworkContainer,
       '@.app.creator': creator,
       '@.remote.ports': DefaultRemotePorts(_shareServiceContainer, _dio),
     });

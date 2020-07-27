@@ -13,6 +13,6 @@ export 'core_lib/_theme.dart';
 export 'core_lib/_system.dart';
 export 'core_lib/_exceptions.dart';
 export 'core_lib/_app_keypair.dart';
-export 'core_lib/_peer_manager.dart';
+export 'core_lib/_device_manager.dart';
 export 'core_lib/_frame.dart';
 export 'core_lib/_remote_ports.dart';
