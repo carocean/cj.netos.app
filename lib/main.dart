@@ -125,6 +125,7 @@ void main() => platformRun(
                 'http://47.105.165.186/robot/record.ports',
             '@.prop.ports.robot.hubTails':
                 'http://47.105.165.186/robot/bill/hubTails.ports',
+            '@.prop.ports.chasechain.recommender':'http://47.105.165.186/chasechain.recommender/recommender.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase

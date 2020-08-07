@@ -37,7 +37,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
-import 'package:netos_app/portals/gbera/pages/golink.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
@@ -140,6 +140,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Profit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_stock.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
+import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -225,6 +226,7 @@ class GberaPortal {
           '/remote/org/licence': LicenceRemote(),
           '/remote/org/receivingBank': ReceivingBankRemote(),
           '/remote/org/workflow': WorkflowRemote(),
+          '/remote/chasechain/recommender': ChasechainRecommenderRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -1094,8 +1096,8 @@ class GberaPortal {
           title: '追链',
           subtitle: '',
           icon: GalleryIcons.shrine,
-          url: '/golink',
-          buildPage: (PageContext pageContext) => Golink(
+          url: '/chasechain',
+          buildPage: (PageContext pageContext) => Chasechain(
             context: pageContext,
           ),
         ),

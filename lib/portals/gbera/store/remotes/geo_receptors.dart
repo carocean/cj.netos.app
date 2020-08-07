@@ -34,6 +34,8 @@ mixin IGeoReceptorRemote {
 
   Future<void> removeMessage(String category, String receptor, String msgid);
 
+  Future<GeosphereMessageOR> getMessage(String category,String msgid);
+
   Future<void> like(String category, String receptor, String msgid) {}
 
   Future<void> unlike(String category, String receptor, String msgid) {}
@@ -246,6 +248,40 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       callbackUrl:
           '/geosphere/receptor/docs/removeMessage?category=$category&receptor=$receptor&msgid=$msgid',
     );
+  }
+
+  @override
+  Future<GeosphereMessageOR> getMessage(
+      String category,  String msgid) async{
+      var obj=await remotePorts.portGET(
+        _receptorPortsUrl,
+        'getGeoDocument',
+        parameters: {
+          'category': category,
+          'docid': msgid,
+        },
+      );
+      if(obj==null) {
+        return null;
+      }
+      return GeosphereMessageOR(
+        creator: obj['creator'],
+        ctime: obj['ctime'],
+        id: obj['id'],
+        location:LatLng.fromJson(obj['location']),
+        state: obj['state'],
+        text: obj['text'],
+        category: obj['category'],
+        dtime: obj['dtime'],
+        atime: obj['atime'],
+        receptor: obj['receptor'],
+        rtime: obj['rtime'],
+        sourceApp: obj['sourceApp'],
+        sourceSite: obj['sourceSite'],
+        upstreamChannel: obj['upstreamChannel'],
+        upstreamPerson: obj['upstreamPerson'],
+        wy: obj['wy'],
+      );
   }
 
   @override
