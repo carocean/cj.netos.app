@@ -395,26 +395,12 @@ class RecommenderMediaWidget extends StatelessWidget {
   }
 
   _openGalleryWatcher(BuildContext context, int index) {
-//    pageContext.forward(
-//      '/images/viewer',
-//      arguments: {
-//        'media': medias[index],
-//        'others': medias,
-//        'autoPlay': true,
-//      },
-//    );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MediaWatcher(
-          thumbGalleryItems: RecommenderMediaOR.toMediaSrcList(medias),
-          backgroundDecoration: const BoxDecoration(
-            color: Colors.black,
-          ),
-          initialIndex: index,
-          scrollDirection: Axis.horizontal,
-        ),
-      ),
+    pageContext.forward(
+      '/images/viewer',
+      arguments: {
+        'medias': RecommenderMediaOR.toMediaSrcList(medias),
+        'index': index,
+      },
     );
   }
 

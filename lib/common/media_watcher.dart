@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -12,25 +13,10 @@ import 'my_photo_view_gallery.dart';
 
 class MediaWatcher extends StatefulWidget {
   MediaWatcher({
-    this.loadingBuilder,
-    this.backgroundDecoration,
-    this.minScale,
-    this.maxScale,
-    this.initialIndex,
-    @required this.thumbGalleryItems,
-    this.originGalleryItems,
-    this.scrollDirection = Axis.horizontal,
-  }) : pageController = PageController(initialPage: initialIndex);
+    this.pageContext,
+  });
 
-  final LoadingBuilder loadingBuilder;
-  final Decoration backgroundDecoration;
-  final dynamic minScale;
-  final dynamic maxScale;
-  final int initialIndex;
-  final PageController pageController;
-  final List<MediaSrc> thumbGalleryItems;
-  final List<MediaSrc> originGalleryItems;
-  final Axis scrollDirection;
+  final PageContext pageContext;
 
   @override
   State<StatefulWidget> createState() {
@@ -40,11 +26,33 @@ class MediaWatcher extends StatefulWidget {
 
 class _MediaWatcherState extends State<MediaWatcher> {
   int currentIndex;
+  PageController _pageController;
+  List<MediaSrc> _thumbGalleryItems;
+  Decoration _backgroundDecoration;
+  int _initialIndex;
+  Axis _scrollDirection;
 
   @override
   void initState() {
-    currentIndex = widget.initialIndex;
+    var _content = widget.pageContext;
+    _thumbGalleryItems = _content.parameters['medias'];
+    _backgroundDecoration = _content.parameters['backgroundDecoration'];
+    if (_backgroundDecoration == null) {
+      _backgroundDecoration = const BoxDecoration(
+        color: Colors.black,
+      );
+    }
+    _scrollDirection = Axis.horizontal;
+    _initialIndex = _content.parameters['index'] ?? 0;
+    currentIndex = _initialIndex;
+    _pageController = PageController(initialPage: _initialIndex);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
   }
 
   void onPageChanged(int index) {
@@ -57,7 +65,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: widget.backgroundDecoration,
+        decoration: _backgroundDecoration,
         constraints: BoxConstraints.expand(
           height: MediaQuery.of(context).size.height,
         ),
@@ -67,21 +75,18 @@ class _MediaWatcherState extends State<MediaWatcher> {
             MyPhotoViewGallery.builder(
               scrollPhysics: const BouncingScrollPhysics(),
               builder: _buildItem,
-              itemCount: widget.thumbGalleryItems.length,
-              loadingBuilder: widget.loadingBuilder,
-              backgroundDecoration: widget.backgroundDecoration,
-              pageController: widget.pageController,
+              itemCount: _thumbGalleryItems.length,
+              backgroundDecoration: _backgroundDecoration,
+              pageController: _pageController,
               onPageChanged: onPageChanged,
-              scrollDirection: widget.scrollDirection,
+              scrollDirection: _scrollDirection,
             ),
             Positioned(
               bottom: 20,
               right: 20,
               child: Container(
                 child: Text(
-                  "${currentIndex + 1}" +
-                      "/" +
-                      "${widget.thumbGalleryItems.length}",
+                  "${currentIndex + 1}" + "/" + "${_thumbGalleryItems.length}",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 17.0,
@@ -112,12 +117,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
 
   MyPhotoViewGalleryPageOptions _buildItem(BuildContext context, int index) {
     MediaSrc media;
-    if (null == widget.originGalleryItems ||
-        widget.originGalleryItems.length == 0) {
-      media = widget.thumbGalleryItems[index];
-    } else {
-      media = widget.originGalleryItems[index];
-    }
+    media = _thumbGalleryItems[index];
     var item = media.src;
     switch (media.type) {
       case 'image':
@@ -265,7 +265,7 @@ class __VideoWatcherState extends State<_VideoWatcher> {
                 child: Container(
                   width: double.infinity,
                   height: double.infinity,
-                  color: Colors.grey,
+                  color: Colors.black,
                   child: Center(
                     child: AspectRatio(
                       aspectRatio: controller.value.aspectRatio,

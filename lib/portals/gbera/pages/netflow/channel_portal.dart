@@ -472,13 +472,12 @@ class __MessageCardState extends State<_MessageCard> {
                         length: snapshot.data.length,
                         child: PageSelector(
                           medias: snapshot.data,
-                          onMediaLongTap: (media) {
+                          onMediaLongTap: (media,index) {
                             widget.context.forward(
                               '/images/viewer',
                               arguments: {
-                                'media': media,
-                                'others': snapshot.data,
-                                'autoPlay': true,
+                                'medias': snapshot.data,
+                                'index': index,
                               },
                             );
                           },

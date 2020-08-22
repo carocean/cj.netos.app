@@ -4,8 +4,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
+import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desktop_settings.dart';
@@ -37,7 +39,6 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
-import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
@@ -104,7 +105,6 @@ import 'package:netos_app/portals/gbera/pages/users/edit_password.dart';
 import 'package:netos_app/portals/gbera/pages/users/roles.dart';
 import 'package:netos_app/portals/gbera/pages/users/user_list.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/channel_viewer.dart';
-import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/view_licence.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
@@ -1055,8 +1055,8 @@ class GberaPortal {
                   site: site,
                   context: context,
                 );
-                return new ImageViewer(
-                  context: pageContext,
+                return MediaWatcher(
+                  pageContext: pageContext,
                 );
               },
               fullscreenDialog: true,

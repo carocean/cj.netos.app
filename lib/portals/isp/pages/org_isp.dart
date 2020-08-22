@@ -21,6 +21,7 @@ class OrgISPPage extends StatefulWidget {
 class _OrgISPPageState extends State<OrgISPPage> {
   OrgISPOL _orgISPOL;
   OrgLicenceOL _orgLicenceOL;
+
   @override
   void initState() {
     _orgISPOL = widget.context.parameters['isp'];
@@ -34,8 +35,9 @@ class _OrgISPPageState extends State<OrgISPPage> {
   }
 
   Future<void> _onload() async {
-    ILicenceRemote licenceRemote = widget.context.site.getService('/org/licence');
-    _orgLicenceOL=await licenceRemote.getLicence(_orgISPOL.id, 2);
+    ILicenceRemote licenceRemote =
+        widget.context.site.getService('/org/licence');
+    _orgLicenceOL = await licenceRemote.getLicence(_orgISPOL.id, 2);
   }
 
   @override
@@ -136,7 +138,7 @@ class _OrgISPPageState extends State<OrgISPPage> {
                     paddingLeft: 20,
                     paddingRight: 20,
                     tipsText:
-                    '${intl.DateFormat('yyyy年MM月dd日').format(parseStrTime(_orgISPOL.ctime, len: 17))}',
+                        '${intl.DateFormat('yyyy年MM月dd日').format(parseStrTime(_orgISPOL.ctime, len: 17))}',
                     tail: SizedBox(
                       width: 0,
                       height: 0,
@@ -155,9 +157,9 @@ class _OrgISPPageState extends State<OrgISPPage> {
                       height: 30,
                       child: FadeInImage.assetNetwork(
                         placeholder:
-                        'lib/portals/gbera/images/default_watting.gif',
+                            'lib/portals/gbera/images/default_watting.gif',
                         image:
-                        '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
+                            '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
                       ),
                     ),
                     onItemTap: () {
@@ -165,13 +167,13 @@ class _OrgISPPageState extends State<OrgISPPage> {
                         '/images/viewer',
                         scene: 'gbera',
                         arguments: {
-                          'media': MediaSrc(
+                          'medias': MediaSrc(
                             text: '认证材料',
                             type: 'image',
                             src:
-                            '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
+                                '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
                           ),
-                          'others': <MediaSrc>[],
+                          'index': 0,
                         },
                       );
                     },
@@ -184,7 +186,9 @@ class _OrgISPPageState extends State<OrgISPPage> {
               ),
             ),
           ),
-          SizedBox(height: 10,),
+          SizedBox(
+            height: 10,
+          ),
           Container(
             color: Colors.white,
             child: SingleChildScrollView(

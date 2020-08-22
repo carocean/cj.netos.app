@@ -2261,12 +2261,12 @@ class _GoupCardState extends State<_GoupCard> {
                     medias: medias,
                     height: 150,
                     context: widget.context,
-                    onMediaLongTap: (media) {
+                    onMediaLongTap: (media,index) {
                       widget.context.forward(
                         '/images/viewer',
                         arguments: {
-                          'media': media,
-                          'others': medias,
+                          'medias': medias,
+                          'index': index,
                         },
                       );
                     },

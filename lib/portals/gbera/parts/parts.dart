@@ -107,7 +107,7 @@ class _CardStoreState extends State<CardStore> {
 class PageSelector extends StatefulWidget {
   PageContext context;
   List<MediaSrc> medias;
-  Function(MediaSrc media) onMediaLongTap;
+  Function(MediaSrc media,int index) onMediaLongTap;
   Function(MediaSrc media) onMediaTap;
   BoxFit boxFit;
   double height;
@@ -151,6 +151,7 @@ class _PageSelectorState extends State<PageSelector> {
         width: 0,
       );
     }
+    var index = 0;
     return Stack(
       children: <Widget>[
         ConstrainedBox(
@@ -195,11 +196,11 @@ class _PageSelectorState extends State<PageSelector> {
                 );
               }
 
-              return GestureDetector(
+              var child = GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onLongPress: () {
                   if (widget.onMediaLongTap != null && media.type != 'audio') {
-                    widget.onMediaLongTap(media);
+                    widget.onMediaLongTap(media, index);
                   }
                 },
                 onTap: () {
@@ -221,6 +222,9 @@ class _PageSelectorState extends State<PageSelector> {
                   child: mediaRender,
                 ),
               );
+
+              index++;
+              return child;
             }).toList(),
           ),
         ),
@@ -306,7 +310,7 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
   void initState() {
     _player = AudioPlayer();
     _player.setFilePath(widget.audioFile).then((v) {
-      if(mounted) {
+      if (mounted) {
         setState(() {});
       }
     });

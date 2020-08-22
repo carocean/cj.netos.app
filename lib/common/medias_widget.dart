@@ -14,6 +14,8 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:uuid/uuid.dart';
 
+import 'media_watcher.dart';
+
 class MediaWidget extends StatelessWidget {
   const MediaWidget(
     this.medias,
@@ -400,9 +402,8 @@ class MediaWidget extends StatelessWidget {
     pageContext.forward(
       '/images/viewer',
       arguments: {
-        'media': medias[index],
-        'others': medias,
-        'autoPlay': true,
+        'medias': medias,
+        'index': index,
       },
     );
   }

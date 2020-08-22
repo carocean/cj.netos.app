@@ -491,12 +491,12 @@ class __PlatformNewsDayState extends State<_PlatformNewsDay> {
                           length: news.images.length,
                           child: PageSelector(
                             medias: news.images,
-                            onMediaLongTap: (media) {
+                            onMediaLongTap: (media,index) {
                               widget.context.forward(
                                 '/images/viewer',
                                 arguments: {
-                                  'media': media,
-                                  'others': news.images,
+                                  'medias': news.images,
+                                  'index': index,
                                 },
                               );
                             },

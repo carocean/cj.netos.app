@@ -623,13 +623,12 @@ class __MessageCardState extends State<_MessageCard> {
                         child: PageSelector(
                           context: widget.context,
                           medias: snapshot.data,
-                          onMediaLongTap: (media) {
+                          onMediaLongTap: (media,index) {
                             widget.context.forward(
                               '/images/viewer',
                               arguments: {
-                                'media': media,
-                                'others': snapshot.data,
-                                'autoPlay': true,
+                                'medias': snapshot.data,
+                                'index': index,
                               },
                             );
                           },

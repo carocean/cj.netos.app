@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
+import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -317,8 +318,8 @@ var buildPortal = (IServiceProvider site) => Portal(
                   site: site,
                   context: context,
                 );
-                return new ImageViewer(
-                  context: pageContext,
+                return MediaWatcher(
+                  pageContext: pageContext,
                 );
               },
               fullscreenDialog: true,
