@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
@@ -13,7 +14,9 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
 
   get _linkNetflowPortsUrl => site.getService('@.prop.ports.link.netflow');
+
   get _flowChannelPortsUrl => site.getService('@.prop.ports.flow.channel');
+
   get _channelPortsUrl =>
       site.getService('@.prop.ports.document.network.channel');
 
@@ -31,7 +34,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       @required String leading,
       @required String outPersonSelector,
       @required bool outGeoSelector}) async {
-    await remotePorts.portGET(_linkNetflowPortsUrl, 'createChannel', parameters: {
+    await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'createChannel', parameters: {
       'channel': channel,
       'title': title,
       'leading': leading,
@@ -147,8 +151,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<List<Channel>> pageChannel({int limit = 20, int offset = 0}) async {
-    var list =
-        await remotePorts.portGET(_linkNetflowPortsUrl, 'pageChannel', parameters: {
+    var list = await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'pageChannel', parameters: {
       'limit': '$limit',
       'offset': '$offset',
     });
@@ -170,7 +174,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<Function> removeChannel(String channel) async {
-    await remotePorts.portGET(_linkNetflowPortsUrl, 'removeChannel', parameters: {
+    await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'removeChannel', parameters: {
       'channel': channel,
     });
   }
@@ -276,7 +281,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         'docid': msgid,
         'channel': channel,
         'creator': creator,
-        'interval':10,
+        'interval': 10,
       },
     );
     return null;
@@ -301,7 +306,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         'docid': msgid,
         'channel': channel,
         'creator': creator,
-        'interval':10,
+        'interval': 10,
       },
     );
   }
@@ -328,7 +333,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         'channel': channel,
         'creator': creator,
         'commentid': commentid,
-        'interval':10,
+        'interval': 10,
       },
     );
   }
@@ -357,29 +362,34 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         'creator': creator,
         'commentid': commentid,
         'comments': text,
-        'interval':10,
+        'interval': 10,
       },
     );
   }
 
   @override
-  Future<Function> setCurrentActivityTask({String creator,String docid,String channel,String action,String attach}) async {
+  Future<Function> setCurrentActivityTask(
+      {String creator,
+      String docid,
+      String channel,
+      String action,
+      String attach}) async {
     await remotePorts.portGET(
       _channelPortsUrl,
       'addExtraActivity',
       parameters: {
-        'creator':creator,
+        'creator': creator,
         'docid': docid,
         'channel': channel,
-        'action':action??'',
-        'attach':attach??'',
+        'action': action ?? '',
+        'attach': attach ?? '',
       },
     );
   }
 
   @override
   void listenLikeTaskCallback(Function callback) {
-    if(remotePorts.portTask.hasListener('/network/channel/extra/likes')){
+    if (remotePorts.portTask.hasListener('/network/channel/extra/likes')) {
       return;
     }
     remotePorts.portTask.listener('/network/channel/extra/likes', (frame) {
@@ -398,8 +408,8 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> pageLikeTask(
-      String docCreator,String docid,String channel, int limit, int offset) async {
+  Future<void> pageLikeTask(String docCreator, String docid, String channel,
+      int limit, int offset) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'pageExtraLike',
@@ -416,7 +426,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenCommentTaskCallback(Function callback) {
-    if(remotePorts.portTask.hasListener('/network/channel/extra/comments')){
+    if (remotePorts.portTask.hasListener('/network/channel/extra/comments')) {
       return;
     }
     remotePorts.portTask.listener('/network/channel/extra/comments', (frame) {
@@ -435,15 +445,15 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> pageCommentTask(
-      String docCreator,String docid,String channel, int limit, int offset) async {
+  Future<void> pageCommentTask(String docCreator, String docid, String channel,
+      int limit, int offset) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'pageExtraComment',
       parameters: {
         'creator': docCreator,
         'docid': docid,
-        'channel':channel,
+        'channel': channel,
         'limit': limit,
         'offset': offset,
       },
@@ -453,7 +463,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenMediaTaskCallback(Function callback) {
-    if(remotePorts.portTask.hasListener('/network/channel/extra/medias')){
+    if (remotePorts.portTask.hasListener('/network/channel/extra/medias')) {
       return;
     }
     remotePorts.portTask.listener('/network/channel/extra/medias', (frame) {
@@ -472,12 +482,13 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> listMediaTask(String docCreator,String docid,String channel) async {
+  Future<void> listMediaTask(
+      String docCreator, String docid, String channel) async {
     remotePorts.portTask.addPortGETTask(
       _channelPortsUrl,
       'listExtraMedia',
       parameters: {
-        'creator':docCreator,
+        'creator': docCreator,
         'docid': docid,
         'channel': channel,
       },
@@ -487,7 +498,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   void listenActivityTaskCallback(Function callback) {
-    if(remotePorts.portTask.hasListener('/network/channel/extra/activities')){
+    if (remotePorts.portTask.hasListener('/network/channel/extra/activities')) {
       return;
     }
     remotePorts.portTask.listener('/network/channel/extra/activities', (frame) {
@@ -517,5 +528,60 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       },
       callbackUrl: '/network/channel/extra/activities',
     );
+  }
+
+  @override
+  Future<ChannelMessageOR> getMessage(String person, String docid) async {
+    var obj = await remotePorts.portGET(
+      _channelPortsUrl,
+      'getDocument',
+      parameters: {
+        'creator': person,
+        'docid': docid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return ChannelMessageOR(
+      wy: obj['wy'],
+      location:
+          obj['location'] == null ? null : LatLng.fromJson(obj['location']),
+      id: obj['id'],
+      ctime: obj['ctime'],
+      creator: obj['creator'],
+      channel: obj['channel'],
+      content: obj['content'],
+    );
+  }
+
+  @override
+  Future<List<ChannelMediaOR>> listExtraMedia(
+      String docid, String creator, String channel) async {
+    var list = await remotePorts.portGET(
+      _channelPortsUrl,
+      'listExtraMedia',
+      parameters: {
+        'creator': creator,
+        'docid': docid,
+        'channel': channel,
+      },
+    );
+    var items = <ChannelMediaOR>[];
+    for (var obj in list) {
+      items.add(
+        ChannelMediaOR(
+          type: obj['type'],
+          channel: obj['channel'],
+          id: obj['id'],
+          ctime: obj['ctime'],
+          text: obj['text'],
+          src: obj['src'],
+          docid: obj['docid'],
+          leading: obj['leading'],
+        ),
+      );
+    }
+    return items;
   }
 }

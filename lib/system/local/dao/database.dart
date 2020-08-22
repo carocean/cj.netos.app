@@ -36,8 +36,13 @@ part 'database.g.dart';
   GeosphereLikePersonOL,
   GeosphereCommentOL,
   GeosphereMediaOL,
+  ContentItemOL,
+  RecommenderMessageOL,
+  RecommenderMediaOL,
 ])
 abstract class AppDatabase extends FloorDatabase {
+  IRecommenderDAO get chasechainDAO;
+
   IGeosphereMessageDAO get geosphereMessageDAO;
 
   IGeosphereLikePersonDAO get geosphereLikePersonDAO;

@@ -45,6 +45,7 @@ dependencies:
   image_crop: ^0.3.2
   webview_flutter: ^0.3.18+1
   video_player: ^0.10.5
+  awsome_video_player: ^1.0.8+1
   flutter_k_chart:
     path: flutter_k_chart
 #  k_chart: ^0.1.1
@@ -81,6 +82,7 @@ dependencies:
   image_gallery_saver: ^1.2.2
   city_pickers: ^0.1.30
   flutter_cupertino_date_picker: ^1.0.26+2
+  toast: ^0.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,4 +1,5 @@
 import 'package:floor/floor.dart';
+import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 
 import '../entities.dart';
 
@@ -504,11 +505,13 @@ abstract class IChatRoomDAO {
 
   @Query(
       'UPDATE ChatRoom SET p2pBackground = :p2pBackground WHERE id = :room and sandbox=:sandbox')
-  Future<void> updateRoomBackground(p2pBackground, String room, String sandbox) {}
+  Future<void> updateRoomBackground(
+      p2pBackground, String room, String sandbox) {}
+
   @Query(
       'UPDATE ChatRoom SET isForegoundWhite = :isForegoundWhite WHERE id = :room and sandbox=:sandbox')
-  Future<void>  updateRoomForeground(String isForegoundWhite, String room, String sandbox) {}
-
+  Future<void> updateRoomForeground(
+      String isForegoundWhite, String room, String sandbox) {}
 }
 
 @dao
@@ -787,4 +790,49 @@ abstract class IGeosphereMediaDAO {
   @Query(
       'delete FROM GeosphereMediaOL where receptor=:receptor and msgid=:msgid and sandbox=:sandbox')
   Future<void> empty(String receptor, String msgid, String sandbox) {}
+}
+
+@dao
+abstract class IRecommenderDAO {
+  @insert
+  Future<void> addContentItem(ContentItemOL itemOL) {}
+
+  @Query(
+      'SELECT *  FROM ContentItemOL where sandbox=:sandbox ORDER BY atime DESC LIMIT :pageSize OFFSET  :currPage')
+  Future<List<ContentItemOL>> pageContentItem(
+      String sandbox, int pageSize, int currPage) {}
+
+  @Query('delete FROM ContentItemOL where sandbox=:sandbox')
+  Future<void> emptyContentItem(String sandbox) {}
+
+  @Query(
+      'SELECT count(*) as value  FROM ContentItemOL where id=:item and sandbox=:sandbox')
+  Future<CountValue> countContentItem(String item, String sandbox) {}
+
+  @Query(
+      'SELECT count(*) as value  FROM RecommenderMessageOL where item=:item and sandbox=:sandbox')
+  Future<CountValue> countMessage(String item, String sandbox) {}
+
+  @Query(
+      'SELECT *  FROM RecommenderMessageOL where item=:item and sandbox=:sandbox LIMIT 1')
+  Future<RecommenderMessageOL> getMessageByContentItem(
+      String item, String sandbox) {}
+
+  @Query(
+      'SELECT *  FROM RecommenderMediaOL where docid=:docid and sandbox=:sandbox')
+  Future<List<RecommenderMediaOL>> listMedia(String docid, String sandbox) {}
+
+  @insert
+  Future<void> addMessage(RecommenderMessageOL message) {}
+
+  @insert
+  Future<void> addMedia(RecommenderMediaOL m) {}
+
+  @Query(
+      'SELECT *  FROM RecommenderMediaOL where id=:id and sandbox=:sandbox LIMIT 1')
+  Future<RecommenderMediaOL> getMedia(String id, String sandbox) {}
+
+  @Query(
+      'UPDATE RecommenderMediaOL SET src = :src WHERE sandbox=:sandbox and id=:id')
+  Future<void> updateMediaSrc(String src, String sandbox, String id) {}
 }

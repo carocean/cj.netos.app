@@ -7,6 +7,7 @@ import 'package:framework/core_lib/_remote_ports.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -15,6 +16,37 @@ import 'package:uuid/uuid.dart';
 
 import '../gbera_entities.dart';
 import '../services.dart';
+
+class GeosphereMediaOR {
+  final String id;
+  final String type;
+  final String src;
+  final String leading;
+  final String msgid;
+  final String text;
+  final String receptor;
+
+  GeosphereMediaOR(
+      {this.id,
+      this.type,
+      this.src,
+      this.leading,
+      this.msgid,
+      this.text,
+      this.receptor});
+
+  MediaSrc toMedia() {
+    return MediaSrc(
+      leading: leading,
+      id: id,
+      type: type,
+      text: text,
+      msgid: msgid,
+      sourceType: 'geosphere',
+      src: src,
+    );
+  }
+}
 
 mixin IGeoReceptorRemote {
   Future<void> addReceptor(GeoReceptor receptor);
@@ -34,7 +66,7 @@ mixin IGeoReceptorRemote {
 
   Future<void> removeMessage(String category, String receptor, String msgid);
 
-  Future<GeosphereMessageOR> getMessage(String category,String msgid);
+  Future<GeosphereMessageOR> getMessage(String category, String msgid);
 
   Future<void> like(String category, String receptor, String msgid) {}
 
@@ -84,6 +116,8 @@ mixin IGeoReceptorRemote {
   Future<int> countReceptorFans(String category, String id) {}
 
   Future<void> updateLocation(String category, String receptor, String json) {}
+
+  Future<List<GeosphereMediaOR>> listExtraMedia(String type, String id) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -251,37 +285,36 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<GeosphereMessageOR> getMessage(
-      String category,  String msgid) async{
-      var obj=await remotePorts.portGET(
-        _receptorPortsUrl,
-        'getGeoDocument',
-        parameters: {
-          'category': category,
-          'docid': msgid,
-        },
-      );
-      if(obj==null) {
-        return null;
-      }
-      return GeosphereMessageOR(
-        creator: obj['creator'],
-        ctime: obj['ctime'],
-        id: obj['id'],
-        location:LatLng.fromJson(obj['location']),
-        state: obj['state'],
-        text: obj['text'],
-        category: obj['category'],
-        dtime: obj['dtime'],
-        atime: obj['atime'],
-        receptor: obj['receptor'],
-        rtime: obj['rtime'],
-        sourceApp: obj['sourceApp'],
-        sourceSite: obj['sourceSite'],
-        upstreamChannel: obj['upstreamChannel'],
-        upstreamPerson: obj['upstreamPerson'],
-        wy: obj['wy'],
-      );
+  Future<GeosphereMessageOR> getMessage(String category, String msgid) async {
+    var obj = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'getGeoDocument',
+      parameters: {
+        'category': category,
+        'docid': msgid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return GeosphereMessageOR(
+      creator: obj['creator'],
+      ctime: obj['ctime'],
+      id: obj['id'],
+      location: LatLng.fromJson(obj['location']),
+      state: obj['state'],
+      text: obj['text'],
+      category: obj['category'],
+      dtime: obj['dtime'],
+      atime: obj['atime'],
+      receptor: obj['receptor'],
+      rtime: obj['rtime'],
+      sourceApp: obj['sourceApp'],
+      sourceSite: obj['sourceSite'],
+      upstreamChannel: obj['upstreamChannel'],
+      upstreamPerson: obj['upstreamPerson'],
+      wy: obj['wy'],
+    );
   }
 
   @override
@@ -635,5 +668,33 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       },
     );
     return count;
+  }
+
+  @override
+  Future<List<GeosphereMediaOR>> listExtraMedia(
+      String category, String docid) async {
+    var list = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'listExtraMedia',
+      parameters: {
+        'category': category,
+        'docid': docid,
+      },
+    );
+    var items = <GeosphereMediaOR>[];
+    for (var obj in list) {
+      items.add(
+        GeosphereMediaOR(
+          src: obj['src'],
+          leading:  obj['leading'],
+          type:  obj['type'],
+          id:  obj['id'],
+          text:  obj['text'],
+          receptor:  obj['receptor'],
+          msgid:  obj['msgid'],
+        ),
+      );
+    }
+    return items;
   }
 }

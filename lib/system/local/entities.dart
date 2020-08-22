@@ -66,12 +66,12 @@ class MicroApp {
 @Entity(primaryKeys: ['id', 'sandbox'])
 class Channel {
   String id;
-   String name;
-   String owner;
+  String name;
+  String owner;
   String leading;
-   String site;
+  String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
-   String sandbox;
+  String sandbox;
 
   Channel(this.id, this.name, this.owner, this.leading, this.site, this.ctime,
       this.sandbox);
@@ -89,13 +89,13 @@ class Channel {
   }
 
   Channel.fromMap(map, String person) {
-    id=map['channel'];
-    name=map['title'];
-    owner=map['creator'];
-    leading=map['leading'];
-    site=map['site'];
-    ctime=map['ctime'];
-    sandbox=person;
+    id = map['channel'];
+    name = map['title'];
+    owner = map['creator'];
+    leading = map['leading'];
+    site = map['site'];
+    ctime = map['ctime'];
+    sandbox = person;
   }
 }
 
@@ -421,13 +421,13 @@ class ChatRoom {
     this.notice = map['notice'];
     this.p2pBackground = map['background'];
     this.isDisplayNick = map['isDisplayNick'];
-    this.isForegoundWhite = map['isForegroundWhite']==true?'true':'false';
+    this.isForegoundWhite = map['isForegroundWhite'] == true ? 'true' : 'false';
     this.microsite = map['microsite'];
     this.sandbox = sandbox;
   }
 }
 
-@Entity(primaryKeys: ['person','room','sandbox'])
+@Entity(primaryKeys: ['person', 'room', 'sandbox'])
 class RoomMember {
   String room;
   String person;
@@ -448,13 +448,12 @@ class RoomMember {
   RoomMember.formMap(map, String sandbox) {
     this.room = map['room'];
     this.person = map['person'];
-    this.nickName=map['nickName'];
-    this.isShowNick=map['isShowNick']==true?'true':'false';
+    this.nickName = map['nickName'];
+    this.isShowNick = map['isShowNick'] == true ? 'true' : 'false';
     this.atime = map['atime'];
     this.sandbox = sandbox;
   }
 }
-
 
 @entity
 class ChatMessage {
@@ -536,7 +535,7 @@ class GeoReceptor {
   String background;
   String isAutoScrollMessage;
   String device;
-  String canDel;//
+  String canDel; //
   String sandbox;
 
   GeoReceptor(
@@ -849,18 +848,122 @@ class CountValue {
   CountValue(this.value);
 }
 
-
-class ChatRoomNotice{
+class ChatRoomNotice {
   String room;
   String creator;
   String notice;
   int ctime;
 
-  ChatRoomNotice.fromMap(map,sandbox){
-    this.room=map['room'];
-    this.creator=map['creator'];
-    this.notice=map['notice'];
-    this.ctime=map['ctime'];
+  ChatRoomNotice.fromMap(map, sandbox) {
+    this.room = map['room'];
+    this.creator = map['creator'];
+    this.notice = map['notice'];
+    this.ctime = map['ctime'];
   }
+}
 
+@Entity(primaryKeys: [
+  'id',
+  'box',
+  'sandbox'
+], indices: [
+  Index(value: ['box', 'atime'])
+])
+class ContentItemOL {
+  String id; //标识来自由pointer的类型+标识的md5，所以在所有流量池中都是唯一的，只要告诉内容物在哪个池，就可以在池中找到它
+  String sandbox;
+  String box; //归属的内容盒
+  String location; //内容物可能有位置属性
+  String upstreamPool; //来自上游的流量池，一般是低级池
+  int ctime;
+  int atime; //添加到本地列表时间
+  String pool; //多一个多余字段，用于客户端识别是哪个池的内容
+  bool isBubbled;
+  String pointerId;
+  String pointerType;
+  String pointerCreator;
+  int pointerCtime;
+
+  ContentItemOL(
+    this.id,
+    this.sandbox,
+    this.box,
+    this.location,
+    this.upstreamPool,
+    this.ctime,
+    this.atime,
+    this.pool,
+    this.isBubbled,
+    this.pointerId,
+    this.pointerType,
+    this.pointerCreator,
+    this.pointerCtime,
+  ); //是否已冒泡了
+
+}
+
+@Entity(primaryKeys: [
+  'id',
+  'item',
+  'sandbox'
+], indices: [
+  Index(value: ['inbox', 'item', 'atime', 'sandbox'])
+])
+class RecommenderMessageOL {
+  String id;
+  String item;
+  String type; //geosphere,netflow
+  String creator;
+  String content;
+  String inbox;
+  int layout; //0为上文下图；1为左文右图；2为左图右文
+  String location;
+  int ctime;
+  int atime; //添加到本地列表时间
+  double wy;
+  String sandbox;
+
+  RecommenderMessageOL(
+    this.id,
+    this.item,
+    this.creator,
+    this.type,
+    this.content,
+    this.inbox,
+    this.layout,
+    this.location,
+    this.ctime,
+    this.atime,
+    this.wy,
+    this.sandbox,
+  );
+}
+
+@Entity(primaryKeys: [
+  'id',
+  'docid',
+  'sandbox'
+], indices: [
+  Index(value: ['docid', 'ctime'])
+])
+class RecommenderMediaOL {
+  String id;
+  String docid;
+  String type;
+  String src;
+  String text;
+  String leading;
+  int ctime;
+  String sandbox;
+
+  RecommenderMediaOL(
+    this.id,
+    this.docid,
+    this.type,
+    this.src,
+    this.text,
+    this.leading,
+    this.ctime,
+    this.sandbox,
+  );
 }

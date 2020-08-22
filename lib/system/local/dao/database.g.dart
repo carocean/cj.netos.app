@@ -57,6 +57,8 @@ class _$AppDatabase extends AppDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
+  IRecommenderDAO _chasechainDAOInstance;
+
   IGeosphereMessageDAO _geosphereMessageDAOInstance;
 
   IGeosphereLikePersonDAO _geosphereLikePersonDAOInstance;
@@ -174,11 +176,29 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereMediaOL` (`id` TEXT, `type` TEXT, `src` TEXT, `leading` TEXT, `msgid` TEXT, `text` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `msgid`, `receptor`, `sandbox`))');
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `ContentItemOL` (`id` TEXT, `sandbox` TEXT, `box` TEXT, `location` TEXT, `upstreamPool` TEXT, `ctime` INTEGER, `atime` INTEGER, `pool` TEXT, `isBubbled` INTEGER, `pointerId` TEXT, `pointerType` TEXT, `pointerCreator` TEXT, `pointerCtime` INTEGER, PRIMARY KEY (`id`, `sandbox`, `box`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `RecommenderMessageOL` (`id` TEXT, `item` TEXT, `type` TEXT, `creator` TEXT, `content` TEXT, `inbox` TEXT, `layout` INTEGER, `location` TEXT, `ctime` INTEGER, `atime` INTEGER, `wy` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `item`, `sandbox`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `RecommenderMediaOL` (`id` TEXT, `docid` TEXT, `type` TEXT, `src` TEXT, `text` TEXT, `leading` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `docid`, `sandbox`))');
+        await database.execute(
             'CREATE INDEX `index_GeosphereMediaOL_msgid_receptor` ON `GeosphereMediaOL` (`msgid`, `receptor`)');
+        await database.execute(
+            'CREATE INDEX `index_ContentItemOL_box_atime` ON `ContentItemOL` (`box`, `atime`)');
+        await database.execute(
+            'CREATE INDEX `index_RecommenderMessageOL_item_inbox_atime_sandbox` ON `RecommenderMessageOL` (`item`, `inbox`, `atime`, `sandbox`)');
+        await database.execute(
+            'CREATE INDEX `index_RecommenderMediaOL_docid_ctime` ON `RecommenderMediaOL` (`docid`, `ctime`)');
 
         await callback?.onCreate?.call(database, version);
       },
     );
+  }
+
+  @override
+  IRecommenderDAO get chasechainDAO {
+    return _chasechainDAOInstance ??=
+        _$IRecommenderDAO(database, changeListener);
   }
 
   @override
@@ -316,6 +336,201 @@ class _$AppDatabase extends AppDatabase {
   IP2PMessageDAO get p2pMessageDAO {
     return _p2pMessageDAOInstance ??=
         _$IP2PMessageDAO(database, changeListener);
+  }
+}
+
+class _$IRecommenderDAO extends IRecommenderDAO {
+  _$IRecommenderDAO(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _contentItemOLInsertionAdapter = InsertionAdapter(
+            database,
+            'ContentItemOL',
+            (ContentItemOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'sandbox': item.sandbox,
+                  'box': item.box,
+                  'location': item.location,
+                  'upstreamPool': item.upstreamPool,
+                  'ctime': item.ctime,
+                  'atime': item.atime,
+                  'pool': item.pool,
+                  'isBubbled': item.isBubbled ? 1 : 0,
+                  'pointerId': item.pointerId,
+                  'pointerType': item.pointerType,
+                  'pointerCreator': item.pointerCreator,
+                  'pointerCtime': item.pointerCtime
+                }),
+        _recommenderMessageOLInsertionAdapter = InsertionAdapter(
+            database,
+            'RecommenderMessageOL',
+            (RecommenderMessageOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'item': item.item,
+                  'type': item.type,
+                  'creator': item.creator,
+                  'content': item.content,
+                  'inbox': item.inbox,
+                  'layout': item.layout,
+                  'location': item.location,
+                  'ctime': item.ctime,
+                  'atime': item.atime,
+                  'wy': item.wy,
+                  'sandbox': item.sandbox
+                }),
+        _recommenderMediaOLInsertionAdapter = InsertionAdapter(
+            database,
+            'RecommenderMediaOL',
+            (RecommenderMediaOL item) => <String, dynamic>{
+                  'id': item.id,
+                  'docid': item.docid,
+                  'type': item.type,
+                  'src': item.src,
+                  'text': item.text,
+                  'leading': item.leading,
+                  'ctime': item.ctime,
+                  'sandbox': item.sandbox
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  static final _contentItemOLMapper = (Map<String, dynamic> row) =>
+      ContentItemOL(
+          row['id'] as String,
+          row['sandbox'] as String,
+          row['box'] as String,
+          row['location'] as String,
+          row['upstreamPool'] as String,
+          row['ctime'] as int,
+          row['atime'] as int,
+          row['pool'] as String,
+          (row['isBubbled'] as int) != 0,
+          row['pointerId'] as String,
+          row['pointerType'] as String,
+          row['pointerCreator'] as String,
+          row['pointerCtime'] as int);
+
+  static final _countValueMapper =
+      (Map<String, dynamic> row) => CountValue(row['value'] as int);
+
+  static final _recommenderMessageOLMapper = (Map<String, dynamic> row) =>
+      RecommenderMessageOL(
+          row['id'] as String,
+          row['item'] as String,
+          row['type'] as String,
+          row['creator'] as String,
+          row['content'] as String,
+          row['inbox'] as String,
+          row['layout'] as int,
+          row['location'] as String,
+          row['ctime'] as int,
+          row['atime'] as int,
+          row['wy'] as double,
+          row['sandbox'] as String);
+
+  static final _recommenderMediaOLMapper = (Map<String, dynamic> row) =>
+      RecommenderMediaOL(
+          row['id'] as String,
+          row['docid'] as String,
+          row['type'] as String,
+          row['src'] as String,
+          row['text'] as String,
+          row['leading'] as String,
+          row['ctime'] as int,
+          row['sandbox'] as String);
+
+  final InsertionAdapter<ContentItemOL> _contentItemOLInsertionAdapter;
+
+  final InsertionAdapter<RecommenderMessageOL>
+      _recommenderMessageOLInsertionAdapter;
+
+  final InsertionAdapter<RecommenderMediaOL>
+      _recommenderMediaOLInsertionAdapter;
+
+  @override
+  Future<List<ContentItemOL>> pageContentItem(
+      String sandbox, int pageSize, int currPage) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM ContentItemOL where sandbox=? ORDER BY atime DESC LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, pageSize, currPage],
+        mapper: _contentItemOLMapper);
+  }
+
+  @override
+  Future<void> emptyContentItem(String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM ContentItemOL where sandbox=?',
+        arguments: <dynamic>[sandbox]);
+  }
+
+  @override
+  Future<CountValue> countContentItem(String item, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM ContentItemOL where id=? and sandbox=?',
+        arguments: <dynamic>[item, sandbox],
+        mapper: _countValueMapper);
+  }
+
+  @override
+  Future<CountValue> countMessage(String item, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM RecommenderMessageOL where item=? and sandbox=?',
+        arguments: <dynamic>[item, sandbox],
+        mapper: _countValueMapper);
+  }
+
+  @override
+  Future<RecommenderMessageOL> getMessageByContentItem(
+      String item, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM RecommenderMessageOL where item=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[item, sandbox],
+        mapper: _recommenderMessageOLMapper);
+  }
+
+  @override
+  Future<List<RecommenderMediaOL>> listMedia(
+      String docid, String sandbox) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM RecommenderMediaOL where docid=? and sandbox=?',
+        arguments: <dynamic>[docid, sandbox],
+        mapper: _recommenderMediaOLMapper);
+  }
+
+  @override
+  Future<RecommenderMediaOL> getMedia(String id, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM RecommenderMediaOL where id=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[id, sandbox],
+        mapper: _recommenderMediaOLMapper);
+  }
+
+  @override
+  Future<void> updateMediaSrc(String src, String sandbox, String id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE RecommenderMediaOL SET src = ? WHERE sandbox=? and id=?',
+        arguments: <dynamic>[src, sandbox, id]);
+  }
+
+  @override
+  Future<void> addContentItem(ContentItemOL itemOL) async {
+    await _contentItemOLInsertionAdapter.insert(
+        itemOL, sqflite.ConflictAlgorithm.abort);
+  }
+
+  @override
+  Future<void> addMessage(RecommenderMessageOL message) async {
+    await _recommenderMessageOLInsertionAdapter.insert(
+        message, sqflite.ConflictAlgorithm.abort);
+  }
+
+  @override
+  Future<void> addMedia(RecommenderMediaOL m) async {
+    await _recommenderMediaOLInsertionAdapter.insert(
+        m, sqflite.ConflictAlgorithm.abort);
   }
 }
 

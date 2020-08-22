@@ -95,14 +95,18 @@ class _VideoViewState extends State<VideoView> {
                 );
               }
 
-              final Size size = controller.value.size;
-              return AspectRatio(
-//             aspectRatio: 16 / 9,
-//            aspectRatio: 140 / 200,
-//                aspectRatio: size.width / size.height,
-                aspectRatio: controller.value.aspectRatio,
-                child: VideoPlayer(controller),
-              );
+//              final Size size = controller.value.size;
+              return ClipRect(
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.grey[200],
+                    child: Center(
+                        child: AspectRatio(
+                          aspectRatio: controller.value.aspectRatio,
+                          child: VideoPlayer(controller),
+                        )),
+                  ));
             },
           ),
         ),

@@ -1,6 +1,48 @@
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/system/local/entities.dart';
+
+class ChannelMessageOR {
+  String id;
+  String channel;
+  String creator;
+  String content;
+  LatLng location;
+  int ctime;
+  double wy;
+
+  ChannelMessageOR({
+    this.id,
+    this.channel,
+    this.creator,
+    this.content,
+    this.location,
+    this.ctime,
+    this.wy,
+  });
+}
+
+class ChannelMediaOR {
+  String id;
+  String docid;
+  String type;
+  String src;
+  String text;
+  String leading;
+  String channel;
+  int ctime;
+
+  ChannelMediaOR({
+    this.id,
+    this.docid,
+    this.type,
+    this.src,
+    this.text,
+    this.leading,
+    this.channel,
+    this.ctime,
+  });
+}
 
 mixin IChannelRemote {
   Future<void> createChannel(
@@ -76,6 +118,11 @@ mixin IChannelRemote {
       String channel,
       String action,
       String attach}) {}
+
+  Future<ChannelMessageOR> getMessage(String person, String msgid) {}
+
+  Future<List<ChannelMediaOR>> listExtraMedia(
+      String docid, String creator, String channel) {}
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}
@@ -121,7 +168,5 @@ mixin IChatRoomRemote {
 
   Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
 
-  Future<void>updateRoomForeground(String id, bool isForegroundWhite) {}
-
-
+  Future<void> updateRoomForeground(String id, bool isForegroundWhite) {}
 }

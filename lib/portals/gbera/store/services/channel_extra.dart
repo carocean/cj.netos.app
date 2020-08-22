@@ -37,10 +37,10 @@ class ChannelMediaService implements IChannelMediaService, IServiceBuilder {
   }
 
   _deleteFile(media) {
-    if (StringUtil.isEmpty(media.src)) {
+    if (StringUtil.isEmpty(media._src)) {
       return;
     }
-    var f = File(media.src);
+    var f = File(media._src);
     if (f.existsSync()) {
       try {
         f.deleteSync();
