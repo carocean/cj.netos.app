@@ -926,8 +926,8 @@ class RecommenderMessageOL {
   RecommenderMessageOL(
     this.id,
     this.item,
-    this.creator,
     this.type,
+    this.creator,
     this.content,
     this.inbox,
     this.layout,

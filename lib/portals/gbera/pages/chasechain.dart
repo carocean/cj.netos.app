@@ -1,13 +1,17 @@
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/medias_widget.dart';
+import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'package:toast/toast.dart';
 
 class Chasechain extends StatefulWidget {
@@ -153,10 +157,12 @@ class _ContentItemPannel extends StatefulWidget {
 class _ContentItemPannelState extends State<_ContentItemPannel> {
   int _maxLines = 2;
   RecommenderDocument _doc;
+  Future<Person> _future_getPerson;
+  Future<TrafficPool> _future_getPool;
+  Future<ContentBoxOR> _future_getContentBox;
 
   @override
   void initState() {
-    print('--------0');
     _loadDocumentContent();
     super.initState();
   }
@@ -168,11 +174,9 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
 
   @override
   void didUpdateWidget(_ContentItemPannel oldWidget) {
-    print('--------1-$_doc');
     if (oldWidget.item.id != widget.item.id) {
       oldWidget.item = widget.item;
       _loadDocumentContent();
-      print('--------1.1');
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -181,7 +185,28 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _doc = await recommender.getDocument(widget.item);
+    _future_getPerson = _getPerson();
+    _future_getPool = _getPool();
+    _future_getContentBox = _getContentBox();
     if (mounted) setState(() {});
+  }
+
+  Future<Person> _getPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    return await personService.getPerson(_doc.message.creator);
+  }
+
+  Future<TrafficPool> _getPool() async {
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    return await recommender.getTrafficPool(_doc.item.pool);
+  }
+
+  Future<ContentBoxOR> _getContentBox() async {
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    return await recommender.getContentBox(_doc.item.pool, _doc.item.box);
   }
 
   @override
@@ -216,14 +241,40 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
             ),
           );
         }
-
+        if (_doc.medias.isEmpty) {
+          layout.add(
+            SizedBox(
+              height: 10,
+            ),
+          );
+        }
+        layout.add(
+          _renderFooter(),
+        );
         break;
       case 1: //左文右图
         var rows = <Widget>[];
         if (!StringUtil.isEmpty(_doc.message.content)) {
           rows.add(
             Expanded(
-              child: _renderContent(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: 100,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _renderContent(),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                      ),
+                      child: _renderFooter(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }
@@ -245,7 +296,6 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
           Row(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: rows,
           ),
         );
@@ -270,7 +320,25 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
         if (!StringUtil.isEmpty(_doc.message.content)) {
           rows.add(
             Expanded(
-              child: _renderContent(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: 100,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _renderContent(),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                      ),
+                      child: _renderFooter(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }
@@ -278,7 +346,6 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
           Row(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: rows,
           ),
         );
@@ -297,8 +364,8 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     );
     return Container(
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
+        left: 15,
+        right: 15,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,16 +378,25 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
 
   Widget _renderContent() {
     return Container(
-      child: Text(
-        '${_doc.message.content ?? ''}',
-        maxLines: _maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          _maxLines = _maxLines == 2 ? 10000 : 2;
+          if (mounted) {
+            setState(() {});
+          }
+        },
+        child: Text(
+          '${_doc.message.content ?? ''}',
+          maxLines: _maxLines,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
 //          letterSpacing: 1.4,
 //          wordSpacing: 1.4,
 //          height: 1.4,
+          ),
         ),
       ),
     );
@@ -328,12 +404,177 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
 
   Widget _renderMedias() {
     return Container(
-      height: 200,
+      height: 210,
       alignment: Alignment.center,
       child: RecommenderMediaWidget(
         _doc.medias,
         widget.context,
       ),
+    );
+  }
+
+  Widget _renderFooter() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              '${TimelineUtil.format(
+                _doc.message.ctime,
+                dayFormat: DayFormat.Full,
+              )}',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[400],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            FutureBuilder<TrafficPool>(
+              future: _future_getPool,
+              builder: (ctx, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return SizedBox(
+                    width: 0,
+                    height: 0,
+                  );
+                }
+                var pool = snapshot.data;
+                if (pool == null) {
+                  return SizedBox(
+                    width: 0,
+                    height: 0,
+                  );
+                }
+                return Wrap(
+                  direction: Axis.horizontal,
+                  spacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.pool,
+                      size: 14,
+                      color: pool.isGeosphere ? Colors.green : Colors.grey,
+                    ),
+                    Text(
+                      '${pool.title}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 6,
+        ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Row(
+                children: <Widget>[
+                  FutureBuilder<Person>(
+                    future: _future_getPerson,
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return SizedBox(
+                          width: 0,
+                          height: 0,
+                        );
+                      }
+                      var person = snapshot.data;
+                      if (person == null) {
+                        return SizedBox(
+                          width: 0,
+                          height: 0,
+                        );
+                      }
+                      return Text(
+                        '${person?.nickName}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  FutureBuilder<ContentBoxOR>(
+                    future: _future_getContentBox,
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return SizedBox(
+                          width: 0,
+                          height: 0,
+                        );
+                      }
+                      var box = snapshot.data;
+                      if (box == null) {
+                        return SizedBox(
+                          width: 0,
+                          height: 0,
+                        );
+                      }
+                      return Wrap(
+                        direction: Axis.horizontal,
+                        spacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        children: <Widget>[
+                          Icon(
+                            _doc.message.type == 'netflow'
+                                ? Icons.all_inclusive
+                                : Icons.add_location,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                          Text(
+                            '${box.pointer.title}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 10,
+              ),
+              child: WPopupMenu(
+                child: Icon(
+                  IconData(
+                    0xe79d,
+                    fontFamily: 'ellipse',
+                  ),
+                  size: 22,
+                ),
+                actions: <Widget>[],
+                onValueChanged: (index) {},
+                pressType: PressType.singleClick,
+              ),
+            )
+          ],
+        ),
+      ],
     );
   }
 }

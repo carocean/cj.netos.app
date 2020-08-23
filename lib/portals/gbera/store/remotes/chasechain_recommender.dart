@@ -16,6 +16,26 @@ import 'package:uuid/uuid.dart';
 import '../remotes.dart';
 import 'geo_receptors.dart';
 
+class ContentBoxOR {
+  String id;
+  BoxPointer pointer;
+  LatLng location;
+  int ctime;
+  String pool;
+
+  ContentBoxOR({this.id, this.pointer, this.location, this.ctime, this.pool});
+}
+
+class BoxPointer {
+  String id;
+  String title;
+  String type;
+  String creator;
+  int ctime;
+
+  BoxPointer({this.id, this.title, this.type, this.creator, this.ctime});
+}
+
 class RecommenderConfig {
   //最大每次推荐的内空数
   int maxRecommendItemCount;
@@ -155,8 +175,8 @@ class RecommenderMessageOR {
     return RecommenderMessageOL(
         id,
         item,
-        creator,
         type,
+        creator,
         content,
         inbox,
         layout,
@@ -249,6 +269,27 @@ class RecommenderDocument {
   RecommenderDocument({this.item, this.message, this.medias});
 }
 
+class TrafficPool {
+  String id;
+  String title;
+  String icon;
+  bool isGeosphere;
+  int state;
+  int level;
+  int index;
+  int ctime;
+
+  TrafficPool(
+      {this.id,
+      this.title,
+      this.icon,
+      this.isGeosphere,
+      this.state,
+      this.level,
+      this.index,
+      this.ctime});
+}
+
 mixin IChasechainRecommenderRemote {
   Future<List<ContentItemOR>> loadItemsFromSandbox(int pageSize, int currPage);
 
@@ -269,6 +310,10 @@ mixin IChasechainRecommenderRemote {
   Future<RecommenderDocument> getDocument(ContentItemOR item);
 
   Future<RecommenderMediaOR> getAndCacheMedia(RecommenderMediaOR src) {}
+
+  Future<TrafficPool> getTrafficPool(String pool) {}
+
+  Future<ContentBoxOR> getContentBox(String pool, String box) {}
 }
 
 class ChasechainRecommenderRemote
@@ -281,6 +326,9 @@ class ChasechainRecommenderRemote
 
   get recommenderPorts =>
       site.getService('@.prop.ports.chasechain.recommender');
+
+  get trafficPoolPorts =>
+      site.getService('@.prop.ports.chasechain.trafficPool');
 
   IRecommenderDAO recommenderDAO;
   IGeoReceptorRemote geoReceptorRemote;
@@ -540,7 +588,7 @@ class ChasechainRecommenderRemote
     } else if (mediaCount > 1) {
       layout = 0;
     }
-    doc.message.layout=layout;
+    doc.message.layout = layout;
     await recommenderDAO.addMessage(doc.message?.toOL(
         principal.person, layout, DateTime.now().millisecondsSinceEpoch));
     for (var m in doc.medias) {
@@ -585,5 +633,59 @@ class ChasechainRecommenderRemote
         '${src}?accessToken=${principal.accessToken}', localFile);
     print('完成下载多媒体文件:${src}存储到：$localFile');
     return localFile;
+  }
+
+  @override
+  Future<TrafficPool> getTrafficPool(String pool) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getPool',
+      parameters: {
+        'pool': pool,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return TrafficPool(
+      ctime: obj['ctime'],
+      id: obj['id'],
+      state: obj['state'],
+      title: obj['title'],
+      icon: obj['icon'],
+      index: obj['index'],
+      isGeosphere: obj['isGeosphere'],
+      level: obj['level'],
+    );
+  }
+
+  @override
+  Future<ContentBoxOR> getContentBox(String pool, String box) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getContentBox',
+      parameters: {
+        'pool': pool,
+        'box': box,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    var pointer = obj['pointer'];
+    var location = obj['location'];
+    return ContentBoxOR(
+      id: obj['id'],
+      ctime: obj['ctime'],
+      location: location == null ? null : LatLng.fromJson(location),
+      pool: obj['pool'],
+      pointer: BoxPointer(
+        ctime: pointer['ctime'],
+        id: pointer['id'],
+        title: pointer['title'],
+        type: pointer['type'],
+        creator: pointer['creator'],
+      ),
+    );
   }
 }
