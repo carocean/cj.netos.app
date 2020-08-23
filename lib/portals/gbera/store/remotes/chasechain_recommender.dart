@@ -186,6 +186,7 @@ class RecommenderMediaOR {
     this.leading,
     this.ctime,
   });
+
   static List<MediaSrc> toMediaSrcList(List<RecommenderMediaOR> list) {
     var medias = <MediaSrc>[];
     for (var e in list) {
@@ -370,7 +371,7 @@ class ChasechainRecommenderRemote
         upstreamPool: obj['upstreamPool'],
       );
       items.add(item);
-      _saveItem(item);
+      await _saveItem(item);
     }
     return items;
   }
@@ -418,27 +419,6 @@ class ChasechainRecommenderRemote
       return null;
     }
     var medias = await _getRecommenderMedia(item.pointer, msg);
-//    for (var m in medias) {
-//      if (!StringUtil.isEmpty(m.src) &&
-//          (m.src.startsWith("http://") || m.src.startsWith("https://"))) {
-//        var home = await getApplicationDocumentsDirectory();
-//        var dir = '${home.path}/chasechain/images';
-//        var dirFile = Directory(dir);
-//        if (!dirFile.existsSync()) {
-//          dirFile.createSync(recursive: true);
-//        }
-//        var localFile = '${dirFile.path}/${MD5Util.MD5(Uuid().v1())}';
-//        var ext = fileExt(m.src);
-//        if (!StringUtil.isEmpty(ext)) {
-//          localFile = '$localFile.$ext';
-//        }
-//        print('准备下载多媒体文件:${m.src}');
-//        await remotePorts.download(
-//            '${m.src}?accessToken=${principal.accessToken}', localFile);
-//        print('完成下载多媒体文件:${m.src}');
-//        m.src = localFile;
-//      }
-//    }
     return RecommenderDocument(
       message: msg,
       item: item,
@@ -553,13 +533,14 @@ class ChasechainRecommenderRemote
   _cacheDocument(RecommenderDocument doc) async {
     int layout;
     var mediaCount = doc.medias.length;
-    if (mediaCount == 0) {
+    if (mediaCount == 0 || StringUtil.isEmpty(doc.message.content)) {
       layout = 0;
     } else if (mediaCount == 1) {
       layout = doc.item.id.hashCode.abs() % 3;
     } else if (mediaCount > 1) {
       layout = 0;
     }
+    doc.message.layout=layout;
     await recommenderDAO.addMessage(doc.message?.toOL(
         principal.person, layout, DateTime.now().millisecondsSinceEpoch));
     for (var m in doc.medias) {

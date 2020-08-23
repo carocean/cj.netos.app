@@ -39,6 +39,8 @@ class _ChasechainState extends State<Chasechain> {
       if (mounted) {
         setState(() {});
       }
+
+      await _onRefresh();
     });
 
     super.initState();
@@ -48,7 +50,7 @@ class _ChasechainState extends State<Chasechain> {
   void dispose() {
     _controller?.dispose();
     geoLocation.unlisten('/chasechain');
-    geoLocation.stop();
+//    geoLocation.stop();
     super.dispose();
   }
 
@@ -78,11 +80,12 @@ class _ChasechainState extends State<Chasechain> {
         widget.context.site.getService('/remote/chasechain/recommender');
     var items = await recommender.pullItem(_towncode);
     _items.insertAll(0, items);
-    Toast.show('已推荐${items.length}个', context,
-        gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
+    _offset += items.length;
     if (mounted) {
       setState(() {});
     }
+    Toast.show('已推荐${items.length}个', context,
+        gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
   }
 
   @override
@@ -109,7 +112,6 @@ class _ChasechainState extends State<Chasechain> {
             controller: _controller,
             onRefresh: _onRefresh,
             onLoad: _load,
-            firstRefresh: true,
             header: ClassicalHeader(),
             footer: ClassicalFooter(),
             slivers: _getSlivers(),
@@ -127,13 +129,6 @@ class _ChasechainState extends State<Chasechain> {
           child: _ContentItemPannel(
             context: widget.context,
             item: item,
-          ),
-        ),
-      );
-      slivers.add(
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 20,
           ),
         ),
       );
@@ -161,9 +156,8 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
 
   @override
   void initState() {
-    _loadDocumentContent().then((value) {
-      if (mounted) setState(() {});
-    });
+    print('--------0');
+    _loadDocumentContent();
     super.initState();
   }
 
@@ -172,10 +166,22 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(_ContentItemPannel oldWidget) {
+    print('--------1-$_doc');
+    if (oldWidget.item.id != widget.item.id) {
+      oldWidget.item = widget.item;
+      _loadDocumentContent();
+      print('--------1.1');
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   Future<void> _loadDocumentContent() async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _doc = await recommender.getDocument(widget.item);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -190,10 +196,11 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     var layout = <Widget>[];
     switch (_doc.message.layout) {
       case 0: //上文下图
-        layout.add(
-          _renderContent(),
-        );
-
+        if (!StringUtil.isEmpty(_doc.message.content)) {
+          layout.add(
+            _renderContent(),
+          );
+        }
         if (_doc.medias.isNotEmpty) {
           layout.add(
             SizedBox(
@@ -212,11 +219,14 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
 
         break;
       case 1: //左文右图
-        var rows = <Widget>[
-          Expanded(
-            child: _renderContent(),
-          ),
-        ];
+        var rows = <Widget>[];
+        if (!StringUtil.isEmpty(_doc.message.content)) {
+          rows.add(
+            Expanded(
+              child: _renderContent(),
+            ),
+          );
+        }
         if (_doc.medias.isNotEmpty) {
           rows.add(
             SizedBox(
@@ -257,11 +267,13 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
             ),
           );
         }
-        rows.add(
-          Expanded(
-            child: _renderContent(),
-          ),
-        );
+        if (!StringUtil.isEmpty(_doc.message.content)) {
+          rows.add(
+            Expanded(
+              child: _renderContent(),
+            ),
+          );
+        }
         layout.add(
           Row(
             mainAxisSize: MainAxisSize.max,
@@ -270,6 +282,9 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
             children: rows,
           ),
         );
+        break;
+      default:
+        print('未知布局! 消息:${_doc.message.id} ${_doc.message.content}');
         break;
     }
     layout.add(
@@ -303,9 +318,9 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1.4,
-          wordSpacing: 1.4,
-          height: 1.4,
+//          letterSpacing: 1.4,
+//          wordSpacing: 1.4,
+//          height: 1.4,
         ),
       ),
     );

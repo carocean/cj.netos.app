@@ -377,21 +377,24 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _aspectRatioImage(
     BuildContext context, {
     int index,
-    double aspectRatio = 1,
+    double aspectRatio = 12/10,
   }) {
     return InkWell(
-        child: AspectRatio(
-            aspectRatio: aspectRatio,
-            child: Hero(
-                tag: '${medias[index]}?tag=${Uuid().v1()}',
-                child: _MediaCacheAndLoader(
-                  src: medias[index],
-                  accessToken: pageContext.principal.accessToken,
-                  context: pageContext,
-                ))),
-        onTap: () {
-          _openGalleryWatcher(context, index);
-        });
+      child: AspectRatio(
+        aspectRatio: aspectRatio,
+        child: Hero(
+          tag: '${medias[index]}?tag=${Uuid().v1()}',
+          child: _MediaCacheAndLoader(
+            src: medias[index],
+            accessToken: pageContext.principal.accessToken,
+            context: pageContext,
+          ),
+        ),
+      ),
+      onTap: () {
+        _openGalleryWatcher(context, index);
+      },
+    );
   }
 
   _openGalleryWatcher(BuildContext context, int index) {

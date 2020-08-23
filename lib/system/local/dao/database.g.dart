@@ -532,6 +532,21 @@ class _$IRecommenderDAO extends IRecommenderDAO {
     await _recommenderMediaOLInsertionAdapter.insert(
         m, sqflite.ConflictAlgorithm.abort);
   }
+
+  @override
+  Future doTransaction(
+      Future<dynamic> Function(dynamic) action, dynamic args) async {
+    if (database is sqflite.Transaction) {
+      await super.doTransaction(action, args);
+    } else {
+      await (database as sqflite.Database)
+          .transaction<void>((transaction) async {
+        final transactionDatabase = _$AppDatabase(changeListener)
+          ..database = transaction;
+        await transactionDatabase.chasechainDAO.doTransaction(action, args);
+      });
+    }
+  }
 }
 
 class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {

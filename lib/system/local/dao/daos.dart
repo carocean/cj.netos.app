@@ -813,6 +813,15 @@ abstract class IRecommenderDAO {
       'SELECT count(*) as value  FROM RecommenderMessageOL where item=:item and sandbox=:sandbox')
   Future<CountValue> countMessage(String item, String sandbox) {}
 
+  @transaction
+  Future<dynamic> doTransaction(
+      Future<dynamic> Function(dynamic args) action, dynamic args) async {
+    if (action == null) {
+      return null;
+    }
+    return await action(args);
+  }
+
   @Query(
       'SELECT *  FROM RecommenderMessageOL where item=:item and sandbox=:sandbox LIMIT 1')
   Future<RecommenderMessageOL> getMessageByContentItem(
