@@ -581,7 +581,7 @@ class ChasechainRecommenderRemote
   _cacheDocument(RecommenderDocument doc) async {
     int layout;
     var mediaCount = doc.medias.length;
-    if (mediaCount == 0 || StringUtil.isEmpty(doc.message.content)) {
+    if (mediaCount == 0 || StringUtil.isEmpty(doc.message.content)||doc.message.content.length>=50) {
       layout = 0;
     } else if (mediaCount == 1) {
       layout = doc.item.id.hashCode.abs() % 3;

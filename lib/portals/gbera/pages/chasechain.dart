@@ -157,8 +157,9 @@ class _ContentItemPannel extends StatefulWidget {
 class _ContentItemPannelState extends State<_ContentItemPannel> {
   int _maxLines = 2;
   RecommenderDocument _doc;
-  Future<Person> _future_getPerson;
   Future<TrafficPool> _future_getPool;
+  bool _isCollapsibled = true;
+  Future<Person> _future_getPerson;
   Future<ContentBoxOR> _future_getContentBox;
 
   @override
@@ -185,22 +186,22 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _doc = await recommender.getDocument(widget.item);
-    _future_getPerson = _getPerson();
     _future_getPool = _getPool();
+    _future_getPerson = _getPerson();
     _future_getContentBox = _getContentBox();
     if (mounted) setState(() {});
-  }
-
-  Future<Person> _getPerson() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    return await personService.getPerson(_doc.message.creator);
   }
 
   Future<TrafficPool> _getPool() async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     return await recommender.getTrafficPool(_doc.item.pool);
+  }
+
+  Future<Person> _getPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    return await personService.getPerson(_doc.message.creator);
   }
 
   Future<ContentBoxOR> _getContentBox() async {
@@ -264,6 +265,7 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     _renderContent(),
                     Padding(
@@ -414,167 +416,258 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
   }
 
   Widget _renderFooter() {
+    var columns = <Widget>[
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            '${TimelineUtil.format(
+              _doc.message.ctime,
+              dayFormat: DayFormat.Full,
+            )}',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[400],
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          Row(
+            children: <Widget>[
+              FutureBuilder<Person>(
+                future: _future_getPerson,
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  var person = snapshot.data;
+                  if (person == null) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  return Text(
+                    '${person?.nickName}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
+                  );
+                },
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              FutureBuilder<ContentBoxOR>(
+                future: _future_getContentBox,
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  var box = snapshot.data;
+                  if (box == null) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  return Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 2,
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    children: <Widget>[
+                      Icon(
+                        _doc.message.type == 'netflow'
+                            ? Icons.all_inclusive
+                            : Icons.add_location,
+                        size: 11,
+                        color: Colors.grey,
+                      ),
+                      Text(
+                        '${box.pointer.title}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                '1.2k个赞',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(
+                width: 2,
+              ),
+              Text(
+                '1.6k个评',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              FutureBuilder<TrafficPool>(
+                future: _future_getPool,
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  var pool = snapshot.data;
+                  if (pool == null) {
+                    return SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      _isCollapsibled = !_isCollapsibled;
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                    child: Wrap(
+                      direction: Axis.horizontal,
+                      spacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: <Widget>[
+                        Icon(
+                          Icons.pool,
+                          size: 11,
+                          color: pool.isGeosphere ? Colors.green : Colors.grey,
+                        ),
+                        Text(
+                          '${pool.title}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color:
+                                _isCollapsibled ? Colors.grey : Colors.blueGrey,
+                            fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
+    if (!_isCollapsibled) {
+      columns.add(
+        SizedBox(
+          height: 10,
+        ),
+      );
+      columns.add(
+        FutureBuilder<TrafficPool>(
+          future: _future_getPool,
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return SizedBox(
+                width: 0,
+                height: 0,
+              );
+            }
+            var pool = snapshot.data;
+            if (pool == null) {
+              return SizedBox(
+                width: 0,
+                height: 0,
+              );
+            }
+            return _CollapsiblePanel(
+              context: widget.context,
+              doc: _doc,
+              pool: pool,
+            );
+          },
+        ),
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              '${TimelineUtil.format(
-                _doc.message.ctime,
-                dayFormat: DayFormat.Full,
-              )}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            FutureBuilder<TrafficPool>(
-              future: _future_getPool,
-              builder: (ctx, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return SizedBox(
-                    width: 0,
-                    height: 0,
-                  );
-                }
-                var pool = snapshot.data;
-                if (pool == null) {
-                  return SizedBox(
-                    width: 0,
-                    height: 0,
-                  );
-                }
-                return Wrap(
-                  direction: Axis.horizontal,
-                  spacing: 2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    Icon(
-                      Icons.pool,
-                      size: 14,
-                      color: pool.isGeosphere ? Colors.green : Colors.grey,
-                    ),
-                    Text(
-                      '${pool.title}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-        SizedBox(
-          height: 6,
-        ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Row(
-                children: <Widget>[
-                  FutureBuilder<Person>(
-                    future: _future_getPerson,
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return SizedBox(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      var person = snapshot.data;
-                      if (person == null) {
-                        return SizedBox(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      return Text(
-                        '${person?.nickName}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  FutureBuilder<ContentBoxOR>(
-                    future: _future_getContentBox,
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return SizedBox(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      var box = snapshot.data;
-                      if (box == null) {
-                        return SizedBox(
-                          width: 0,
-                          height: 0,
-                        );
-                      }
-                      return Wrap(
-                        direction: Axis.horizontal,
-                        spacing: 2,
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: <Widget>[
-                          Icon(
-                            _doc.message.type == 'netflow'
-                                ? Icons.all_inclusive
-                                : Icons.add_location,
-                            size: 14,
-                            color: Colors.grey,
-                          ),
-                          Text(
-                            '${box.pointer.title}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 10,
-              ),
-              child: WPopupMenu(
-                child: Icon(
-                  IconData(
-                    0xe79d,
-                    fontFamily: 'ellipse',
-                  ),
-                  size: 22,
-                ),
-                actions: <Widget>[],
-                onValueChanged: (index) {},
-                pressType: PressType.singleClick,
-              ),
-            )
-          ],
-        ),
-      ],
+      children: columns,
+    );
+  }
+}
+
+class _CollapsiblePanel extends StatefulWidget {
+  PageContext context;
+  RecommenderDocument doc;
+  TrafficPool pool;
+
+  _CollapsiblePanel({this.context, this.doc, this.pool});
+
+  @override
+  __CollapsiblePanelState createState() => __CollapsiblePanelState();
+}
+
+class __CollapsiblePanelState extends State<_CollapsiblePanel> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_CollapsiblePanel oldWidget) {
+    if (oldWidget.doc.item.id != widget.doc.item.id) {
+      oldWidget.doc = widget.doc;
+    }
+    if (oldWidget.pool.id != widget.pool.id) {
+      oldWidget.pool = widget.pool;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Text('${widget.pool.title}'),
     );
   }
 }
