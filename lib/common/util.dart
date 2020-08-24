@@ -171,33 +171,56 @@ Future<Map<String, String>> uploadFile(String fsReaderUrl, String fsWriterUrl,
 }
 
 ///年、月、日、时、分、秒、毫秒，共17位
-DateTime parseStrTime(String strTime,{int len=17}) {
-  int year=int.parse(strTime.substring(0, 4));
-  int month=int.parse(strTime.substring(4,6));
-  int day=int.parse(strTime.substring(6,8));
-  int hour=int.parse(strTime.substring(8,10));
-  int minut=int.parse(strTime.substring(10,12));
-  int sec=int.parse(strTime.substring(12,14));
-  if(len<17){
+DateTime parseStrTime(String strTime, {int len = 17}) {
+  int year = int.parse(strTime.substring(0, 4));
+  int month = int.parse(strTime.substring(4, 6));
+  int day = int.parse(strTime.substring(6, 8));
+  int hour = int.parse(strTime.substring(8, 10));
+  int minut = int.parse(strTime.substring(10, 12));
+  int sec = int.parse(strTime.substring(12, 14));
+  if (len < 17) {
     return DateTime(
-      year,//year
-      month,//month
-      day,//day
-      hour,//hour
-      minut,//minits
-      sec,//sec
+      year, //year
+      month, //month
+      day, //day
+      hour, //hour
+      minut, //minits
+      sec, //sec
     );
   }
 
-  int microsec=int.parse(strTime.substring(14,17));
+  int microsec = int.parse(strTime.substring(14, 17));
 
   return DateTime(
-    year,//year
-    month,//month
-    day,//day
-    hour,//hour
-    minut,//minits
-    sec,//sec
-    microsec,//mic
+    year,
+    //year
+    month,
+    //month
+    day,
+    //day
+    hour,
+    //hour
+    minut,
+    //minits
+    sec,
+    //sec
+    microsec, //mic
   );
+}
+
+///转换数字为友好表示，如大于999表示为k,大于999k表示为m，大于999m表示为g
+String parseInt(int count, int fractionDigits) {
+  if (fractionDigits == null) {
+    fractionDigits = 2;
+  }
+  if (count <= 999) {
+    return '$count';
+  }
+  if (count <= 999 * 1024) {
+    return '${(count / 1024.00).toStringAsFixed(fractionDigits)}k';
+  }
+  if (count <= 999 * 1024 * 1024) {
+    return '${(count / 1024.00 / 1024.00).toStringAsFixed(fractionDigits)}m';
+  }
+  return '${(count / 1024.00 / 1024.00 / 1024.00).toStringAsFixed(fractionDigits)}g';
 }

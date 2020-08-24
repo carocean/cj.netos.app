@@ -8,6 +8,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/medias_widget.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -163,6 +164,7 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
   bool _isCollapsibled = true;
   Future<Person> _future_getPerson;
   Future<ContentBoxOR> _future_getContentBox;
+  Future<TrafficDashboard> _future_getTrafficDashboard;
 
   @override
   void initState() {
@@ -191,6 +193,7 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     _future_getPool = _getPool();
     _future_getPerson = _getPerson();
     _future_getContentBox = _getContentBox();
+    _future_getTrafficDashboard = _getTrafficDashboard();
     if (mounted) setState(() {});
   }
 
@@ -210,6 +213,12 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     return await recommender.getContentBox(_doc.item.pool, _doc.item.box);
+  }
+
+  Future<TrafficDashboard> _getTrafficDashboard() async {
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    return await recommender.getTrafficDashboard(_doc.item.pool);
   }
 
   @override
@@ -513,24 +522,41 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              Text(
-                '1.2k个赞',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(
-                width: 2,
-              ),
-              Text(
-                '1.6k个评',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w500,
-                ),
+              FutureBuilder<TrafficDashboard>(
+                future: _future_getTrafficDashboard,
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done ||
+                      snapshot.data == null) {
+                    return SizedBox(
+                      height: 0,
+                      width: 0,
+                    );
+                  }
+                  var dashboard = snapshot.data;
+                  return Row(
+                    children: <Widget>[
+                      Text(
+                        '${parseInt(dashboard.innerLikes, 2)}个赞',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 4,
+                      ),
+                      Text(
+                        '${parseInt(dashboard.innerComments, 2)}个评',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               SizedBox(
                 width: 5,
@@ -669,9 +695,32 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _getCurrentPoolPanel(),
         SizedBox(
           height: 10,
+        ),
+        _getCurrentPoolPanel(),
+        SizedBox(
+          height: 20,
+        ),
+        Container(
+          padding: EdgeInsets.only(
+            left: 10,
+          ),
+          child: Text(
+            '来源',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        _getSourcePanel(),
+        SizedBox(
+          height: 20,
         ),
         Container(
           padding: EdgeInsets.only(
@@ -701,6 +750,7 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
           children: <Widget>[
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Padding(
                     padding: EdgeInsets.only(
@@ -713,6 +763,7 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
                             child: Icon(
                               Icons.pool,
                               size: 20,
+                              color: Colors.grey[600],
                             ),
                           )
                         : ClipRect(
@@ -728,7 +779,7 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
                       '${widget.pool.title}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 16,
                         decoration: TextDecoration.underline,
                       ),
                     ),
@@ -739,18 +790,49 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
             SizedBox(
               width: 5,
             ),
-            Text(
-              '入池 2020/2/14 22:20',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 10,
-                color: Colors.grey,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _isShowCommentRegion = !_isShowCommentRegion;
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 15,
+                    ),
+                    child: Icon(
+                      Icons.add_comment,
+                      size: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {},
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 15,
+                    ),
+                    child: Icon(
+                      FontAwesomeIcons.thumbsUp,
+                      size: 16,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         SizedBox(
-          height: 10,
+          height: 15,
         ),
         Padding(
           padding: EdgeInsets.only(
@@ -759,14 +841,14 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
           child: Column(
             children: <Widget>[
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Padding(
                     padding: EdgeInsets.only(
                       right: 5,
                     ),
                     child: Icon(
-                      Icons.device_hub,
+                      Icons.remove_red_eye,
                       size: 12,
                       color: Colors.grey,
                     ),
@@ -774,11 +856,16 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
                   Expanded(
                     child: Text.rich(
                       TextSpan(
-                        text: '',
-                        children: _getRecommenderSpanList(),
+                        text: '已推荐给 ',
+                        children: [
+                          TextSpan(text: '34.56k 个人'),
+                        ],
                       ),
                       style: TextStyle(
                         fontSize: 12,
+//                        color: Colors.blueGrey,
+                        decoration: TextDecoration.underline,
+//                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -844,25 +931,6 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
                           ],
                         ),
                       ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          _isShowCommentRegion = !_isShowCommentRegion;
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: 10,
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            size: 18,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                   SizedBox(
@@ -872,7 +940,23 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
                     children: _getCommentList(),
                   ),
                 ],
-              )
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Text(
+                    '入池 2020/2/14 22:20',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         )
@@ -902,38 +986,6 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
     spans.add(
       TextSpan(
         text: '等12.3k个人很赞',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.blueGrey,
-          decoration: TextDecoration.underline,
-        ),
-      ),
-    );
-    return spans;
-  }
-
-  List<TextSpan> _getRecommenderSpanList() {
-    var spans = <TextSpan>[];
-    for (var i = 0; i < 10; i++) {
-      spans.add(
-        TextSpan(
-          text: '姓名$i',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.blueGrey,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      );
-      spans.add(
-        TextSpan(
-          text: '; ',
-        ),
-      );
-    }
-    spans.add(
-      TextSpan(
-        text: '等已推荐给12.3k个人',
         style: TextStyle(
           fontWeight: FontWeight.bold,
           color: Colors.blueGrey,
@@ -1019,6 +1071,73 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
       );
     }
     return commends;
+  }
+
+  Widget _getSourcePanel() {
+    var columns = <Widget>[];
+    columns.add(
+      Padding(
+        padding: EdgeInsets.only(
+          left: 30,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(
+              child: Icon(
+                Icons.picture_in_picture_alt,
+                size: 20,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Text(
+                  '飞机票',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                SizedBox(width: 10,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      '1.23k个赞',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(width: 5,),
+                    Text(
+                      '268k个评',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+      ),
+      child: Column(
+        children: columns,
+      ),
+    );
   }
 
   Widget _getRoutePoolPanel() {

@@ -290,6 +290,41 @@ class TrafficPool {
       this.ctime});
 }
 
+class TrafficDashboard {
+  String pool;
+  int itemCount;
+  int lastBubbleTime;
+  int innateLikes;
+  double innateLikeRatio;
+  int innateComments;
+  double innateCommentRatio;
+  int innateRecommends;
+  double innateRecommendsRatio;
+  int innerLikes;
+  double innerLikeRatio;
+  int innerComments;
+  double innerCommentRatio;
+  int innerRecommends;
+  double innerRecommendRatio;
+
+  TrafficDashboard(
+      {this.pool,
+      this.itemCount,
+      this.lastBubbleTime,
+      this.innateLikes,
+      this.innateLikeRatio,
+      this.innateComments,
+      this.innateCommentRatio,
+      this.innateRecommends,
+      this.innateRecommendsRatio,
+      this.innerLikes,
+      this.innerLikeRatio,
+      this.innerComments,
+      this.innerCommentRatio,
+      this.innerRecommends,
+      this.innerRecommendRatio,});
+}
+
 mixin IChasechainRecommenderRemote {
   Future<List<ContentItemOR>> loadItemsFromSandbox(int pageSize, int currPage);
 
@@ -314,6 +349,8 @@ mixin IChasechainRecommenderRemote {
   Future<TrafficPool> getTrafficPool(String pool) {}
 
   Future<ContentBoxOR> getContentBox(String pool, String box) {}
+
+  Future<TrafficDashboard> getTrafficDashboard(String pool) {}
 }
 
 class ChasechainRecommenderRemote
@@ -581,7 +618,9 @@ class ChasechainRecommenderRemote
   _cacheDocument(RecommenderDocument doc) async {
     int layout;
     var mediaCount = doc.medias.length;
-    if (mediaCount == 0 || StringUtil.isEmpty(doc.message.content)||doc.message.content.length>=50) {
+    if (mediaCount == 0 ||
+        StringUtil.isEmpty(doc.message.content) ||
+        doc.message.content.length >= 50) {
       layout = 0;
     } else if (mediaCount == 1) {
       layout = doc.item.id.hashCode.abs() % 3;
@@ -686,6 +725,38 @@ class ChasechainRecommenderRemote
         type: pointer['type'],
         creator: pointer['creator'],
       ),
+    );
+  }
+
+  @override
+  Future<TrafficDashboard> getTrafficDashboard(String pool) async{
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getTrafficDashboard',
+      parameters: {
+        'pool': pool,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    print(obj);
+    return TrafficDashboard(
+      pool: obj['pool'],
+      innateCommentRatio: obj['innateCommentRatio'],
+      innateComments: obj['innateComments'],
+      innateLikeRatio: obj['innateLikeRatio'],
+      innateLikes: obj['innateLikes'],
+      innateRecommends: obj['innateRecommends'],
+      innateRecommendsRatio: obj['innateRecommendsRatio'],
+      innerCommentRatio: obj['innerCommentRatio'],
+      innerComments: obj['innerComments'],
+      innerLikeRatio: obj['innerLikeRatio'],
+      innerLikes: obj['innerLikes'],
+      innerRecommendRatio: obj['innerRecommendRatio'],
+      innerRecommends: obj['innerRecommends'],
+      itemCount: obj['itemCount'],
+      lastBubbleTime: obj['lastBubbleTime'],
     );
   }
 }
