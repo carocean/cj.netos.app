@@ -1,7 +1,9 @@
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:common_utils/common_utils.dart';
+import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
@@ -155,7 +157,7 @@ class _ContentItemPannel extends StatefulWidget {
 }
 
 class _ContentItemPannelState extends State<_ContentItemPannel> {
-  int _maxLines = 2;
+  int _maxLines = 4;
   RecommenderDocument _doc;
   Future<TrafficPool> _future_getPool;
   bool _isCollapsibled = true;
@@ -383,7 +385,7 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          _maxLines = _maxLines == 2 ? 10000 : 2;
+          _maxLines = _maxLines == 4 ? 10000 : 4;
           if (mounted) {
             setState(() {});
           }
@@ -393,11 +395,11 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
           maxLines: _maxLines,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-//          letterSpacing: 1.4,
-//          wordSpacing: 1.4,
-//          height: 1.4,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.8,
+//            wordSpacing: 1.4,
+            height: 1.6,
           ),
         ),
       ),
@@ -405,13 +407,9 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
   }
 
   Widget _renderMedias() {
-    return Container(
-      height: 210,
-      alignment: Alignment.center,
-      child: RecommenderMediaWidget(
-        _doc.medias,
-        widget.context,
-      ),
+    return RecommenderMediaWidget(
+      _doc.medias,
+      widget.context,
     );
   }
 
@@ -578,7 +576,7 @@ class _ContentItemPannelState extends State<_ContentItemPannel> {
                             color:
                                 _isCollapsibled ? Colors.grey : Colors.blueGrey,
                             fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ],
@@ -642,6 +640,8 @@ class _CollapsiblePanel extends StatefulWidget {
 }
 
 class __CollapsiblePanelState extends State<_CollapsiblePanel> {
+  bool _isShowCommentRegion = false;
+
   @override
   void initState() {
     super.initState();
@@ -666,8 +666,592 @@ class __CollapsiblePanelState extends State<_CollapsiblePanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text('${widget.pool.title}'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _getCurrentPoolPanel(),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          padding: EdgeInsets.only(
+            left: 10,
+          ),
+          child: Text(
+            '流径',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        _getRoutePoolPanel(),
+      ],
+    );
+  }
+
+  Widget _getCurrentPoolPanel() {
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Row(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 2,
+                    ),
+                    child: StringUtil.isEmpty(widget.pool.icon)
+                        ? SizedBox(
+                            width: 30,
+                            height: 30,
+                            child: Icon(
+                              Icons.pool,
+                              size: 20,
+                            ),
+                          )
+                        : ClipRect(
+                            child: Image.network(
+                              '${widget.pool.icon}?accessToken=${widget.context.principal.accessToken}',
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${widget.pool.title}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(
+              width: 5,
+            ),
+            Text(
+              '入池 2020/2/14 22:20',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 10,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            left: 15,
+          ),
+          child: Column(
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 5,
+                    ),
+                    child: Icon(
+                      Icons.device_hub,
+                      size: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        text: '',
+                        children: _getRecommenderSpanList(),
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 5,
+                    ),
+                    child: Icon(
+                      FontAwesomeIcons.thumbsUp,
+                      size: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        text: '',
+                        children: _getLikeSpanList(),
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: 5,
+                              ),
+                              child: Icon(
+                                Icons.mode_comment,
+                                size: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              '12.3k个评论',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          _isShowCommentRegion = !_isShowCommentRegion;
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: 10,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Column(
+                    children: _getCommentList(),
+                  ),
+                ],
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  List<TextSpan> _getLikeSpanList() {
+    var spans = <TextSpan>[];
+    for (var i = 0; i < 10; i++) {
+      spans.add(
+        TextSpan(
+          text: '姓名$i',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      );
+      spans.add(
+        TextSpan(
+          text: '; ',
+        ),
+      );
+    }
+    spans.add(
+      TextSpan(
+        text: '等12.3k个人很赞',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.blueGrey,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+    return spans;
+  }
+
+  List<TextSpan> _getRecommenderSpanList() {
+    var spans = <TextSpan>[];
+    for (var i = 0; i < 10; i++) {
+      spans.add(
+        TextSpan(
+          text: '姓名$i',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      );
+      spans.add(
+        TextSpan(
+          text: '; ',
+        ),
+      );
+    }
+    spans.add(
+      TextSpan(
+        text: '等已推荐给12.3k个人',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.blueGrey,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+    return spans;
+  }
+
+  List<Widget> _getCommentList() {
+    var commends = <Widget>[];
+    for (var i = 0; i < 5; i++) {
+      commends.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 18,
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: '姓名$i: ',
+                    children: [
+                      TextSpan(
+                        text:
+                            '最新的4.7.0版，收录了675个图标…如果你觉得本页图标太小。且需要在Photoshop等其他桌面应用中使用',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      commends.add(
+        SizedBox(
+          height: 6,
+        ),
+      );
+    }
+    commends.add(
+      Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          '更多',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+          ),
+        ),
+      ),
+    );
+    if (_isShowCommentRegion) {
+      commends.add(
+        SizedBox(
+          height: 10,
+        ),
+      );
+      commends.add(
+        _CommentEditor(
+          context: widget.context,
+          onCloseWin: () {
+            _isShowCommentRegion = false;
+            if (mounted) {
+              setState(() {});
+            }
+          },
+          onFinished: (v) {},
+        ),
+      );
+    }
+    return commends;
+  }
+
+  Widget _getRoutePoolPanel() {
+    var columns = <Widget>[];
+    for (var i = 0; i < 4; i++) {
+      columns.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              '12:32',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                right: 10,
+                left: 10,
+              ),
+              child: Text(
+                '发布到',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        right: 2,
+                      ),
+                      child: StringUtil.isEmpty(widget.pool.icon)
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Icon(
+                                Icons.pool,
+                                size: 20,
+                              ),
+                            )
+                          : ClipRect(
+                              child: Image.network(
+                                '${widget.pool.icon}?accessToken=${widget.context.principal.accessToken}',
+                                height: 20,
+                                width: 20,
+                              ),
+                            ),
+                    ),
+                    Text(
+                      '${widget.pool.title}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 2,
+                ),
+                Text.rich(
+                  TextSpan(
+                    text: '',
+                    children: [
+                      TextSpan(text: ' '),
+                      TextSpan(
+                        text: '18.2k个荐',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '12.23k个赞',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      TextSpan(text: ' '),
+                      TextSpan(
+                        text: '12.23k个评',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+      if (i < 4 - 1) {
+        columns.add(
+          SizedBox(
+            height: 10,
+            child: Divider(
+              height: 1,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+      ),
+      child: Column(
+        children: columns,
+      ),
+    );
+  }
+}
+
+class _CommentEditor extends StatefulWidget {
+  void Function(String content) onFinished;
+  void Function() onCloseWin;
+  PageContext context;
+
+  _CommentEditor({this.context, this.onFinished, this.onCloseWin});
+
+  @override
+  __CommentEditorState createState() => __CommentEditorState();
+}
+
+class __CommentEditorState extends State<_CommentEditor> {
+  TextEditingController _controller;
+
+  @override
+  void initState() {
+    _controller = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: 5,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Flexible(
+            //解决了无法计算边界问题
+            fit: FlexFit.tight,
+            child: ExtendedTextField(
+              controller: _controller,
+              autofocus: true,
+              onSubmitted: (v) {
+                print(v);
+              },
+              onEditingComplete: () {
+                print('----');
+              },
+              style: TextStyle(
+                fontSize: 14,
+              ),
+              maxLines: 50,
+              minLines: 4,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                prefixText: '说道>',
+                prefixStyle: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+                labelText:
+                    '${widget.context.principal.nickName ?? widget.context.principal.accountCode}',
+                labelStyle: TextStyle(
+                  fontSize: 18,
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.w500,
+                ),
+                fillColor: Colors.white,
+                filled: true,
+                hintText: '输入您的评论',
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          Column(
+            children: <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.check,
+                  size: 14,
+                ),
+                onPressed: () async {
+                  if (widget.onFinished != null) {
+                    await widget.onFinished(_controller.text);
+                  }
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  size: 14,
+                ),
+                onPressed: () async {
+                  _controller.text = '';
+                  if (widget.onCloseWin != null) {
+                    await widget.onCloseWin();
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

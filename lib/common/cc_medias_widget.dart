@@ -64,7 +64,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 296,
+        height: 200,
       ),
       child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
     );
@@ -73,7 +73,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildTwoImages(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 296,
+        height: 156,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,9 +115,11 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildFourImages(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 296,
+        height: 256,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -142,9 +144,11 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildFiveImages(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 296,
+        height: 256,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -171,7 +175,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildSixImages(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 296,
+        height: 256,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
