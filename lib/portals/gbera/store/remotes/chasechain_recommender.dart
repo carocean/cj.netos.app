@@ -307,22 +307,57 @@ class TrafficDashboard {
   int innerRecommends;
   double innerRecommendRatio;
 
-  TrafficDashboard(
-      {this.pool,
-      this.itemCount,
-      this.lastBubbleTime,
-      this.innateLikes,
-      this.innateLikeRatio,
-      this.innateComments,
-      this.innateCommentRatio,
-      this.innateRecommends,
-      this.innateRecommendsRatio,
-      this.innerLikes,
-      this.innerLikeRatio,
-      this.innerComments,
-      this.innerCommentRatio,
-      this.innerRecommends,
-      this.innerRecommendRatio,});
+  TrafficDashboard({
+    this.pool,
+    this.itemCount,
+    this.lastBubbleTime,
+    this.innateLikes,
+    this.innateLikeRatio,
+    this.innateComments,
+    this.innateCommentRatio,
+    this.innateRecommends,
+    this.innateRecommendsRatio,
+    this.innerLikes,
+    this.innerLikeRatio,
+    this.innerComments,
+    this.innerCommentRatio,
+    this.innerRecommends,
+    this.innerRecommendRatio,
+  });
+}
+
+class ItemBehavior {
+  String item; //唯一
+  int likes;
+  int comments;
+  int recommends;
+  int utime; //更新时间
+  String pool;
+
+  ItemBehavior(
+      {this.item,
+      this.likes,
+      this.comments,
+      this.recommends,
+      this.utime,
+      this.pool});
+}
+
+class BehaviorDetails {
+  String person;
+  String item;
+  String behave; //如：like,comment,recommended
+  String attachment; //行为附件
+  int ctime;
+  String pool;
+
+  BehaviorDetails(
+      {this.person,
+      this.item,
+      this.behave,
+      this.attachment,
+      this.ctime,
+      this.pool});
 }
 
 mixin IChasechainRecommenderRemote {
@@ -351,6 +386,22 @@ mixin IChasechainRecommenderRemote {
   Future<ContentBoxOR> getContentBox(String pool, String box) {}
 
   Future<TrafficDashboard> getTrafficDashboard(String pool) {}
+
+  Future<ItemBehavior> getItemInnerBehavior(String pool, String item) {}
+
+  Future<ItemBehavior> getItemInnateBehavior(String pool, String item) {}
+
+  Future<int> hasBehave(String pool, String item, String s) {}
+
+  Future<void> doBehave(
+      String pool, String item, String behave, String attachment) {}
+
+  Future<void> undoBehave(String pool, String item, String behave) {}
+
+  Future<List<BehaviorDetails>> pageBehave(
+      String pool, String item, String behave, int limit, int offset) {}
+
+  Future<ContentItemOR> getContentItem(String pool, String item) {}
 }
 
 class ChasechainRecommenderRemote
@@ -592,7 +643,7 @@ class ChasechainRecommenderRemote
       items.add(
         RecommenderMediaOR(
           leading: media.leading,
-          docid: media.msgid,
+          docid: media.docid,
           src: media.src,
           text: media.text,
           ctime: DateTime.now().millisecondsSinceEpoch,
@@ -729,7 +780,7 @@ class ChasechainRecommenderRemote
   }
 
   @override
-  Future<TrafficDashboard> getTrafficDashboard(String pool) async{
+  Future<TrafficDashboard> getTrafficDashboard(String pool) async {
     var obj = await remotePorts.portGET(
       trafficPoolPorts,
       'getTrafficDashboard',
@@ -740,7 +791,6 @@ class ChasechainRecommenderRemote
     if (obj == null) {
       return null;
     }
-    print(obj);
     return TrafficDashboard(
       pool: obj['pool'],
       innateCommentRatio: obj['innateCommentRatio'],
@@ -757,6 +807,158 @@ class ChasechainRecommenderRemote
       innerRecommends: obj['innerRecommends'],
       itemCount: obj['itemCount'],
       lastBubbleTime: obj['lastBubbleTime'],
+    );
+  }
+
+  @override
+  Future<ItemBehavior> getItemInnerBehavior(String pool, String item) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getItemInnerBehavior',
+      parameters: {
+        'pool': pool,
+        'item': item,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return ItemBehavior(
+      pool: obj['pool'],
+      item: obj['item'],
+      comments: obj['comments'],
+      likes: obj['likes'],
+      recommends: obj['recommends'],
+      utime: obj['utime'],
+    );
+  }
+
+  @override
+  Future<ItemBehavior> getItemInnateBehavior(String pool, String item) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getItemInnateBehavior',
+      parameters: {
+        'pool': pool,
+        'item': item,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return ItemBehavior(
+      pool: obj['pool'],
+      item: obj['item'],
+      comments: obj['comments'],
+      likes: obj['likes'],
+      recommends: obj['recommends'],
+      utime: obj['utime'],
+    );
+  }
+
+  @override
+  Future<int> hasBehave(String pool, String item, String behave) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'hasBehave',
+      parameters: {
+        'pool': pool,
+        'item': item,
+        'behave': behave,
+      },
+    );
+    return obj;
+  }
+
+  @override
+  Future<void> doBehave(
+      String pool, String item, String behave, String attachment) async {
+    await remotePorts.portGET(
+      trafficPoolPorts,
+      'doBehave',
+      parameters: {
+        'pool': pool,
+        'item': item,
+        'behave': behave,
+        'attachment': attachment,
+      },
+    );
+  }
+
+  @override
+  Future<void> undoBehave(String pool, String item, String behave) async {
+    await remotePorts.portGET(
+      trafficPoolPorts,
+      'undoBehave',
+      parameters: {
+        'pool': pool,
+        'item': item,
+        'behave': behave,
+      },
+    );
+  }
+
+  @override
+  Future<List<BehaviorDetails>> pageBehave(
+      String pool, String item, String behave, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageBehave',
+      parameters: {
+        'pool': pool,
+        'item': item,
+        'behave': behave,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var details = <BehaviorDetails>[];
+    for (var obj in list) {
+      details.add(
+        BehaviorDetails(
+          pool: obj['pool'],
+          item: obj['item'],
+          ctime: obj['ctime'],
+          person: obj['person'],
+          attachment: obj['attachment'],
+          behave: obj['behave'],
+        ),
+      );
+    }
+    return details;
+  }
+
+  @override
+  Future<ContentItemOR> getContentItem(String pool, String item) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getContentItem',
+      parameters: {
+        'pool': pool,
+        'item': item,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    var objPointer = obj['pointer'];
+    var pointer = ItemPointer(
+      id: objPointer['id'],
+      ctime: objPointer['ctime'],
+      type: objPointer['type'],
+      creator: objPointer['creator'],
+    );
+    var location =
+        obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
+    return ContentItemOR(
+      ctime: obj['ctime'],
+      id: obj['id'],
+      location: location,
+      box: obj['box'],
+      isBubbled: obj['isBubbled'],
+      pointer: pointer,
+      pool: obj['pool'],
+      upstreamPool: obj['upstreamPool'],
     );
   }
 }

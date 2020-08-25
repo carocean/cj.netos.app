@@ -22,7 +22,7 @@ class GeosphereMediaOR {
   final String type;
   final String src;
   final String leading;
-  final String msgid;
+  final String docid;
   final String text;
   final String receptor;
 
@@ -31,7 +31,7 @@ class GeosphereMediaOR {
       this.type,
       this.src,
       this.leading,
-      this.msgid,
+      this.docid,
       this.text,
       this.receptor});
 
@@ -41,7 +41,7 @@ class GeosphereMediaOR {
       id: id,
       type: type,
       text: text,
-      msgid: msgid,
+      msgid: docid,
       sourceType: 'geosphere',
       src: src,
     );
@@ -691,7 +691,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           id:  obj['id'],
           text:  obj['text'],
           receptor:  obj['receptor'],
-          msgid:  obj['msgid'],
+          docid:  obj['docid'],
         ),
       );
     }
