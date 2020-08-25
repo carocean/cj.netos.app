@@ -301,8 +301,17 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
       ],
     );
     if (!widget.usePopupLayout) {
-      return body;
+      return Container(
+
+        decoration: BoxDecoration(
+          color: Colors.white70,
+//          borderRadius: BorderRadius.only(topLeft: Radius.circular(8),topRight: Radius.circular(8)),
+        ),
+        padding: EdgeInsets.only(right: 10,left: 0,bottom: 15,),
+        child: body,
+      );
     }
+    var content=widget.doc.message.content;
     return Scaffold(
       appBar: AppBar(
         leading: StringUtil.isEmpty(widget.pool.icon)
@@ -385,7 +394,22 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           right: 15,
           bottom: 30,
         ),
-        child: body,
+        child: Column(
+          children: <Widget>[
+            Container(
+              alignment: Alignment.centerLeft,
+
+              margin: EdgeInsets.only(bottom: 15,left: 32,right: 32,),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white70,
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              child: Text('$content',style: TextStyle(fontSize: 12,),maxLines: 2,overflow: TextOverflow.ellipsis,),
+            ),
+            body,
+          ],
+        ),
       ),
     );
   }
