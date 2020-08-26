@@ -4,6 +4,7 @@ import 'package:awsome_video_player/awsome_video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
@@ -21,12 +22,17 @@ import 'package:video_player/video_player.dart';
 import 'media_watcher.dart';
 
 class RecommenderMediaWidget extends StatelessWidget {
-  const RecommenderMediaWidget(
-    this.medias,
+  RecommenderMediaWidget(
+    List<RecommenderMediaOR> medias,
     this.pageContext,
-  );
+  ) {
+    this.medias = medias;
+    this.medias.removeWhere((element) {
+      return StringUtil.isEmpty(element.src);
+    });
+  }
 
-  final List<RecommenderMediaOR> medias;
+  List<RecommenderMediaOR> medias;
   final PageContext pageContext;
 
   @override
@@ -385,7 +391,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _aspectRatioImage(
     BuildContext context, {
     int index,
-    double aspectRatio = 16/9,
+    double aspectRatio = 16 / 9,
   }) {
     return InkWell(
       child: AspectRatio(
@@ -416,7 +422,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   }
 
   Widget _aspectRatioEmpty({
-    double aspectRatio = 16/9,
+    double aspectRatio = 16 / 9,
   }) {
     return AspectRatio(
       aspectRatio: aspectRatio,
@@ -462,6 +468,11 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     if (oldWidget.src?.src != widget.src?.src) {
       oldWidget.src = widget.src;
       oldWidget.accessToken = widget.accessToken;
+      _loadSrcFile().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -552,9 +563,8 @@ Widget _getMediaRender(RecommenderMediaOR media, String accessToken) {
 class _RecommenderVideoView extends StatefulWidget {
   File src;
   bool autoPlay = false;
-  VideoController controller;
 
-  _RecommenderVideoView({this.src, this.autoPlay = false, this.controller});
+  _RecommenderVideoView({this.src, this.autoPlay = false});
 
   @override
   _RecommenderVideoViewState createState() => _RecommenderVideoViewState();
@@ -568,10 +578,34 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
 
   @override
   void initState() {
-    controller = VideoPlayerController.file(widget.src);
-    if (widget.controller != null) {
-      widget.controller.controller = controller;
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _currentActionIndex = 0;
+    start = null;
+    _future_waitfor_inited = null;
+    controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_RecommenderVideoView oldWidget) {
+    if (oldWidget.src != widget.src) {
+      oldWidget.src = widget.src;
+      _currentActionIndex = 0;
+      start = null;
+      _future_waitfor_inited = null;
+      controller?.dispose();
+      _load();
     }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _load() {
+    controller = VideoPlayerController.file(widget.src);
     controller.addListener(() {
       if (controller.value.isPlaying) {
         if (_currentActionIndex == 1) {
@@ -596,18 +630,15 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
       }
     });
     _future_waitfor_inited = waitfor_inited();
-    super.initState();
   }
 
-  @override
-  void dispose() {
-    _currentActionIndex = 0;
-    controller.dispose();
-    start = null;
-    _future_waitfor_inited = null;
-    super.dispose();
+  Future<void> waitfor_inited() async {
+    await controller.initialize();
+    start = controller.value.position;
+    if (widget.autoPlay) {
+      controller.play();
+    }
   }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -695,16 +726,6 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
     );
   }
 
-  Future<void> waitfor_inited() async {
-    await controller.initialize();
-    start = controller.value.position;
-    if (widget.controller != null) {
-      widget.controller.start = start;
-    }
-    if (widget.autoPlay) {
-      controller.play();
-    }
-  }
 }
 
 class VideoController {

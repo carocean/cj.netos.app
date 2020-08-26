@@ -271,7 +271,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            letterSpacing: 0.8,
+//            letterSpacing: 0.8,
 //            wordSpacing: 1.4,
             height: 1.6,
           ),
