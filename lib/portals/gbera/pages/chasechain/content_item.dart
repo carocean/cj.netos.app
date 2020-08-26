@@ -12,10 +12,12 @@ import 'collapsible_panel.dart';
 class ContentItemPanel extends StatefulWidget {
   PageContext context;
   ContentItemOR item;
+  String towncode;
 
   ContentItemPanel({
     this.context,
     this.item,
+    this.towncode,
   });
 
   @override
@@ -44,8 +46,10 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
 
   @override
   void didUpdateWidget(ContentItemPanel oldWidget) {
-    if (oldWidget.item.id != widget.item.id) {
+    if (oldWidget.item.id != widget.item.id ||
+        oldWidget.towncode != widget.towncode) {
       oldWidget.item = widget.item;
+      oldWidget.towncode = widget.towncode;
       _loadDocumentContent();
     }
     super.didUpdateWidget(oldWidget);
@@ -460,6 +464,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                               doc: _doc,
                               pool: pool,
                               usePopupLayout: true,
+                              towncode: widget.towncode,
                             );
                           });
                     },
@@ -522,6 +527,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                 doc: _doc,
                 pool: pool,
                 usePopupLayout: false,
+                towncode: widget.towncode,
               );
             }
             return SizedBox(

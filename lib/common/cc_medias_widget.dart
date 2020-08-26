@@ -21,6 +21,8 @@ import 'package:video_player/video_player.dart';
 
 import 'media_watcher.dart';
 
+const double _aspectRatio = 16 / 9;
+
 class RecommenderMediaWidget extends StatelessWidget {
   RecommenderMediaWidget(
     List<RecommenderMediaOR> medias,
@@ -364,7 +366,7 @@ class RecommenderMediaWidget extends StatelessWidget {
               _openGalleryWatcher(context, 9);
             },
             child: AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: _aspectRatio,
               child: Container(
                 color: Colors.white30,
                 child: Center(
@@ -391,7 +393,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _aspectRatioImage(
     BuildContext context, {
     int index,
-    double aspectRatio = 16 / 9,
+    double aspectRatio = _aspectRatio,
   }) {
     return InkWell(
       child: AspectRatio(
@@ -422,7 +424,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   }
 
   Widget _aspectRatioEmpty({
-    double aspectRatio = 16 / 9,
+    double aspectRatio = _aspectRatio,
   }) {
     return AspectRatio(
       aspectRatio: aspectRatio,
@@ -633,12 +635,17 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
   }
 
   Future<void> waitfor_inited() async {
-    await controller.initialize();
-    start = controller.value.position;
-    if (widget.autoPlay) {
-      controller.play();
+    try {
+      await controller.initialize();
+      start = controller.value.position;
+      if (widget.autoPlay) {
+        controller.play();
+      }
+    } catch (e) {
+      print('视频初始化失败:$e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -725,7 +732,6 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
       ],
     );
   }
-
 }
 
 class VideoController {

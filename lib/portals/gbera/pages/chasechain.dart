@@ -103,7 +103,78 @@ class _ChasechainState extends State<Chasechain> {
             automaticallyImplyLeading: false,
             backgroundColor: Colors.transparent,
             toolbarOpacity: 1,
-            actions: <Widget>[],
+            actions: <Widget>[
+              PopupMenuButton<String>(
+                offset: Offset(
+                  0,
+                  50,
+                ),
+                tooltip: '追链',
+                onSelected: (value) async {
+                  switch (value) {
+                    case 'pools':
+                      widget.context.forward('/chasechain/traffic/pools',arguments: {'towncode':_towncode,});
+                      break;
+                    case 'profiles':
+                      break;
+                    default:
+                      print('不支持的菜单');
+                      break;
+                  }
+                },
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                  PopupMenuItem(
+                    value: 'pools',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            Icons.pool,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '流量地球',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'profiles',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            Icons.settings,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '偏好设置',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -128,6 +199,7 @@ class _ChasechainState extends State<Chasechain> {
           child: ContentItemPanel(
             context: widget.context,
             item: item,
+            towncode: _towncode,
           ),
         ),
       );

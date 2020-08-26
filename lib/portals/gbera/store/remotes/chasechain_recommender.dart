@@ -277,6 +277,7 @@ class TrafficPool {
   int state;
   int level;
   int index;
+  String parent; //归属的上级流量池
   int ctime;
 
   TrafficPool(
@@ -287,6 +288,7 @@ class TrafficPool {
       this.state,
       this.level,
       this.index,
+      this.parent,
       this.ctime});
 }
 
@@ -383,6 +385,8 @@ mixin IChasechainRecommenderRemote {
 
   Future<TrafficPool> getTrafficPool(String pool) {}
 
+  Future<TrafficPool> getCountryPool() {}
+
   Future<ContentBoxOR> getContentBox(String pool, String box) {}
 
   Future<TrafficDashboard> getTrafficDashboard(String pool) {}
@@ -402,6 +406,19 @@ mixin IChasechainRecommenderRemote {
       String pool, String item, String behave, int limit, int offset) {}
 
   Future<ContentItemOR> getContentItem(String pool, String item) {}
+
+  Future<List<TrafficPool>> pageChildrenPool(
+      String pool, int limit, int offset) {}
+
+  Future<List<TrafficPool>> pageChildrenPoolByLevel(
+      String pool, int level, int limit, int offset) {}
+
+  Future<int> countContentProvidersOfPool(String pool) {}
+
+  Future<List<ContentItemOR>> pageContentItem(
+      String pool, int limit, int offset) {}
+
+  Future<TrafficPool> getTownTrafficPool(towncode) {}
 }
 
 class ChasechainRecommenderRemote
@@ -483,6 +500,45 @@ class ChasechainRecommenderRemote
       'pullItem',
       parameters: {
         'towncode': towncode,
+      },
+    );
+    List<ContentItemOR> items = [];
+    for (var obj in list) {
+      var objPointer = obj['pointer'];
+      var pointer = ItemPointer(
+        id: objPointer['id'],
+        ctime: objPointer['ctime'],
+        type: objPointer['type'],
+        creator: objPointer['creator'],
+      );
+      var location =
+          obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
+      var item = ContentItemOR(
+        ctime: obj['ctime'],
+        id: obj['id'],
+        location: location,
+        box: obj['box'],
+        isBubbled: obj['isBubbled'],
+        pointer: pointer,
+        pool: obj['pool'],
+        upstreamPool: obj['upstreamPool'],
+      );
+      items.add(item);
+      await _saveItem(item);
+    }
+    return items;
+  }
+
+  @override
+  Future<List<ContentItemOR>> pageContentItem(
+      String pool, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentItem',
+      parameters: {
+        'pool': pool,
+        'limit': limit,
+        'offset': offset,
       },
     );
     List<ContentItemOR> items = [];
@@ -746,7 +802,117 @@ class ChasechainRecommenderRemote
       index: obj['index'],
       isGeosphere: obj['isGeosphere'],
       level: obj['level'],
+      parent: obj['parent'],
     );
+  }
+
+  @override
+  Future<TrafficPool> getCountryPool() async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getCountryPool',
+    );
+    if (obj == null) {
+      return null;
+    }
+    return TrafficPool(
+      ctime: obj['ctime'],
+      id: obj['id'],
+      state: obj['state'],
+      title: obj['title'],
+      icon: obj['icon'],
+      index: obj['index'],
+      isGeosphere: obj['isGeosphere'],
+      level: obj['level'],
+      parent: obj['parent'],
+    );
+  }
+
+  @override
+  Future<TrafficPool> getTownTrafficPool(towncode) async {
+    var obj = await remotePorts.portGET(
+      trafficPoolPorts,
+      'getTownTrafficPool',
+      parameters: {
+        'towncode':towncode,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return TrafficPool(
+      ctime: obj['ctime'],
+      id: obj['id'],
+      state: obj['state'],
+      title: obj['title'],
+      icon: obj['icon'],
+      index: obj['index'],
+      isGeosphere: obj['isGeosphere'],
+      level: obj['level'],
+      parent: obj['parent'],
+    );
+  }
+  @override
+  Future<List<TrafficPool>> pageChildrenPool(
+      String pool, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageChildrenPool',
+      parameters: {
+        'pool': pool,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var pools = <TrafficPool>[];
+    for (var obj in list) {
+      pools.add(
+        TrafficPool(
+          ctime: obj['ctime'],
+          id: obj['id'],
+          state: obj['state'],
+          title: obj['title'],
+          icon: obj['icon'],
+          index: obj['index'],
+          isGeosphere: obj['isGeosphere'],
+          level: obj['level'],
+          parent: obj['parent'],
+        ),
+      );
+    }
+    return pools;
+  }
+
+  @override
+  Future<List<TrafficPool>> pageChildrenPoolByLevel(
+      String pool, int level, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageChildrenPoolByLevel',
+      parameters: {
+        'pool': pool,
+        'level': level,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var pools = <TrafficPool>[];
+    for (var obj in list) {
+      pools.add(
+        TrafficPool(
+          ctime: obj['ctime'],
+          id: obj['id'],
+          state: obj['state'],
+          title: obj['title'],
+          icon: obj['icon'],
+          index: obj['index'],
+          isGeosphere: obj['isGeosphere'],
+          level: obj['level'],
+          parent: obj['parent'],
+        ),
+      );
+    }
+    return pools;
   }
 
   @override
@@ -961,4 +1127,17 @@ class ChasechainRecommenderRemote
       upstreamPool: obj['upstreamPool'],
     );
   }
+
+  @override
+  Future<int> countContentProvidersOfPool(String pool) async {
+    var v = await remotePorts.portGET(
+      trafficPoolPorts,
+      'countContentProvidersOfPool',
+      parameters: {
+        'pool': pool,
+      },
+    );
+    return v;
+  }
+
 }

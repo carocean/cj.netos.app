@@ -15,8 +15,10 @@ class CollapsiblePanel extends StatefulWidget {
   RecommenderDocument doc;
   TrafficPool pool;
   bool usePopupLayout;
+  String towncode;
 
-  CollapsiblePanel({this.context, this.doc, this.pool, this.usePopupLayout});
+  CollapsiblePanel(
+      {this.context, this.doc, this.pool, this.usePopupLayout, this.towncode});
 
   @override
   _CollapsiblePanelState createState() => _CollapsiblePanelState();
@@ -275,7 +277,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
         ),
         _getSourcePanel(),
         SizedBox(
-          height:  20,
+          height: 20,
         ),
         _routeItemOnPools.isEmpty
             ? SizedBox(
@@ -302,16 +304,19 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     );
     if (!widget.usePopupLayout) {
       return Container(
-
         decoration: BoxDecoration(
           color: Colors.white70,
 //          borderRadius: BorderRadius.only(topLeft: Radius.circular(8),topRight: Radius.circular(8)),
         ),
-        padding: EdgeInsets.only(right: 10,left: 0,bottom: 15,),
+        padding: EdgeInsets.only(
+          right: 10,
+          left: 0,
+          bottom: 15,
+        ),
         child: body,
       );
     }
-    var content=widget.doc.message.content;
+    var content = widget.doc.message.content;
     return Scaffold(
       appBar: AppBar(
         leading: StringUtil.isEmpty(widget.pool.icon)
@@ -398,14 +403,24 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           children: <Widget>[
             Container(
               alignment: Alignment.centerLeft,
-
-              margin: EdgeInsets.only(bottom: 15,left: 32,right: 32,),
+              margin: EdgeInsets.only(
+                bottom: 15,
+                left: 32,
+                right: 32,
+              ),
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white70,
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
-              child: Text('$content',style: TextStyle(fontSize: 12,),maxLines: 2,overflow: TextOverflow.ellipsis,),
+              child: Text(
+                '$content',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             body,
           ],
@@ -435,7 +450,9 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                             child: Icon(
                               Icons.pool,
                               size: 20,
-                              color: widget.pool.isGeosphere?Colors.green: Colors.grey[600],
+                              color: widget.pool.isGeosphere
+                                  ? Colors.green
+                                  : Colors.grey[600],
                             ),
                           )
                         : ClipRect(
@@ -446,7 +463,15 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                             ),
                           ),
                   ),
-                  Expanded(
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      widget.context
+                          .forward('/chasechain/traffic/pools', arguments: {
+                        'towncode': widget.towncode,
+                        'pool': widget.pool.id,
+                      });
+                    },
                     child: Text(
                       '${widget.pool.title}',
                       style: TextStyle(
@@ -455,7 +480,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                         decoration: TextDecoration.underline,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -1099,7 +1124,9 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                               child: Icon(
                                 Icons.pool,
                                 size: 16,
-                                color: detail.pool.isGeosphere?Colors.green:Colors.grey,
+                                color: detail.pool.isGeosphere
+                                    ? Colors.green
+                                    : Colors.grey,
                               ),
                             )
                           : ClipRect(
@@ -1110,12 +1137,22 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                               ),
                             ),
                     ),
-                    Text(
-                      '${detail.pool.title}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                        decoration: TextDecoration.underline,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        widget.context
+                            .forward('/chasechain/traffic/pools', arguments: {
+                          'towncode': widget.towncode,
+                          'pool': widget.pool.id,
+                        });
+                      },
+                      child: Text(
+                        '${detail.pool.title}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ],
