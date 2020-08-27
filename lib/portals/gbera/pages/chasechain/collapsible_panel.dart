@@ -109,7 +109,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     );
     var upstreamPool = upstreamItem.upstreamPool;
     if (!StringUtil.isEmpty(upstreamPool)) {
-      await __loadRoutePools(recommender, pool.id, item);
+      await __loadRoutePools(recommender, upstreamPool, item);
     }
   }
 
