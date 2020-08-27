@@ -760,6 +760,13 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             color: Colors.blueGrey,
             decoration: TextDecoration.underline,
           ),
+          recognizer: TapGestureRecognizer()..onTap=(){
+            widget.context.forward('/chasechain/provider',
+                arguments: {
+                  'provider': person.official,
+                  'pool': widget.pool.id,
+                });
+          },
         ),
       );
       spans.add(
@@ -812,6 +819,13 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             color: Colors.blueGrey,
             decoration: TextDecoration.underline,
           ),
+            recognizer: TapGestureRecognizer()..onTap=() {
+              widget.context.forward('/chasechain/provider',
+                  arguments: {
+                    'provider': person.official,
+                    'pool': widget.pool.id,
+                  });
+            },
         ),
       );
       spans.add(
@@ -878,6 +892,13 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                 child: Text.rich(
                   TextSpan(
                     text: '${person?.nickName ?? comment.person}: ',
+                    recognizer: TapGestureRecognizer()..onTap=() {
+                      widget.context.forward('/chasechain/provider',
+                          arguments: {
+                            'provider': person.official,
+                            'pool': widget.pool.id,
+                          });
+                    },
                     children: [
                       TextSpan(
                         text: '${comment.attachment ?? ''}',
@@ -1007,12 +1028,21 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(
-              '${_itemProvider?.nickName ?? ''}',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                decoration: TextDecoration.underline,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward('/chasechain/provider', arguments: {
+                  'provider': widget.doc.item.pointer.creator,
+                  'pool': widget.doc.item.pool
+                });
+              },
+              child: Text(
+                '${_itemProvider?.nickName ?? ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
             SizedBox(
@@ -1038,7 +1068,10 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                       onTap: () {
                         widget.context.forward(
                           '/chasechain/box',
-                          arguments: {'box': _contentBox, 'pool': widget.pool.id},
+                          arguments: {
+                            'box': _contentBox,
+                            'pool': widget.pool.id
+                          },
                         );
                       },
                       child: Text(

@@ -9,6 +9,9 @@ import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/profile.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -2200,6 +2203,33 @@ class GberaPortal {
           icon: Icons.business,
           url: '/chasechain/box',
           buildPage: (PageContext pageContext) => ContentBoxPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容提供商',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/provider',
+          buildPage: (PageContext pageContext) => ContentProviderPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '推荐个人偏好设置',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/recommender/profile',
+          buildPage: (PageContext pageContext) => RecommenderProfilePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '流量池信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/pool/view',
+          buildPage: (PageContext pageContext) => PoolViewPage(
             context: pageContext,
           ),
         ),

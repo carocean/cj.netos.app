@@ -422,6 +422,9 @@ mixin IChasechainRecommenderRemote {
       String pool, String box, int limit, int offset) {}
 
   Future<TrafficPool> getTownTrafficPool(towncode) {}
+
+  Future<List<ContentItemOR>> pageContentItemOfProvider(
+      pool, Person contentProvider, int limit, int offset) {}
 }
 
 class ChasechainRecommenderRemote
@@ -485,14 +488,14 @@ class ChasechainRecommenderRemote
       return null;
     }
     return RecommenderConfig(
-      cityRecommendWeight: obj['cityRecommendWeight'],
-      countryRecommendWeight: obj['countryRecommendWeight'],
-      districtRecommendWeight: obj['districtRecommendWeight'],
+      cityRecommendWeight: double.parse('${obj['cityRecommendWeight']}'),
+      countryRecommendWeight:double.parse('${obj['countryRecommendWeight']}'),
+      districtRecommendWeight: double.parse('${obj['districtRecommendWeight']}'),
       maxRecommendItemCount: obj['maxRecommendItemCount'],
-      normalRecommendWeight: obj['normalRecommendWeight'],
-      provinceRecommendWeight: obj['provinceRecommendWeight'],
-      townRecommendWeight: obj['townRecommendWeight'],
-      weightCapacity: obj['weightCapacity'],
+      normalRecommendWeight: double.parse('${obj['normalRecommendWeight']}'),
+      provinceRecommendWeight: double.parse('${obj['provinceRecommendWeight']}'),
+      townRecommendWeight: double.parse('${obj['townRecommendWeight']}'),
+      weightCapacity: double.parse('${obj['weightCapacity']}'),
     );
   }
 
@@ -572,13 +575,14 @@ class ChasechainRecommenderRemote
   }
 
   @override
-  Future<List<ContentItemOR>> pageContentItemOfBox(String pool, String box, int limit, int offset) async{
+  Future<List<ContentItemOR>> pageContentItemOfBox(
+      String pool, String box, int limit, int offset) async {
     var list = await remotePorts.portGET(
       trafficPoolPorts,
       'pageContentItemOfBox',
       parameters: {
         'pool': pool,
-        'box':box,
+        'box': box,
         'limit': limit,
         'offset': offset,
       },
@@ -593,7 +597,7 @@ class ChasechainRecommenderRemote
         creator: objPointer['creator'],
       );
       var location =
-      obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
+          obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
       var item = ContentItemOR(
         ctime: obj['ctime'],
         id: obj['id'],
@@ -609,6 +613,47 @@ class ChasechainRecommenderRemote
     }
     return items;
   }
+
+  @override
+  Future<List<ContentItemOR>> pageContentItemOfProvider(
+      pool, Person contentProvider, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentItemOfProvider',
+      parameters: {
+        'pool': pool,
+        'provider': contentProvider.official,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<ContentItemOR> items = [];
+    for (var obj in list) {
+      var objPointer = obj['pointer'];
+      var pointer = ItemPointer(
+        id: objPointer['id'],
+        ctime: objPointer['ctime'],
+        type: objPointer['type'],
+        creator: objPointer['creator'],
+      );
+      var location =
+          obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
+      var item = ContentItemOR(
+        ctime: obj['ctime'],
+        id: obj['id'],
+        location: location,
+        box: obj['box'],
+        isBubbled: obj['isBubbled'],
+        pointer: pointer,
+        pool: obj['pool'],
+        upstreamPool: obj['upstreamPool'],
+      );
+      items.add(item);
+      await _saveItem(item);
+    }
+    return items;
+  }
+
   @override
   Future<List<ContentItemOR>> loadItemsFromSandbox(
       int pageSize, int currPage) async {
@@ -1181,5 +1226,4 @@ class ChasechainRecommenderRemote
     );
     return v;
   }
-
 }

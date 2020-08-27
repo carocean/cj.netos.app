@@ -116,6 +116,7 @@ class _ChasechainState extends State<Chasechain> {
                       widget.context.forward('/chasechain/traffic/pools',arguments: {'towncode':_towncode,});
                       break;
                     case 'profiles':
+                      widget.context.forward('/chasechain/recommender/profile',arguments: {});
                       break;
                     default:
                       print('不支持的菜单');

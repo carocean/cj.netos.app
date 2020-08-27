@@ -172,11 +172,18 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
             SizedBox(
               width: 5,
             ),
-            Text(
-              '${_currentPool.title}',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward('/chasechain/pool/view',
+                    arguments: {'pool': _currentPool});
+              },
+              child: Text(
+                '${_currentPool.title}',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SizedBox(

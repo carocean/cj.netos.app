@@ -328,13 +328,23 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                       height: 0,
                     );
                   }
-                  return Text(
-                    '${person?.nickName}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      widget.context.forward('/chasechain/provider',
+                          arguments: {
+                            'provider': _doc.item.pointer.creator,
+                            'pool': _doc.item.pool
+                          });
+                    },
+                    child: Text(
+                      '${person?.nickName}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   );
                 },
