@@ -358,28 +358,36 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                       height: 0,
                     );
                   }
-                  return Wrap(
-                    direction: Axis.horizontal,
-                    spacing: 2,
-                    crossAxisAlignment: WrapCrossAlignment.end,
-                    children: <Widget>[
-                      Icon(
-                        _doc.message.type == 'netflow'
-                            ? Icons.all_inclusive
-                            : Icons.add_location,
-                        size: 11,
-                        color: Colors.grey,
-                      ),
-                      Text(
-                        '${box.pointer.title}',
-                        style: TextStyle(
-                          fontSize: 10,
+
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      widget.context.forward('/chasechain/box',
+                          arguments: {'box': box, 'pool': _doc.item.pool});
+                    },
+                    child: Wrap(
+                      direction: Axis.horizontal,
+                      spacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: <Widget>[
+                        Icon(
+                          _doc.message.type == 'netflow'
+                              ? Icons.all_inclusive
+                              : Icons.add_location,
+                          size: 11,
                           color: Colors.grey,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${box.pointer.title}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

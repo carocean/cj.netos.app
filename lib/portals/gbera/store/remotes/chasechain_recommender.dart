@@ -418,6 +418,9 @@ mixin IChasechainRecommenderRemote {
   Future<List<ContentItemOR>> pageContentItem(
       String pool, int limit, int offset) {}
 
+  Future<List<ContentItemOR>> pageContentItemOfBox(
+      String pool, String box, int limit, int offset) {}
+
   Future<TrafficPool> getTownTrafficPool(towncode) {}
 }
 
@@ -568,6 +571,44 @@ class ChasechainRecommenderRemote
     return items;
   }
 
+  @override
+  Future<List<ContentItemOR>> pageContentItemOfBox(String pool, String box, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentItemOfBox',
+      parameters: {
+        'pool': pool,
+        'box':box,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<ContentItemOR> items = [];
+    for (var obj in list) {
+      var objPointer = obj['pointer'];
+      var pointer = ItemPointer(
+        id: objPointer['id'],
+        ctime: objPointer['ctime'],
+        type: objPointer['type'],
+        creator: objPointer['creator'],
+      );
+      var location =
+      obj['location'] != null ? LatLng.fromJson(obj['location']) : null;
+      var item = ContentItemOR(
+        ctime: obj['ctime'],
+        id: obj['id'],
+        location: location,
+        box: obj['box'],
+        isBubbled: obj['isBubbled'],
+        pointer: pointer,
+        pool: obj['pool'],
+        upstreamPool: obj['upstreamPool'],
+      );
+      items.add(item);
+      await _saveItem(item);
+    }
+    return items;
+  }
   @override
   Future<List<ContentItemOR>> loadItemsFromSandbox(
       int pageSize, int currPage) async {
@@ -834,7 +875,7 @@ class ChasechainRecommenderRemote
       trafficPoolPorts,
       'getTownTrafficPool',
       parameters: {
-        'towncode':towncode,
+        'towncode': towncode,
       },
     );
     if (obj == null) {
@@ -852,6 +893,7 @@ class ChasechainRecommenderRemote
       parent: obj['parent'],
     );
   }
+
   @override
   Future<List<TrafficPool>> pageChildrenPool(
       String pool, int limit, int offset) async {

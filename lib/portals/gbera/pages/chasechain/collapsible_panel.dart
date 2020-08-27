@@ -1019,7 +1019,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
               width: 10,
             ),
             Text(
-              '的',
+              '的${_contentBox.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}:',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -1027,44 +1027,57 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
               ),
             ),
             SizedBox(
-              width: 10,
+              width: 4,
             ),
-            Row(
-              children: <Widget>[
-                Text(
-                  '${_contentBox?.pointer?.title ?? ''}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.underline,
+            Expanded(
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        widget.context.forward(
+                          '/chasechain/box',
+                          arguments: {'box': _contentBox, 'pool': widget.pool.id},
+                        );
+                      },
+                      child: Text(
+                        '${_contentBox?.pointer?.title ?? ''}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      '${parseInt(_itemInnateBehavior.likes, 2)}个赞',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        '${parseInt(_itemInnateBehavior.likes, 2)}个赞',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text(
-                      '${parseInt(_itemInnateBehavior.comments, 2)}个评',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
+                      SizedBox(
+                        width: 5,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      Text(
+                        '${parseInt(_itemInnateBehavior.comments, 2)}个评',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -1143,7 +1156,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                         widget.context
                             .forward('/chasechain/traffic/pools', arguments: {
                           'towncode': widget.towncode,
-                          'pool': widget.pool.id,
+                          'pool': detail.pool.id,
                         });
                       },
                       child: Text(

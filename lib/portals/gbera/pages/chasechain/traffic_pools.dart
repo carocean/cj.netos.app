@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 
 import 'content_item.dart';
@@ -53,7 +54,13 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
 
     var poolId = widget.context.parameters['pool'];
     if (StringUtil.isEmpty(poolId)) {
-      _currentPool = await recommender.getCountryPool();
+      var towncode = widget.context.parameters['towncode'];
+      if (!StringUtil.isEmpty(towncode)) {
+        _currentPool = await recommender.getTownTrafficPool(towncode);
+      }
+      if (_currentPool == null) {
+        _currentPool = await recommender.getCountryPool();
+      }
     } else {
       _currentPool = await recommender.getTrafficPool(poolId);
     }
@@ -93,13 +100,6 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
         child: NestedScrollView(
           headerSliverBuilder: (ctx, index) {
             var slivers = <Widget>[
-//              SliverAppBar(
-//                title: Text('追链'),
-//                centerTitle: false,
-//                titleSpacing: 0,
-//                elevation: 0,
-//                pinned: true,
-//              ),
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: 20,
@@ -183,7 +183,7 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
               width: 5,
             ),
             Text(
-              '${_countContentProvider ?? 0}个内容提供商',
+              '${parseInt((_countContentProvider ?? 0), 2)}个内容提供者',
               style: TextStyle(
                 fontSize: 10,
                 color: Colors.grey[400],
@@ -224,14 +224,19 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
   List<ContentItemOR> _items = [];
   int _limit = 20, _offset = 0;
   TrafficPool _currentPool;
+  bool _isLoading = false;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
     _currentPool = widget.initPool;
     _controller = EasyRefreshController();
-    widget.onChangeCurrentPool.listen((event) async {
+    _streamSubscription = widget.onChangeCurrentPool.listen((event) async {
       _currentPool = event;
-      await _refreshContentItems();
+//      await _refreshContentItems();
+      if (mounted) {
+        setState(() {});
+      }
     });
     _load().then((value) {
       if (mounted) {
@@ -243,6 +248,7 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _controller?.dispose();
     super.dispose();
   }
@@ -252,11 +258,15 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
     if (oldWidget.initPool.id != widget.initPool.id) {
       oldWidget.initPool = widget.initPool;
       _currentPool = widget.initPool;
-      _load().then((value) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
+      if (!_isLoading) {
+        _offset = 0;
+        _items.clear();
+        _load().then((value) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -275,6 +285,10 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
   }
 
   Future<void> _loadContentItems() async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     List<ContentItemOR> items =
@@ -287,6 +301,7 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
     }
     _offset += items.length;
     _items.addAll(items);
+    _isLoading = false;
     if (mounted) {
       setState(() {});
     }
@@ -351,6 +366,7 @@ class _PoolNavigationPanel extends StatefulWidget {
 
 class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
   TrafficPool _townPool;
+  TrafficPool _upstreamPool;
 
   @override
   void initState() {
@@ -373,15 +389,18 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
         oldWidget.onSelected != widget.onSelected) {
       oldWidget.pool = widget.pool;
       oldWidget.onSelected = widget.onSelected;
-      if (mounted) {
-        setState(() {});
-      }
+      _loadUpstreamPool().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     super.didUpdateWidget(oldWidget);
   }
 
   Future<void> _load() async {
     await _loadTownPool();
+    await _loadUpstreamPool();
   }
 
   Future<void> _loadTownPool() async {
@@ -395,13 +414,17 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
   }
 
   Future<void> _goUpstreamPool() async {
+    await _loadUpstreamPool();
+    if (widget.onSelected != null) {
+      widget.onSelected(_upstreamPool);
+    }
+  }
+
+  Future<void> _loadUpstreamPool() async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     var parent = widget.pool;
-    var pool = await recommender.getTrafficPool(parent.parent);
-    if (widget.onSelected != null) {
-      widget.onSelected(pool);
-    }
+    _upstreamPool = await recommender.getTrafficPool(parent.parent);
   }
 
   Future<void> _goCountryPool() async {
@@ -448,7 +471,7 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
                         width: 2,
                       ),
                       Text(
-                        '上级',
+                        '${_upstreamPool?.title ?? ''}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.blueGrey[600],
@@ -466,7 +489,7 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
               : SizedBox(
                   width: 15,
                 ),
-          _townPool == null
+          _townPool == null || _townPool.id == widget.pool.id
               ? SizedBox(
                   height: 0,
                   width: 0,
@@ -498,7 +521,7 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
                     ],
                   ),
                 ),
-          _townPool == null
+          _townPool == null || _townPool.id == widget.pool.id
               ? SizedBox(
                   height: 0,
                   width: 0,
@@ -506,7 +529,7 @@ class __PoolNavigationPanelState extends State<_PoolNavigationPanel> {
               : SizedBox(
                   width: 15,
                 ),
-          widget.pool.level == 0
+          widget.pool.level == 0 || _upstreamPool?.level == 0
               ? SizedBox(
                   height: 0,
                   width: 0,
@@ -588,7 +611,8 @@ class __ChildPoolPanelState extends State<_ChildPoolPanel> {
   List<TrafficPool> _childs = [];
   int _limit = 10, _offset = 0;
   EasyRefreshController _controller;
-  bool _isLoading=false;
+  bool _isLoading = false;
+
   @override
   void initState() {
     _controller = EasyRefreshController();
@@ -615,7 +639,7 @@ class __ChildPoolPanelState extends State<_ChildPoolPanel> {
       _childs.clear();
       _offset = 0;
       //注意：如果第一次打开本页，由于initState中调用了加载，而此时正好要更新，也调用加载，则会同时进入load方法，导致从远程取得的同样的数据被添加两份,因此需要在此判断是否正在加载中
-      if(!_isLoading) {
+      if (!_isLoading) {
         _load();
       }
     }
@@ -629,10 +653,10 @@ class __ChildPoolPanelState extends State<_ChildPoolPanel> {
   }
 
   Future<void> _load() async {
-    if(_isLoading) {
+    if (_isLoading) {
       return;
     }
-    _isLoading=true;
+    _isLoading = true;
     var parent = widget.parent;
     if (parent.level == 0) {
       if (widget.whenCountryShowNormal) {
@@ -643,7 +667,7 @@ class __ChildPoolPanelState extends State<_ChildPoolPanel> {
     } else {
       await _loadChildPools(parent);
     }
-    _isLoading=false;
+    _isLoading = false;
   }
 
   Future<void> _loadChildPools(TrafficPool parent) async {

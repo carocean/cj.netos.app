@@ -8,6 +8,7 @@ import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -2190,6 +2191,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/chasechain/traffic/pools',
           buildPage: (PageContext pageContext) => TrafficPoolsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容盒',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/box',
+          buildPage: (PageContext pageContext) => ContentBoxPage(
             context: pageContext,
           ),
         ),
