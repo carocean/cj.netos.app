@@ -63,7 +63,6 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
