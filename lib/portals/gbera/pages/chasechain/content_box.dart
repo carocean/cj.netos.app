@@ -19,7 +19,7 @@ class ContentBoxPage extends StatefulWidget {
 }
 
 class _ContentBoxPageState extends State<ContentBoxPage> {
-  _BoxPointerRealObject _boxPointerRealObject;
+  BoxPointerRealObject _boxPointerRealObject;
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
       int pos = category.lastIndexOf('.');
       category = category.substring(pos + 1);
       var receptor = await receptorRemote.getReceptor(category, box.pointer.id);
-      _boxPointerRealObject = _BoxPointerRealObject(
+      _boxPointerRealObject = BoxPointerRealObject(
         type: 'receptor',
         title: receptor.title,
         id: receptor.id,
@@ -57,7 +57,7 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
         widget.context.site.getService('/remote/channels');
     var channel = await channelRemote.findChannelOfPerson(
         box.pointer.id, box.pointer.type);
-    _boxPointerRealObject = _BoxPointerRealObject(
+    _boxPointerRealObject = BoxPointerRealObject(
       type: 'channel',
       title: channel.name,
       id: channel.id,
@@ -121,10 +121,19 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
 
 class _BoxHeader extends StatelessWidget {
   ContentBoxOR box;
-  _BoxPointerRealObject boxPointerRealObject;
+  BoxPointerRealObject boxPointerRealObject;
   PageContext context;
 
   _BoxHeader({this.box, this.boxPointerRealObject, this.context});
+
+  _goView() async {
+    var poolId = this.context.parameters['pool'];
+    IChasechainRecommenderRemote recommender =
+        this.context.site.getService('/remote/chasechain/recommender');
+    var pool = await recommender.getTrafficPool(poolId);
+    this.context.forward('/chasechain/box/view',
+        arguments: {'pool': pool, 'box': this.box,'boxRealObject':boxPointerRealObject});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,14 +164,20 @@ class _BoxHeader extends StatelessWidget {
                 width: 5,
               ),
               Expanded(
-                child: Text(
-                  '${boxPointerRealObject.title}',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _goView();
+                  },
+                  child: Text(
+                    '${boxPointerRealObject.title}',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -359,11 +374,11 @@ class _DemoHeader extends SliverPersistentHeaderDelegate {
       true; // 因为所有的内容都是固定的，所以不需要更新
 }
 
-class _BoxPointerRealObject {
+class BoxPointerRealObject {
   String icon;
   String title;
   String id;
   String type;
 
-  _BoxPointerRealObject({this.icon, this.title, this.id, this.type});
+  BoxPointerRealObject({this.icon, this.title, this.id, this.type});
 }

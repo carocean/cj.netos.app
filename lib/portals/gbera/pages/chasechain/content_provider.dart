@@ -48,7 +48,7 @@ class _ContentProviderPageState extends State<ContentProviderPage> {
 
   @override
   Widget build(BuildContext context) {
-    ContentBoxOR box = widget.context.parameters['box'];
+//    ContentBoxOR box = widget.context.parameters['box'];
 
     return Scaffold(
       body: SafeArea(
@@ -75,14 +75,12 @@ class _ContentProviderPageState extends State<ContentProviderPage> {
                             height: 53,
                           )
                         : _BoxHeader(
-                            box: box,
                             contentProvider: _contentProvider,
                             context: widget.context,
                           ),
                   ),
                 ),
               ),
-
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: 20,
@@ -114,11 +112,22 @@ class _ContentProviderPageState extends State<ContentProviderPage> {
 }
 
 class _BoxHeader extends StatelessWidget {
-  ContentBoxOR box;
   Person contentProvider;
   PageContext context;
 
-  _BoxHeader({this.box, this.contentProvider, this.context});
+  _BoxHeader({
+    this.contentProvider,
+    this.context,
+  });
+
+  _goView() async {
+    var poolId = this.context.parameters['pool'];
+    IChasechainRecommenderRemote recommender =
+        this.context.site.getService('/remote/chasechain/recommender');
+    var pool = await recommender.getTrafficPool(poolId);
+    this.context.forward('/chasechain/provider/view',
+        arguments: {'pool': pool, 'provider': this.contentProvider});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,14 +157,20 @@ class _BoxHeader extends StatelessWidget {
                 width: 5,
               ),
               Expanded(
-                child: Text(
-                  '${contentProvider.nickName}',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _goView();
+                  },
+                  child: Text(
+                    '${contentProvider.nickName}',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

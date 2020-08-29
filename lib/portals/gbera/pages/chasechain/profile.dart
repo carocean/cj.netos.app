@@ -174,8 +174,8 @@ class _RecommenderProfilePageState extends State<RecommenderProfilePage> {
                 label: '${_recommenderConfig.maxRecommendItemCount}',
                 value: _recommenderConfig.maxRecommendItemCount * 1.0,
                 min: 10.0,
-                max: 70.0,
-                divisions: 40,
+                max: 30.0,
+                divisions: 20,
                 onChanged: (v) {
                   _isChanged = true;
                   setState(() {

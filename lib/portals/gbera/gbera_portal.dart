@@ -8,11 +8,13 @@ import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_location_map.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/profile.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/provider_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -2240,6 +2242,24 @@ class GberaPortal {
           icon: Icons.business,
           url: '/chasechain/pool/location',
           buildPage: (PageContext pageContext) => PoolLocationMapPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容提供商信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/provider/view',
+          buildPage: (PageContext pageContext) => ContentProviderViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容盒信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/box/view',
+          buildPage: (PageContext pageContext) => ContentBoxViewPage(
             context: pageContext,
           ),
         ),

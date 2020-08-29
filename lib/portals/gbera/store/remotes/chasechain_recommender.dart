@@ -435,7 +435,10 @@ mixin IChasechainRecommenderRemote {
   Future<List<String>> pageContentProvider(
       String pool, int limit, int offset) {}
 
-  Future<List<ContentBoxOR>> pageContentBox(String id, int limit, int offset) {}
+  Future<List<ContentBoxOR>> pageContentBox(String pool, int limit, int offset) {}
+
+  Future<List<ContentBoxOR>> pageContentBoxOfProvider(String pool, String provider, int limit, int offset) {}
+
 }
 
 class ChasechainRecommenderRemote
@@ -654,6 +657,41 @@ class ChasechainRecommenderRemote
       'pageContentBox',
       parameters: {
         'pool': pool,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var boxList = <ContentBoxOR>[];
+    for (var obj in list) {
+      var pointer = obj['pointer'];
+      var location = obj['location'];
+      var box = ContentBoxOR(
+        id: obj['id'],
+        ctime: obj['ctime'],
+        location: location == null ? null : LatLng.fromJson(location),
+        pool: obj['pool'],
+        pointer: BoxPointer(
+          ctime: pointer['ctime'],
+          id: pointer['id'],
+          title: pointer['title'],
+          type: pointer['type'],
+          creator: pointer['creator'],
+        ),
+      );
+      boxList.add(box);
+    }
+    return boxList;
+  }
+
+  @override
+  Future<List<ContentBoxOR>> pageContentBoxOfProvider(
+      String pool, String provider, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentBox',
+      parameters: {
+        'pool': pool,
+        'provier':provider,
         'limit': limit,
         'offset': offset,
       },
@@ -1122,17 +1160,17 @@ class ChasechainRecommenderRemote
     }
     return TrafficDashboard(
       pool: obj['pool'],
-      innateCommentRatio: obj['innateCommentRatio'],
+      innateCommentRatio: double.parse('${obj['innateCommentRatio']}'),
       innateComments: obj['innateComments'],
-      innateLikeRatio: obj['innateLikeRatio'],
+      innateLikeRatio: double.parse('${obj['innateLikeRatio']}'),
       innateLikes: obj['innateLikes'],
       innateRecommends: obj['innateRecommends'],
-      innateRecommendsRatio: obj['innateRecommendsRatio'],
-      innerCommentRatio: obj['innerCommentRatio'],
+      innateRecommendsRatio: double.parse('${obj['innateRecommendsRatio']}'),
+      innerCommentRatio: double.parse('${obj['innerCommentRatio']}'),
       innerComments: obj['innerComments'],
-      innerLikeRatio: obj['innerLikeRatio'],
+      innerLikeRatio: double.parse('${obj['innerLikeRatio']}'),
       innerLikes: obj['innerLikes'],
-      innerRecommendRatio: obj['innerRecommendRatio'],
+      innerRecommendRatio: double.parse('${obj['innerRecommendRatio']}'),
       innerRecommends: obj['innerRecommends'],
       itemCount: obj['itemCount'],
       lastBubbleTime: obj['lastBubbleTime'],
