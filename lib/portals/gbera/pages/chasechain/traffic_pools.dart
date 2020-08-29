@@ -174,9 +174,12 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
             ),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
+              onTap: ()async {
+                IChasechainRecommenderRemote recommender =
+                widget.context.site.getService('/remote/chasechain/recommender');
+                var pool=await recommender.getTrafficPool(_currentPool.id);
                 widget.context.forward('/chasechain/pool/view',
-                    arguments: {'pool': _currentPool});
+                    arguments: {'pool': pool});
               },
               child: Text(
                 '${_currentPool.title}',
@@ -186,16 +189,16 @@ class _TrafficPoolsPageState extends State<TrafficPoolsPage> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 5,
-            ),
-            Text(
-              '${parseInt((_countContentProvider ?? 0), 2)}个内容提供者',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey[400],
-              ),
-            ),
+//            SizedBox(
+//              width: 5,
+//            ),
+//            Text(
+//              '${parseInt((_countContentProvider ?? 0), 2)}个内容提供者',
+//              style: TextStyle(
+//                fontSize: 10,
+//                color: Colors.grey[400],
+//              ),
+//            ),
           ],
         ),
         IconButton(

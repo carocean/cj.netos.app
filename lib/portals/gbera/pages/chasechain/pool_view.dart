@@ -1,10 +1,16 @@
+import 'dart:io';
+
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class PoolViewPage extends StatefulWidget {
   PageContext context;
@@ -21,6 +27,8 @@ class _PoolPageState extends State<PoolViewPage> {
   bool _isLoading = true;
   TrafficDashboard _dashboard;
   bool _isExpendedInnate = false;
+  int _contentProviderCount = 0;
+  int _itemCount = 0;
 
   @override
   void initState() {
@@ -44,6 +52,22 @@ class _PoolPageState extends State<PoolViewPage> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _dashboard = await recommender.getTrafficDashboard(_pool.id);
+    _contentProviderCount =
+        await recommender.countContentProvidersOfPool(_pool.id);
+    _itemCount = await recommender.countContentItemOfPool(_pool.id);
+  }
+
+  Future<void> _goMap() async {
+    var geocodeList = await AmapSearch.searchGeocode(
+      _pool.geoTitle,
+    );
+    if (geocodeList.isEmpty) {
+      return;
+    }
+    var first = geocodeList[0];
+    var location = await first.latLng;
+    widget.context.forward('/chasechain/pool/location',
+        arguments: {'pool': _pool, 'location': location});
   }
 
   @override
@@ -94,18 +118,6 @@ class _PoolPageState extends State<PoolViewPage> {
                     SizedBox(
                       width: 5,
                     ),
-                    _isLoading
-                        ? SizedBox(
-                            height: 0,
-                            width: 0,
-                          )
-                        : Text(
-                            '${parseInt(_dashboard?.itemCount, 2)}条内容',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[400],
-                            ),
-                          ),
                   ],
                 ),
               ),
@@ -138,10 +150,62 @@ class _PoolPageState extends State<PoolViewPage> {
                                     child: Column(
                                       children: <Widget>[
                                         Text(
+                                          '${parseInt(_itemCount, 2)}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '内容',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Text(
+                                          '${parseInt(_contentProviderCount, 2)}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '提供商',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                    height: 20,
+                                    child: VerticalDivider(
+                                      width: 1,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Text(
                                           '${parseInt(_dashboard?.innerRecommends, 2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
@@ -161,8 +225,9 @@ class _PoolPageState extends State<PoolViewPage> {
                                         Text(
                                           '${parseInt(_dashboard?.innerLikes, 2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
@@ -182,8 +247,9 @@ class _PoolPageState extends State<PoolViewPage> {
                                         Text(
                                           '${parseInt(_dashboard?.innerComments, 2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
@@ -214,14 +280,15 @@ class _PoolPageState extends State<PoolViewPage> {
                                     child: Column(
                                       children: <Widget>[
                                         Text(
-                                          '${_dashboard.innerRecommendRatio.toStringAsFixed(4)}',
+                                          '${_dashboard.innerRecommendRatio.toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
-                                          '每条平均推荐量',
+                                          '平均推荐',
                                           style: TextStyle(
                                             fontSize: 10,
                                             color: Colors.grey,
@@ -235,14 +302,15 @@ class _PoolPageState extends State<PoolViewPage> {
                                     child: Column(
                                       children: <Widget>[
                                         Text(
-                                          '${_dashboard.innerLikeRatio.toStringAsFixed(4)}',
+                                          '${_dashboard.innerLikeRatio.toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
-                                          '每条平均点赞量',
+                                          '平均点赞',
                                           style: TextStyle(
                                             fontSize: 10,
                                             color: Colors.grey,
@@ -256,14 +324,15 @@ class _PoolPageState extends State<PoolViewPage> {
                                     child: Column(
                                       children: <Widget>[
                                         Text(
-                                          '${_dashboard.innerComments.toStringAsFixed(4)}',
+                                          '${_dashboard.innerComments.toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 16,
                                             color: Colors.red,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
-                                          '每条平均评论量',
+                                          '平均评论',
                                           style: TextStyle(
                                             fontSize: 10,
                                             color: Colors.grey,
@@ -347,7 +416,7 @@ class _PoolPageState extends State<PoolViewPage> {
                                                     TextSpan(text: ' '),
                                                     TextSpan(
                                                       text:
-                                                          '${_dashboard.innateRecommends}',
+                                                          '${_dashboard.innateRecommends??0}',
                                                       style: TextStyle(
                                                         color: Colors.red,
                                                       ),
@@ -413,12 +482,12 @@ class _PoolPageState extends State<PoolViewPage> {
                                             children: <Widget>[
                                               Text.rich(
                                                 TextSpan(
-                                                  text: '平均推荐量',
+                                                  text: '平均推荐',
                                                   children: [
                                                     TextSpan(text: ' '),
                                                     TextSpan(
                                                       text:
-                                                          '${_dashboard.innateRecommendsRatio.toStringAsFixed(4)}',
+                                                          '${_dashboard.innateRecommendsRatio.toStringAsFixed(2)}',
                                                       style: TextStyle(
                                                         color: Colors.red,
                                                       ),
@@ -438,7 +507,7 @@ class _PoolPageState extends State<PoolViewPage> {
                                                     TextSpan(text: ' '),
                                                     TextSpan(
                                                       text:
-                                                          '${_dashboard.innateLikeRatio.toStringAsFixed(4)}',
+                                                          '${_dashboard.innateLikeRatio.toStringAsFixed(2)}',
                                                       style: TextStyle(
                                                         color: Colors.red,
                                                       ),
@@ -458,7 +527,7 @@ class _PoolPageState extends State<PoolViewPage> {
                                                     TextSpan(text: ' '),
                                                     TextSpan(
                                                       text:
-                                                          '${_dashboard.innateCommentRatio.toStringAsFixed(4)}',
+                                                          '${_dashboard.innateCommentRatio.toStringAsFixed(2)}',
                                                       style: TextStyle(
                                                         color: Colors.red,
                                                       ),
@@ -498,7 +567,15 @@ class _PoolPageState extends State<PoolViewPage> {
                 child: Column(
                   children: <Widget>[
                     CardItem(
-                      title: '位置',
+                      title: '类型',
+//                      onItemTap: () {
+//                        _goMap();
+//                      },
+                      tipsText: '${_pool.isGeosphere ? '地理流量池' : '常规流量池'}',
+                      tail: SizedBox(
+                        width: 0,
+                        height: 0,
+                      ),
                     ),
                     SizedBox(
                       height: 10,
@@ -508,52 +585,76 @@ class _PoolPageState extends State<PoolViewPage> {
                     ),
                     CardItem(
                       title: '等级',
-                      tipsText: '乡镇或街道',
+                      tipsText: '${_getLevelName()}',
+                      tail: SizedBox(
+                        width: 0,
+                        height: 0,
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 10,
               ),
             ),
             SliverPersistentHeader(
               pinned: true,
               delegate: _DemoHeader(
                 child: Container(
-                  child: Row(
+                  child: Column(
                     children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.only(
-                          left: 15,
-                          right: 15,
-                          top: 5,
-                          bottom: 5,
-                        ),
-                        color: Colors.white,
-                        child: Text(
-                          '内容提供者',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
+                      SizedBox(height: 10,),
+                      Row(
+                        children: <Widget>[
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              _index = 0;
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                left: 15,
+                                right: 15,
+                                top: 5,
+                                bottom: 5,
+                              ),
+                              color: _index == 0 ? Colors.white : null,
+                              child: Text(
+                                '内容提供者',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _index == 0 ? Colors.black : Colors.grey,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(
-                          left: 15,
-                          right: 15,
-                          top: 5,
-                          bottom: 5,
-                        ),
-//                        color: Colors.white,
-                        child: Text(
-                          '内容盒',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              _index = 1;
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                left: 15,
+                                right: 15,
+                                top: 5,
+                                bottom: 5,
+                              ),
+                              color: _index == 1 ? Colors.white : null,
+                              child: Text(
+                                '内容盒',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _index == 1 ? Colors.black : Colors.grey,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -565,51 +666,294 @@ class _PoolPageState extends State<PoolViewPage> {
         },
         body: Container(
           color: Colors.white,
-          child: Column(
+          constraints: BoxConstraints.expand(),
+          child: IndexedStack(
+            index: _index,
             children: <Widget>[
-              IndexedStack(
-                index: _index,
-                children: <Widget>[
-                  _ContentProviderListPanel(),
-                  _ContentBoxListPanel(),
-                ],
-              )
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                ),
+                child: _ContentProviderListPanel(
+                  context: widget.context,
+                  pool: _pool,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                ),
+                child: _ContentBoxListPanel(
+                  context: widget.context,
+                  pool: _pool,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  _getLevelName() {
+    var name;
+    switch (_pool.level) {
+      case -1:
+        name = '常规';
+        break;
+      case 0:
+        name = '全国';
+        break;
+      case 1:
+        name = '省';
+        break;
+      case 2:
+        name = '市';
+        break;
+      case 3:
+        name = '区、县';
+        break;
+      case 4:
+        name = '乡镇、街道';
+        break;
+      default:
+        name = '';
+        break;
+    }
+    return name;
+  }
 }
 
 class _ContentProviderListPanel extends StatefulWidget {
+  PageContext context;
+  TrafficPool pool;
+
+  _ContentProviderListPanel({this.context, this.pool});
+
   @override
   __ContentProviderListPanelState createState() =>
       __ContentProviderListPanelState();
 }
 
 class __ContentProviderListPanelState extends State<_ContentProviderListPanel> {
+  int _limit = 10, _offset = 0;
+  TrafficPool _pool;
+  bool _isLoading = false;
+  List<Person> _providers = [];
+  EasyRefreshController _controller;
+
+  @override
+  void initState() {
+    _pool = widget.pool;
+    _controller = EasyRefreshController();
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ContentProviderListPanel oldWidget) {
+    if (oldWidget.pool.id != widget.pool.id) {
+      oldWidget.pool = widget.pool;
+      _offset = 0;
+      _providers.clear();
+      _load();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    List<String> providers =
+        await recommender.pageContentProvider(_pool.id, _limit, _offset);
+    if (providers.isEmpty) {
+      _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+    _offset += providers.length;
+    for (var provider in providers) {
+      var person = await personService.getPerson(provider);
+      _providers.add(person);
+    }
+    if (mounted) {
+      setState(() {});
+    }
+    _isLoading = false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return EasyRefresh.custom(
+      shrinkWrap: true,
+      controller: _controller,
+      onLoad: _load,
+      slivers: _providers.map((provider) {
+        return SliverToBoxAdapter(
+          child: Column(
+            children: <Widget>[
+              CardItem(
+                title: '${provider.nickName}',
+                leading: provider.avatar.startsWith('/')
+                    ? Image.file(
+                        File(provider.avatar),
+                        width: 40,
+                        height: 40,
+                      )
+                    : FadeInImage.assetNetwork(
+                        placeholder:
+                            'lib/portals/gbera/images/default_watting.gif',
+                        image:
+                            '${provider.avatar}?accessToken=${widget.context.principal.accessToken}',
+                        width: 40,
+                        height: 40,
+                      ),
+                paddingLeft: 15,
+                paddingRight: 15,
+                onItemTap: () {
+                  widget.context.forward('/chasechain/provider', arguments: {
+                    'provider': provider.official,
+                    'pool': widget.pool.id,
+                  });
+                },
+              ),
+              SizedBox(
+                height: 15,
+                child: Divider(
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }
 
 class _ContentBoxListPanel extends StatefulWidget {
+  PageContext context;
+  TrafficPool pool;
+
+  _ContentBoxListPanel({this.context, this.pool});
+
   @override
   __ContentBoxListPanelState createState() => __ContentBoxListPanelState();
 }
 
 class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
+  int _limit = 10, _offset = 0;
+  TrafficPool _pool;
+  bool _isLoading = false;
+  List<ContentBoxOR> _boxList = [];
+  EasyRefreshController _controller;
+
+  @override
+  void initState() {
+    _pool = widget.pool;
+    _controller = EasyRefreshController();
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ContentBoxListPanel oldWidget) {
+    if (oldWidget.pool.id != widget.pool.id) {
+      oldWidget.pool = widget.pool;
+      _offset = 0;
+      _boxList.clear();
+      _load();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    List<ContentBoxOR> boxList =
+        await recommender.pageContentBox(_pool.id, _limit, _offset);
+    if (boxList.isEmpty) {
+      _controller.finishLoad(noMore: true, success: true);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+    _offset += boxList.length;
+    _boxList.addAll(boxList);
+    if (mounted) {
+      setState(() {});
+    }
+    _isLoading = false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return EasyRefresh.custom(
+      shrinkWrap: true,
+      controller: _controller,
+      onLoad: _load,
+      slivers: _boxList.map((box) {
+        return SliverToBoxAdapter(
+          child: Column(
+            children: <Widget>[
+              CardItem(
+                title: '${box.pointer.title}',
+                subtitle: Text(
+                  '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+                paddingLeft: 15,
+                paddingRight: 15,
+                onItemTap: () {
+                  widget.context.forward(
+                    '/chasechain/box',
+                    arguments: {'box': box, 'pool': widget.pool.id},
+                  );
+                },
+              ),
+              SizedBox(
+                height: 15,
+                child: Divider(
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }
 
 class _DemoHeader extends SliverPersistentHeaderDelegate {
   Widget child;
-  double height = 30;
+  double height = 40;
 
   _DemoHeader({this.child});
 

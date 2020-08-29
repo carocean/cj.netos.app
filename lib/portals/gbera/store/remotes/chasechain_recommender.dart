@@ -273,6 +273,8 @@ class TrafficPool {
   String id;
   String title;
   String icon;
+  String geoCode; //地理区域代码，如国、省、市、县区等地理代码
+  String geoTitle; //地理区域名
   bool isGeosphere;
   int state;
   int level;
@@ -284,6 +286,8 @@ class TrafficPool {
       {this.id,
       this.title,
       this.icon,
+      this.geoCode,
+      this.geoTitle,
       this.isGeosphere,
       this.state,
       this.level,
@@ -415,6 +419,8 @@ mixin IChasechainRecommenderRemote {
 
   Future<int> countContentProvidersOfPool(String pool) {}
 
+  Future<int> countContentItemOfPool(String pool) {}
+
   Future<List<ContentItemOR>> pageContentItem(
       String pool, int limit, int offset) {}
 
@@ -425,6 +431,11 @@ mixin IChasechainRecommenderRemote {
 
   Future<List<ContentItemOR>> pageContentItemOfProvider(
       pool, Person contentProvider, int limit, int offset) {}
+
+  Future<List<String>> pageContentProvider(
+      String pool, int limit, int offset) {}
+
+  Future<List<ContentBoxOR>> pageContentBox(String id, int limit, int offset) {}
 }
 
 class ChasechainRecommenderRemote
@@ -489,11 +500,13 @@ class ChasechainRecommenderRemote
     }
     return RecommenderConfig(
       cityRecommendWeight: double.parse('${obj['cityRecommendWeight']}'),
-      countryRecommendWeight:double.parse('${obj['countryRecommendWeight']}'),
-      districtRecommendWeight: double.parse('${obj['districtRecommendWeight']}'),
+      countryRecommendWeight: double.parse('${obj['countryRecommendWeight']}'),
+      districtRecommendWeight:
+          double.parse('${obj['districtRecommendWeight']}'),
       maxRecommendItemCount: obj['maxRecommendItemCount'],
       normalRecommendWeight: double.parse('${obj['normalRecommendWeight']}'),
-      provinceRecommendWeight: double.parse('${obj['provinceRecommendWeight']}'),
+      provinceRecommendWeight:
+          double.parse('${obj['provinceRecommendWeight']}'),
       townRecommendWeight: double.parse('${obj['townRecommendWeight']}'),
       weightCapacity: double.parse('${obj['weightCapacity']}'),
     );
@@ -612,6 +625,59 @@ class ChasechainRecommenderRemote
       await _saveItem(item);
     }
     return items;
+  }
+
+  @override
+  Future<List<String>> pageContentProvider(
+      String pool, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentProvider',
+      parameters: {
+        'pool': pool,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var providers = <String>[];
+    for (var p in list) {
+      providers.add(p);
+    }
+    return providers;
+  }
+
+  @override
+  Future<List<ContentBoxOR>> pageContentBox(
+      String pool, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentBox',
+      parameters: {
+        'pool': pool,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var boxList = <ContentBoxOR>[];
+    for (var obj in list) {
+      var pointer = obj['pointer'];
+      var location = obj['location'];
+      var box = ContentBoxOR(
+        id: obj['id'],
+        ctime: obj['ctime'],
+        location: location == null ? null : LatLng.fromJson(location),
+        pool: obj['pool'],
+        pointer: BoxPointer(
+          ctime: pointer['ctime'],
+          id: pointer['id'],
+          title: pointer['title'],
+          type: pointer['type'],
+          creator: pointer['creator'],
+        ),
+      );
+      boxList.add(box);
+    }
+    return boxList;
   }
 
   @override
@@ -884,6 +950,8 @@ class ChasechainRecommenderRemote
       id: obj['id'],
       state: obj['state'],
       title: obj['title'],
+      geoCode: obj['geoCode'],
+      geoTitle: obj['geoTitle'],
       icon: obj['icon'],
       index: obj['index'],
       isGeosphere: obj['isGeosphere'],
@@ -906,6 +974,8 @@ class ChasechainRecommenderRemote
       id: obj['id'],
       state: obj['state'],
       title: obj['title'],
+      geoCode: obj['geoCode'],
+      geoTitle: obj['geoTitle'],
       icon: obj['icon'],
       index: obj['index'],
       isGeosphere: obj['isGeosphere'],
@@ -931,6 +1001,8 @@ class ChasechainRecommenderRemote
       id: obj['id'],
       state: obj['state'],
       title: obj['title'],
+      geoCode: obj['geoCode'],
+      geoTitle: obj['geoTitle'],
       icon: obj['icon'],
       index: obj['index'],
       isGeosphere: obj['isGeosphere'],
@@ -959,6 +1031,8 @@ class ChasechainRecommenderRemote
           id: obj['id'],
           state: obj['state'],
           title: obj['title'],
+          geoCode: obj['geoCode'],
+          geoTitle: obj['geoTitle'],
           icon: obj['icon'],
           index: obj['index'],
           isGeosphere: obj['isGeosphere'],
@@ -991,6 +1065,8 @@ class ChasechainRecommenderRemote
           id: obj['id'],
           state: obj['state'],
           title: obj['title'],
+          geoCode: obj['geoCode'],
+          geoTitle: obj['geoTitle'],
           icon: obj['icon'],
           index: obj['index'],
           isGeosphere: obj['isGeosphere'],
@@ -1220,6 +1296,18 @@ class ChasechainRecommenderRemote
     var v = await remotePorts.portGET(
       trafficPoolPorts,
       'countContentProvidersOfPool',
+      parameters: {
+        'pool': pool,
+      },
+    );
+    return v;
+  }
+
+  @override
+  Future<int> countContentItemOfPool(String pool) async {
+    var v = await remotePorts.portGET(
+      trafficPoolPorts,
+      'countContentItemsOfPool',
       parameters: {
         'pool': pool,
       },
