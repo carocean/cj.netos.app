@@ -324,7 +324,7 @@ class _PoolPageState extends State<PoolViewPage> {
                                     child: Column(
                                       children: <Widget>[
                                         Text(
-                                          '${_dashboard.innerComments.toStringAsFixed(2)}',
+                                          '${_dashboard.innerCommentRatio.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: Colors.red,
@@ -599,7 +599,9 @@ class _PoolPageState extends State<PoolViewPage> {
               pinned: true,
               delegate: _DemoHeader(
                 child: Container(
+                  alignment: Alignment.bottomCenter,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       SizedBox(height: 10,),
                       Row(
@@ -921,6 +923,20 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
             children: <Widget>[
               CardItem(
                 title: '${box.pointer.title}',
+                leading: StringUtil.isEmpty(box.pointer.leading)
+                    ? Image.asset(
+                  'lib/portals/gbera/images/netflow.png',
+                  width: 40,
+                  height: 40,
+                )
+                    : FadeInImage.assetNetwork(
+                  placeholder:
+                  'lib/portals/gbera/images/default_watting.gif',
+                  image:
+                  '${box.pointer.leading}?accessToken=${widget.context.principal.accessToken}',
+                  width: 40,
+                  height: 40,
+                ),
                 subtitle: Text(
                   '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
                   style: TextStyle(
@@ -962,6 +978,7 @@ class _DemoHeader extends SliverPersistentHeaderDelegate {
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: Theme.of(context).backgroundColor,
+      alignment: Alignment.bottomCenter,
       constraints: BoxConstraints.tightForFinite(
         width: double.maxFinite,
       ),
