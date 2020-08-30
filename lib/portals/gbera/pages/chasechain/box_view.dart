@@ -30,12 +30,13 @@ class _PoolPageState extends State<ContentBoxViewPage> {
   BoxPointerRealObject _boxRealObject;
   Future<String> _future_doLocation;
   Future<Person> _future_getPerson;
+
   @override
   void initState() {
     _pool = widget.context.parameters['pool'];
     _box = widget.context.parameters['box'];
     _boxRealObject = widget.context.parameters['boxRealObject'];
-    _future_getPerson=_getPerson();
+    _future_getPerson = _getPerson();
     _future_doLocation = _doLocation();
     _load().then((value) {
       if (mounted) {
@@ -58,6 +59,9 @@ class _PoolPageState extends State<ContentBoxViewPage> {
   }
 
   Future<String> _doLocation() async {
+    if (_box.location == null) {
+      return null;
+    }
     var geocode = await AmapSearch.searchReGeocode(_box.location);
     var list = await geocode.poiList;
     if (list.isEmpty) {
@@ -86,10 +90,13 @@ class _PoolPageState extends State<ContentBoxViewPage> {
     widget.context.forward('/chasechain/pool/location',
         arguments: {'pool': _pool, 'location': location});
   }
-  Future<Person> _getPerson()async{
-    IPersonService personService=widget.context.site.getService('/gbera/persons');
+
+  Future<Person> _getPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     return await personService.getPerson(_box.pointer.creator);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,6 +135,10 @@ class _PoolPageState extends State<ContentBoxViewPage> {
                       return CardItem(
                         title: '创建者',
                         tipsText: '${person.nickName}',
+                        onItemTap: () {
+                          widget.context.forward('/person/view',
+                              arguments: {'person': person});
+                        },
                       );
                     },
                   ),

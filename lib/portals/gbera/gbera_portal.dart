@@ -14,7 +14,7 @@ import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_location_map.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/profile.dart';
-import 'package:netos_app/portals/gbera/pages/chasechain/provider_view.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/person_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -2246,11 +2246,11 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '内容提供商信息',
+          title: '用户视图',
           subtitle: '',
           icon: Icons.business,
-          url: '/chasechain/provider/view',
-          buildPage: (PageContext pageContext) => ContentProviderViewPage(
+          url: '/person/view',
+          buildPage: (PageContext pageContext) => PersonViewPage(
             context: pageContext,
           ),
         ),

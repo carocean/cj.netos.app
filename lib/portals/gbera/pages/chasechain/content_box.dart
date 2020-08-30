@@ -161,7 +161,7 @@ class _BoxHeader extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
               SizedBox(
-                width: 5,
+                width: 10,
               ),
               Expanded(
                 child: GestureDetector(

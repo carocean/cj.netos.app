@@ -31,9 +31,10 @@ class BoxPointer {
   String title;
   String type;
   String creator;
+  String leading;
   int ctime;
 
-  BoxPointer({this.id, this.title, this.type, this.creator, this.ctime});
+  BoxPointer({this.id, this.title, this.type, this.creator,this.leading, this.ctime});
 }
 
 class RecommenderConfig {
@@ -435,10 +436,14 @@ mixin IChasechainRecommenderRemote {
   Future<List<String>> pageContentProvider(
       String pool, int limit, int offset) {}
 
-  Future<List<ContentBoxOR>> pageContentBox(String pool, int limit, int offset) {}
+  Future<List<ContentBoxOR>> pageContentBox(
+      String pool, int limit, int offset) {}
 
-  Future<List<ContentBoxOR>> pageContentBoxOfProvider(String pool, String provider, int limit, int offset) {}
+  Future<List<ContentBoxOR>> pageContentBoxOfProvider(
+      String pool, String provider, int limit, int offset) {}
 
+  Future<List<ContentBoxOR>> pageContentBoxByAssigner(
+      String provider, int limit, int offset) {}
 }
 
 class ChasechainRecommenderRemote
@@ -675,6 +680,7 @@ class ChasechainRecommenderRemote
           id: pointer['id'],
           title: pointer['title'],
           type: pointer['type'],
+          leading: pointer['leading'],
           creator: pointer['creator'],
         ),
       );
@@ -685,13 +691,13 @@ class ChasechainRecommenderRemote
 
   @override
   Future<List<ContentBoxOR>> pageContentBoxOfProvider(
-      String pool, String provider, int limit, int offset) async{
+      String pool, String provider, int limit, int offset) async {
     var list = await remotePorts.portGET(
       trafficPoolPorts,
       'pageContentBox',
       parameters: {
         'pool': pool,
-        'provier':provider,
+        'provier': provider,
         'limit': limit,
         'offset': offset,
       },
@@ -710,6 +716,42 @@ class ChasechainRecommenderRemote
           id: pointer['id'],
           title: pointer['title'],
           type: pointer['type'],
+          leading: pointer['leading'],
+          creator: pointer['creator'],
+        ),
+      );
+      boxList.add(box);
+    }
+    return boxList;
+  }
+
+  @override
+  Future<List<ContentBoxOR>> pageContentBoxByAssigner(
+      String provider, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      trafficPoolPorts,
+      'pageContentBoxByAssigner',
+      parameters: {
+        'provider': provider,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var boxList = <ContentBoxOR>[];
+    for (var obj in list) {
+      var pointer = obj['pointer'];
+      var location = obj['location'];
+      var box = ContentBoxOR(
+        id: obj['id'],
+        ctime: obj['ctime'],
+        location: location == null ? null : LatLng.fromJson(location),
+        pool: obj['toPool'],
+        pointer: BoxPointer(
+          ctime: pointer['ctime'],
+          id: pointer['id'],
+          title: pointer['title'],
+          type: pointer['type'],
+          leading: pointer['leading'],
           creator: pointer['creator'],
         ),
       );
@@ -1141,6 +1183,7 @@ class ChasechainRecommenderRemote
         id: pointer['id'],
         title: pointer['title'],
         type: pointer['type'],
+        leading: pointer['leading'],
         creator: pointer['creator'],
       ),
     );

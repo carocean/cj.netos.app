@@ -121,12 +121,12 @@ class _BoxHeader extends StatelessWidget {
   });
 
   _goView() async {
-    var poolId = this.context.parameters['pool'];
+//    var poolId = this.context.parameters['pool'];
     IChasechainRecommenderRemote recommender =
         this.context.site.getService('/remote/chasechain/recommender');
-    var pool = await recommender.getTrafficPool(poolId);
-    this.context.forward('/chasechain/provider/view',
-        arguments: {'pool': pool, 'provider': this.contentProvider});
+//    var pool = await recommender.getTrafficPool(poolId);
+    this.context.forward('/person/view',
+        arguments: { 'person': this.contentProvider});
   }
 
   @override
@@ -154,7 +154,7 @@ class _BoxHeader extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
               SizedBox(
-                width: 5,
+                width: 10,
               ),
               Expanded(
                 child: GestureDetector(
