@@ -63,11 +63,10 @@ class _PersonProfileViewMoreState extends State<PersonProfileViewMore> {
     var personInfo =
         widget.context.parameters['personInfo'] as Map<String, dynamic>;
     var domains = personInfo['domains'];
-    print(domains);
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.context.page?.title,
+          '更多详情',
         ),
         titleSpacing: 0,
         elevation: 0,
