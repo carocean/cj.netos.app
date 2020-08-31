@@ -1137,19 +1137,27 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              right: 10,
-              top: 5,
-            ),
-            child: SizedBox(
-              width: 35,
-              height: 35,
-              child: ClipRRect(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: ()async{
+              IPersonService personService=widget.context.site.getService('/gbera/persons');
+              var person=await personService.getPerson(_member.person);
+              widget.context.forward('/person/view',arguments: {'person':person});
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: 10,
+                top: 5,
+              ),
+              child: SizedBox(
+                width: 35,
+                height: 35,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5),
+                  ),
+                  child: avatar,
                 ),
-                child: avatar,
               ),
             ),
           ),
@@ -1398,27 +1406,33 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 10,
-              top: 5,
-            ),
-            child: SizedBox(
-              width: 35,
-              height: 35,
-              child: ClipRRect(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: ()async{
+              widget.context.forward('/person/view',arguments: {'person':_sender});
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 10,
+                top: 5,
+              ),
+              child: SizedBox(
+                width: 35,
+                height: 35,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5),
+                  ),
+                  child: _sender == null
+                      ? Container(
+                    height: 0,
+                    width: 0,
+                  )
+                      : Image.file(
+                    File(_sender.avatar),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: _sender == null
-                    ? Container(
-                        height: 0,
-                        width: 0,
-                      )
-                    : Image.file(
-                        File(_sender.avatar),
-                        fit: BoxFit.cover,
-                      ),
               ),
             ),
           ),

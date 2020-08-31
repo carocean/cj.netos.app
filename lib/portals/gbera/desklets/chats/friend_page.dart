@@ -20,7 +20,7 @@ class FriendPage extends StatefulWidget {
 class _FriendPageState extends State<FriendPage> {
   String _query;
   TextEditingController _controller;
-  List<String> _selected_friends=[];
+  List<String> _selected_friends = [];
 
   @override
   void initState() {
@@ -140,7 +140,7 @@ class _FriendListState extends State<FriendList> {
   @override
   void didUpdateWidget(FriendList oldWidget) {
     if (oldWidget.query != widget.query) {
-      oldWidget.query=widget.query;
+      oldWidget.query = widget.query;
       _offset = 0;
       _friends.clear();
       _onLoad().then((v) {
@@ -271,8 +271,20 @@ class _FriendListState extends State<FriendList> {
                           ),
                         ),
                         onItemTap: () {
-                          widget.context.forward('/site/friend',
-                              arguments: {'friend': friend});
+                          Person person = Person(
+                            friend.official,
+                            friend.uid,
+                            friend.accountName,
+                            friend.appid,
+                            friend.avatar,
+                            friend.rights,
+                            friend.nickName,
+                            friend. signature,
+                            friend.pyname,
+                            friend. sandbox,
+                          );
+                          widget.context.forward('/person/view',
+                              arguments: {'person': person});
                         },
                         tipsIconData: widget.selectedFriends.contains(official)
                             ? Icons.check

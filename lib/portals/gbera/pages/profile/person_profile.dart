@@ -50,9 +50,12 @@ class _PersonProfileState extends State<PersonProfile> {
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
     await widget.context.ports.callback(
       headline,
-      restCommand: 'getPersonInfo',
+      restCommand: 'findPerson',
       headers: {
         'cjtoken': widget.context.principal.accessToken,
+      },
+      parameters: {
+        'person':_person.official,
       },
       onsucceed: ({rc, response}) async {
         var json = rc['dataText'];
@@ -83,7 +86,12 @@ class _PersonProfileState extends State<PersonProfile> {
         String json = rc['dataText'];
         List<dynamic> list = jsonDecode(json);
         _accounts.clear();
-        _accounts.addAll(list);
+        for (var obj in list) {
+          if (obj['person'] == _person.official) {
+            continue;
+          }
+          _accounts.add(obj);
+        }
       },
       onerror: ({e, stack}) {
         print(e);
@@ -157,8 +165,10 @@ class _PersonProfileState extends State<PersonProfile> {
                                     fit: BoxFit.cover,
                                   )
                                 : FadeInImage.assetNetwork(
-                                    placeholder: 'lib/portals/gbera/images/default_watting.gif',
-                                    image: '${_person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                    placeholder:
+                                        'lib/portals/gbera/images/default_watting.gif',
+                                    image:
+                                        '${_person.avatar}?accessToken=${widget.context.principal.accessToken}',
                                     width: 30,
                                     height: 30,
                                     fit: BoxFit.cover,
@@ -310,7 +320,9 @@ class _PersonProfileState extends State<PersonProfile> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: _accounts.isEmpty
+                          ? CrossAxisAlignment.center
+                          : CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
                           '用户号',
@@ -323,6 +335,7 @@ class _PersonProfileState extends State<PersonProfile> {
                           child: Column(
                             children: <Widget>[
                               Row(
+                                mainAxisSize: MainAxisSize.max,
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
                                   Padding(
@@ -387,13 +400,6 @@ class _PersonProfileState extends State<PersonProfile> {
                                                 _index++;
                                                 Map<String, dynamic> obj =
                                                     e as Map<String, dynamic>;
-                                                if (obj['person'] ==
-                                                    _person.official) {
-                                                  return SizedBox(
-                                                    height: 0,
-                                                    width: 0,
-                                                  );
-                                                }
                                                 return Column(
                                                   children: <Widget>[
                                                     GestureDetector(
@@ -431,9 +437,12 @@ class _PersonProfileState extends State<PersonProfile> {
                                                                         fit: BoxFit
                                                                             .cover,
                                                                       )
-                                                                    : FadeInImage.assetNetwork(
-                                                                        placeholder: 'lib/portals/gbera/images/default_watting.gif',
-                                                                        image: '${obj['avatar']}?accessToken=${widget.context.principal.accessToken}',
+                                                                    : FadeInImage
+                                                                        .assetNetwork(
+                                                                        placeholder:
+                                                                            'lib/portals/gbera/images/default_watting.gif',
+                                                                        image:
+                                                                            '${obj['avatar']}?accessToken=${widget.context.principal.accessToken}',
                                                                         width:
                                                                             30,
                                                                         height:

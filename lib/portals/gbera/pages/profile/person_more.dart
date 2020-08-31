@@ -121,16 +121,18 @@ class __GroupWidgetState extends State<_GroupWidget> {
   }
 
   Future<void> _loadValues() async {
+    var personInfo=widget.context.parameters['personInfo'];
     String headline =
         'get ${widget.context.site.getService('@.prop.ports.uc.person')} http/1.1';
     await widget.context.ports.callback(
       headline,
-      restCommand: 'listDomainValueOfGroup',
+      restCommand: 'listDomainValueOfPerson',
       headers: {
         'cjtoken': widget.context.principal.accessToken,
       },
       parameters: {
         'groupId': widget.group.groupId,
+        'person':personInfo['person'],
       },
       onsucceed: ({rc, response}) async {
         var json = rc['dataText'];

@@ -22,6 +22,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../main.dart';
 import 'friend_page.dart';
 
+StreamController<dynamic> chatroomNotifyStreamController;
+
 class ChatRoomsPortlet extends StatefulWidget {
   Portlet portlet;
   Desklet desklet;
@@ -43,6 +45,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   void initState() {
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
     _notifyStreamController = StreamController.broadcast();
+    chatroomNotifyStreamController=_notifyStreamController;
     if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
       widget.context.listenMessage(_onmessage, matchPath: '/chat/room/message');
     }

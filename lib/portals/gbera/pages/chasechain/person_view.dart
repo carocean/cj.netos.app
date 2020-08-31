@@ -8,7 +8,9 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -25,10 +27,17 @@ class PersonViewPage extends StatefulWidget {
 
 class _PoolPageState extends State<PersonViewPage> {
   Person _person;
+  bool _isSaving = false;
+  bool _isAdded = false;
 
   @override
   void initState() {
     _person = widget.context.parameters['person'];
+    _load().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -36,6 +45,86 @@ class _PoolPageState extends State<PersonViewPage> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    _isAdded = await _isAddedPerson();
+  }
+
+  Future<bool> _isAddedPerson() async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    return await personService.existsPerson(_person.official);
+  }
+
+  Future<void> _addPerson() async {
+    if (_isSaving || _isAdded) {
+      return;
+    }
+    _isSaving = true;
+    if (mounted) {
+      setState(() {});
+    }
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var dio = widget.context.site.getService('@.http');
+    Person person = Person(
+        _person.official,
+        _person.uid,
+        _person.accountCode,
+        _person.appid,
+        await downloadPersonAvatar(
+            dio: dio,
+            avatarUrl:
+                '${_person.avatar}?accessToken=${widget.context.principal.accessToken}'),
+        null,
+        _person.nickName,
+        _person.signature,
+        PinyinHelper.getPinyin(_person.nickName),
+        widget.context.principal.person);
+    await personService.addPerson(person);
+    _isSaving = false;
+    _isAdded = true;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _removePerson() async {
+    if (_isSaving || !_isAdded) {
+      return;
+    }
+    _isSaving = true;
+    if (mounted) {
+      setState(() {});
+    }
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    await personService.removePerson(_person.official);
+    _isSaving = false;
+    _isAdded = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  String _getActionLabel() {
+    if (_person.official == widget.context.principal.person) {
+      return '';
+    }
+    if (_isAdded) {
+      if (_isSaving) {
+        return '取消中...';
+      } else {
+        return '不再关注为公众';
+      }
+    } else {
+      if (_isSaving) {
+        return '关注中...';
+      } else {
+        return '关注为公众';
+      }
+    }
   }
 
   @override
@@ -129,21 +218,35 @@ class _PoolPageState extends State<PersonViewPage> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        Icon(
-                          Icons.add,
-                          size: 12,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(
-                          width: 2,
-                        ),
-                        Text(
-                          '加为公众',
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+//                        Icon(
+//                          Icons.add,
+//                          size: 12,
+//                          color: Colors.grey,
+//                        ),
+//                        SizedBox(
+//                          width: 2,
+//                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _isSaving ||
+                                  _person.official ==
+                                      widget.context.principal.person
+                              ? null
+                              : () {
+                                  if (_isAdded) {
+                                    _removePerson();
+                                  } else {
+                                    _addPerson();
+                                  }
+                                },
+                          child: Text(
+                            '${_getActionLabel()}',
+                            style: TextStyle(
+                              color: Colors.blueGrey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
                       ],
@@ -277,15 +380,6 @@ class _PoolPageState extends State<PersonViewPage> {
                 ),
                 Row(
                   children: <Widget>[
-//                    Text(
-//                      '签名',
-//                      style: TextStyle(
-//                        color: Colors.grey,
-//                      ),
-//                    ),
-//                    SizedBox(
-//                      width: 4,
-//                    ),
                     Expanded(
                       child: Text(
                         '${_person.signature ?? ''}',
@@ -307,27 +401,34 @@ class _PoolPageState extends State<PersonViewPage> {
   _renderActionPanel() {
     var actions = <Widget>[];
     actions.add(
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(
-            Icons.message,
-            size: 20,
-            color: Colors.grey,
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
-          Text(
-            '发消息',
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.blueGrey,
-              fontWeight: FontWeight.w600,
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          messageSender
+              .open(widget.context, members:<String>[ _person.official]);
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.message,
+              size: 20,
+              color: Colors.grey,
             ),
-          ),
-        ],
+            SizedBox(
+              width: 10,
+            ),
+            //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
+            Text(
+              '发消息',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.blueGrey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
     return actions;

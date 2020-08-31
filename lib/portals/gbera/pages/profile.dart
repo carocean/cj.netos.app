@@ -167,6 +167,124 @@ class _ProfileState extends State<Profile> {
         ],
       ),
     );
+    var card_10 = Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        left: 10,
+        right: 10,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          //公众
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward('/netflow/channel/settings/persons',
+                    arguments: {'personViewer': 'chasechain'});
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      Icons.group,
+                      size: 30,
+                      color:
+                          widget.context.style('/profile/list/item-icon.color'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '公众',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          //好友
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward('/portlet/chat/friends');
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: SizedBox(
+                      width: 30,
+                      child: Icon(
+                        FontAwesomeIcons.addressBook,
+                        size: 25,
+                        color: widget.context
+                            .style('/profile/list/item-icon.color'),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '好友',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
     var card_11 = Container(
       color: Colors.white,
       padding: EdgeInsets.only(
@@ -200,7 +318,7 @@ class _ProfileState extends State<Profile> {
                     padding: EdgeInsets.only(
                       right: 10,
                     ),
-                    child:  Icon(
+                    child: Icon(
                       IconData(0xe62d, fontFamily: 'geo_locations'),
                       size: 30,
                       color: Colors.grey[600],
@@ -254,7 +372,7 @@ class _ProfileState extends State<Profile> {
                     padding: EdgeInsets.only(
                       right: 10,
                     ),
-                    child:  Icon(
+                    child: Icon(
                       Icons.developer_board,
                       size: 30,
                       color: Colors.grey[600],
@@ -284,19 +402,6 @@ class _ProfileState extends State<Profile> {
             ),
           ),
         ],
-      ),
-    );
-    var card_2 = Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(
-        left: 10,
-        right: 10,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[],
       ),
     );
     //设置
@@ -483,7 +588,8 @@ class _ProfileState extends State<Profile> {
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 150,
-                backgroundColor: widget.context.style('/profile/header-bg.color'),
+                backgroundColor:
+                    widget.context.style('/profile/header-bg.color'),
                 elevation: 0.0,
                 flexibleSpace: header,
                 automaticallyImplyLeading: true,
@@ -511,7 +617,7 @@ class _ProfileState extends State<Profile> {
                         padding: EdgeInsets.only(
                           bottom: 10,
                         ),
-                        child: card_2,
+                        child: card_10,
                       ),
                       Padding(
                         padding: EdgeInsets.only(
@@ -537,7 +643,8 @@ class _ProfileState extends State<Profile> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: widget.context.style('/profile/list/start_button_background.color'),
+                    color: widget.context
+                        .style('/profile/list/start_button_background.color'),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20),
                       bottomLeft: Radius.circular(20),
@@ -560,7 +667,8 @@ class _ProfileState extends State<Profile> {
                   child: Text(
                     '切换登录账号',
                     style: TextStyle(
-                      color: widget.context.style('/profile/list/start_button_text.color'),
+                      color: widget.context
+                          .style('/profile/list/start_button_text.color'),
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
                     ),

@@ -666,7 +666,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {},
+          onTap: () async{
+            IPersonService personService=widget.context.site.getService('/gbera/persons');
+            var person=await personService.getPerson(_member.person);
+            widget.context.forward('/person/view',arguments: {'person':person});
+          },
           onLongPress: () {
             showDialog(
               context: context,

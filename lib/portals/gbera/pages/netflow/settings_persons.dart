@@ -312,6 +312,12 @@ class _PersonsViewState extends State<PersonsView> {
                       height: 40,
                     ),
                     onItemTap: () {
+                      if (widget.context.parameters['personViewer'] ==
+                          'chasechain') {
+                        widget.context.forward('/person/view',
+                            arguments: {'person': item});
+                        return;
+                      }
                       widget.context.forward('/site/personal',
                           arguments: {'person': item}).then((v) {
                         _refresh();
