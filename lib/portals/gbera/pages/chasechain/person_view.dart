@@ -236,7 +236,6 @@ class _PoolPageState extends State<PersonViewPage> {
                     Text(
                       '用户号',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -246,7 +245,6 @@ class _PoolPageState extends State<PersonViewPage> {
                     Text(
                       '${_person.uid}',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -260,7 +258,6 @@ class _PoolPageState extends State<PersonViewPage> {
                     Text(
                       '公号',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -270,7 +267,6 @@ class _PoolPageState extends State<PersonViewPage> {
                     Text(
                       '${_person.official}',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -295,7 +291,6 @@ class _PoolPageState extends State<PersonViewPage> {
                         '${_person.signature ?? ''}',
                         style: TextStyle(
                           color: Colors.black87,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
