@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -45,37 +46,59 @@ class _PoolPageState extends State<PersonViewPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
         actions: <Widget>[
-          PopupMenuButton<String>(
-            offset: Offset(
-              0,
-              50,
+          IconButton(
+            icon: Icon(
+              Icons.more_vert,
             ),
-            tooltip: '设置',
-            onSelected: (value) async {
-              switch (value) {
-                case 'profile':
-                  break;
-                default:
-                  print('不支持的菜单');
-                  break;
-              }
-            },
-            itemBuilder: (context) => <PopupMenuEntry<String>>[
-              PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      '基本资料',
-                      style: TextStyle(
-                        fontSize: 14,
+            onPressed: () {
+              showCupertinoModalPopup(
+                  context: context,
+                  builder: (ctx) {
+                    return CupertinoActionSheet(
+                      actions: <Widget>[
+                        CupertinoActionSheetAction(
+                          child: Text(
+                            '基本资料',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(
+                              ctx,
+                              'go_profile',
+                            );
+                          },
+                        ),
+                      ],
+                      cancelButton: FlatButton(
+                        child: Text(
+                          '取消',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 20,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(
+                            ctx,
+                            'cancel',
+                          );
+                        },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                    );
+                  }).then((action) {
+                switch (action) {
+                  case 'go_profile':
+                    widget.context.forward('/profile/view',
+                        arguments: {'person': _person.official});
+                    break;
+                  case 'cancel':
+                    break;
+                }
+              });
+            },
           ),
         ],
       ),
@@ -206,58 +229,73 @@ class _PoolPageState extends State<PersonViewPage> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(
-                  height: 2,
+                  height: 4,
                 ),
                 Row(
                   children: <Widget>[
                     Text(
-                      '统一号',
+                      '用户号',
                       style: TextStyle(
-                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[500],
                       ),
                     ),
                     SizedBox(
                       width: 4,
                     ),
-                    Text('${_person.uid}'),
+                    Text(
+                      '${_person.uid}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(
-                  height: 2,
+                  height: 4,
                 ),
                 Row(
                   children: <Widget>[
                     Text(
                       '公号',
                       style: TextStyle(
-                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[500],
                       ),
                     ),
                     SizedBox(
                       width: 4,
                     ),
-                    Text('${_person.official}'),
+                    Text(
+                      '${_person.official}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(
-                  height: 2,
+                  height: 5,
                 ),
                 Row(
                   children: <Widget>[
-                    Text(
-                      '签名',
-                      style: TextStyle(
-                        color: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 4,
-                    ),
+//                    Text(
+//                      '签名',
+//                      style: TextStyle(
+//                        color: Colors.grey,
+//                      ),
+//                    ),
+//                    SizedBox(
+//                      width: 4,
+//                    ),
                     Expanded(
                       child: Text(
                         '${_person.signature ?? ''}',
                         style: TextStyle(
                           color: Colors.black87,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

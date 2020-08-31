@@ -5,23 +5,22 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 
-class PoolLocationMapPage extends StatefulWidget {
+class LocationMapPage extends StatefulWidget {
   PageContext context;
 
-  PoolLocationMapPage({this.context});
+  LocationMapPage({this.context});
 
   @override
-  _PoolLocationMapPageState createState() => _PoolLocationMapPageState();
+  _LocationMapPageState createState() => _LocationMapPageState();
 }
 
-class _PoolLocationMapPageState extends State<PoolLocationMapPage> {
-  TrafficPool _trafficPool;
+class _LocationMapPageState extends State<LocationMapPage> {
   LatLng _location;
-
+  String _label;
   @override
   void initState() {
-    _trafficPool = widget.context.parameters['pool'];
     _location = widget.context.parameters['location'];
+    _label = widget.context.parameters['label'];
     super.initState();
   }
 
@@ -36,11 +35,11 @@ class _PoolLocationMapPageState extends State<PoolLocationMapPage> {
         child: AmapView(
           centerCoordinate: _location,
           showCompass: true,
-          zoomLevel: _getLevel(),
+          zoomLevel: 18,
           markers: [
             MarkerOption(
               latLng: _location,
-              title: '${_trafficPool.title}',
+              title: '${_label??''}',
               visible: true,
               widget: Wrap(
                 direction: Axis.vertical,
@@ -54,7 +53,7 @@ class _PoolLocationMapPageState extends State<PoolLocationMapPage> {
                     color: Colors.red,
                   ),
                   Text(
-                    '${_trafficPool.title}',
+                    '${_label??''}',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
@@ -68,31 +67,6 @@ class _PoolLocationMapPageState extends State<PoolLocationMapPage> {
         ),
       ),
     );
-  }
-
-  _getLevel() {
-    double level;
-    switch(_trafficPool.level) {
-      case 0:
-        level=3;
-        break;
-      case 1:
-        level=6;
-        break;
-      case 2:
-        level=8;
-        break;
-      case 3:
-        level=10;
-        break;
-      case 4:
-        level=15;
-        break;
-      default:
-        level=18;
-        break;
-    }
-    return level;
   }
 
 }

@@ -78,17 +78,17 @@ class _PoolPageState extends State<ContentBoxViewPage> {
     return address;
   }
 
-  Future<void> _goMap() async {
-    var geocodeList = await AmapSearch.searchGeocode(
-      _pool.geoTitle,
-    );
-    if (geocodeList.isEmpty) {
-      return;
-    }
-    var first = geocodeList[0];
-    var location = await first.latLng;
-    widget.context.forward('/chasechain/pool/location',
-        arguments: {'pool': _pool, 'location': location});
+  Future<void> _goMap(LatLng location, String label) async {
+//    var geocodeList = await AmapSearch.searchGeocode(
+//      _pool.geoTitle,
+//    );
+//    if (geocodeList.isEmpty) {
+//      return;
+//    }
+//    var first = geocodeList[0];
+//    var location = await first.latLng;
+    widget.context.forward('/gbera/location',
+        arguments: {'location': location, 'label': label});
   }
 
   Future<Person> _getPerson() async {
@@ -283,11 +283,18 @@ class _PoolPageState extends State<ContentBoxViewPage> {
                                 return Text('...');
                               }
                               var locationText = snapshot.data;
-                              return Text(
-                                locationText ?? '',
-                                style: TextStyle(
-                                  color: Colors.blueGrey,
-                                  decoration: TextDecoration.underline,
+                              return GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  _goMap(_boxRealObject.location,
+                                      _boxRealObject.title);
+                                },
+                                child: Text(
+                                  locationText ?? '',
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    decoration: TextDecoration.underline,
+                                  ),
                                 ),
                               );
                             },

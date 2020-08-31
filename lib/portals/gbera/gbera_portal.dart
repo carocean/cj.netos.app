@@ -11,7 +11,7 @@ import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
-import 'package:netos_app/portals/gbera/pages/chasechain/pool_location_map.dart';
+import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/profile.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/person_view.dart';
@@ -94,6 +94,8 @@ import 'package:netos_app/portals/gbera/pages/profile/edit_sex.dart';
 import 'package:netos_app/portals/gbera/pages/profile/edit_signature.dart';
 import 'package:netos_app/portals/gbera/pages/profile/editor.dart';
 import 'package:netos_app/portals/gbera/pages/profile/more.dart';
+import 'package:netos_app/portals/gbera/pages/profile/person_more.dart';
+import 'package:netos_app/portals/gbera/pages/profile/person_profile.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
 import 'package:netos_app/portals/gbera/pages/site/friend_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/insite_request.dart';
@@ -1356,6 +1358,24 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '个人信息视图',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/view',
+          buildPage: (PageContext pageContext) => PersonProfile(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '个人信息视图',
+          subtitle: '',
+          icon: FontAwesomeIcons.edit,
+          url: '/profile/view/more',
+          buildPage: (PageContext pageContext) => PersonProfileViewMore(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '个人信息',
           subtitle: '',
           icon: FontAwesomeIcons.edit,
@@ -2237,11 +2257,11 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '流量池位置',
+          title: '位置地图',
           subtitle: '',
           icon: Icons.business,
-          url: '/chasechain/pool/location',
-          buildPage: (PageContext pageContext) => PoolLocationMapPage(
+          url: '/gbera/location',
+          buildPage: (PageContext pageContext) => LocationMapPage(
             context: pageContext,
           ),
         ),

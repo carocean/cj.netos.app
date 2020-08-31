@@ -80,11 +80,11 @@ class _ChasechainState extends State<Chasechain> {
     var items = await recommender.pullItem(_towncode);
     _items.insertAll(0, items);
     _offset += items.length;
+    Toast.show('已推荐${items.length}个', context,
+        gravity: Toast.TOP, duration: Toast.LENGTH_LONG);
     if (mounted) {
       setState(() {});
     }
-    Toast.show('已推荐${items.length}个', context,
-        gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
   }
 
   @override

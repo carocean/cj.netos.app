@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
@@ -45,11 +48,17 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
       int pos = category.lastIndexOf('.');
       category = category.substring(pos + 1);
       var receptor = await receptorRemote.getReceptor(category, box.pointer.id);
+      var locationJson=receptor.location;
+      LatLng location;
+      if(!StringUtil.isEmpty(locationJson)) {
+        location=LatLng.fromJson(jsonDecode(locationJson));
+      }
       _boxPointerRealObject = BoxPointerRealObject(
         type: 'receptor',
         title: receptor.title,
         id: receptor.id,
         icon: receptor.leading,
+        location: location,
       );
       return;
     }
@@ -131,8 +140,11 @@ class _BoxHeader extends StatelessWidget {
     IChasechainRecommenderRemote recommender =
         this.context.site.getService('/remote/chasechain/recommender');
     var pool = await recommender.getTrafficPool(poolId);
-    this.context.forward('/chasechain/box/view',
-        arguments: {'pool': pool, 'box': this.box,'boxRealObject':boxPointerRealObject});
+    this.context.forward('/chasechain/box/view', arguments: {
+      'pool': pool,
+      'box': this.box,
+      'boxRealObject': boxPointerRealObject
+    });
   }
 
   @override
@@ -379,6 +391,13 @@ class BoxPointerRealObject {
   String title;
   String id;
   String type;
+  LatLng location;
 
-  BoxPointerRealObject({this.icon, this.title, this.id, this.type});
+  BoxPointerRealObject({
+    this.icon,
+    this.title,
+    this.id,
+    this.type,
+    this.location,
+  });
 }
