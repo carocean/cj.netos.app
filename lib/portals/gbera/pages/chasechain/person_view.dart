@@ -137,7 +137,7 @@ class _PoolPageState extends State<PersonViewPage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(
-              Icons.more_vert,
+              Icons.more_horiz,
             ),
             onPressed: () {
               showCupertinoModalPopup(

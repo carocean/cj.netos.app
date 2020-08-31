@@ -12,6 +12,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -313,27 +314,9 @@ class _PoolPageState extends State<ContentBoxViewPage> {
     var actions = <Widget>[];
     if (_boxRealObject.type == 'receptor') {
       actions.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              FontAwesomeIcons.plusSquare,
-              size: 20,
-              color: Colors.grey,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
-            Text(
-              '关注',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.blueGrey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        _FollowReceptorAction(
+          context: widget.context,
+          box: _box,
         ),
       );
     } else {
@@ -395,5 +378,133 @@ class _PoolPageState extends State<ContentBoxViewPage> {
       );
     }
     return actions;
+  }
+}
+
+class _FollowReceptorAction extends StatefulWidget {
+  PageContext context;
+  ContentBoxOR box;
+
+  _FollowReceptorAction({
+    this.context,
+    this.box,
+  });
+
+  @override
+  __FollowReceptorActionState createState() => __FollowReceptorActionState();
+}
+
+class __FollowReceptorActionState extends State<_FollowReceptorAction> {
+  var _isFollowed = false;
+  var _followLabel = '关注';
+  var _isProcess = false;
+
+  @override
+  void initState() {
+    _loadFollow().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(_FollowReceptorAction oldWidget) {
+    if (oldWidget.box.id != widget.box.id) {
+      oldWidget.box = widget.box;
+      _loadFollow().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadFollow() async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    var receptorId = widget.box.pointer.id;
+    var category = widget.box.pointer.type;
+    int pos = category.lastIndexOf('.');
+    category = category.substring(pos + 1);
+    var exists = await receptorService.existsLocal(category, receptorId);
+    _isFollowed = exists;
+    _followLabel = exists ? '不再关注' : '关注';
+  }
+
+  Future<void> _follow() async {
+    _isProcess = true;
+    _followLabel = '处理中...';
+    setState(() {});
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+
+    var receptorId = widget.box.pointer.id;
+    var category = widget.box.pointer.type;
+    int pos = category.lastIndexOf('.');
+    category = category.substring(pos + 1);
+    if (_isFollowed) {
+      //取消
+      await receptorService.remove(category, receptorId);
+      await receptorRemote.unfollow(category, receptorId);
+      await _loadFollow();
+      _isFollowed = false;
+      _isProcess = false;
+      _followLabel = '关注';
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    var receptor = await receptorRemote.getReceptor(category, receptorId);
+    if (receptor != null) {
+      await receptorService.add(receptor, isOnlySaveLocal: true);
+    }
+    await receptorRemote.follow(category, receptorId);
+    await _loadFollow();
+    _isFollowed = true;
+    _isProcess = false;
+    _followLabel = '不再关注';
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isProcess
+          ? null
+          : () {
+              _follow().then((value) {});
+            },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.attachment,
+            size: 20,
+            color: Colors.grey,
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
+          Text(
+            '$_followLabel',
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
