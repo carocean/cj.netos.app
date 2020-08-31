@@ -156,8 +156,9 @@ class _PersonProfileState extends State<PersonProfile> {
                                     height: 30,
                                     fit: BoxFit.cover,
                                   )
-                                : Image.network(
-                                    '${_person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                : FadeInImage.assetNetwork(
+                                    placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                                    image: '${_person.avatar}?accessToken=${widget.context.principal.accessToken}',
                                     width: 30,
                                     height: 30,
                                     fit: BoxFit.cover,
@@ -430,9 +431,9 @@ class _PersonProfileState extends State<PersonProfile> {
                                                                         fit: BoxFit
                                                                             .cover,
                                                                       )
-                                                                    : Image
-                                                                        .network(
-                                                                        '${obj['avatar']}?accessToken=${widget.context.principal.accessToken}',
+                                                                    : FadeInImage.assetNetwork(
+                                                                        placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                                                                        image: '${obj['avatar']}?accessToken=${widget.context.principal.accessToken}',
                                                                         width:
                                                                             30,
                                                                         height:
