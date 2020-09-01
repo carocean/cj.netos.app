@@ -10,6 +10,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -321,27 +322,9 @@ class _PoolPageState extends State<ContentBoxViewPage> {
       );
     } else {
       actions.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              FontAwesomeIcons.pushed,
-              size: 20,
-              color: Colors.grey,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
-            Text(
-              '关注以推送动态给它',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.blueGrey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        _CreateChannelAndAddToOutputAction(
+          context: widget.context,
+          box: _box,
         ),
       );
       actions.add(
@@ -353,31 +336,243 @@ class _PoolPageState extends State<ContentBoxViewPage> {
         ),
       );
       actions.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              FontAwesomeIcons.receipt,
-              size: 20,
-              color: Colors.grey,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
-            Text(
-              '关注以接收它的动态',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.blueGrey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        _CreateChannelAndAddToInputAction(
+          context: widget.context,
+          box: _box,
         ),
       );
     }
     return actions;
+  }
+}
+
+class _CreateChannelAndAddToInputAction extends StatefulWidget {
+  PageContext context;
+  ContentBoxOR box;
+
+  _CreateChannelAndAddToInputAction({this.context, this.box});
+
+  @override
+  __CreateChannelAndAddToInputActionState createState() =>
+      __CreateChannelAndAddToInputActionState();
+}
+
+class __CreateChannelAndAddToInputActionState
+    extends State<_CreateChannelAndAddToInputAction> {
+  bool _existsChannelAndOnInput = false;
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    _load().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  Future<void> _load() async {
+    var pointer = widget.box.pointer;
+    _existsChannelAndOnInput = await channelOpener.existsChannelAndOnInput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+  }
+
+  Future<void> _openChannelAndAddToInput() async {
+    _isProcessing = true;
+    if (mounted) {
+      setState(() {});
+    }
+    var pointer = widget.box.pointer;
+    await channelOpener.openMyChannelAndAddToInput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+    _existsChannelAndOnInput = true;
+    _isProcessing = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _removePersonFromInput() async {
+    _isProcessing = true;
+    if (mounted) {
+      setState(() {});
+    }
+    var pointer = widget.box.pointer;
+    await channelOpener.removePersonFromInput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+    _existsChannelAndOnInput = false;
+    _isProcessing = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isProcessing) {
+      return Center(
+        child: Text('正在处理...'),
+      );
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isProcessing
+          ? null
+          : () {
+              if (_existsChannelAndOnInput) {
+                _removePersonFromInput();
+              } else {
+                _openChannelAndAddToInput();
+              }
+            },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            FontAwesomeIcons.receipt,
+            size: 20,
+            color: Colors.grey,
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
+          Text(
+            '${_existsChannelAndOnInput ? '不再接收它的动态' : '接收它的动态'}',
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateChannelAndAddToOutputAction extends StatefulWidget {
+  PageContext context;
+  ContentBoxOR box;
+
+  _CreateChannelAndAddToOutputAction({this.context, this.box});
+
+  @override
+  __CreateChannelAndAddToOutputActionState createState() =>
+      __CreateChannelAndAddToOutputActionState();
+}
+
+class __CreateChannelAndAddToOutputActionState
+    extends State<_CreateChannelAndAddToOutputAction> {
+  bool _existsChannelAndOnOutput = false;
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    _load().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  Future<void> _load() async {
+    var pointer = widget.box.pointer;
+    _existsChannelAndOnOutput = await channelOpener.existsChannelAndOnOutput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+  }
+
+  Future<void> _openChannelAndAddToOutput() async {
+    _isProcessing = true;
+    if (mounted) {
+      setState(() {});
+    }
+    var pointer = widget.box.pointer;
+    await channelOpener.openMyChannelAndAddToOutput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+    _existsChannelAndOnOutput = true;
+    _isProcessing = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _removePersonFromOutput() async {
+    _isProcessing = true;
+    if (mounted) {
+      setState(() {});
+    }
+    var pointer = widget.box.pointer;
+    await channelOpener.removePersonFromOutput(
+      widget.context,
+      pointer.id,
+      pointer.creator,
+    );
+    _isProcessing = false;
+    _existsChannelAndOnOutput = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isProcessing) {
+      return Center(
+        child: Text('正在处理...'),
+      );
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isProcessing
+          ? null
+          : () {
+              if (_existsChannelAndOnOutput) {
+                _removePersonFromOutput();
+              } else {
+                _openChannelAndAddToOutput();
+              }
+            },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            FontAwesomeIcons.pushed,
+            size: 20,
+            color: Colors.grey,
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          //如果是地理感知器则关注，如果是管道则有：关注以推送动态给他或关注以接收他的动态
+          Text(
+            '${_existsChannelAndOnOutput ? '不再推送动态给它' : '推送动态给它'}',
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

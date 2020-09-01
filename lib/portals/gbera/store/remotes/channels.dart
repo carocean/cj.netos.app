@@ -202,6 +202,20 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> addOutputPersonOfCreator(
+      String creator, String channel) async {
+    await remotePorts.portGET(
+      _linkNetflowPortsUrl,
+      'addOutputPersonOfCreator',
+      parameters: {
+        'creator': creator,
+        'channel': channel,
+        'person': principal.person,
+      },
+    );
+  }
+
+  @override
   Future<void> addOutputPerson(String person, String channel) async {
     await remotePorts.portGET(
       _linkNetflowPortsUrl,
@@ -233,6 +247,19 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       parameters: {
         'channel': channel,
         'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<Function> removeOutputPersonOfCreator(String creator, String channel)async {
+    await remotePorts.portGET(
+      _linkNetflowPortsUrl,
+      'removeOutputPersonOfCreator',
+      parameters: {
+        'creator':creator,
+        'channel': channel,
+        'person': principal.person,
       },
     );
   }

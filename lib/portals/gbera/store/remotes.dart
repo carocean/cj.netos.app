@@ -63,9 +63,13 @@ mixin IChannelRemote {
 
   Future<void> removeOutputPerson(String person, String channelid) {}
 
+  Future<void> removeOutputPersonOfCreator(String creator, String channel) {}
+
   Future<void> removeInputPerson(String person, String channelid) {}
 
   Future<void> addInputPerson(String person, String channel) {}
+
+  Future<void> addOutputPersonOfCreator(String creator, String channel) {}
 
   Future<void> updateOutGeoSelector(String channelid, String v) {}
 

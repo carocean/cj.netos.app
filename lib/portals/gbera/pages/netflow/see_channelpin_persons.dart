@@ -62,7 +62,9 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
     _directionTips = widget.context.parameters['direction_tips'];
     _directionTips = '$_directionTips>${_person.nickName}';
     _load().then((v) {
-      setState(() {});
+      if(mounted) {
+        setState(() {});
+      }
     });
   }
 

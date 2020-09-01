@@ -62,7 +62,7 @@ mixin IChannelService {
   Future<bool> existsChannel(channelid);
 
   Future<void> addChannel(Channel channel,
-      {String localLeading, String remoteLeading,bool isOnlyLocal=false});
+      {String localLeading, String remoteLeading, bool isOnlyLocal = false});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
@@ -232,6 +232,8 @@ mixin IChannelPinService {
 
   Future<bool> existsInputPerson(String person, String channel) {}
 
+  Future<bool> existsOutputPerson(String person, String channel) {}
+
   Future<void> emptyInputPersons(String channelid) {}
 
   Future<ChannelInputPerson> getInputPerson(String official, channel) {}
@@ -303,14 +305,12 @@ mixin IChatRoomService {
   Future<void> updateRoomBackground(ChatRoom chatRoom, path,
       {bool isOnlyLocal = false}) {}
 
-  Future<ChatRoom>  fetchRoom(String creator, String room) {}
+  Future<ChatRoom> fetchRoom(String creator, String room) {}
 
   Future<List<RoomMember>> fetchMembers(String room, String creator) {}
 
-  Future<void>updateRoomForeground(ChatRoom chatRoom, bool isForegroundWhite,
+  Future<void> updateRoomForeground(ChatRoom chatRoom, bool isForegroundWhite,
       {bool isOnlyLocal = false}) {}
-
-
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,
@@ -374,7 +374,8 @@ mixin IGeoReceptorService {
 
   Future<void> updateTitle(String id, String title);
 
-  Future<void> updateLocation(String category,String receptor, LatLng location,{bool isOnlyLocal=false});
+  Future<void> updateLocation(String category, String receptor, LatLng location,
+      {bool isOnlyLocal = false});
 
   Future<void> updateRadius(String id, double radius);
 
