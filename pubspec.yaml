@@ -38,7 +38,7 @@ dependencies:
   shared_preferences: ^0.5.6
   yaml: ^2.2.0
   image_picker: ^0.6.2+3
-  photo_view: ^0.9.2
+  photo_view: ^0.10.2
   cached_network_image: ^2.0.0
   transparent_image: ^1.0.0
   #截图
@@ -58,7 +58,7 @@ dependencies:
   amap_location_fluttify: ^0.8.11+481e45c
   amap_search_fluttify: ^0.7.9+481e45c
   amap_map_fluttify: ^0.18.2+c038d50
-  extended_text_field: ^0.4.8
+  extended_text_field: ^4.0.0
   #已将源码拷到工程
   #  w_popup_menu: ^0.3.0
   popup_menu: ^1.0.5
@@ -81,7 +81,9 @@ dependencies:
   #保存图片到相册
   image_gallery_saver: ^1.2.2
   city_pickers: ^0.1.30
-  flutter_cupertino_date_picker: ^1.0.26+2
+  #flutter_cupertino_date_picker: ^1.0.26+2
+  flutter_cupertino_date_picker:
+    path: flutter-cupertino-date-picker
   toast: ^0.1.5
 dev_dependencies:
   flutter_test:

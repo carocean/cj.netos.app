@@ -218,17 +218,14 @@ class _MyPhotoViewGalleryState extends State<MyPhotoViewGallery> {
   @override
   Widget build(BuildContext context) {
     // Enable corner hit test
-    return PhotoViewGestureDetectorScope(
-      axis: widget.scrollDirection,
-      child: PageView.builder(
-        reverse: widget.reverse,
-        controller: _controller,
-        onPageChanged: widget.onPageChanged,
-        itemCount: itemCount,
-        itemBuilder: _buildItem,
-        scrollDirection: widget.scrollDirection,
-        physics: widget.scrollPhysics,
-      ),
+    return PageView.builder(
+      reverse: widget.reverse,
+      controller: _controller,
+      onPageChanged: widget.onPageChanged,
+      itemCount: itemCount,
+      itemBuilder: _buildItem,
+      scrollDirection: widget.scrollDirection,
+      physics: widget.scrollPhysics,
     );
   }
 
@@ -244,7 +241,7 @@ class _MyPhotoViewGalleryState extends State<MyPhotoViewGallery> {
       key: ObjectKey(index),
       imageProvider: pageOption.imageProvider,
       loadingBuilder: widget.loadingBuilder,
-      loadingChild: widget.loadingChild,
+//      loadingChild: widget.loadingChild,
       loadFailedChild: widget.loadFailedChild,
       backgroundDecoration: widget.backgroundDecoration,
       controller: pageOption.controller,
