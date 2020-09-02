@@ -331,6 +331,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               '${Uuid().v1()}',
               widget.channel.id,
               widget.person.official,
+              DateTime.now().millisecondsSinceEpoch,
               widget.pageContext.principal.person,
             ),
           );
@@ -343,6 +344,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               '${Uuid().v1()}',
               widget.channel.id,
               widget.person.official,
+              DateTime.now().millisecondsSinceEpoch,
               widget.pageContext.principal.person,
             ),
           );

@@ -275,6 +275,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             '${Uuid().v1()}',
             _channel.id,
             person.official,
+            DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
           ),
         )

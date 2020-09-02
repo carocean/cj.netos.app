@@ -99,6 +99,10 @@ abstract class IChannelDAO {
       String sandbox, String channelName, String owner);
 
   @Query(
+      'SELECT * FROM Channel WHERE sandbox=:sandbox ORDER BY ctime desc limit 1')
+  Future<Channel> getlastChannel(String sandbox) {}
+
+  @Query(
       'UPDATE Channel SET leading = :path WHERE sandbox=:sandbox and id = :id')
   Future<void> updateLeading(String path, String sandbox, String id);
 
@@ -393,6 +397,11 @@ abstract class IChannelOutputPersonDAO {
   @Query(
       'delete FROM ChannelOutputPerson WHERE channel = :channelcode and sandbox=:sandbox')
   Future<void> emptyOutputPersons(String channelcode, String sandbox);
+
+  @Query(
+      'select * FROM ChannelOutputPerson WHERE channel = :channel and sandbox=:sandbox ORDER BY atime desc LIMIT 1 OFFSET 0')
+  Future<ChannelOutputPerson> getLastOutputPerson(
+      String channel, String person) {}
 }
 
 @dao
@@ -431,6 +440,11 @@ abstract class IChannelInputPersonDAO {
   @Query(
       'delete FROM ChannelInputPerson WHERE channel = :channelcode and sandbox=:sandbox')
   Future<void> emptyInputPersons(String channelcode, String sandbox) {}
+
+  @Query(
+      'select * FROM ChannelInputPerson WHERE channel = :channel and sandbox=:sandbox ORDER BY atime desc LIMIT 1 OFFSET 0')
+  Future<ChannelInputPerson> getLastInputPerson(
+      String channel, String sandbox) {}
 }
 
 @dao

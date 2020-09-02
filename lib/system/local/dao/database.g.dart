@@ -150,9 +150,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelPin` (`id` TEXT, `channel` TEXT, `inPersonSelector` TEXT, `outPersonSelector` TEXT, `outGeoSelector` TEXT, `outWechatPenYouSelector` TEXT, `outWechatHaoYouSelector` TEXT, `outContractSelector` TEXT, `inRights` TEXT, `outRights` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelInputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `rights` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelInputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `rights` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountName` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
@@ -181,6 +181,12 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `RecommenderMessageOL` (`id` TEXT, `item` TEXT, `type` TEXT, `creator` TEXT, `content` TEXT, `inbox` TEXT, `layout` INTEGER, `location` TEXT, `ctime` INTEGER, `atime` INTEGER, `wy` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `item`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RecommenderMediaOL` (`id` TEXT, `docid` TEXT, `type` TEXT, `src` TEXT, `text` TEXT, `leading` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `docid`, `sandbox`))');
+        await database.execute(
+            'CREATE INDEX `index_Channel_owner_ctime` ON `Channel` (`owner`, `ctime`)');
+        await database.execute(
+            'CREATE INDEX `index_ChannelInputPerson_channel_person_atime` ON `ChannelInputPerson` (`channel`, `person`, `atime`)');
+        await database.execute(
+            'CREATE INDEX `index_ChannelOutputPerson_channel_person_atime` ON `ChannelOutputPerson` (`channel`, `person`, `atime`)');
         await database.execute(
             'CREATE INDEX `index_GeosphereMediaOL_msgid_receptor` ON `GeosphereMediaOL` (`msgid`, `receptor`)');
         await database.execute(
@@ -1597,6 +1603,14 @@ class _$IChannelDAO extends IChannelDAO {
   }
 
   @override
+  Future<Channel> getlastChannel(String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM Channel WHERE sandbox=? ORDER BY ctime desc limit 1',
+        arguments: <dynamic>[sandbox],
+        mapper: _channelMapper);
+  }
+
+  @override
   Future<void> updateLeading(String path, String sandbox, String id) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE Channel SET leading = ? WHERE sandbox=? and id = ?',
@@ -2267,6 +2281,7 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
                   'channel': item.channel,
                   'person': item.person,
                   'rights': item.rights,
+                  'atime': item.atime,
                   'sandbox': item.sandbox
                 });
 
@@ -2282,6 +2297,7 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
           row['channel'] as String,
           row['person'] as String,
           row['rights'] as String,
+          row['atime'] as int,
           row['sandbox'] as String);
 
   final InsertionAdapter<ChannelInputPerson>
@@ -2338,6 +2354,15 @@ class _$IChannelInputPersonDAO extends IChannelInputPersonDAO {
   }
 
   @override
+  Future<ChannelInputPerson> getLastInputPerson(
+      String channel, String sandbox) async {
+    return _queryAdapter.query(
+        'select * FROM ChannelInputPerson WHERE channel = ? and sandbox=? ORDER BY atime desc LIMIT 1 OFFSET 0',
+        arguments: <dynamic>[channel, sandbox],
+        mapper: _channelInputPersonMapper);
+  }
+
+  @override
   Future<void> addInputPerson(ChannelInputPerson person) async {
     await _channelInputPersonInsertionAdapter.insert(
         person, sqflite.ConflictAlgorithm.abort);
@@ -2354,6 +2379,7 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
                   'id': item.id,
                   'channel': item.channel,
                   'person': item.person,
+                  'atime': item.atime,
                   'sandbox': item.sandbox
                 });
 
@@ -2364,8 +2390,12 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
   final QueryAdapter _queryAdapter;
 
   static final _channelOutputPersonMapper = (Map<String, dynamic> row) =>
-      ChannelOutputPerson(row['id'] as String, row['channel'] as String,
-          row['person'] as String, row['sandbox'] as String);
+      ChannelOutputPerson(
+          row['id'] as String,
+          row['channel'] as String,
+          row['person'] as String,
+          row['atime'] as int,
+          row['sandbox'] as String);
 
   final InsertionAdapter<ChannelOutputPerson>
       _channelOutputPersonInsertionAdapter;
@@ -2410,6 +2440,15 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
     await _queryAdapter.queryNoReturn(
         'delete FROM ChannelOutputPerson WHERE channel = ? and sandbox=?',
         arguments: <dynamic>[channelcode, sandbox]);
+  }
+
+  @override
+  Future<ChannelOutputPerson> getLastOutputPerson(
+      String channel, String person) async {
+    return _queryAdapter.query(
+        'select * FROM ChannelOutputPerson WHERE channel = ? and sandbox=? ORDER BY atime desc LIMIT 1 OFFSET 0',
+        arguments: <dynamic>[channel, person],
+        mapper: _channelOutputPersonMapper);
   }
 
   @override

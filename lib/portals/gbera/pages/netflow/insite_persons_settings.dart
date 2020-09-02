@@ -275,6 +275,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               widget.channel.id,
               widget.person.official,
               'allow',
+              DateTime.now().millisecondsSinceEpoch,
               widget.pageContext.principal.person,
             ),
           );
@@ -288,6 +289,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               widget.channel.id,
               widget.person.official,
               'allow',
+              DateTime.now().millisecondsSinceEpoch,
               widget.pageContext.principal.person,
             ),
           );

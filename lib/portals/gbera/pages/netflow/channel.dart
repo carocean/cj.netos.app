@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -14,6 +15,8 @@ import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/netflow.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -42,6 +45,22 @@ class _ChannelPageState extends State<ChannelPage> {
     _channel = widget.context.parameters['channel'];
     _scaffoldKey = GlobalKey<_ChannelPageState>();
     _pageMessages = <ChannelMessage>[];
+    syncTaskMananger.tasks['netflow.channel.inputPin'] = SyncTask(
+      doTask: _sync_inputPin_task,
+    )..run(
+        syncName: 'netflow.channel.inputPin',
+        context: widget.context,
+        checkRemote: _sync_inputPin_check,
+        forceSync: true,
+      );
+    syncTaskMananger.tasks['netflow.channel.outputPin'] = SyncTask(
+      doTask: _sync_outputPin_task,
+    )..run(
+        syncName: 'netflow.channel.outputPin',
+        context: widget.context,
+        checkRemote: _sync_outputPin_check,
+        forceSync: true,
+      );
     _onload().then((v) {
       setState(() {});
     });
@@ -55,6 +74,99 @@ class _ChannelPageState extends State<ChannelPage> {
     _scaffoldKey = null;
     _pageMessages.clear();
     super.dispose();
+  }
+
+  Future<SyncArgs> _sync_inputPin_check(PageContext context) async {
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    ChannelInputPerson lastInputPerson =
+        await pinService.getLastInputPerson(_channel.id);
+    int beginInputPersonTime =
+        lastInputPerson == null ? 0 : lastInputPerson.atime;
+    var portsurl = context.site.getService('@.prop.ports.link.netflow');
+    return SyncArgs(
+      portsUrl: portsurl,
+      restCmd: 'listAllInputPerson',
+      parameters: {
+        'channel': _channel.id,
+        'atime': beginInputPersonTime,
+      },
+    );
+  }
+
+  Future<void> _sync_inputPin_task(PageContext context, Frame frame) async {
+    var source = frame.contentText;
+    List list = jsonDecode(source);
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    for (var iperson in list) {
+      ChannelInputPerson inputPerson = ChannelInputPerson(
+        iperson['id'],
+        iperson['channel'],
+        iperson['person'],
+        iperson['rights'],
+        iperson['atime'],
+        context.principal.person,
+      );
+      if (await pinService.existsInputPerson(
+          inputPerson.person, inputPerson.channel)) {
+        continue;
+      }
+      if (!(await personService.existsPerson(inputPerson.person))) {
+        var person=await personService.getPerson(inputPerson.person,
+            isDownloadAvatar: true);
+        await personService.addPerson(person);
+      }
+      await pinService.addInputPerson(inputPerson);
+    }
+  }
+
+  Future<SyncArgs> _sync_outputPin_check(PageContext context) async {
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    ChannelOutputPerson lastOutputPerson =
+        await pinService.getLastOutputPerson(_channel.id);
+    int beginOutputPersonTime =
+        lastOutputPerson == null ? 0 : lastOutputPerson.atime;
+    var portsurl = context.site.getService('@.prop.ports.link.netflow');
+    return SyncArgs(
+      portsUrl: portsurl,
+      restCmd: 'listAllOutputPerson',
+      parameters: {
+        'channel': _channel.id,
+        'atime': beginOutputPersonTime,
+      },
+    );
+  }
+
+  Future<void> _sync_outputPin_task(PageContext context, Frame frame) async {
+    var source = frame.contentText;
+    List list = jsonDecode(source);
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    for (var operson in list) {
+      var outputPerson = ChannelOutputPerson(
+        operson['id'],
+        operson['channel'],
+        operson['person'],
+        operson['atime'],
+        context.principal.person,
+      );
+      if (await pinService.existsOutputPerson(
+          outputPerson.person, outputPerson.channel)) {
+        continue;
+      }
+      if (!(await personService.existsPerson(outputPerson.person))) {
+        var person = await personService.getPerson(outputPerson.person,
+            isDownloadAvatar: true);
+        await personService.addPerson(person);
+      }
+      await pinService.addOutputPerson(outputPerson);
+    }
   }
 
   _reloadChannel() async {
@@ -96,7 +208,7 @@ class _ChannelPageState extends State<ChannelPage> {
       SliverToBoxAdapter(
         child: Header(
           context: widget.context,
-          channel:_channel,
+          channel: _channel,
           refresh: () {
             _reloadChannel();
             _refreshMessages();
@@ -286,6 +398,7 @@ class Header extends StatefulWidget {
   PageContext context;
   Function() refresh;
   Channel channel;
+
   Header({
     this.context,
     this.refresh,
@@ -305,9 +418,9 @@ class _HeaderState extends State<Header> {
   void initState() {
     _workingChannel = widget.context.parameters['workingChannel'];
     _workingChannel.onRefreshChannelState = (command, args) {
-      if("pushDocumentCommand"==command&&args is Map) {
-        var msg=args['message'];
-        if(msg.onChannel!=widget.channel?.id){
+      if ("pushDocumentCommand" == command && args is Map) {
+        var msg = args['message'];
+        if (msg.onChannel != widget.channel?.id) {
           return;
         }
       }
@@ -623,7 +736,7 @@ class __MessageCardState extends State<_MessageCard> {
                         child: PageSelector(
                           context: widget.context,
                           medias: snapshot.data,
-                          onMediaLongTap: (media,index) {
+                          onMediaLongTap: (media, index) {
                             widget.context.forward(
                               '/images/viewer',
                               arguments: {

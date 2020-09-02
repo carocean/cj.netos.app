@@ -296,6 +296,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             _channel.id,
             person.official,
             'allow',
+            DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
           ),
         )

@@ -63,7 +63,7 @@ mixin IChannelRemote {
 
   Future<void> removeOutputPerson(String person, String channelid) {}
 
-  Future<void> removeOutputPersonOfCreator(String creator, String channel) {}
+  Future<Function> removeOutputPersonOfCreator(String creator, String channel);
 
   Future<void> removeInputPerson(String person, String channelid) {}
 
@@ -127,6 +127,12 @@ mixin IChannelRemote {
 
   Future<List<ChannelMediaOR>> listExtraMedia(
       String docid, String creator, String channel) {}
+
+  Future<List<ChannelInputPerson>> getAllInputPerson(
+      String channel, int atime) {}
+
+  Future<List<ChannelOutputPerson>> getAllOutputPerson(
+      String channel, int atime) {}
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}

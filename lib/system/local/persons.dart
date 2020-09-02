@@ -7,6 +7,7 @@ import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/remote/persons.dart';
+import 'package:synchronized/synchronized.dart' as syn_lock;
 
 import '../../portals/gbera/store/services.dart';
 import 'dao/daos.dart';
@@ -42,12 +43,13 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
-  Future<Person> getPerson(official,{bool isDownloadAvatar = false}) async {
+  Future<Person> getPerson(official, {bool isDownloadAvatar = false}) async {
     Person person = await this.personDAO.getPerson(official, principal?.person);
     if (person == null) {
       person = await personCache.get(official);
       if (person == null) {
-        person = await fetchPerson(official,isDownloadAvatar: isDownloadAvatar);
+        person =
+            await fetchPerson(official, isDownloadAvatar: isDownloadAvatar);
       }
     }
     return person;
@@ -82,9 +84,9 @@ class PersonService implements IPersonService, IServiceBuilder {
     }
     var dataText = content['dataText'];
     var obj = jsonDecode(dataText);
-    var lavatar =obj['avatar'];
+    var lavatar = obj['avatar'];
     if (isDownloadAvatar) {
-      lavatar= '${obj['avatar']}?accessToken=${principal.accessToken}';
+      lavatar = '${obj['avatar']}?accessToken=${principal.accessToken}';
       lavatar = await downloadPersonAvatar(dio: _dio, avatarUrl: lavatar);
     }
     return Person(
@@ -137,17 +139,33 @@ class PersonService implements IPersonService, IServiceBuilder {
 
   @override
   Future<List<Person>> pagePersonWith(
-      List<String> personList, int persons_limit, int persons_offset)async {
-    List<String> officials = [];
-    for (String p in personList) {
-      Person person = await personDAO.getPerson(p, principal?.person);
-      if (person == null) {
-        continue;
+      List<String> personList, int persons_limit, int persons_offset) async {
+    syn_lock.Lock lock = syn_lock.Lock();
+    return await lock.synchronized(() async {
+      List<String> officials = [];
+      for (String p in personList) {
+        Person person = await lock.synchronized(() async {
+          return await personDAO.getPerson(p, principal?.person);
+        });
+        if (person == null) {
+          person = await lock.synchronized(() async {
+            return await fetchPerson(p, isDownloadAvatar: true);
+          });
+          if (person != null) {
+            await lock.synchronized(() async {
+              await personDAO.addPerson(person);
+            });
+            officials.add(person.official);
+          }
+          continue;
+        }
+        officials.add(person.official);
       }
-      officials.add(person.official);
-    }
-    return await this.personDAO.pagePersonWith(
-        principal?.person, officials, persons_limit, persons_offset);
+      return await lock.synchronized(() async {
+        return await personDAO.pagePersonWith(
+            principal?.person, officials, persons_limit, persons_offset);
+      });
+    });
   }
 
   @override
@@ -166,9 +184,9 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
-  Future<void> addPerson(Person person,{bool isOnlyLocal=false}) async {
+  Future<void> addPerson(Person person, {bool isOnlyLocal = false}) async {
     await personDAO.addPerson(person);
-    if(!isOnlyLocal) {
+    if (!isOnlyLocal) {
       await personRemote.addPerson(person);
     }
   }

@@ -63,7 +63,12 @@ class MicroApp {
   MicroApp(this.id, this.site, this.leading, this.sandbox);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'])
+@Entity(primaryKeys: [
+  'id',
+  'sandbox',
+], indices: [
+  Index(value: ['owner', 'ctime'])
+])
 class Channel {
   String id;
   String name;
@@ -307,13 +312,19 @@ class ChannelPin {
   );
 }
 
-@entity
+@Entity(primaryKeys: [
+  'id',
+  'channel',
+  'sandbox',
+], indices: [
+  Index(value: ['channel','person', 'atime'])
+])
 class ChannelInputPerson {
-  @primaryKey
   final String id;
   final String channel;
   final String person;
   final String rights;
+  final int atime;
   final String sandbox;
 
   ChannelInputPerson(
@@ -321,19 +332,26 @@ class ChannelInputPerson {
     this.channel,
     this.person,
     this.rights,
+    this.atime,
     this.sandbox,
   );
 }
 
-@entity
+@Entity(primaryKeys: [
+  'id',
+  'channel',
+  'sandbox',
+], indices: [
+  Index(value: ['channel','person', 'atime'])
+])
 class ChannelOutputPerson {
-  @primaryKey
   final String id;
   final String channel;
   final String person;
+  final int atime;
   final String sandbox;
 
-  ChannelOutputPerson(this.id, this.channel, this.person, this.sandbox);
+  ChannelOutputPerson(this.id, this.channel, this.person,this.atime, this.sandbox);
 }
 
 enum PinPersonsSettingsStrategy {

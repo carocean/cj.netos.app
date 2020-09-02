@@ -126,6 +126,53 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<ChannelInputPerson>> getAllInputPerson(
+       String channel, int atime) async {
+    List list = await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'listAllInputPerson', parameters: {
+      'channel': channel,
+      'atime': atime,
+    });
+    List<ChannelInputPerson> persons = [];
+    for (var obj in list) {
+      persons.add(
+        ChannelInputPerson(
+          obj['id'],
+          obj['channel'],
+          obj['person'],
+          obj['rights'],
+          obj['atime'],
+          principal.person,
+        ),
+      );
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<ChannelOutputPerson>> getAllOutputPerson(
+      String channel, int atime) async {
+    List list = await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'listAllOutputPerson', parameters: {
+      'channel': channel,
+      'atime': atime,
+    });
+    List<ChannelOutputPerson> persons = [];
+    for (var obj in list) {
+      persons.add(
+        ChannelOutputPerson(
+          obj['id'],
+          obj['channel'],
+          obj['person'],
+          obj['atime'],
+          principal.person,
+        ),
+      );
+    }
+    return persons;
+  }
+
+  @override
   Future<List<Channel>> fetchChannelsOfPerson(String official) async {
     List<dynamic> list = await remotePorts
         .portGET(_linkNetflowPortsUrl, 'listPersonChannels', parameters: {
@@ -252,12 +299,13 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeOutputPersonOfCreator(String creator, String channel)async {
+  Future<Function> removeOutputPersonOfCreator(
+      String creator, String channel) async {
     await remotePorts.portGET(
       _linkNetflowPortsUrl,
       'removeOutputPersonOfCreator',
       parameters: {
-        'creator':creator,
+        'creator': creator,
         'channel': channel,
         'person': principal.person,
       },

@@ -113,10 +113,21 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   }
 
   @override
+  Future<ChannelInputPerson> getLastInputPerson(String channel) async {
+    return await inputPersonDAO.getLastInputPerson(channel, principal.person);
+  }
+
+  @override
   Future<bool> existsInputPerson(String person, String channel) async {
     var iperson =
         await inputPersonDAO.getInputPerson(person, channel, principal.person);
     return iperson == null ? false : true;
+  }
+
+
+  @override
+  Future<ChannelOutputPerson> getLastOutputPerson(String channel) async{
+    return await outputPersonDAO.getLastOutputPerson(channel,principal.person);
   }
 
   @override

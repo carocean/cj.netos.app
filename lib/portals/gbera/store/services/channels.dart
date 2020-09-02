@@ -147,6 +147,11 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
+  Future<Channel> getlastChannel() async{
+    return await this.channelDAO.getlastChannel(principal?.person);
+  }
+
+  @override
   Future<Channel> findChannelOfPerson(String channelid, String person) async {
     Channel channel = await getChannel(channelid);
     if (channel == null) {

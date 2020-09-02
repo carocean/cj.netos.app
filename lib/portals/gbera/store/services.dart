@@ -68,6 +68,8 @@ mixin IChannelService {
 
   Future<Channel> getChannel(String channelid);
 
+  Future<Channel> getlastChannel() {}
+
   Future<Channel> findChannelOfPerson(String channel, String person) {}
 
   Future<Channel> fetchChannelOfPerson(String channelid, String person);
@@ -238,8 +240,13 @@ mixin IChannelPinService {
 
   Future<ChannelInputPerson> getInputPerson(String official, channel) {}
 
+  Future<ChannelInputPerson> getLastInputPerson(String channel) {}
+
   Future<void> updateInputPersonRights(
       String official, String channel, String rights) {}
+
+ Future<ChannelOutputPerson> getLastOutputPerson(String channel) {}
+
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}

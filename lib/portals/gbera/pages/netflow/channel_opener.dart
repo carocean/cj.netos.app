@@ -41,16 +41,23 @@ class _DefaultChannelOpener implements IChannelOpener {
       await _createChannel(context, channelService, channel, owner);
     }
     if (!await pinService.existsInputPerson(owner, channel)) {
+      IPersonService personService = context.site.getService('/gbera/persons');
+      if (!await personService.existsPerson(owner)) {
+        var person =
+            await personService.getPerson(owner, isDownloadAvatar: true);
+        await personService.addPerson(person, isOnlyLocal: true);
+      }
       await pinService.addInputPerson(ChannelInputPerson(
         MD5Util.MD5(Uuid().v1()),
         channel,
         owner,
         'allow',
+        DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       ));
     }
-    await channelRemote.addOutputPersonOfCreator(
-        context.principal.person, channel);
+    await channelRemote.removeOutputPersonOfCreator(owner, channel);
+    await channelRemote.addOutputPersonOfCreator(owner, channel);
   }
 
   @override
@@ -64,11 +71,18 @@ class _DefaultChannelOpener implements IChannelOpener {
       await _createChannel(context, channelService, channel, owner);
     }
     if (!await pinService.existsOutputPerson(owner, channel)) {
+      IPersonService personService = context.site.getService('/gbera/persons');
+      if (!await personService.existsPerson(owner)) {
+        var person =
+            await personService.getPerson(owner, isDownloadAvatar: true);
+        await personService.addPerson(person, isOnlyLocal: true);
+      }
       //仅需要添加到我的管道出口，对方收到动态后来判断是否加入其输入端子
       await pinService.addOutputPerson(ChannelOutputPerson(
         MD5Util.MD5(Uuid().v1()),
         channel,
         owner,
+        DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       ));
     }

@@ -16,6 +16,7 @@ import 'package:flutter_easyrefresh/phoenix_footer.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
@@ -164,6 +165,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         syncName: 'netflow',
         context: widget.context,
         checkRemote: _sync_check,
+        forceSync: true,
       );
     super.initState();
   }
@@ -178,14 +180,19 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   }
 
   Future<SyncArgs> _sync_check(PageContext context) async {
+    IChannelService channelService =
+        widget.context.site.getService('/netflow/channels');
+    Channel last = await channelService.getlastChannel();
+    int ctime = 0;
+    if (last != null) {
+      ctime = last.ctime;
+    }
     var portsurl = context.site.getService('@.prop.ports.link.netflow');
     return SyncArgs(
       portsUrl: portsurl,
-      restCmd: 'pageChannel',
+      restCmd: 'getAllMyChannel',
       parameters: {
-        'limit': 10000,
-        /*全取出来*/
-        'offset': 0,
+        'ctime': ctime,
       },
     );
   }
@@ -195,8 +202,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     List list = jsonDecode(source);
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
-    IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
     IChannelCache channelCache =
         widget.context.site.getService('/cache/channels');
 
@@ -205,16 +210,57 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
       bool existsChannel = await channelService.existsChannel(ch.id);
       if (existsChannel) {
+        await sync_pin(ch);
         continue;
       }
       //缓冲channel
       await channelCache.cache(ch);
       await channelService.addChannel(ch, isOnlyLocal: true);
-      _items.clear();
-      await _loadChannels();
-      if (mounted) {
-        setState(() {});
+      await sync_pin(ch);
+    }
+    _items.clear();
+    await _loadChannels();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> sync_pin(Channel channel) async {
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    IChannelRemote channelRemote =
+        widget.context.site.getService('/remote/channels');
+    IPersonService personService=widget.context.site.getService('/gbera/persons');
+    ChannelInputPerson lastInputPerson =
+        await pinService.getLastInputPerson(channel.id);
+    int beginInputPersonTime =
+        lastInputPerson == null ? 0 : lastInputPerson.atime;
+    List<ChannelInputPerson> inputPersons =
+        await channelRemote.getAllInputPerson(channel.id, beginInputPersonTime);
+    for (var iperson in inputPersons) {
+      if (await pinService.existsInputPerson(iperson.person, channel.id)) {
+        continue;
       }
+      if(!(await personService.existsPerson(iperson.person))) {
+        await personService.getPerson(iperson.person,isDownloadAvatar: true);
+      }
+      await pinService.addInputPerson(iperson);
+    }
+
+    ChannelOutputPerson lastOutputPerson =
+        await pinService.getLastOutputPerson(channel.id);
+    int beginOutputPersonTime =
+    lastOutputPerson == null ? 0 : lastOutputPerson.atime;
+    List<ChannelOutputPerson> outputPerson = await channelRemote
+        .getAllOutputPerson(channel.id, beginOutputPersonTime);
+    for (var operson in outputPerson) {
+      if (await pinService.existsOutputPerson(operson.person, channel.id)) {
+        continue;
+      }
+      if(!(await personService.existsPerson(operson.person))) {
+        await personService.getPerson(operson.person,isDownloadAvatar: true);
+      }
+      await pinService.addOutputPerson(operson);
     }
   }
 
@@ -1178,7 +1224,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   Future<List<InsiteMessage>> _loadMessages() async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
-    return await messageService.pageMessageWhere('inbox',_msgListMaxLength, 0);
+    return await messageService.pageMessageWhere('inbox', _msgListMaxLength, 0);
   }
 
   @override

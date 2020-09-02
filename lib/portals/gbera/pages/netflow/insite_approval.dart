@@ -109,6 +109,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         _channel.id,
         _person.official,
         'allow',
+        DateTime.now().millisecondsSinceEpoch,
         widget.context.principal.person,
       ));
     }
@@ -160,6 +161,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               _channel.id,
               _person.official,
               'deny',
+              DateTime.now().millisecondsSinceEpoch,
               widget.context.principal.person,
             ));
           } else {
@@ -189,6 +191,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
           _channel.id,
           _person.official,
           'allow',
+          DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ));
         //将该管道的公共活动移动到管道内，并标为arrived状态
@@ -219,6 +222,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         _channel.id,
         _person.official,
         'allow',
+        DateTime.now().millisecondsSinceEpoch,
         widget.context.principal.person,
       ));
     }
