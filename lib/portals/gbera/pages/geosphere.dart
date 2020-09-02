@@ -688,6 +688,9 @@ class _GeosphereState extends State<Geosphere>
     var receptors = await receptorService.page(_limit, _offset);
     if (receptors.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
       return;
     }
     _offset += receptors.length;
