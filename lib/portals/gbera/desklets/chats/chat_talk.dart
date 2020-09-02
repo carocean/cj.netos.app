@@ -1047,9 +1047,10 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   bool _isloaded = false;
   RoomMember _member;
   bool isShowNick = false;
-
+  ChatRoomModel _model;
   @override
   void initState() {
+    _model = widget.context.parameters['model'];
     _load().then((v) {
       if (mounted) {
         _isloaded = true;
@@ -1069,6 +1070,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   void didUpdateWidget(_ReceiveMessageItem oldWidget) {
     if (widget.p2pMessage == oldWidget.p2pMessage) {
       oldWidget.p2pMessage = widget.p2pMessage;
+      _model = widget.context.parameters['model'];
       _load().then((v) {
         if (mounted) {
           _isloaded = true;
@@ -1087,7 +1089,6 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    ChatRoomModel _model = widget.context.parameters['model'];
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMemberOfPerson(
         _chatRoom.creator, _chatRoom.id, _sender.official);
@@ -1139,10 +1140,12 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
         children: <Widget>[
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: ()async{
-              IPersonService personService=widget.context.site.getService('/gbera/persons');
-              var person=await personService.getPerson(_member.person);
-              widget.context.forward('/person/view',arguments: {'person':person});
+            onTap: () async {
+              IPersonService personService =
+                  widget.context.site.getService('/gbera/persons');
+              var person = await personService.getPerson(_member.person);
+              widget.context
+                  .forward('/person/view', arguments: {'person': person});
             },
             child: Padding(
               padding: EdgeInsets.only(
@@ -1252,13 +1255,15 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child:file.startsWith('/')? Image.file(
-            File(file),
-            fit: BoxFit.fitWidth,
-          ):Image.network(
-            '$file?accessToken=${widget.context.principal.accessToken}',
-            fit: BoxFit.fitWidth,
-          ),
+          child: file.startsWith('/')
+              ? Image.file(
+                  File(file),
+                  fit: BoxFit.fitWidth,
+                )
+              : Image.network(
+                  '$file?accessToken=${widget.context.principal.accessToken}',
+                  fit: BoxFit.fitWidth,
+                ),
         );
       case 'video':
         var json = widget.p2pMessage.content;
@@ -1304,11 +1309,12 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   Person _sender;
   RoomMember _member;
   bool isShowNick = false;
-
+  ChatRoomModel _model;
   @override
   void initState() {
+    _model = widget.context.parameters['model'];
     _loadSender().then((p) {
-      setState(() {});
+      if (mounted) setState(() {});
     });
     super.initState();
   }
@@ -1319,8 +1325,6 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     _sender = await personService.getPerson(widget.p2pMessage.sender);
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-
-    ChatRoomModel _model = widget.context.parameters['model'];
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
     isShowNick = _member.isShowNick == 'true' ? true : false;
@@ -1338,8 +1342,10 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       super.didUpdateWidget(oldWidget);
       return;
     }
+    oldWidget.p2pMessage=widget.p2pMessage;
+    _model = widget.context.parameters['model'];
     _loadSender().then((p) {
-      setState(() {});
+      if (mounted) setState(() {});
     });
     super.didUpdateWidget(oldWidget);
   }
@@ -1410,8 +1416,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: ()async{
-              widget.context.forward('/person/view',arguments: {'person':_sender});
+            onTap: () async {
+              widget.context
+                  .forward('/person/view', arguments: {'person': _sender});
             },
             child: Padding(
               padding: EdgeInsets.only(
@@ -1427,13 +1434,13 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                   ),
                   child: _sender == null
                       ? Container(
-                    height: 0,
-                    width: 0,
-                  )
+                          height: 0,
+                          width: 0,
+                        )
                       : Image.file(
-                    File(_sender.avatar),
-                    fit: BoxFit.cover,
-                  ),
+                          File(_sender.avatar),
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
             ),

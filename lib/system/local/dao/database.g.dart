@@ -953,7 +953,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   @override
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM GeoReceptor WHERE sandbox=? limit ? offset ?',
+        'SELECT * FROM GeoReceptor WHERE sandbox=? ORDER BY ctime desc limit ? offset ?',
         arguments: <dynamic>[sandbox, limit, offset],
         mapper: _geoReceptorMapper);
   }
