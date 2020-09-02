@@ -303,6 +303,7 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
                       TextSpan(
                         text: '${TimelineUtil.format(
                           msg.message.ctime,
+                          locale: 'zh',
                           dayFormat: DayFormat.Simple,
                         )}',
                         style: TextStyle(
@@ -1446,6 +1447,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
                         comment.ctime,
+                      locale: 'zh',
                         dayFormat: DayFormat.Simple,
                       ) : ''}\t',
                     style: TextStyle(

@@ -512,6 +512,7 @@ class __MessageCardState extends State<_MessageCard> {
                                 TextSpan(
                                   text: '${TimelineUtil.format(
                                     widget.message.ctime,
+                                    locale: 'zh',
                                     dayFormat: DayFormat.Simple,
                                   )}',
                                   style: TextStyle(

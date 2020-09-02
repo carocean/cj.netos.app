@@ -42,6 +42,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     _existsChannel().then((v) {
       setState(() {});
     });
+
     () async {
       IPersonService personService =
           widget.context.site.getService('/gbera/persons');
@@ -70,6 +71,9 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
       IChannelService channelService =
           widget.context.site.getService('/netflow/channels');
       _check_channel_exists = await channelService.existsChannel(_channel.id);
+      if (mounted) {
+        setState(() {});
+      }
     }();
     super.initState();
   }
@@ -375,6 +379,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                   TextSpan(
                                     text: '${TimelineUtil.format(
                                       _message.ctime,
+                                      locale: 'zh',
                                       dayFormat: DayFormat.Simple,
                                     )}',
                                     children: [

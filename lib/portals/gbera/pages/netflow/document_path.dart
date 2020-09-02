@@ -280,6 +280,7 @@ class __ActivityCardState extends State<_ActivityCard> {
                               child: Text(
                                 TimelineUtil.format(
                                   widget.activityInfo.ctime,
+                                  locale: 'zh',
                                   dayFormat: DayFormat.Simple,
                                 ),
                                 style: TextStyle(
@@ -464,6 +465,7 @@ class __DocumentRegionState extends State<_DocumentRegion> {
                         TextSpan(
                           text: '${TimelineUtil.format(
                             _message.ctime,
+                            locale: 'zh',
                             dayFormat: DayFormat.Simple,
                           )}',
                           children: [

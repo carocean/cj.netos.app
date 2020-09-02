@@ -1191,6 +1191,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                     Text(
                       TimelineUtil.format(
                         widget.p2pMessage.atime,
+                        locale: 'zh',
                       ),
                       style: TextStyle(
                         fontSize: 12,
@@ -1389,6 +1390,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                     Text(
                       TimelineUtil.format(
                         widget.p2pMessage.ctime,
+                        locale: 'zh',
                       ),
                       style: TextStyle(
                         fontSize: 12,

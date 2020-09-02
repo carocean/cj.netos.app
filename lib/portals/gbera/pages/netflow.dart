@@ -29,102 +29,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
 
-class WorkingChannel {
-  Function(String command, dynamic args) onRefreshChannelState;
-}
-
-class _ChannelStateBar {
-  var channelid;
-  IChannelMessageService channelMessageService;
-  Function(String command, dynamic args) refresh;
-  String brackets; //括号
-  String tips; //提示栏
-  int atime; //时间
-  int count = 0; //消息数提示，0表示无提示
-  bool isShow = false; //是否显示提供
-
-  _ChannelStateBar({this.channelid, this.channelMessageService});
-
-  Future<void> update(String command, dynamic args) async {
-    switch (command) {
-      case 'pushDocumentCommand':
-      case 'loadChannelsCommand':
-        var digest =
-            await channelMessageService.getChannelMessageDigest(channelid);
-        if (digest != null) {
-          brackets = '[${digest.count}条]';
-          tips = digest.text;
-          atime = digest.atime;
-          count = digest.count;
-          isShow = true;
-        }
-        break;
-      case 'likeDocumentCommand':
-        ChannelMessage message = args['message'];
-        LikePerson likePerson = args['like'];
-        Person liker = args['liker'];
-        brackets = '[赞]';
-        atime = likePerson.ctime;
-        tips = '${liker.nickName}:${message.text}';
-        isShow = true;
-        break;
-      case 'unlikeDocumentCommand':
-        ChannelMessage message = args['message'];
-        Person unliker = args['unliker'];
-        brackets = '[撤消赞]';
-        atime = DateTime.now().millisecondsSinceEpoch;
-        tips = '${unliker.nickName}:${message.text}';
-        isShow = true;
-        break;
-      case 'commentDocumentCommand':
-        ChannelComment comment = args['comment'];
-        Person commenter = args['commenter'];
-        brackets = '[评论]';
-        atime = comment.ctime;
-        tips = '${commenter.nickName}:${comment.text}';
-        isShow = true;
-        break;
-      case 'uncommentDocumentCommand':
-        ChannelMessage message = args['message'];
-        Person uncommenter = args['uncommenter'];
-        brackets = '[撤消评论]';
-        atime = DateTime.now().millisecondsSinceEpoch;
-        tips = '${uncommenter.nickName}:${message.text}';
-        isShow = true;
-        break;
-      case 'mediaDocumentCommand':
-        ChannelMessage message = args['message'];
-        Person mediaer = args['mediaer'];
-        Media media = args['media'];
-        switch (media.type) {
-          case 'image':
-            brackets = '[图]';
-            break;
-          case 'video':
-            brackets = '[视频]';
-            break;
-          case 'audio':
-            brackets = '[语音]';
-            break;
-          default:
-            brackets = '[文件]';
-            break;
-        }
-        atime = DateTime.now().millisecondsSinceEpoch;
-        tips = '${mediaer.nickName}:${message.text}';
-        isShow = true;
-        break;
-      default:
-        print('不支持的更新指令:$command');
-        break;
-    }
-
-    if (refresh != null) {
-      refresh(command, args);
-    }
-  }
-}
-
 class Netflow extends StatefulWidget {
   PageContext context;
 
@@ -137,13 +41,11 @@ class Netflow extends StatefulWidget {
 class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
 
-  //当前打开的正在工作的管道
-  WorkingChannel _workingChannel;
-
   //管道列表项的消息状态条
   final _channelStateBars = <String, _ChannelStateBar>{};
   EasyRefreshController _controller;
-  List<_ChannelItem> _items = [];
+  List<Channel> _items = [];
+  StreamController<ChannelEventArgs> _streamController;
 
   @override
   bool get wantKeepAlive {
@@ -152,8 +54,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
+    _streamController = StreamController.broadcast();
     _controller = EasyRefreshController();
-    _workingChannel = WorkingChannel();
     _loadChannels().then((v) {
       if (mounted) {
         setState(() {});
@@ -172,10 +74,10 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    _streamController?.close();
     _items.clear();
     _controller.dispose();
     _channelStateBars.clear();
-    _workingChannel = null;
     super.dispose();
   }
 
@@ -230,7 +132,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         widget.context.site.getService('/channel/pin');
     IChannelRemote channelRemote =
         widget.context.site.getService('/remote/channels');
-    IPersonService personService=widget.context.site.getService('/gbera/persons');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     ChannelInputPerson lastInputPerson =
         await pinService.getLastInputPerson(channel.id);
     int beginInputPersonTime =
@@ -241,8 +144,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       if (await pinService.existsInputPerson(iperson.person, channel.id)) {
         continue;
       }
-      if(!(await personService.existsPerson(iperson.person))) {
-        await personService.getPerson(iperson.person,isDownloadAvatar: true);
+      if (!(await personService.existsPerson(iperson.person))) {
+        await personService.getPerson(iperson.person, isDownloadAvatar: true);
       }
       await pinService.addInputPerson(iperson);
     }
@@ -250,15 +153,15 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     ChannelOutputPerson lastOutputPerson =
         await pinService.getLastOutputPerson(channel.id);
     int beginOutputPersonTime =
-    lastOutputPerson == null ? 0 : lastOutputPerson.atime;
+        lastOutputPerson == null ? 0 : lastOutputPerson.atime;
     List<ChannelOutputPerson> outputPerson = await channelRemote
         .getAllOutputPerson(channel.id, beginOutputPersonTime);
     for (var operson in outputPerson) {
       if (await pinService.existsOutputPerson(operson.person, channel.id)) {
         continue;
       }
-      if(!(await personService.existsPerson(operson.person))) {
-        await personService.getPerson(operson.person,isDownloadAvatar: true);
+      if (!(await personService.existsPerson(operson.person))) {
+        await personService.getPerson(operson.person, isDownloadAvatar: true);
       }
       await pinService.addOutputPerson(operson);
     }
@@ -274,48 +177,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       await channelService.initSystemChannel(widget.context.principal);
       list = await channelService.getAllChannel();
     }
-    for (var ch in list) {
-      var statebar = _ChannelStateBar(
-        channelid: ch.id,
-        channelMessageService: channelMessageService,
-      );
-      _channelStateBars[ch.id] = (statebar);
-      await statebar.update('loadChannelsCommand', (id, args) {
-        if (mounted) setState(() {});
-      });
-      _items.add(
-        _ChannelItem(
-          context: widget.context,
-          channelid: ch.id,
-          title: ch.name,
-          owner: ch.owner,
-          leading: ch.leading,
-          stateBar: statebar,
-          openChannel: () {
-            widget.context.forward(
-              '/netflow/channel',
-              arguments: {'channel': ch, 'workingChannel': _workingChannel},
-            ).then((v) {
-              _items.clear();
-              _loadChannels().then((v) {
-                if (mounted) {
-                  setState(() {});
-                }
-              });
-            });
-          },
-          isSystemChannel: channelService.isSystemChannel(ch.id),
-          refreshChannels: (channelid) {
-            for (var i = 0; i < _items.length; i++) {
-              if (_items[i].channelid == channelid) {
-                _items.removeAt(i);
-              }
-            }
-            setState(() {});
-          },
-        ),
-      );
-    }
+    _items.addAll(list);
     _controller.finishLoad(success: true, noMore: true);
   }
 
@@ -621,8 +483,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                   },
                   child: _InsiteMessagesRegion(
                     context: widget.context,
-                    workingChannel: _workingChannel,
-                    channelStateBars: _channelStateBars,
+                    sink: _streamController.sink,
                   ),
                 ),
               ),
@@ -652,8 +513,44 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                   shrinkWrap: true,
                   padding: EdgeInsets.all(0),
                   physics: NeverScrollableScrollPhysics(),
-                  children: _items.map((item) {
-                    return item;
+                  children: _items.map((ch) {
+                    return _ChannelItem(
+                      context: widget.context,
+                      channelid: ch.id,
+                      title: ch.name,
+                      owner: ch.owner,
+                      leading: ch.leading,
+                      events: _streamController.stream.asBroadcastStream(),
+                      openChannel: () {
+                        widget.context.forward(
+                          '/netflow/channel',
+                          arguments: {
+                            'channel': ch,
+                            'stream':
+                                _streamController.stream.asBroadcastStream(),
+                          },
+                        ).then((v) {
+                          _streamController.add(
+                            ChannelEventArgs(
+                              command: 'doChannelPageBack',
+                              channel: ch.id,
+                              args: {},
+                            ),
+                          );
+                        });
+                      },
+                      isSystemChannel: widget.context.site
+                          .getService('/netflow/channels')
+                          ?.isSystemChannel(ch.id),
+                      refreshChannels: (channelid) {
+                        _items.removeWhere((element) {
+                          return channelid == element.id;
+                        });
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                    );
                   }).toList(),
                 ),
               ),
@@ -667,11 +564,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
 class _InsiteMessagesRegion extends StatefulWidget {
   PageContext context;
-  WorkingChannel workingChannel;
-  Map<String, _ChannelStateBar> channelStateBars;
+  StreamSink sink;
 
-  _InsiteMessagesRegion(
-      {this.context, this.workingChannel, this.channelStateBars});
+  _InsiteMessagesRegion({this.context, this.sink});
 
   @override
   _InsiteMessagesRegionState createState() => _InsiteMessagesRegionState();
@@ -776,20 +671,17 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var unlikerPerson =
         await personService.getPerson(unliker, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
-    if (widget.workingChannel.onRefreshChannelState != null) {
-      widget.workingChannel.onRefreshChannelState('unlikeDocumentCommand', {
-        'message': message,
-        'unliker': unlikerPerson,
-      });
-    }
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    if (widget.channelStateBars.containsKey(docMap['channel'])) {
-      widget.channelStateBars[docMap['channel']]
-          ?.update('unlikeDocumentCommand', {
-        'message': message,
-        'unliker': unlikerPerson,
-      });
-    }
+    widget.sink.add(
+      ChannelEventArgs(
+        command: 'unlikeDocumentCommand',
+        channel: docMap['channel'],
+        args: {
+          'message': message,
+          'unliker': unlikerPerson,
+        },
+      ),
+    );
   }
 
   Future<void> _arrivedLikeDocumentCommand(Frame frame) async {
@@ -835,22 +727,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     );
 
     //通知当前工作的管道有新消息到
-    if (widget.workingChannel.onRefreshChannelState != null) {
-      widget.workingChannel.onRefreshChannelState('likeDocumentCommand', {
-        'message': message,
-        'like': like,
-        'liker': likerPerson,
-      });
-    }
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    if (widget.channelStateBars.containsKey(docMap['channel'])) {
-      widget.channelStateBars[docMap['channel']]
-          ?.update('likeDocumentCommand', {
-        'message': message,
-        'like': like,
-        'liker': likerPerson,
-      });
-    }
+    widget.sink.add(
+      ChannelEventArgs(
+        command: 'likeDocumentCommand',
+        channel: docMap['channel'],
+        args: {
+          'message': message,
+          'like': like,
+          'liker': likerPerson,
+        },
+      ),
+    );
   }
 
   _listenMeidaFileDownload() {
@@ -910,22 +798,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
           );
 
           //通知当前工作的管道有新消息到
-          if (widget.workingChannel.onRefreshChannelState != null) {
-            widget.workingChannel
-                .onRefreshChannelState('mediaDocumentCommand', {
-              'message': message,
-              'media': media,
-              'mediaer': mediaPerson,
-            });
-          }
           //网流的管道列表中的每个管道的显示消息提醒的状态栏
-          if (widget.channelStateBars.containsKey(channel)) {
-            widget.channelStateBars[channel]?.update('mediaDocumentCommand', {
-              'message': message,
-              'media': media,
-              'mediaer': mediaPerson,
-            });
-          }
+          widget.sink.add(
+            ChannelEventArgs(
+              command: 'mediaDocumentCommand',
+              channel: channel,
+              args: {
+                'message': message,
+                'media': media,
+                'mediaer': mediaPerson,
+              },
+            ),
+          );
           break;
         default:
           print(frame);
@@ -1013,22 +897,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     );
 
     //通知当前工作的管道有新消息到
-    if (widget.workingChannel.onRefreshChannelState != null) {
-      widget.workingChannel.onRefreshChannelState('commentDocumentCommand', {
-        'message': message,
-        'comment': comment,
-        'commenter': commentPerson,
-      });
-    }
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    if (widget.channelStateBars.containsKey(docMap['channel'])) {
-      widget.channelStateBars[docMap['channel']]
-          ?.update('commentDocumentCommand', {
-        'message': message,
-        'comment': comment,
-        'commenter': commentPerson,
-      });
-    }
+    widget.sink.add(
+      ChannelEventArgs(
+        command: 'commentDocumentCommand',
+        channel: docMap['channel'],
+        args: {
+          'message': message,
+          'comment': comment,
+          'commenter': commentPerson,
+        },
+      ),
+    );
   }
 
   Future<void> _arrivedUncommentDocumentCommand(Frame frame) async {
@@ -1064,20 +944,17 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var uncommentPerson =
         await personService.getPerson(uncommenter, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
-    if (widget.workingChannel.onRefreshChannelState != null) {
-      widget.workingChannel.onRefreshChannelState('uncommentDocumentCommand', {
-        'message': message,
-        'uncommenter': uncommentPerson,
-      });
-    }
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    if (widget.channelStateBars.containsKey(docMap['channel'])) {
-      widget.channelStateBars[docMap['channel']]
-          ?.update('uncommentDocumentCommand', {
-        'message': message,
-        'uncommenter': uncommentPerson,
-      });
-    }
+    widget.sink.add(
+      ChannelEventArgs(
+        command: 'uncommentDocumentCommand',
+        channel: docMap['channel'],
+        args: {
+          'message': message,
+          'uncommenter': uncommentPerson,
+        },
+      ),
+    );
   }
 
   Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
@@ -1203,16 +1080,17 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
           channelMessage.creator, channelMessage.id, channelMessage.onChannel);
 
       //通知当前工作的管道有新消息到
-      if (widget.workingChannel.onRefreshChannelState != null) {
-        widget.workingChannel.onRefreshChannelState('pushDocumentCommand',
-            {'sender': person, 'message': channelMessage});
-      }
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      if (widget.channelStateBars.containsKey(message.upstreamChannel)) {
-        widget.channelStateBars[message.upstreamChannel]?.update(
-            'pushDocumentCommand',
-            {'sender': person, 'message': channelMessage});
-      }
+      widget.sink.add(
+        ChannelEventArgs(
+          command: 'pushDocumentCommand',
+          channel: docMap['channel'],
+          args: {
+            'sender': person,
+            'message': channelMessage,
+          },
+        ),
+      );
       //返回null是不在打印消息到界面
       return null;
     }
@@ -1498,7 +1376,7 @@ class _ChannelItem extends StatefulWidget {
   String owner;
   var openChannel;
   bool isSystemChannel;
-  _ChannelStateBar stateBar;
+  Stream<ChannelEventArgs> events;
   Function(String channelid) refreshChannels;
 
   _ChannelItem({
@@ -1510,7 +1388,7 @@ class _ChannelItem extends StatefulWidget {
     this.openChannel,
     this.isSystemChannel,
     this.refreshChannels,
-    this.stateBar,
+    this.events,
   });
 
   @override
@@ -1519,18 +1397,180 @@ class _ChannelItem extends StatefulWidget {
 
 class __ChannelItemState extends State<_ChannelItem> {
   double _percentage = 0.0;
+  StreamSubscription _streamSubscription;
+  _ChannelStateBar _stateBar;
+  bool _isLoading = false;
 
   @override
   void initState() {
-    widget.stateBar.refresh = (command, args) {
-      if (mounted) setState(() {});
-    };
+    _streamSubscription = widget.events.listen(_doEvent);
+    _initBar();
     super.initState();
   }
 
   void dispose() {
-    widget.stateBar.refresh = null;
+    _streamSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ChannelItem oldWidget) {
+    if (oldWidget.channelid != widget.channelid ||
+        oldWidget.title != widget.title ||
+        oldWidget.leading != widget.leading) {
+      oldWidget.channelid = widget.channelid;
+      oldWidget.events = widget.events;
+      oldWidget.owner = widget.owner;
+      oldWidget.title = widget.title;
+      oldWidget.leading = widget.leading;
+      oldWidget.isSystemChannel = widget.isSystemChannel;
+      oldWidget.openChannel = widget.openChannel;
+      _streamSubscription = widget.events.listen(_doEvent);
+      _initBar();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _initBar() async {
+    _isLoading = true;
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    var digest =
+        await channelMessageService.getChannelMessageDigest(widget.channelid);
+    if (digest != null) {
+      _stateBar = _ChannelStateBar(
+        brackets: '[${digest.count}条]',
+        atime: digest.atime,
+        tips: digest.text,
+        count: digest.count,
+        isShow: true,
+      );
+    } else {
+      _stateBar = _ChannelStateBar(
+        isShow: false,
+      );
+    }
+    _isLoading = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _doEvent(ChannelEventArgs e) async {
+    if (widget.channelid != e.channel) {
+      return;
+    }
+    String command = e.command;
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    var args = e.args;
+    switch (command) {
+      case 'doChannelPageBack':
+        var digest = await channelMessageService
+            .getChannelMessageDigest(widget.channelid);
+        if (digest != null) {
+          _stateBar = _ChannelStateBar(
+            brackets: '[${digest.count}条]',
+            atime: digest.atime,
+            tips: digest.text,
+            count: digest.count,
+            isShow: true,
+          );
+        } else {
+          _stateBar = _ChannelStateBar(
+            isShow: false,
+          );
+        }
+        break;
+      case 'pushDocumentCommand':
+      case 'loadChannelsCommand':
+        var digest = await channelMessageService
+            .getChannelMessageDigest(widget.channelid);
+        if (digest != null) {
+          _stateBar = _ChannelStateBar(
+            brackets: '[${digest.count}条]',
+            atime: digest.atime,
+            tips: digest.text,
+            count: digest.count,
+            isShow: true,
+          );
+        }
+        break;
+      case 'likeDocumentCommand':
+        ChannelMessage message = args['message'];
+        LikePerson likePerson = args['like'];
+        Person liker = args['liker'];
+        _stateBar = _ChannelStateBar(
+          brackets: '[赞]',
+          atime: likePerson.ctime,
+          tips: '${liker.nickName}:${message.text}',
+          isShow: true,
+        );
+        break;
+      case 'unlikeDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person unliker = args['unliker'];
+
+        _stateBar = _ChannelStateBar(
+          brackets: '[撤消赞]',
+          atime: DateTime.now().millisecondsSinceEpoch,
+          tips: '${unliker.nickName}:${message.text}',
+          isShow: true,
+        );
+        break;
+      case 'commentDocumentCommand':
+        ChannelComment comment = args['comment'];
+        Person commenter = args['commenter'];
+        _stateBar = _ChannelStateBar(
+          brackets: '[评论]',
+          atime: comment.ctime,
+          tips: '${commenter.nickName}:${comment.text}',
+          isShow: true,
+        );
+        break;
+      case 'uncommentDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person uncommenter = args['uncommenter'];
+        _stateBar = _ChannelStateBar(
+          brackets: '[撤消评论]',
+          atime: DateTime.now().millisecondsSinceEpoch,
+          tips: '${uncommenter.nickName}:${message.text}',
+          isShow: true,
+        );
+        break;
+      case 'mediaDocumentCommand':
+        ChannelMessage message = args['message'];
+        Person mediaer = args['mediaer'];
+        Media media = args['media'];
+        var brackets;
+        switch (media.type) {
+          case 'image':
+            brackets = '[图]';
+            break;
+          case 'video':
+            brackets = '[视频]';
+            break;
+          case 'audio':
+            brackets = '[语音]';
+            break;
+          default:
+            brackets = '[文件]';
+            break;
+        }
+        _stateBar = _ChannelStateBar(
+          brackets: brackets,
+          atime: DateTime.now().millisecondsSinceEpoch,
+          tips: '${mediaer.nickName}:${message.text}',
+          isShow: true,
+        );
+        break;
+      default:
+        print('不支持的更新指令:$command');
+        break;
+    }
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _updateLeading() async {
@@ -1566,6 +1606,12 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
+    }
     Widget imgSrc = null;
     if (StringUtil.isEmpty(widget.leading)) {
       imgSrc = Icon(
@@ -1607,7 +1653,7 @@ class __ChannelItemState extends State<_ChannelItem> {
               top: 15,
             ),
             child: Row(
-              crossAxisAlignment: widget.stateBar.isShow
+              crossAxisAlignment: _stateBar.isShow
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -1655,7 +1701,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                         Positioned(
                           top: -10,
                           right: -3,
-                          child: !widget.stateBar.isShow
+                          child: !_stateBar.isShow
                               ? Container(
                                   width: 0,
                                   height: 0,
@@ -1666,7 +1712,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     top: 3,
                                   ),
                                   elevation: 0,
-                                  showBadge: (widget.stateBar.count ?? 0) != 0,
+                                  showBadge: (_stateBar.count ?? 0) != 0,
                                   badgeContent: Text(
                                     '',
                                   ),
@@ -1710,7 +1756,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                           ),
                         ],
                       ),
-                      !widget.stateBar.isShow
+                      !_stateBar.isShow
                           ? Container(
                               width: 0,
                               height: 0,
@@ -1727,7 +1773,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                 children: <Widget>[
                                   Text.rich(
                                     TextSpan(
-                                      text: widget.stateBar.brackets,
+                                      text: _stateBar.brackets,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -1737,7 +1783,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                                           text: ' ',
                                         ),
                                         TextSpan(
-                                          text: widget.stateBar.tips,
+                                          text: _stateBar.tips,
                                           style: TextStyle(
                                             color: Colors.black54,
                                           ),
@@ -1748,9 +1794,9 @@ class __ChannelItemState extends State<_ChannelItem> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    widget.stateBar?.atime != null
+                                    _stateBar?.atime != null
                                         ? '${TimelineUtil.format(
-                                            widget.stateBar?.atime,
+                                            _stateBar?.atime,
                                             locale: 'zh',
                                             dayFormat: DayFormat.Simple,
                                           )}'
@@ -1816,4 +1862,24 @@ class __ChannelItemState extends State<_ChannelItem> {
       ),
     );
   }
+}
+
+class ChannelEventArgs {
+  String command;
+  String channel;
+  dynamic args;
+
+  ChannelEventArgs({this.command, this.channel, this.args});
+}
+
+class _ChannelStateBar {
+  String brackets; //括号
+  String tips; //提示栏
+  int atime; //时间
+  int count = 0; //消息数提示，0表示无提示
+  bool isShow = false;
+
+  _ChannelStateBar(
+      {this.brackets, this.tips, this.atime, this.count, this.isShow}); //是否显示提供
+
 }

@@ -299,6 +299,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
           Text(
             '${TimelineUtil.format(
               _doc.message.ctime,
+              locale: 'zh',
               dayFormat: DayFormat.Simple,
             )}',
             style: TextStyle(

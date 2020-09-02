@@ -24,22 +24,15 @@ class GeoCategoryLocal implements IGeoCategoryLocal, IServiceBuilder {
 
   @override
   Future<GeoCategoryOL> get(String category) async {
-    Lock lock = Lock();
-    return await lock.synchronized(() async {
-      GeoCategoryOL categoryLocal = await lock.synchronized(() async {
-        return await geoCategoryDAO.get(category, principal.person);
-      });
-      if (categoryLocal == null) {
-        GeoCategoryOR categoryOnRemote = await lock.synchronized(() async {
-          return await categoryRemote.getCategory(category);
-        });
-        categoryLocal = categoryOnRemote.toLocal(principal.person);
-        await lock.synchronized(() async {
-          await geoCategoryDAO.add(categoryLocal);
-        });
-      }
-      return categoryLocal;
-    });
+    GeoCategoryOL categoryLocal =
+    await geoCategoryDAO.get(category, principal.person);
+    if (categoryLocal == null) {
+      GeoCategoryOR categoryOnRemote =
+      await categoryRemote.getCategory(category);
+      categoryLocal = categoryOnRemote.toLocal(principal.person);
+//      await geoCategoryDAO.add(categoryLocal);
+    }
+    return categoryLocal;
   }
 
   @override

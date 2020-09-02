@@ -63,7 +63,7 @@ class MediaWidget extends StatelessWidget {
         maxHeight: 296,
         maxWidth: 296,
       ),
-      child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
+      child: _aspectRatioImage(context, index: 0, aspectRatio: 16/9),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -11,6 +12,8 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/cc_medias_widget.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/netflow.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -115,7 +118,7 @@ class _ChannelPageState extends State<ChannelPage> {
         continue;
       }
       if (!(await personService.existsPerson(inputPerson.person))) {
-        var person=await personService.getPerson(inputPerson.person,
+        var person = await personService.getPerson(inputPerson.person,
             isDownloadAvatar: true);
         await personService.addPerson(person);
       }
@@ -412,12 +415,18 @@ class Header extends StatefulWidget {
 class _HeaderState extends State<Header> {
   int _arrivedMessageCount = 0;
   String _arrivedMessageTips = '';
-  var _workingChannel;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
-    _workingChannel = widget.context.parameters['workingChannel'];
-    _workingChannel.onRefreshChannelState = (command, args) {
+    Stream<ChannelEventArgs> _events = widget.context.parameters['stream'];
+    _streamSubscription = _events.listen((event) {
+      var command = event.command;
+      var channel = event.channel;
+      if (widget.channel.id != channel) {
+        return;
+      }
+      var args = event.args;
       if ("pushDocumentCommand" == command && args is Map) {
         var msg = args['message'];
         if (msg.onChannel != widget.channel?.id) {
@@ -436,15 +445,13 @@ class _HeaderState extends State<Header> {
 //          break;
 //      }
       setState(() {});
-    };
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    if (_workingChannel != null) {
-      _workingChannel.onRefreshChannelState = null;
-    }
+    _streamSubscription?.cancel();
     _arrivedMessageCount = 0;
     super.dispose();
   }
@@ -731,21 +738,9 @@ class __MessageCardState extends State<_MessageCard> {
                           height: 0,
                         );
                       }
-                      return DefaultTabController(
-                        length: snapshot.data.length,
-                        child: PageSelector(
-                          context: widget.context,
-                          medias: snapshot.data,
-                          onMediaLongTap: (media, index) {
-                            widget.context.forward(
-                              '/images/viewer',
-                              arguments: {
-                                'medias': snapshot.data,
-                                'index': index,
-                              },
-                            );
-                          },
-                        ),
+                      return  MediaWidget(
+                        snapshot.data,
+                        widget.context,
                       );
                     },
                   ),
@@ -755,6 +750,7 @@ class __MessageCardState extends State<_MessageCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
+                        padding: EdgeInsets.only(top: 10,),
                         child: FutureBuilder<Person>(
                             future: _getPerson(),
                             builder: (ctx, snapshot) {
@@ -784,6 +780,7 @@ class __MessageCardState extends State<_MessageCard> {
                                 TextSpan(
                                   text: '${TimelineUtil.format(
                                     widget.message.ctime,
+                                    locale: 'zh',
                                     dayFormat: DayFormat.Simple,
                                   )}',
                                   style: TextStyle(
@@ -1383,6 +1380,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
                         comment.ctime,
+                      locale: 'zh',
                         dayFormat: DayFormat.Simple,
                       ) : ''}\t',
                     style: TextStyle(

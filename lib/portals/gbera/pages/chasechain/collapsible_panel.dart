@@ -729,7 +729,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Text(
-                  '入池 ${TimelineUtil.format(widget.doc.item.ctime, dayFormat: DayFormat.Simple)}',
+                  '入池 ${TimelineUtil.format(widget.doc.item.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
@@ -908,7 +908,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                       ),
                       TextSpan(
                         text:
-                            '  ${TimelineUtil.format(comment.ctime, dayFormat: DayFormat.Simple)}  ',
+                            '  ${TimelineUtil.format(comment.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}  ',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Colors.grey,
@@ -1134,7 +1134,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              '${TimelineUtil.format(detail.item.ctime, dayFormat: DayFormat.Simple)}',
+              '${TimelineUtil.format(detail.item.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,

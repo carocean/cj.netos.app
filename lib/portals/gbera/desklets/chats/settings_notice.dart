@@ -107,6 +107,7 @@ class _ChatroomSetNoticeState extends State<ChatroomSetNotice> {
   Widget _getRow(ChatRoomNotice notice) {
     String timestr = TimelineUtil.format(
       notice.ctime,
+      locale: 'zh',
       dayFormat: DayFormat.Full,
     );
 
