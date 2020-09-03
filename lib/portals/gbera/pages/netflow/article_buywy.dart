@@ -43,8 +43,10 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
         titleSpacing: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.check,),
-            onPressed: (){
+            icon: Icon(
+              Icons.check,
+            ),
+            onPressed: () {
               widget.context.backward(result: _amount);
             },
           ),
@@ -90,7 +92,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                           children: [
                             TextSpan(
                               text:
-                                  '¥${((_purchaseInfo.bankInfo.principalRatio*_amount)/100.00).toStringAsFixed(2)}',
+                                  '¥${((_purchaseInfo.bankInfo.principalRatio * _amount) / 100.00).toStringAsFixed(2)}',
                             ),
                           ],
                         ),
@@ -119,9 +121,12 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.picture_in_picture,
-                        size: 40,
+                      FadeInImage.assetNetwork(
+                        placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                        image:
+                            '${_purchaseInfo.bankInfo.icon}?accessToken=${widget.context.principal.accessToken}',
+                        width: 40,
+                        height: 40,
                       ),
                       SizedBox(
                         width: 10,
@@ -130,7 +135,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '新郑国贸',
+                            '${_purchaseInfo.bankInfo.title}',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -173,7 +178,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                           text: '申购金: ',
                           children: [
                             TextSpan(
-                              text: '¥${(_amount/100.00).toStringAsFixed(2)}',
+                              text: '¥${(_amount / 100.00).toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -205,14 +210,14 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                               .copyWith(color: theme.colorScheme.onSurface),
                         ),
                         child: Slider(
-                          label: '${(_amount/100.00).toStringAsFixed(2)}',
-                          value: _amount/100.00,
+                          label: '${(_amount / 100.00).toStringAsFixed(2)}',
+                          value: _amount / 100.00,
                           min: 1.0,
                           max: 20.00,
                           divisions: 19,
                           onChanged: (v) {
                             setState(() {
-                              _amount = (v*100).floor();
+                              _amount = (v * 100).floor();
                             });
                           },
                         ),
@@ -234,7 +239,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                                 children: [
                                   TextSpan(
                                     text:
-                                        '¥${(((_purchaseInfo.bankInfo.freeRatio + _purchaseInfo.bankInfo.reserveRatio) * _amount)/100.00).toStringAsFixed(2)}',
+                                        '¥${(((_purchaseInfo.bankInfo.freeRatio + _purchaseInfo.bankInfo.reserveRatio) * _amount) / 100.00).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.black,
@@ -255,7 +260,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                                 children: [
                                   TextSpan(
                                     text:
-                                        '¥${((_purchaseInfo.bankInfo.principalRatio * _amount)/100.00).toStringAsFixed(2)}',
+                                        '¥${((_purchaseInfo.bankInfo.principalRatio * _amount) / 100.00).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.black,
