@@ -1031,6 +1031,32 @@ class _RequestISPState extends State<RequestISP> {
                                 if (mounted) setState(() {});
                               },
                           ),
+                          !widget.context.principal.roles
+                                  .contains('platform:administrators')
+                              ? TextSpan(text: '')
+                              : TextSpan(
+                                  text: '    ',
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: '中国',
+                                      style: TextStyle(
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () async {
+                                          _bussinessAreaCode =
+                                              '000000'; //以6个0表示中国编码
+                                          _bussinessAreaTitle = '中国';
+                                          await _existsBusinessAreaCode();
+                                          if (mounted) setState(() {});
+                                        },
+                                    ),
+                                  ],
+                                ),
                         ],
                       ),
                     ),
@@ -1934,7 +1960,7 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     );
     final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
     final Offset slideUpOffset =
-    Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
     final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
     final Color paintColor = enableColor
         .evaluate(enableAnimation)

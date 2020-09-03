@@ -167,12 +167,12 @@ class _OrgISPPageState extends State<OrgISPPage> {
                         '/images/viewer',
                         scene: 'gbera',
                         arguments: {
-                          'medias': MediaSrc(
+                          'medias': [MediaSrc(
                             text: '认证材料',
                             type: 'image',
                             src:
-                                '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
-                          ),
+                            '${_orgISPOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
+                          ),],
                           'index': 0,
                         },
                       );

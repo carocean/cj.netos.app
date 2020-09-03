@@ -122,10 +122,11 @@ class _MediaWatcherState extends State<MediaWatcher> {
     var item = media.src;
     switch (media.type) {
       case 'image':
+        var src=item.indexOf('?')>0?item:'$item?accessToken=${widget.pageContext.principal.accessToken}';
         return MyPhotoViewGalleryPageOptions(
           imageProvider: item.startsWith('/')
               ? FileImage(File(item))
-              : CachedNetworkImageProvider(item),
+              : CachedNetworkImageProvider(src),
           initialScale: PhotoViewComputedScale.contained,
           minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
           maxScale: PhotoViewComputedScale.covered * 1.1,

@@ -202,12 +202,12 @@ class _OrgLAPageState extends State<OrgLAPage> {
                         '/images/viewer',
                         scene: 'gbera',
                         arguments: {
-                          'medias': MediaSrc(
+                          'medias': [MediaSrc(
                             text: '认证材料',
                             type: 'image',
                             src:
-                                '${_orgLAOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
-                          ),
+                            '${_orgLAOL.licenceSrc}?accessToken=${widget.context.principal.accessToken}',
+                          ),],
                           'index': 0,
                         },
                       );
