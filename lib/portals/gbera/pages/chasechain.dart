@@ -140,7 +140,7 @@ class _ChasechainState extends State<Chasechain> {
                           ),
                         ),
                         Text(
-                          '流量地球',
+                          '流量中国',
                           style: TextStyle(
                             fontSize: 14,
                           ),

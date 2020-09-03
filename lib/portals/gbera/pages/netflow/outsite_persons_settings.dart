@@ -356,6 +356,8 @@ class __SelectPersonState extends State<_SelectPerson> {
     }
 
     _is_seleted = !isSeleted;
-    setState(() {});
+    if(mounted) {
+      setState(() {});
+    }
   }
 }

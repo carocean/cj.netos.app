@@ -265,7 +265,9 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             .removeOutputPerson(person.official, _channel.id)
             .whenComplete(() {
           _persons.remove(person);
-          setState(() {});
+          if(mounted) {
+            setState(() {});
+          }
         });
         break;
       case PinPersonsSettingsStrategy.all_except:
@@ -281,7 +283,9 @@ class __PersonListRegionState extends State<_PersonListRegion> {
         )
             .whenComplete(() {
           _persons.remove(person);
-          setState(() {});
+          if(mounted) {
+            setState(() {});
+          }
         });
         break;
     }
