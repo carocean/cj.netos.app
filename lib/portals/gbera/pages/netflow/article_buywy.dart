@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'dart:math' as math;
 
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
+
 class BuyWYArticle extends StatefulWidget {
   PageContext context;
 
@@ -12,7 +14,22 @@ class BuyWYArticle extends StatefulWidget {
 }
 
 class _BuyWYArticleState extends State<BuyWYArticle> {
-  double _amount = 1.0;
+  int _amount = 100;
+  PurchaseInfo _purchaseInfo;
+
+  @override
+  void initState() {
+    _purchaseInfo = widget.context.parameters['purchaseInfo'];
+    _amount = widget.context.parameters['purchaseAmount'];
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +41,14 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
         ),
         elevation: 0,
         titleSpacing: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.check,),
+            onPressed: (){
+              widget.context.backward(result: _amount);
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -33,17 +58,15 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
               bottom: 30,
             ),
             child: Center(
-              child: Wrap(
-                direction: Axis.vertical,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      '纹银',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                  Text(
+                    '纹银',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
                     ),
                   ),
                   SizedBox(
@@ -51,23 +74,23 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        '₩20398.84444456785463',
+                        '₩${((_purchaseInfo.bankInfo.principalRatio * _amount) / _purchaseInfo.businessBuckets.price).toStringAsFixed(14)}',
                         style: TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
-                      SizedBox(
-                        height: 1,
                       ),
                       Text.rich(
                         TextSpan(
                           text: '现值 ',
                           children: [
                             TextSpan(
-                              text: '¥0.65',
+                              text:
+                                  '¥${((_purchaseInfo.bankInfo.principalRatio*_amount)/100.00).toStringAsFixed(2)}',
                             ),
                           ],
                         ),
@@ -110,7 +133,6 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                             '新郑国贸',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-
                             ),
                           ),
                           SizedBox(
@@ -121,7 +143,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                               text: '现价: ',
                               children: [
                                 TextSpan(
-                                  text: '¥0.00382828833',
+                                  text:
+                                      '¥${(_purchaseInfo.businessBuckets.price / 100.00).toStringAsFixed(14)}',
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
@@ -150,7 +173,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                           text: '申购金: ',
                           children: [
                             TextSpan(
-                              text: '¥${_amount.toStringAsFixed(2)}',
+                              text: '¥${(_amount/100.00).toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -182,14 +205,14 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                               .copyWith(color: theme.colorScheme.onSurface),
                         ),
                         child: Slider(
-                          label: '${_amount.toStringAsFixed(2)}',
-                          value: _amount,
+                          label: '${(_amount/100.00).toStringAsFixed(2)}',
+                          value: _amount/100.00,
                           min: 1.0,
                           max: 20.00,
                           divisions: 19,
                           onChanged: (v) {
                             setState(() {
-                              _amount = v;
+                              _amount = (v*100).floor();
                             });
                           },
                         ),
@@ -210,7 +233,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                                 text: '扣除服务费: ',
                                 children: [
                                   TextSpan(
-                                    text: '¥0.35',
+                                    text:
+                                        '¥${(((_purchaseInfo.bankInfo.freeRatio + _purchaseInfo.bankInfo.reserveRatio) * _amount)/100.00).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.black,
@@ -230,7 +254,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                                 text: '冻结金额: ',
                                 children: [
                                   TextSpan(
-                                    text: '¥0.65',
+                                    text:
+                                        '¥${((_purchaseInfo.bankInfo.principalRatio * _amount)/100.00).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.black,
@@ -259,14 +284,13 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
-              bottom: 40,
+              bottom: 10,
             ),
             child: Text.rich(
               TextSpan(
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 12,
-
                 ),
                 children: [
                   TextSpan(
@@ -284,7 +308,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                         ),
                       ),
                       TextSpan(
-                        text: '不保证纹银会升值，纹银的升值空间是地商将收取的服务费的部分用于激励的结果。当前价格仅供参考，以实际发布时的现价为准，具体可在发布后在"钱包"的明细中查看\r\n',
+                        text:
+                            '不保证纹银会升值，纹银的升值空间是地商将收取的服务费的部分用于激励的结果。当前价格仅供参考，以实际发布时的现价为准，具体可在发布后在"钱包"的明细中查看\r\n',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.normal,
@@ -315,7 +340,6 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                       ),
                     ],
                   ),
-
                 ],
               ),
             ),

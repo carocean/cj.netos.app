@@ -70,6 +70,7 @@ mixin IWyBankRemote {
 
   Future<List<BankInfo>> pageWenyBank(int limit, int offset) {}
 
+  Future<BankInfo> getAndAutoCreateWenyBankByDistrict(String distinct) {}
 }
 
 class WybankRemote implements IWyBankRemote, IServiceBuilder {
@@ -129,7 +130,35 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<BankInfo>> pageWenyBank(int limit, int offset) async{
+  Future<BankInfo> getAndAutoCreateWenyBankByDistrict(String distinct)async {
+    var map = await remotePorts.portGET(
+      wybankPorts,
+      'getAndAutoCreateWenyBankByDistrict',
+      parameters: {
+        'district': distinct,
+      },
+    );
+    if (map == null) {
+      return null;
+    }
+    return BankInfo(
+      title: map['title'],
+      id: map['id'],
+      state: map['state'],
+      creator: map['creator'],
+      ctime: map['ctime'],
+      icon: map['icon'],
+      districtCode: map['districtCode'],
+      districtTitle: map['districtTitle'],
+      licence: map['licence'],
+      principalRatio: map['principalRatio'],
+      reserveRatio: map['reserveRatio'],
+      freeRatio: map['freeRatio'],
+    );
+  }
+
+  @override
+  Future<List<BankInfo>> pageWenyBank(int limit, int offset) async {
     var bankList = await remotePorts.portGET(
       wybankPorts,
       'pageWenyBank',
@@ -205,8 +234,7 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<BankInfo>> pageWyBankOnISP(
-      int limit, int offset) async {
+  Future<List<BankInfo>> pageWyBankOnISP(int limit, int offset) async {
     List<OrgISPOL> ispList = await ispRemote.listMyOrgIsp();
     var isps = <String>[];
     for (var obj in ispList) {

@@ -160,6 +160,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_extra.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
@@ -176,6 +177,7 @@ import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
 import 'package:netos_app/portals/gbera/styles/pink-styles.dart';
 import 'package:netos_app/portals/gbera/styles/purple-styles.dart';
 import 'package:netos_app/portals/gbera/styles/teal-styles.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 import 'desklets/chats/add_friend.dart';
@@ -231,6 +233,8 @@ class GberaPortal {
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/bills': WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
+          '/remote/wybank':WybankRemote(),
+          '/remote/purchaser':DefaultWyBankPurchaserRemote(),
           '/remote/org/isp': IspRemote(),
           '/remote/org/la': LaRemote(),
           '/remote/org/licence': LicenceRemote(),

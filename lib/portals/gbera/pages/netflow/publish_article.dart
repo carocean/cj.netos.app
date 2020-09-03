@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +34,13 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   TextEditingController _contentController;
   Channel _channel;
   var _type;
+  bool _isLoaded = false;
+  String _districtCode;
+  String _districtTitle;
+  int _purchse_amount = 100; //单位为分
+  String _label = '';
+  PurchaseInfo _purchaseInfo;
+  bool _canPublish = false;
 
   @override
   void initState() {
@@ -38,7 +48,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     _type = widget.context.parameters['type'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
-
+    _load();
     super.initState();
   }
 
@@ -48,6 +58,37 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     super.dispose();
   }
 
+  Future<void> _load() async {
+    var result = await AmapLocation.fetchLocation();
+    _districtCode = await result.adCode;
+    _districtTitle = await result.district;
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
+    if (purchaseInfo.bankInfo == null) {
+      _isLoaded = true;
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _purchaseInfo = purchaseInfo;
+    if (purchaseInfo.myWallet.change < _purchse_amount) {
+      _label = '余额不足，请到钱包中充值';
+      _isLoaded = true;
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+    _canPublish = true;
+    _isLoaded = true;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   _publish() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
@@ -55,7 +96,6 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     ///纹银价格从app的更新管理中心或消息中心获取
     double wy = 38388.38827772;
     var images = shower_key.currentState.files;
-    var location = null;
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
     IChannelMediaService channelMediaService =
@@ -76,7 +116,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         'sended',
         content,
         wy,
-        location,
+        null,
         widget.context.principal.person,
       ),
     );
@@ -114,7 +154,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'channel': _channel.id,
       'creator': user.person,
       'content': content,
-      'Location': location,
+      'Location': null,
       'wy': 10.00,
     };
     var portsUrl =
@@ -157,13 +197,21 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         ),
         actions: <Widget>[
           FlatButton(
-            onPressed: () {
-              _publish();
-            },
+            onPressed: !_canPublish ||
+                    StringUtil.isEmpty(_contentController.text) ||
+                    StringUtil.isEmpty(_districtCode)
+                ? null
+                : () {
+                    _publish();
+                  },
             child: Text(
               '发表',
               style: TextStyle(
-                color: Colors.blueGrey,
+                color: !_canPublish ||
+                        StringUtil.isEmpty(_contentController.text) ||
+                        StringUtil.isEmpty(_districtCode)
+                    ? Colors.grey[400]
+                    : Colors.blueGrey,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -187,6 +235,12 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                   controller: _contentController,
                   maxLines: 10,
                   autofocus: true,
+                  onChanged: (v) {
+                    _canPublish = !StringUtil.isEmpty(v);
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  },
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     labelText: '输入内容',
@@ -449,7 +503,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                         Flexible(
                                           fit: FlexFit.loose,
                                           child: Text(
-                                            '需要至少现值¥1.00元的纹银',
+                                            '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
                                             style: TextStyle(
                                               color: Colors.grey,
                                               fontSize: 12,
@@ -476,74 +530,25 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                         ),
                       ),
                       behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        widget.context.forward('/channel/article/buywy');
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 30,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 15,
-                        top: 15,
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(
-                                  '所在位置',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Flexible(
-                                        fit: FlexFit.loose,
-                                        child: Text(''),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 10,
-                                        ),
-                                        child: Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                      onTap: StringUtil.isEmpty(_districtCode)
+                          ? null
+                          : () async {
+                              widget.context.forward('/channel/article/buywy',
+                                  arguments: {
+                                    'purchaseInfo': _purchaseInfo,
+                                    'purchaseAmount': _purchse_amount
+                                  }).then((value) {
+                                if (value == null) {
+                                  return;
+                                }
+                                _purchse_amount = value;
+                                _label =
+                                    '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              });
+                            },
                     ),
                     Divider(
                       height: 1,

@@ -1,0 +1,49 @@
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
+
+class PurchaseInfo {
+  BusinessBuckets businessBuckets;
+  BankInfo bankInfo;
+  MyWallet myWallet;
+
+  PurchaseInfo({this.businessBuckets, this.bankInfo, this.myWallet});
+}
+
+mixin IWyBankPurchaserRemote {
+  Future<PurchaseInfo> getPurchaseInfo(String distinct);
+}
+
+class DefaultWyBankPurchaserRemote implements IWyBankPurchaserRemote, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  IWyBankRemote wyBankRemote;
+  IWalletAccountRemote walletAccountRemote;
+
+  @override
+  Future<void> builder(IServiceProvider site) {
+    this.site = site;
+    wyBankRemote = site.getService('/remote/wybank');
+    walletAccountRemote=site.getService('/wallet/accounts');
+    return null;
+  }
+
+  @override
+  Future<PurchaseInfo> getPurchaseInfo(String distinct) async {
+    BankInfo bankInfo =
+        await wyBankRemote.getAndAutoCreateWenyBankByDistrict(distinct);
+    BusinessBuckets businessBuckets =
+        await wyBankRemote.getBusinessBucketsOfBank(bankInfo.id);
+    MyWallet myWallet = await walletAccountRemote.getAllAcounts();
+    return PurchaseInfo(
+      bankInfo: bankInfo,
+      businessBuckets: businessBuckets,
+      myWallet: myWallet,
+    );
+  }
+}

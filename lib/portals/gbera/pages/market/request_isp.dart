@@ -1049,7 +1049,7 @@ class _RequestISPState extends State<RequestISP> {
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () async {
                                           _bussinessAreaCode =
-                                              '000000'; //以6个0表示中国编码
+                                              '100000'; //100000为中国编码
                                           _bussinessAreaTitle = '中国';
                                           await _existsBusinessAreaCode();
                                           if (mounted) setState(() {});
