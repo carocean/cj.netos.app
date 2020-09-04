@@ -4,6 +4,9 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -32,6 +35,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
   Future<Person> _future_getPerson;
   Future<ContentBoxOR> _future_getContentBox;
   Future<ItemBehavior> _future_getItemInnerBehavior;
+  PurchaseOR _purchaseOR;
 
   @override
   void initState() {
@@ -63,7 +67,18 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     _future_getPerson = _getPerson(widget.context.site, _doc.message.creator);
     _future_getContentBox = _getContentBox();
     _future_getItemInnerBehavior = _getItemInnerBehavior();
+    _purchaseOR = await _getPurchase();
     if (mounted) setState(() {});
+  }
+
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = _doc?.message?.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(_doc?.message?.creator, sn);
   }
 
   Future<TrafficPool> _getPool() async {
@@ -296,117 +311,151 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            '${TimelineUtil.format(
-              _doc.message.ctime,
-              locale: 'zh',
-              dayFormat: DayFormat.Simple,
-            )}',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[400],
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(
-            width: 5,
-          ),
           Row(
-            children: <Widget>[
-              FutureBuilder<Person>(
-                future: _future_getPerson,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-                  var person = snapshot.data;
-                  if (person == null) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      widget.context.forward('/chasechain/provider',
-                          arguments: {
-                            'provider': _doc.item.pointer.creator,
-                            'pool': _doc.item.pool
-                          });
-                    },
-                    child: Text(
-                      '${person?.nickName}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  );
-                },
+            children: [
+              Text(
+                '${TimelineUtil.format(
+                  _doc.message.ctime,
+                  locale: 'zh',
+                  dayFormat: DayFormat.Simple,
+                )}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(
                 width: 10,
               ),
-              FutureBuilder<ContentBoxOR>(
-                future: _future_getContentBox,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-                  var box = snapshot.data;
-                  if (box == null) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      widget.context.forward('/chasechain/box',
-                          arguments: {'box': box, 'pool': _doc.item.pool});
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                child: Text(
+                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[400],
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                onTap: () async{
+                  IWyBankPurchaserRemote
+                  purchaserRemote =
+                  widget.context.site.getService(
+                      '/remote/purchaser');
+                  WenyBank bank = await purchaserRemote
+                      .getWenyBank(_purchaseOR.bankid);
+                  widget.context.forward(
+                    '/wybank/purchase/details',
+                    arguments: {
+                      'purch': _purchaseOR,
+                      'bank': bank
                     },
-                    child: Wrap(
-                      direction: Axis.horizontal,
-                      spacing: 2,
-                      crossAxisAlignment: WrapCrossAlignment.end,
-                      children: <Widget>[
-                        Icon(
-                          _doc.message.type == 'netflow'
-                              ? Icons.all_inclusive
-                              : Icons.add_location,
-                          size: 11,
-                          color: Colors.grey,
-                        ),
-                        Text(
-                          '${box.pointer.title}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
                   );
                 },
               ),
             ],
           ),
-          SizedBox(
-            height: 10,
-          ),
+//          SizedBox(
+//            height: 5,
+//          ),
+//          Row(
+//            children: <Widget>[
+//              FutureBuilder<Person>(
+//                future: _future_getPerson,
+//                builder: (ctx, snapshot) {
+//                  if (snapshot.connectionState != ConnectionState.done) {
+//                    return SizedBox(
+//                      width: 0,
+//                      height: 0,
+//                    );
+//                  }
+//                  var person = snapshot.data;
+//                  if (person == null) {
+//                    return SizedBox(
+//                      width: 0,
+//                      height: 0,
+//                    );
+//                  }
+//                  return GestureDetector(
+//                    behavior: HitTestBehavior.opaque,
+//                    onTap: () {
+//                      widget.context.forward('/chasechain/provider',
+//                          arguments: {
+//                            'provider': _doc.item.pointer.creator,
+//                            'pool': _doc.item.pool
+//                          });
+//                    },
+//                    child: Text(
+//                      '${person?.nickName}',
+//                      style: TextStyle(
+//                        fontSize: 10,
+//                        color: Colors.grey,
+//                        fontWeight: FontWeight.w600,
+//                        decoration: TextDecoration.underline,
+//                      ),
+//                    ),
+//                  );
+//                },
+//              ),
+//              SizedBox(
+//                width: 10,
+//              ),
+//              FutureBuilder<ContentBoxOR>(
+//                future: _future_getContentBox,
+//                builder: (ctx, snapshot) {
+//                  if (snapshot.connectionState != ConnectionState.done) {
+//                    return SizedBox(
+//                      width: 0,
+//                      height: 0,
+//                    );
+//                  }
+//                  var box = snapshot.data;
+//                  if (box == null) {
+//                    return SizedBox(
+//                      width: 0,
+//                      height: 0,
+//                    );
+//                  }
+//
+//                  return GestureDetector(
+//                    behavior: HitTestBehavior.opaque,
+//                    onTap: () {
+//                      widget.context.forward('/chasechain/box',
+//                          arguments: {'box': box, 'pool': _doc.item.pool});
+//                    },
+//                    child: Wrap(
+//                      direction: Axis.horizontal,
+//                      spacing: 2,
+//                      crossAxisAlignment: WrapCrossAlignment.end,
+//                      children: <Widget>[
+//                        Icon(
+//                          _doc.message.type == 'netflow'
+//                              ? Icons.all_inclusive
+//                              : Icons.add_location,
+//                          size: 11,
+//                          color: Colors.grey,
+//                        ),
+//                        Text(
+//                          '${box.pointer.title}',
+//                          style: TextStyle(
+//                            fontSize: 10,
+//                            color: Colors.grey,
+//                            fontWeight: FontWeight.w600,
+//                            decoration: TextDecoration.underline,
+//                          ),
+//                        ),
+//                      ],
+//                    ),
+//                  );
+//                },
+//              ),
+//            ],
+//          ),
+//          SizedBox(
+//            height: 10,
+//          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[

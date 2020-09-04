@@ -506,7 +506,6 @@ class _WalletState extends State<Wallet> {
       body: ConstrainedBox(
         constraints: BoxConstraints.expand(),
         child: CustomScrollView(
-          shrinkWrap: true,
           slivers: <Widget>[
             SliverAppBar(
               title: Text(
@@ -514,6 +513,7 @@ class _WalletState extends State<Wallet> {
               ),
               titleSpacing: 0,
               elevation: 0.0,
+              pinned: true,
               automaticallyImplyLeading: true,
             ),
             SliverToBoxAdapter(
