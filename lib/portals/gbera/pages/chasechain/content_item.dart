@@ -312,6 +312,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '${TimelineUtil.format(

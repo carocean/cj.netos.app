@@ -595,7 +595,7 @@ class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
 
   @override
   void didUpdateWidget(_RecommenderVideoView oldWidget) {
-    if (oldWidget.src != widget.src) {
+    if (oldWidget.src.path != widget.src.path) {
       oldWidget.src = widget.src;
       _currentActionIndex = 0;
       start = null;

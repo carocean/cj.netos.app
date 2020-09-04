@@ -1548,8 +1548,10 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         height: 40,
       );
     } else {
-      imgSrc = Image.network(
-        '${widget.receptor.leading}?accessToken=${widget.context.principal.accessToken}',
+      imgSrc = FadeInImage.assetNetwork(
+        placeholder: 'lib/portals/gbera/images/default_watting.gif',
+        image:
+            '${widget.receptor.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
         height: 40,
       );

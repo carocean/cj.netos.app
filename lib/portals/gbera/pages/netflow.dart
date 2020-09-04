@@ -1643,7 +1643,7 @@ class __ChannelItemState extends State<_ChannelItem> {
       );
     } else {
       imgSrc = FadeInImage.assetNetwork(
-        placeholder: 'lib/portals/gbera/images/netflow.png',
+        placeholder: 'lib/portals/gbera/images/default_watting.gif',
         image:
             '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
