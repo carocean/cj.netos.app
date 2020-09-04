@@ -329,6 +329,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
               SizedBox(
                 width: 10,
               ),
+              _purchaseOR==null?SizedBox(width: 0,height: 0,):
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 child: Text(
@@ -340,19 +341,17 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                     decoration: TextDecoration.underline,
                   ),
                 ),
-                onTap: () async{
-                  IWyBankPurchaserRemote
-                  purchaserRemote =
-                  widget.context.site.getService(
-                      '/remote/purchaser');
-                  WenyBank bank = await purchaserRemote
-                      .getWenyBank(_purchaseOR.bankid);
+                onTap: () async {
+                  if (_purchaseOR == null) {
+                    return;
+                  }
+                  IWyBankPurchaserRemote purchaserRemote =
+                      widget.context.site.getService('/remote/purchaser');
+                  WenyBank bank =
+                      await purchaserRemote.getWenyBank(_purchaseOR.bankid);
                   widget.context.forward(
                     '/wybank/purchase/details',
-                    arguments: {
-                      'purch': _purchaseOR,
-                      'bank': bank
-                    },
+                    arguments: {'purch': _purchaseOR, 'bank': bank},
                   );
                 },
               ),
