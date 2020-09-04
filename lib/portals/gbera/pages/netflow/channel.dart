@@ -19,7 +19,11 @@ import 'package:netos_app/portals/gbera/pages/netflow.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -551,14 +555,19 @@ class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
   Person _person;
+  Future<Person> _future_getPerson;
+  PurchaseOR _purchaseOR;
 
   @override
   void initState() {
+    _future_getPerson = _getPerson();
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
-    _getPerson().then((person) {
-      _person = person;
-      setState(() {});
+    _load().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
     });
+
     super.initState();
   }
 
@@ -566,6 +575,21 @@ class __MessageCardState extends State<_MessageCard> {
   void dispose() {
     _interactiveRegionRefreshAdapter = null;
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    _person = await _getPerson();
+    _purchaseOR = await _getPurchase();
+  }
+
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = widget.message.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
   }
 
   Future<Person> _getPerson() async {
@@ -738,7 +762,7 @@ class __MessageCardState extends State<_MessageCard> {
                           height: 0,
                         );
                       }
-                      return  MediaWidget(
+                      return MediaWidget(
                         snapshot.data,
                         widget.context,
                       );
@@ -750,9 +774,11 @@ class __MessageCardState extends State<_MessageCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        padding: EdgeInsets.only(top: 10,),
+                        padding: EdgeInsets.only(
+                          top: 10,
+                        ),
                         child: FutureBuilder<Person>(
-                            future: _getPerson(),
+                            future: _future_getPerson,
                             builder: (ctx, snapshot) {
                               if (snapshot.connectionState !=
                                   ConnectionState.done) {
@@ -790,8 +816,28 @@ class __MessageCardState extends State<_MessageCard> {
                                   children: [
                                     TextSpan(text: '  '),
                                     TextSpan(
-                                        text:
-                                            '¥${(widget.message.wy * 0.001).toStringAsFixed(2)}'),
+                                      text:
+                                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () async {
+                                          IWyBankPurchaserRemote
+                                              purchaserRemote =
+                                              widget.context.site.getService(
+                                                  '/remote/purchaser');
+                                          WenyBank bank = await purchaserRemote
+                                              .getWenyBank(_purchaseOR.bankid);
+                                          widget.context.forward(
+                                            '/wybank/purchase/details',
+                                            arguments: {
+                                              'purch': _purchaseOR,
+                                              'bank': bank
+                                            },
+                                          );
+                                        },
+                                    ),
                                     TextSpan(text: '\r\n'),
                                     TextSpan(
                                       text:
@@ -1380,7 +1426,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
                         comment.ctime,
-                      locale: 'zh',
+                        locale: 'zh',
                         dayFormat: DayFormat.Simple,
                       ) : ''}\t',
                     style: TextStyle(
@@ -1474,7 +1520,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                           .context.site
                                           .getService('/gbera/persons');
                                       var person = await personService
-                                          .getPerson(like.official);
+                                          .getPerson(like.person);
                                       widget.context.forward("/site/personal",
                                           arguments: {'person': person});
                                     },

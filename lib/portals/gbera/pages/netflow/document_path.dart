@@ -6,6 +6,9 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -17,7 +20,7 @@ class _ActivityInfo {
   String action; //流转动作：send,arrive.comment,arrive.like
   String attach; //流转附件说明;
   int ctime; //流转操作触发时间
-  double wy;
+  String purchaseSn;
 
   _ActivityInfo({
     this.docid,
@@ -27,7 +30,7 @@ class _ActivityInfo {
     this.action,
     this.attach,
     this.ctime,
-    this.wy,
+    this.purchaseSn,
   });
 }
 
@@ -110,7 +113,7 @@ class _DocumentPathState extends State<DocumentPath> {
         action: act['action'],
         attach: act['attach'],
         ctime: act['ctime'],
-        wy: act['wy'],
+        purchaseSn: act['purchaseSn'],
       ));
     }
   }
@@ -364,13 +367,15 @@ class _DocumentRegion extends StatefulWidget {
 class __DocumentRegionState extends State<_DocumentRegion> {
   Person _creator;
   InsiteMessage _message;
-
+  PurchaseOR _purchaseOR;
   @override
   void initState() {
     _message = widget.context.parameters['message'];
-    _loadCreator().then((v) {
-      setState(() {});
-    });
+    ()async{
+      await _loadCreator();
+      _purchaseOR=await _getPurchase();
+    }();
+
     super.initState();
   }
 
@@ -379,7 +384,15 @@ class __DocumentRegionState extends State<_DocumentRegion> {
     _message = null;
     super.dispose();
   }
-
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = _message.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(_message.creator, sn);
+  }
   Future<void> _loadCreator() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -476,7 +489,7 @@ class __DocumentRegionState extends State<_DocumentRegion> {
                           text: '洇金:¥',
                           children: [
                             TextSpan(
-                                text: (_message.wy * 0.001).toStringAsFixed(2)),
+                                text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
                           ],
                         )
                       ],

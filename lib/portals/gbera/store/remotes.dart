@@ -9,7 +9,7 @@ class ChannelMessageOR {
   String content;
   LatLng location;
   int ctime;
-  double wy;
+  String purchaseSn;
 
   ChannelMessageOR({
     this.id,
@@ -18,7 +18,7 @@ class ChannelMessageOR {
     this.content,
     this.location,
     this.ctime,
-    this.wy,
+    this.purchaseSn,
   });
 }
 

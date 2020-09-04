@@ -59,7 +59,8 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
     if (mounted) {
       setState(() {});
     }
-    IWalletTradeRemote tradeRemote = widget.context.site.getService("/wallet/trades");
+    IWalletTradeRemote tradeRemote =
+        widget.context.site.getService("/wallet/trades");
     IWalletRecordRemote recordRemote =
         widget.context.site.getService("/wallet/records");
 
@@ -68,7 +69,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
       result = await tradeRemote.exchange(_purch.sn);
     } catch (e) {
       _exchangeState = 2;
-      _purch.exchangeState=_exchangeState;
+      _purch.exchangeState = _exchangeState;
       if (mounted) {
         setState(() {});
       }
@@ -85,7 +86,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
       if (record.state == 1) {
         timer.cancel();
         _exchangeState = 2;
-        _purch.exchangeState=_exchangeState;
+        _purch.exchangeState = _exchangeState;
         if (mounted) {
           setState(() {});
         }
@@ -148,12 +149,12 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
           ),
           Center(
             child: Text(
-              '¥${((purch.stock??0) * bank.price)/100.00}',
+              '¥${((purch.stock ?? 0) * bank.price) / 100.00}',
               style: TextStyle(
                 fontSize: 30,
-                color: ((purch.stock??0) * bank.price) < purch.purchAmount
+                color: ((purch.stock ?? 0) * bank.price) < purch.purchAmount
                     ? Colors.green
-                    : ((purch.stock??0) * bank.price) > purch.purchAmount
+                    : ((purch.stock ?? 0) * bank.price) > purch.purchAmount
                         ? Colors.red
                         : null,
               ),
@@ -258,7 +259,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('₩${(purch.stock??0.00).toStringAsFixed(14)}'),
+                  child: Text('₩${(purch.stock ?? 0.00).toStringAsFixed(14)}'),
                 ),
               ],
             ),
@@ -313,8 +314,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                      '¥${(purch.price??0).toStringAsFixed(14)}'),
+                  child: Text('¥${(purch.price ?? 0).toStringAsFixed(14)}'),
                 ),
               ],
             ),
@@ -342,7 +342,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                 ),
                 Expanded(
                   child: Text(
-                      '¥${((purch.serviceFee??0) / 100.00).toStringAsFixed(2)}'),
+                      '¥${((purch.serviceFee ?? 0) / 100.00).toStringAsFixed(2)}'),
                 ),
               ],
             ),
@@ -372,10 +372,10 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   child: Text.rich(
                     TextSpan(
                       text:
-                          '¥${((purch.principalAmount??0) / 100.00).toStringAsFixed(2)}',
+                          '¥${((purch.principalAmount ?? 0) / 100.00).toStringAsFixed(2)}',
                       children: [
                         TextSpan(
-                          text: ' (在您的冻结账户余额中，成功承兑后自动解冻并转入您的收益金账户中)',
+                          text: ' (在${purch.personName}的冻结账户余额中，成功承兑后自动解冻并转入${purch.personName}的收益金账户中)',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[500],
@@ -468,6 +468,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                 Expanded(
                   child: Text('${TimelineUtil.formatByDateTime(
                     parseStrTime(purch.ctime),
+                    locale: 'zh',
                     dayFormat: DayFormat.Full,
                   )}'),
                 ),
@@ -540,51 +541,58 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                       ),
                       child: Stack(
                         children: <Widget>[
-                          Padding(padding: EdgeInsets.only(right: 50,),child: Row(
-                            children: <Widget>[
-                              Container(
-                                width: 30,
-                                height: 30,
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(
-                                  right: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                    color: Colors.grey[500],
-                                    borderRadius:
-                                    BorderRadius.all(Radius.circular(20))),
-                                child: Text(
-                                  '${activity.activityNo}',
-                                  style: TextStyle(
-                                    color: Colors.white,
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 50,
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  alignment: Alignment.center,
+                                  margin: EdgeInsets.only(
+                                    right: 10,
                                   ),
-                                ),
-                              ),
-                              Expanded(child:  Wrap(
-                                direction: Axis.vertical,
-                                spacing: 5,
-                                children: <Widget>[
-                                  Text(
-                                    '${activity.activityName}',
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey[500],
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(20))),
+                                  child: Text(
+                                    '${activity.activityNo}',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  Wrap(
-                                    spacing: 10,
+                                ),
+                                Expanded(
+                                  child: Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 5,
                                     children: <Widget>[
                                       Text(
-                                        '${activity.status}',
+                                        '${activity.activityName}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                      Text(
-                                        '${activity.message}',
+                                      Wrap(
+                                        spacing: 10,
+                                        children: <Widget>[
+                                          Text(
+                                            '${activity.status}',
+                                          ),
+                                          Text(
+                                            '${activity.message}',
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),),
-                            ],
-                          ),),
+                                ),
+                              ],
+                            ),
+                          ),
                           Positioned(
                             right: 0,
                             bottom: 0,
@@ -614,6 +622,12 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
   }
 
   _renderExchangeOperator(PurchaseOR purch, WenyBank bank) {
+    if (widget.context.principal.person != purch.person) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
+    }
     switch (_exchangeState) {
       case 0:
         return FlatButton(

@@ -144,6 +144,7 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         'wenyBankID': bank,
       },
     );
+    var bankInfo=await _getBankInfo(bank);
     var bulletinBoard = await getBulletinBoard(bank, DateTime.now());
     return new WenyBank(
       price: priceAccount['price'],
@@ -151,6 +152,8 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
       stock: stockAccount['stock'],
       freezen: (freezenAccount['amount'] as double).floor(),
       board: bulletinBoard,
+      bank: bank,
+      info: bankInfo,
     );
   }
 

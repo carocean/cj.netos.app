@@ -17,6 +17,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
@@ -998,7 +1000,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       docMap['ctime'],
       DateTime.now().millisecondsSinceEpoch,
       docMap['content'],
-      docMap['wy'],
+      docMap['tradeSn'],
       null,
       widget.context.principal.person,
     );
@@ -1195,12 +1197,13 @@ class _InsiteMessageItem extends StatefulWidget {
 class __InsiteMessageItemState extends State<_InsiteMessageItem> {
   Channel _channel;
   Person _person;
-
+  PurchaseOR _purchaseOR;
   @override
   void initState() {
     () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
+      _purchaseOR = await _getPurchase();
       setState(() {});
     }();
     super.initState();
@@ -1227,6 +1230,15 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     super.didUpdateWidget(oldWidget);
   }
 
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = widget.message.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
+  }
   Future<Person> _loadPerson() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -1302,10 +1314,10 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                 children: [
                   TextSpan(text: '${atime ?? ''}'),
                   TextSpan(
-                    text: '  洇金:¥',
+                    text: '  ¥',
                     children: [
                       TextSpan(
-                        text: (widget.message.wy ?? 0).toStringAsFixed(2),
+                        text: (((_purchaseOR?.principalAmount??0.00)/100.00) ?? 0).toStringAsFixed(2),
                         style: TextStyle(
                           color: Colors.blueGrey,
                           fontWeight: FontWeight.w500,

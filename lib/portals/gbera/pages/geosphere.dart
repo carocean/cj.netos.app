@@ -602,7 +602,7 @@ class _GeosphereState extends State<Geosphere>
       var receptorid = receptorkeypare.substring(pos + 1);
       if (!(await receptorService.existsLocal(ocategory, receptorid))) {
         var exists = await receptorService.get(ocategory, receptorid);
-        print('不存在感知器:${exists.title} 在分类:$ocategory。感知器创建者:${exists.creator}');
+        print('不存在感知器:${receptorid} 在分类:$ocategory');
         continue;
       }
       message.receptor = receptorid;

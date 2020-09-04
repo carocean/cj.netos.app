@@ -313,7 +313,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       sourceSite: obj['sourceSite'],
       upstreamChannel: obj['upstreamChannel'],
       upstreamPerson: obj['upstreamPerson'],
-      wy: obj['wy'],
+      purchaseSn: obj['purchaseSn'],
     );
   }
 

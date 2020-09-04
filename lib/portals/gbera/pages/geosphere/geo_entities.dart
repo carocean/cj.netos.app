@@ -142,7 +142,7 @@ class GeosphereMessageOR {
   int dtime;
   String state;
   String text;
-  double wy;
+  String purchaseSn;
 
   ///location是GEOPoi对象
   LatLng location;
@@ -162,7 +162,7 @@ class GeosphereMessageOR {
     this.dtime,
     this.state,
     this.text,
-    this.wy,
+    this.purchaseSn,
     this.location,
     this.category,
   });
@@ -181,7 +181,7 @@ class GeosphereMessageOR {
     this.dtime = ol.dtime;
     this.state = ol.state;
     this.text = ol.text;
-    this.wy = ol.wy;
+    this.purchaseSn = ol.purchaseSn;
     this.location = LatLng.fromJson(jsonDecode(ol.location));
     this.category = ol.category;
   }
@@ -201,7 +201,7 @@ class GeosphereMessageOR {
       'dtime': dtime,
       'state': state,
       'text': text,
-      'wy': wy,
+      'purchaseSn': purchaseSn,
       'location': location.toJson(),
       'category': category,
     };

@@ -9,6 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -32,83 +34,99 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   String _category;
   String _receptor;
   AmapPoi _poi;
-
+  bool _isLoaded = false;
+  String _districtCode;
+  String _districtTitle;
+  int _purchse_amount = 100; //单位为分
+  String _label = '';
+  PurchaseInfo _purchaseInfo;
+  bool _canPublish = false;
+  GeoReceptor _receptorObj;
   @override
   void initState() {
     _category = widget.context.parameters['category'];
     _receptor = widget.context.parameters['receptor'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
-    geoLocation.listen(
-        'geosphere.recetpor.publish.article', 0, _updateLocation);
+    _load();
     super.initState();
   }
 
   @override
   void dispose() {
-    geoLocation.unlisten('geosphere.recetpor.publish.article');
     _poi = null;
     _contentController.dispose();
     super.dispose();
   }
 
-  _updateLocation(Location location) async {
-    var latlng = await location.latLng;
-    var city=await location.city;
-    if (StringUtil.isEmpty(city)) {
-      return;
-    }
-    String title = await location.poiName;
-    String address = await location.address;
-    var poiId = await location.adCode;
+  Future<void> _load() async {
+    var result = await AmapLocation.fetchLocation();
+    _districtCode = await result.adCode;
+    _districtTitle = await result.district;
+    var latlng = await result.latLng;
+//    var city = await result.city;
+    String title = await result.poiName;
+    String address = await result.address;
+    var poiId = await result.adCode;
     _poi = AmapPoi(
       title: title,
       latLng: latlng,
       address: address,
       poiId: poiId,
     );
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+   _receptorObj= await receptorRemote.getReceptor(_category, _receptor);
     _enablePublishButton =
         _poi != null && !StringUtil.isEmpty(_contentController.text);
-    geoLocation.unlisten('geosphere.recetpor.publish.article');
-    setState(() {});
-//以下代码在ios上有问题
-//    var list =
-//        await AmapSearch.searchAround(latlng, radius: 500, type: amapPOIType);
-//    if (list.isEmpty) {
-//      return;
-//    }
-//    var poi = list[0];
-//    if (StringUtil.isEmpty(await poi.cityName)) {
-//      return;
-//    }
-//    geoLocation.unlisten('geosphere.recetpor.publish.article');
-//    String title = await poi.title;
-//    String address = await poi.address;
-//    var poiId = await poi.poiId;
-//    _poi = AmapPoi(
-//      title: title,
-//      latLng: latlng,
-//      address: address,
-//      poiId: poiId,
-//    );
-//    _enablePublishButton =
-//        _poi != null && !StringUtil.isEmpty(_contentController.text);
-//    setState(() {});
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
+    if (purchaseInfo.bankInfo == null) {
+      _isLoaded = true;
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _purchaseInfo = purchaseInfo;
+    if (purchaseInfo.myWallet.change < _purchse_amount) {
+      _label = '余额不足，请到钱包中充值';
+      _isLoaded = true;
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+    _canPublish = true;
+    _isLoaded = true;
+    if (mounted) {
+      setState(() {});
+    }
   }
-  Future<void>_publishMessage()async{
+
+  Future<void> _publishMessage() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
     var location = jsonEncode(_poi.latLng.toJson());
 
-    ///纹银价格从app的更新管理中心或消息中心获取
-    double wy = 38388.38827772;
     var images = shower_key.currentState.files;
-    IGeosphereMessageService geoMessageService = widget
-        .context.site
-        .getService('/geosphere/receptor/messages');
-    IGeosphereMediaService mediaService = widget.context.site
-        .getService('/geosphere/receptor/messages/medias');
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    IGeosphereMediaService mediaService =
+        widget.context.site.getService('/geosphere/receptor/messages/medias');
     var msgid = MD5Util.MD5(Uuid().v1());
+
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    var purchaseOR = await purchaserRemote.doPurchase(
+        _purchaseInfo.bankInfo.id,
+        _purchse_amount,
+        'netflow',
+        '${user.person}/$msgid',
+        '在地理感知器${_receptorObj.title}');
+
     await geoMessageService.addMessage(
       GeosphereMessageOL(
         msgid,
@@ -126,7 +144,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         null,
         'sended',
         content,
-        wy,
+        purchaseOR.sn,
         location,
         _category,
         widget.context.principal.person,
@@ -160,6 +178,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
     widget.context.backward(result: msgid);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,7 +201,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
           FlatButton(
             onPressed: !_enablePublishButton
                 ? null
-                : ()  {
+                : () {
                     _publishMessage();
                   },
             child: Container(
@@ -488,7 +507,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                         Flexible(
                                           fit: FlexFit.loose,
                                           child: Text(
-                                            '需要至少现值¥1.00元的纹银',
+                                            '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
                                             style: TextStyle(
                                               color: Colors.grey,
                                               fontSize: 12,
@@ -515,8 +534,24 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                         ),
                       ),
                       behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        widget.context.forward('/channel/article/buywy');
+                      onTap: StringUtil.isEmpty(_districtCode)
+                          ? null
+                          : () async {
+                        widget.context.forward('/channel/article/buywy',
+                            arguments: {
+                              'purchaseInfo': _purchaseInfo,
+                              'purchaseAmount': _purchse_amount
+                            }).then((value) {
+                          if (value == null) {
+                            return;
+                          }
+                          _purchse_amount = value;
+                          _label =
+                          '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       },
                     ),
                     Divider(
@@ -528,9 +563,9 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                       onTap: () {
                         widget.context.forward('/geosphere/amap/near',
                             arguments: {'poi': _poi}).then((result) {
-                              if(result==null) {
-                                return;
-                              }
+                          if (result == null) {
+                            return;
+                          }
                           _poi = (result as Map)['poi'];
                           setState(() {});
                         });
@@ -670,9 +705,12 @@ class _MediaShowerState extends State<_MediaShower> {
               );
               break;
             case MediaFileType.video:
-              mediaRegion = SizedBox(width: 150,child: VideoView(
-                src: mediaFile.src,
-              ),);
+              mediaRegion = AspectRatio(
+                aspectRatio: 16/9,
+                child: VideoView(
+                  src: mediaFile.src,
+                ),
+              );
               break;
             case MediaFileType.audio:
               mediaRegion = Container(

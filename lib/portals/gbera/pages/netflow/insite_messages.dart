@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 
 import 'message_views.dart';
@@ -143,7 +145,18 @@ class _MessagesRegionState extends State<_MessagesRegion> {
 //    }
 //    super.didUpdateWidget(oldWidget);
 //  }
-
+  Future<PurchaseOR> _getPurchase(msg) async {
+    var sn = msg.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    int pos = sn.lastIndexOf('/');
+    String owner = sn.substring(0, pos);
+    String record_sn = sn.substring(pos + 1);
+    return await purchaserRemote.getPurchaseRecord(owner, record_sn);
+  }
   Future<void> _onLoadMessages() async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
@@ -168,11 +181,12 @@ class _MessagesRegionState extends State<_MessagesRegion> {
               dayFormat: DayFormat.Simple)
           .toString();
       var channel = await channelService.getChannel(msg.upstreamChannel);
+      var purchaseOR =await _getPurchase(msg);
       var view = MessageView(
         who: person.nickName,
         channel: channel?.name,
         content: msg.digests,
-        money: (msg.wy ?? 0).toStringAsFixed(2),
+        money: ((purchaseOR.principalAmount ?? 0.0) / 100.00).toStringAsFixed(2),
         time: timeText,
         picCount: 0,
         onTap: () {

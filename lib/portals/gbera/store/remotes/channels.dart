@@ -619,7 +619,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       return null;
     }
     return ChannelMessageOR(
-      wy: obj['wy'],
+      purchaseSn: obj['purchaseSn'],
       location:
           obj['location'] == null ? null : LatLng.fromJson(obj['location']),
       id: obj['id'],

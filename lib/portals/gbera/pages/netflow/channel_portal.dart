@@ -13,6 +13,8 @@ import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -122,7 +124,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
                 'http://47.105.165.186:7100/public/market/aab308de346c6d2544304fd8ce9eab45.jpg?accessToken=${widget.context.principal.accessToken}',
               ),
               onRenderAppBar: (d, state) {
-                if (state==RenderStateAppBar.showAppBar) {
+                if (state == RenderStateAppBar.showAppBar) {
                   d.title = Text(
                     '${_channel.name}',
                     style: TextStyle(color: Colors.black87),
@@ -314,12 +316,18 @@ class __MessageCardState extends State<_MessageCard> {
   Future<Person> _future_getPerson;
   Future<List<MediaSrc>> _future_getMedias;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
+  PurchaseOR _purchaseOR;
 
   @override
   void initState() {
     _future_getPerson = _getPerson();
     _future_getMedias = _getMedias();
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
+    _load().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -329,6 +337,20 @@ class __MessageCardState extends State<_MessageCard> {
     _future_getMedias = null;
     _interactiveRegionRefreshAdapter = null;
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    _purchaseOR = await _getPurchase();
+  }
+
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = widget.message.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
   }
 
   Future<Person> _findPerson(String person) async {
@@ -472,7 +494,7 @@ class __MessageCardState extends State<_MessageCard> {
                         length: snapshot.data.length,
                         child: PageSelector(
                           medias: snapshot.data,
-                          onMediaLongTap: (media,index) {
+                          onMediaLongTap: (media, index) {
                             widget.context.forward(
                               '/images/viewer',
                               arguments: {
@@ -523,7 +545,7 @@ class __MessageCardState extends State<_MessageCard> {
                                     TextSpan(text: '  '),
                                     TextSpan(
                                         text:
-                                            '¥${(widget.message.wy * 0.001).toStringAsFixed(2)}'),
+                                            '¥${((_purchaseOR?.purchAmount ?? 0.00) / 100.00).toStringAsFixed(2)}'),
                                     TextSpan(text: '\r\n'),
                                     TextSpan(
                                       text:
@@ -613,7 +635,7 @@ class __MessageCardState extends State<_MessageCard> {
   Future<List<MediaSrc>> _getMedias() async {
     IChannelMediaService channelMediaService =
         widget.context.site.getService('/channel/messages/medias');
-    var medias= await channelMediaService.getMedias(widget.message.id);
+    var medias = await channelMediaService.getMedias(widget.message.id);
     List<MediaSrc> list = [];
     for (var media in medias) {
       list.add(media.toMediaSrc());
@@ -1226,7 +1248,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   _deleteComment(ChannelComment comment) async {
     IChannelCommentService commentService =
         widget.context.site.getService('/channel/messages/comments');
-    await commentService.removeComment(comment.msgid,comment.id);
+    await commentService.removeComment(comment.msgid, comment.id);
   }
 }
 

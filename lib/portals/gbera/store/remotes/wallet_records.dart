@@ -17,7 +17,10 @@ class PurchaseOR {
   double principalRatio;
   String bankPurchSn;
   int exchangeState;
-
+  String outTradeSn;
+  String outTradeType;
+  String person;
+  String personName;
   PurchaseOR({
     this.sn,
     this.purchAmount,
@@ -35,6 +38,10 @@ class PurchaseOR {
     this.principalRatio,
     this.bankPurchSn,
     this.exchangeState,
+    this.outTradeSn,
+    this.outTradeType,
+    this.person,
+    this.personName,
   });
 }
 
@@ -611,6 +618,9 @@ mixin IWalletRecordRemote {
 
   Future<PurchaseOR> getPurchaseRecord(String refPurchase) {}
 
+  Future<PurchaseOR> getPurchaseRecordOfPerson(
+      String person, String record_sn) {}
+
   Future<RechargeOR> getRechargeRecord(String refsn) {}
 
   Future<List<RechargeActivityOR>> getRechargeActivies(String sn) {}
@@ -749,6 +759,10 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           serviceFee: obj['serviceFee'],
           sn: obj['sn'],
           status: obj['status'],
+          outTradeSn: obj['outTradeSn'],
+          outTradeType: obj['outTradeType'],
+          person: obj['person'],
+          personName: obj['personName'],
         ),
       );
     }
@@ -787,6 +801,10 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           serviceFee: obj['serviceFee'],
           sn: obj['sn'],
           status: obj['status'],
+          outTradeSn: obj['outTradeSn'],
+          outTradeType: obj['outTradeType'],
+          person: obj['person'],
+          personName: obj['personName'],
         ),
       );
     }
@@ -825,6 +843,10 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           serviceFee: obj['serviceFee'],
           sn: obj['sn'],
           status: obj['status'],
+          outTradeSn: obj['outTradeSn'],
+          outTradeType: obj['outTradeType'],
+          person: obj['person'],
+          personName: obj['personName'],
         ),
       );
     }
@@ -897,6 +919,48 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       serviceFee: obj['serviceFee'],
       sn: obj['sn'],
       status: obj['status'],
+      outTradeSn: obj['outTradeSn'],
+      outTradeType: obj['outTradeType'],
+      person: obj['person'],
+      personName: obj['personName'],
+    );
+  }
+
+  @override
+  Future<PurchaseOR> getPurchaseRecordOfPerson(
+      String person, String record_sn) async {
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getPurchaseRecordOfPerson',
+      parameters: {
+        'person': person,
+        'record_sn': record_sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return PurchaseOR(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      stock: obj['stock'],
+      message: obj['message'],
+      bankid: obj['bankid'],
+      bankPurchSn: obj['bankPurchSn'],
+      exchangeState: obj['exchangeState'],
+      feeRatio: obj['feeRatio'],
+      note: obj['note'],
+      price: obj['price'],
+      principalAmount: obj['principalAmount'],
+      principalRatio: obj['principalRatio'],
+      purchAmount: obj['purchAmount'],
+      serviceFee: obj['serviceFee'],
+      sn: obj['sn'],
+      status: obj['status'],
+      outTradeSn: obj['outTradeSn'],
+      outTradeType: obj['outTradeType'],
+      person: obj['person'],
+      personName: obj['personName'],
     );
   }
 

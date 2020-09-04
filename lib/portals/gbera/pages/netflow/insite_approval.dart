@@ -7,6 +7,8 @@ import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -32,7 +34,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   bool _disabled__check_receive_to_channel = false;
   bool _disabled__check_rejectAllMessages = false;
   bool _disabled__check_rejectChannelMessages = false;
-
+  PurchaseOR _purchaseOR;
   @override
   void initState() {
     _message = widget.context.page.parameters['message'];
@@ -62,7 +64,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
           break;
       }
       _creator = await personService.getPerson(_message.creator);
-
+      _purchaseOR=await _getPurchase();
       IChannelPinService pinService =
           widget.context.site.getService('/channel/pin');
       var iperson =
@@ -85,7 +87,15 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     _person = null;
     super.dispose();
   }
-
+  Future<PurchaseOR> _getPurchase() async {
+    var sn = _message.purchaseSn;
+    if (StringUtil.isEmpty(sn)) {
+      return null;
+    }
+    IWyBankPurchaserRemote purchaserRemote =
+    widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecord(_message.creator, sn);
+  }
   Future<void> addPersonToLocal() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -390,8 +400,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                     text: '洇金:¥',
                                     children: [
                                       TextSpan(
-                                          text: (_message.wy * 0.001)
-                                              .toStringAsFixed(2)),
+                                          text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
                                     ],
                                   )
                                 ],

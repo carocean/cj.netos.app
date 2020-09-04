@@ -93,14 +93,22 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
 
-    ///纹银价格从app的更新管理中心或消息中心获取
-    double wy = 38388.38827772;
     var images = shower_key.currentState.files;
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
     IChannelMediaService channelMediaService =
         widget.context.site.getService('/channel/messages/medias');
     var msgid = MD5Util.MD5('${Uuid().v1()}');
+
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseOR = await purchaserRemote.doPurchase(
+        _purchaseInfo.bankInfo.id,
+        _purchse_amount,
+        'netflow',
+        '${user.person}/$msgid',
+        '在管道${_channel.name}');
+
     await channelMessageService.addMessage(
       ChannelMessage(
         msgid,
@@ -115,11 +123,12 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         null,
         'sended',
         content,
-        wy,
+        purchaseOR.sn,
         null,
         widget.context.principal.person,
       ),
     );
+
     for (MediaFile file in images) {
       var type = 'image';
       switch (file.type) {
@@ -155,7 +164,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'creator': user.person,
       'content': content,
       'Location': null,
-      'wy': 10.00,
+      'purchaseSn':purchaseOR.sn,
     };
     var portsUrl =
         widget.context.site.getService('@.prop.ports.document.network.channel');
@@ -621,8 +630,11 @@ class _MediaShowerState extends State<_MediaShower> {
               );
               break;
             case MediaFileType.video:
-              mediaRegion = VideoView(
-                src: mediaFile.src,
+              mediaRegion = AspectRatio(
+                aspectRatio: 16/9,
+                child: VideoView(
+                  src: mediaFile.src,
+                ),
               );
               break;
             case MediaFileType.audio:

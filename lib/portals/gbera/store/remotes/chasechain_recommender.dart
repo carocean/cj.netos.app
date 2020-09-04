@@ -140,7 +140,7 @@ class RecommenderMessageOR {
   int layout;
   LatLng location;
   int ctime;
-  double wy;
+  String purchaseSn;
 
   RecommenderMessageOR({
     this.id,
@@ -152,7 +152,7 @@ class RecommenderMessageOR {
     this.layout,
     this.location,
     this.ctime,
-    this.wy,
+    this.purchaseSn,
   });
 
   static load(RecommenderMessageOL msg) {
@@ -161,7 +161,7 @@ class RecommenderMessageOR {
       id: msg.id,
       type: msg.type,
       item: msg.item,
-      wy: msg.wy,
+      purchaseSn: msg.purchaseSn,
       content: msg.content,
       location: !StringUtil.isEmpty(msg.location)
           ? LatLng.fromJson(jsonDecode(msg.location))
@@ -184,7 +184,7 @@ class RecommenderMessageOR {
         location == null ? null : jsonEncode(location.toJson()),
         ctime,
         atime,
-        wy,
+        purchaseSn,
         sandbox);
   }
 }
@@ -863,7 +863,7 @@ class ChasechainRecommenderRemote
         content: message.content,
         inbox: message.channel,
         item: contentItem.id,
-        wy: message.wy,
+        purchaseSn: message.purchaseSn,
         type: 'netflow',
       );
     }
@@ -879,7 +879,7 @@ class ChasechainRecommenderRemote
       content: message.text,
       inbox: message.receptor,
       item: contentItem.id,
-      wy: message.wy,
+      purchaseSn: message.purchaseSn,
       type: 'geosphere',
     );
   }

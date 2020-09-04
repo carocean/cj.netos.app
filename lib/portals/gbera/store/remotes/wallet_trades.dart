@@ -1,3 +1,4 @@
+import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 
@@ -130,7 +131,8 @@ class P2PEvidence {
       this.expire,
       this.useTimes});
 }
-class PayChannel{
+
+class PayChannel {
   String code;
   String channelName;
   String url;
@@ -140,7 +142,8 @@ class PayChannel{
   PayChannel(
       {this.code, this.channelName, this.url, this.limitAmount, this.note});
 }
-class P2PResultOR{
+
+class P2PResultOR {
   String sn;
   String payer;
   String payee;
@@ -149,6 +152,7 @@ class P2PResultOR{
 
   P2PResultOR({this.sn, this.payer, this.payee, this.status, this.message});
 }
+
 mixin IWalletTradeRemote {
   Future<ExchangeResult> exchange(String sn) {}
 
@@ -170,6 +174,8 @@ mixin IWalletTradeRemote {
       String evidence, int amount, int type, String note);
 
   Future<P2PEvidence> checkEvidence(String evidence) {}
+
+  Future<PurchaseOR> purchaseWeny(String bank, int amount,String outTradeType,String outTradeSn, String note) {}
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -406,6 +412,44 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
       expire: obj['expire'],
       principal: obj['principal'],
       useTimes: obj['useTimes'],
+    );
+  }
+
+  @override
+  Future<PurchaseOR> purchaseWeny(String bank, int amount,String outTradeType,String outTradeSn, String note) async{
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'purchaseWeny',
+      parameters: {
+        'wenyBankID': bank,
+        'amount':amount,
+        'outTradeType':outTradeType,
+        'outTradeSn':outTradeSn,
+        'note':note,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return PurchaseOR(
+      ctime: obj['ctime'],
+      state: obj['state'],
+      stock: obj['stock'],
+      message: obj['message'],
+      bankid: obj['bankid'],
+      bankPurchSn: obj['bankPurchSn'],
+      exchangeState: obj['exchangeState'],
+      feeRatio: obj['feeRatio'],
+      note: obj['note'],
+      price: obj['price'],
+      principalAmount: obj['principalAmount'],
+      principalRatio: obj['principalRatio'],
+      purchAmount: obj['purchAmount'],
+      serviceFee: obj['serviceFee'],
+      sn: obj['sn'],
+      status: obj['status'],
+      outTradeSn: obj['outTradeSn'],
+      outTradeType: obj['outTradeType'],
     );
   }
 }

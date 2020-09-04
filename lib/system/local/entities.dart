@@ -117,7 +117,7 @@ class InsiteMessage {
   final int ctime;
   final int atime;
   final String digests;
-  final double wy;
+  final String purchaseSn;
   final String location;
   final String sandbox;
 
@@ -132,7 +132,7 @@ class InsiteMessage {
     this.ctime,
     this.atime,
     this.digests,
-    this.wy,
+    this.purchaseSn,
     this.location,
     this.sandbox,
   );
@@ -151,7 +151,7 @@ class InsiteMessage {
       null,
       null,
       digests,
-      wy,
+      purchaseSn,
       location,
       sandbox,
     );
@@ -173,7 +173,7 @@ class ChannelMessage {
   int dtime;
   String state;
   final String text;
-  final double wy;
+  final String purchaseSn;
   final String location;
   final String sandbox;
 
@@ -190,7 +190,7 @@ class ChannelMessage {
     this.dtime,
     this.state,
     this.text,
-    this.wy,
+    this.purchaseSn,
     this.location,
     this.sandbox,
   );
@@ -207,7 +207,7 @@ class ChannelMessage {
       ctime,
       atime,
       text,
-      wy,
+      purchaseSn,
       location,
       sandbox,
     );
@@ -741,7 +741,7 @@ class GeosphereMessageOL {
   int dtime;
   String state;
   String text;
-  double wy;
+  String purchaseSn;
 
   ///location是LatLng对象
   String location;
@@ -764,7 +764,7 @@ class GeosphereMessageOL {
       this.dtime,
       this.state,
       this.text,
-      this.wy,
+      this.purchaseSn,
       this.location,
       this.category,
       this.sandbox);
@@ -785,7 +785,7 @@ class GeosphereMessageOL {
     dtime = map['dtime'];
     state = map['state'];
     text = map['text'];
-    wy = map['wy'];
+    purchaseSn = map['purchaseSn'];
     location = jsonEncode(map['location']);
     category = map['category'];
     this.sandbox = sandbox;
@@ -938,7 +938,7 @@ class RecommenderMessageOL {
   String location;
   int ctime;
   int atime; //添加到本地列表时间
-  double wy;
+  String purchaseSn;
   String sandbox;
 
   RecommenderMessageOL(
@@ -952,7 +952,7 @@ class RecommenderMessageOL {
     this.location,
     this.ctime,
     this.atime,
-    this.wy,
+    this.purchaseSn,
     this.sandbox,
   );
 }

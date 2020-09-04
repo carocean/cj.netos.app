@@ -26,6 +26,9 @@ import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -139,12 +142,19 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
     for (GeosphereMediaOL mediaOL in medias) {
       _medias.add(mediaOL.toMedia());
     }
+
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseOR = await purchaserRemote.getPurchaseRecord(
+        message.creator, message.purchaseSn);
+
     wrappers.add(
       _GeosphereMessageWrapper(
         creator: creator,
         medias: _medias,
         message: message,
         upstreamPerson: upstreamPerson,
+        purchaseOR: purchaseOR,
       ),
     );
   }
@@ -272,7 +282,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
     bool showTitle = true,
   }) {
     appBar.title = Text(
-       _receptorInfo.title,
+      _receptorInfo.title,
       style: TextStyle(
         color: null,
       ),
@@ -351,8 +361,24 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
                         children: [
                           TextSpan(text: '  '),
                           TextSpan(
-                              text:
-                                  '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
+                            text:
+                                '¥${((msg.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                IWyBankPurchaserRemote purchaserRemote = widget
+                                    .context.site
+                                    .getService('/remote/purchaser');
+                                WenyBank bank = await purchaserRemote
+                                    .getWenyBank(msg.purchaseOR.bankid);
+                                widget.context.forward(
+                                  '/wybank/purchase/details',
+                                  arguments: {
+                                    'purch': msg.purchaseOR,
+                                    'bank': bank
+                                  },
+                                );
+                              },
+                          ),
                         ],
                       ),
                     ),
@@ -630,10 +656,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     IGeoReceptorRemote receptorRemote =
-    widget.context.site.getService('/remote/geo/receptors');
+        widget.context.site.getService('/remote/geo/receptors');
     var exists = await receptorService.existsLocal(
         widget.receptorInfo.category, widget.receptorInfo.id);
-    _followCount=await receptorRemote.countReceptorFans(widget.receptorInfo.category, widget.receptorInfo.id);
+    _followCount = await receptorRemote.countReceptorFans(
+        widget.receptorInfo.category, widget.receptorInfo.id);
     _isFollowed = exists;
     _followLabel = exists ? '不再关注' : '关注';
   }
@@ -1114,7 +1141,7 @@ class __MessageCardState extends State<_MessageCard> {
                     length: widget.messageWrapper.medias.length,
                     child: PageSelector(
                       medias: widget.messageWrapper.medias,
-                      onMediaLongTap: (media,index) {
+                      onMediaLongTap: (media, index) {
                         widget.context.forward(
                           '/images/viewer',
                           arguments: {
@@ -1642,7 +1669,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
                         comment.ctime,
-                      locale: 'zh',
+                        locale: 'zh',
                         dayFormat: DayFormat.Simple,
                       ) : ''}\t',
                     style: TextStyle(
@@ -1807,6 +1834,7 @@ class _GeosphereMessageWrapper {
   Person upstreamPerson;
   String _distanceLabel;
   AmapPoi poi;
+  PurchaseOR purchaseOR;
 
   _GeosphereMessageWrapper({
     this.message,
@@ -1814,6 +1842,7 @@ class _GeosphereMessageWrapper {
     this.creator,
     this.upstreamPerson,
     this.poi,
+    this.purchaseOR,
   });
 
   Person get sender {

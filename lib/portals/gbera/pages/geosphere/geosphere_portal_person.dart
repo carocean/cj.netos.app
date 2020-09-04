@@ -23,6 +23,9 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -131,12 +134,19 @@ class _GeospherePortalOfPersonState extends State<GeospherePortalOfPerson> {
     for (GeosphereMediaOL mediaOL in medias) {
       _medias.add(mediaOL.toMedia());
     }
+
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseOR = await purchaserRemote.getPurchaseRecord(
+        message.creator, message.purchaseSn);
+
     wrappers.add(
       _GeosphereMessageWrapper(
         creator: creator,
         medias: _medias,
         message: message,
         upstreamPerson: upstreamPerson,
+        purchaseOR: purchaseOR,
       ),
     );
   }
@@ -335,8 +345,24 @@ class _GeospherePortalOfPersonState extends State<GeospherePortalOfPerson> {
                         children: [
                           TextSpan(text: '  '),
                           TextSpan(
-                              text:
-                                  '¥${(msg.message.wy * 0.001).toStringAsFixed(2)}'),
+                            text:
+                                '¥${((msg.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                IWyBankPurchaserRemote purchaserRemote = widget
+                                    .context.site
+                                    .getService('/remote/purchaser');
+                                WenyBank bank = await purchaserRemote
+                                    .getWenyBank(msg.purchaseOR.bankid);
+                                widget.context.forward(
+                                  '/wybank/purchase/details',
+                                  arguments: {
+                                    'purch': msg.purchaseOR,
+                                    'bank': bank
+                                  },
+                                );
+                              },
+                          ),
                         ],
                       ),
                     ),
@@ -746,7 +772,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 widget.person.nickName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
-                                  color: widget.receptorInfo.backgroundMode == BackgroundMode.vertical?Colors.white:Colors.black,
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white
+                                      : Colors.black,
                                 ),
                               ),
                             ),
@@ -761,7 +790,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                     ? '圈主'
                                     : '粉丝',
                                 style: TextStyle(
-                                  color: widget.receptorInfo.backgroundMode == BackgroundMode.vertical?Colors.white: Colors.grey[500],
+                                  color: widget.receptorInfo.backgroundMode ==
+                                          BackgroundMode.vertical
+                                      ? Colors.white
+                                      : Colors.grey[500],
                                   fontSize: 12,
                                 ),
                               ),
@@ -908,7 +940,7 @@ class __MessageCardState extends State<_MessageCard> {
                     length: widget.messageWrapper.medias.length,
                     child: PageSelector(
                       medias: widget.messageWrapper.medias,
-                      onMediaLongTap: (media,index) {
+                      onMediaLongTap: (media, index) {
                         widget.context.forward(
                           '/images/viewer',
                           arguments: {
@@ -1437,7 +1469,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                   TextSpan(
                     text: '\t${comment.ctime != null ? TimelineUtil.format(
                         comment.ctime,
-                      locale: 'zh',
+                        locale: 'zh',
                         dayFormat: DayFormat.Simple,
                       ) : ''}\t',
                     style: TextStyle(
@@ -1602,6 +1634,7 @@ class _GeosphereMessageWrapper {
   Person upstreamPerson;
   String _distanceLabel;
   AmapPoi poi;
+  PurchaseOR purchaseOR;
 
   _GeosphereMessageWrapper({
     this.message,
@@ -1609,6 +1642,7 @@ class _GeosphereMessageWrapper {
     this.creator,
     this.upstreamPerson,
     this.poi,
+    this.purchaseOR,
   });
 
   Person get sender {

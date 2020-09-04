@@ -59,7 +59,7 @@ class GeoPOD {
       receptor: doc['receptor'],
       text: doc['text'],
       location: LatLng.fromJson(doc['location']),
-      wy: doc['wy'],
+      purchaseSn: doc['purchaseSn'],
       atime: doc['atime'],
       dtime: doc['dtime'],
       rtime: doc['rtime'],

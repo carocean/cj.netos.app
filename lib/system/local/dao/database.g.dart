@@ -138,9 +138,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -168,7 +168,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `wy` REAL, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `receptor`, `category`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `receptor`, `category`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereLikePersonOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -178,7 +178,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ContentItemOL` (`id` TEXT, `sandbox` TEXT, `box` TEXT, `location` TEXT, `upstreamPool` TEXT, `ctime` INTEGER, `atime` INTEGER, `pool` TEXT, `isBubbled` INTEGER, `pointerId` TEXT, `pointerType` TEXT, `pointerCreator` TEXT, `pointerCtime` INTEGER, PRIMARY KEY (`id`, `sandbox`, `box`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RecommenderMessageOL` (`id` TEXT, `item` TEXT, `type` TEXT, `creator` TEXT, `content` TEXT, `inbox` TEXT, `layout` INTEGER, `location` TEXT, `ctime` INTEGER, `atime` INTEGER, `wy` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `item`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `RecommenderMessageOL` (`id` TEXT, `item` TEXT, `type` TEXT, `creator` TEXT, `content` TEXT, `inbox` TEXT, `layout` INTEGER, `location` TEXT, `ctime` INTEGER, `atime` INTEGER, `purchaseSn` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `item`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RecommenderMediaOL` (`id` TEXT, `docid` TEXT, `type` TEXT, `src` TEXT, `text` TEXT, `leading` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `docid`, `sandbox`))');
         await database.execute(
@@ -380,7 +380,7 @@ class _$IRecommenderDAO extends IRecommenderDAO {
                   'location': item.location,
                   'ctime': item.ctime,
                   'atime': item.atime,
-                  'wy': item.wy,
+                  'purchaseSn': item.purchaseSn,
                   'sandbox': item.sandbox
                 }),
         _recommenderMediaOLInsertionAdapter = InsertionAdapter(
@@ -434,7 +434,7 @@ class _$IRecommenderDAO extends IRecommenderDAO {
           row['location'] as String,
           row['ctime'] as int,
           row['atime'] as int,
-          row['wy'] as double,
+          row['purchaseSn'] as String,
           row['sandbox'] as String);
 
   static final _recommenderMediaOLMapper = (Map<String, dynamic> row) =>
@@ -577,7 +577,7 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
                   'dtime': item.dtime,
                   'state': item.state,
                   'text': item.text,
-                  'wy': item.wy,
+                  'purchaseSn': item.purchaseSn,
                   'location': item.location,
                   'category': item.category,
                   'sandbox': item.sandbox
@@ -633,7 +633,7 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
           row['dtime'] as int,
           row['state'] as String,
           row['text'] as String,
-          row['wy'] as double,
+          row['purchaseSn'] as String,
           row['location'] as String,
           row['category'] as String,
           row['sandbox'] as String);
@@ -1648,7 +1648,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
                   'ctime': item.ctime,
                   'atime': item.atime,
                   'digests': item.digests,
-                  'wy': item.wy,
+                  'purchaseSn': item.purchaseSn,
                   'location': item.location,
                   'sandbox': item.sandbox
                 });
@@ -1671,7 +1671,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
           row['ctime'] as int,
           row['atime'] as int,
           row['digests'] as String,
-          row['wy'] as double,
+          row['purchaseSn'] as String,
           row['location'] as String,
           row['sandbox'] as String);
 
@@ -1785,7 +1785,7 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
                   'dtime': item.dtime,
                   'state': item.state,
                   'text': item.text,
-                  'wy': item.wy,
+                  'purchaseSn': item.purchaseSn,
                   'location': item.location,
                   'sandbox': item.sandbox
                 });
@@ -1810,7 +1810,7 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
           row['dtime'] as int,
           row['state'] as String,
           row['text'] as String,
-          row['wy'] as double,
+          row['purchaseSn'] as String,
           row['location'] as String,
           row['sandbox'] as String);
 
