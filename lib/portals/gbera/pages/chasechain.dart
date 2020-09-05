@@ -1,3 +1,4 @@
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -28,27 +29,20 @@ class _ChasechainState extends State<Chasechain> {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _load();
-    geoLocation.start();
-    geoLocation.listen('/chasechain', 0, (location) async {
+    () async {
+      var location=await AmapLocation.fetchLocation();
       var latLng = await location.latLng;
       var recode = await AmapSearch.searchReGeocode(latLng, radius: 0);
       _towncode = await recode.townCode;
-      geoLocation.unlisten('/chasechain');
-      if (mounted) {
-        setState(() {});
-      }
-
+      await _load();
       await _onRefresh();
-    });
-
+    }();
     super.initState();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
-    geoLocation.unlisten('/chasechain');
 //    geoLocation.stop();
     super.dispose();
   }
@@ -113,10 +107,14 @@ class _ChasechainState extends State<Chasechain> {
                 onSelected: (value) async {
                   switch (value) {
                     case 'pools':
-                      widget.context.forward('/chasechain/traffic/pools',arguments: {'towncode':_towncode,});
+                      widget.context
+                          .forward('/chasechain/traffic/pools', arguments: {
+                        'towncode': _towncode,
+                      });
                       break;
                     case 'profiles':
-                      widget.context.forward('/chasechain/recommender/profile',arguments: {});
+                      widget.context.forward('/chasechain/recommender/profile',
+                          arguments: {});
                       break;
                     default:
                       print('不支持的菜单');
