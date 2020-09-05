@@ -673,7 +673,7 @@ class _MediaShowerState extends State<_MediaShower> {
   }
 
   _MediaShowerState(initialMediaFile) {
-    if (initialMediaFile != null && initialMediaFile._src != null) {
+    if (initialMediaFile != null && initialMediaFile.src != null) {
       files.add(initialMediaFile);
     }
   }

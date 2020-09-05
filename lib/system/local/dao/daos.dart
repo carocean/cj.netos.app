@@ -719,7 +719,7 @@ abstract class IGeosphereMessageDAO {
       String receptor, String sandbox, int limit, int offset) {}
 
   @Query(
-      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and upstreamCategory=:category and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
+      'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and category=:category and sandbox=:sandbox ORDER BY ctime DESC, atime DESC  LIMIT :limit OFFSET :offset')
   Future<List<GeosphereMessageOL>> pageFilterMessage(
       String receptor, String category, String person, int limit, int offset) {}
 
