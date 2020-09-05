@@ -4,10 +4,15 @@ import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class PurchaseDetails extends StatefulWidget {
   PageContext context;
@@ -24,20 +29,22 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
   Timer _timer;
   PurchaseOR _purch;
   WenyBank _bank;
+  String _publishSn;
+  Person _publisher;
+  String _messageDigest;
 
   @override
   void initState() {
     _purch = widget.context.parameters['purch'];
     _bank = widget.context.parameters['bank'];
     _exchangeState = _purch.exchangeState;
-    if (mounted) {
-      setState(() {});
-    }
-    _loadActivities().then((v) {
+    () async {
+      await _loadPurchaseService();
+      await _loadActivities();
       if (mounted) {
         setState(() {});
       }
-    });
+    }();
     super.initState();
   }
 
@@ -46,6 +53,44 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
     _timer?.cancel();
     _purchaseActivities?.clear();
     super.dispose();
+  }
+
+  Future<void> _loadPurchaseService() async {
+    var outTradeSn = _purch.outTradeSn;
+    if (StringUtil.isEmpty(outTradeSn)) {
+      return;
+    }
+    var outTradeType = _purch.outTradeType;
+    int pos = outTradeSn.indexOf('/'); //分类或者公众/单号
+    String sn;
+    String who;
+    who = outTradeSn.substring(0, pos);
+    sn = outTradeSn.substring(pos + 1);
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+
+    _publishSn = sn;
+    switch (outTradeType) {
+      case 'netflow':
+        _publisher = await personService.getPerson(who);
+        IChannelRemote channelRemote =
+            widget.context.site.getService('/remote/channels');
+        var channelMsg = await channelRemote.getMessage(who, sn);
+        _messageDigest = channelMsg?.content;
+        break;
+      case 'receptor':
+        IGeoReceptorRemote receptorRemote =
+            widget.context.site.getService('/remote/geo/receptors');
+        var receptorMsg = await receptorRemote.getMessage(who, sn);
+        _messageDigest = receptorMsg?.text;
+        if(receptorMsg!=null) {
+          _publisher = await personService.getPerson(receptorMsg.creator);
+        }
+        break;
+      default:
+        print('不认识的申购服务类型:$outTradeType');
+        break;
+    }
   }
 
   Future<void> _loadActivities() async {
@@ -217,6 +262,152 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
               top: 10,
               bottom: 10,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '认购服务:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 70,
+                  ),
+                  child: Stack(
+                    overflow: Overflow.visible,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          top: 15,
+                          right: 10,
+                          bottom: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          border: Border.all(
+                            color: Colors.grey[200],
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '单号',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    '${_publishSn ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '发布者',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    '${_publisher?.nickName ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '内容摘要',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    '${_messageDigest ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        left: 8,
+                        top: -10,
+                        child: Container(
+                          color: Colors.white,
+                          child: Text(
+                            '${_purch.outTradeType == 'netflow' ? '网流消息' : '地理感知器消息'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -375,7 +566,8 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                           '¥${((purch.principalAmount ?? 0) / 100.00).toStringAsFixed(2)}',
                       children: [
                         TextSpan(
-                          text: ' (在${purch.personName}的冻结账户余额中，成功承兑后自动解冻并转入${purch.personName}的收益金账户中)',
+                          text:
+                              ' (在${purch.personName}的冻结账户余额中，成功承兑后自动解冻并转入${purch.personName}的收益金账户中)',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[500],
@@ -597,7 +789,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                             right: 0,
                             bottom: 0,
                             child: Text(
-                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime),locale: 'zh', dayFormat: DayFormat.Full)}',
+                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime), locale: 'zh', dayFormat: DayFormat.Full)}',
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 12,

@@ -123,8 +123,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     var purchaseOR = await purchaserRemote.doPurchase(
         _purchaseInfo.bankInfo.id,
         _purchse_amount,
-        'netflow',
-        '${user.person}/$msgid',
+        'receptor',
+        '${_receptorObj.category}/$msgid',
         '在地理感知器${_receptorObj.title}');
 
     await geoMessageService.addMessage(
