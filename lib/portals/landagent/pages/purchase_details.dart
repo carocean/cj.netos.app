@@ -72,8 +72,11 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
   }
 
   Widget _AmountCard(PurchaseOR purch, BankInfo bank) {
-    if(purch==null) {
-      return SizedBox(width: 0,height: 0,);
+    if (purch == null) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
     }
     return Container(
       margin: EdgeInsets.only(
@@ -99,7 +102,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
           ),
           Center(
             child: Text(
-              '¥${(_purch.amount/100.00).toStringAsFixed(2)}',
+              '¥${(_purch.amount / 100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 25,
@@ -233,8 +236,8 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                       color: purch.stock * _nowPrice > purch.amount
                           ? Colors.red
                           : purch.stock * _nowPrice == purch.amount
-                          ? null
-                          : Colors.green,
+                              ? null
+                              : Colors.green,
                     ),
                   ),
                 ),
@@ -263,8 +266,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                      '${purch.purchaser}(${purch.personName})'),
+                  child: Text('${purch.purchaser}(${purch.personName})'),
                 ),
               ],
             ),
@@ -296,7 +298,6 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
               ],
             ),
           ),
-
           Padding(
             padding: EdgeInsets.only(
               left: 40,
@@ -340,7 +341,7 @@ class _LAPurchaseDetailsState extends State<LAPurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '冻结金额:',
+                    '冻结本金:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),

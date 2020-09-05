@@ -256,7 +256,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                             ),
                             Text.rich(
                               TextSpan(
-                                text: '冻结金额: ',
+                                text: '冻结本金: ',
                                 children: [
                                   TextSpan(
                                     text:

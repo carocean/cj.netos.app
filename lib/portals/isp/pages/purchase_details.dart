@@ -340,7 +340,7 @@ class _IspPurchaseDetailsState extends State<IspPurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '冻结金额:',
+                    '冻结本金:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),

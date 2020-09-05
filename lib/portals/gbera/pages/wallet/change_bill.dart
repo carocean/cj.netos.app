@@ -101,6 +101,20 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'purch': purch, 'bank': bank},
         );
         break;
+      case 9: //承兑
+        var exchange = await recordRemote.getExchangeRecord(bill.refsn);
+        var bank;
+        for (var b in _wallet.banks) {
+          if (b.bank == exchange.bankid) {
+            bank = b;
+            break;
+          }
+        }
+        widget.context.forward(
+          '/wybank/exchange/details',
+          arguments: {'exchange': exchange, 'bank': bank},
+        );
+        break;
       case 10: //洇金
         var absorb = await recordRemote.getTransAbsorb(bill.refsn);
         widget.context.forward(

@@ -352,6 +352,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                 Expanded(
                   child: Text('${TimelineUtil.formatByDateTime(
                     parseStrTime(exchange.ctime),
+                    locale: 'zh',
                     dayFormat: DayFormat.Full,
                   )}'),
                 ),
@@ -524,7 +525,7 @@ class _ExchangeDetailsState extends State<ExchangeDetails> {
                             right: 0,
                             bottom: 0,
                             child: Text(
-                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime), dayFormat: DayFormat.Full)}',
+                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime), locale: 'zh',dayFormat: DayFormat.Full)}',
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 12,

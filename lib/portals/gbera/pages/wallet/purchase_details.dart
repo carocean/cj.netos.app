@@ -362,7 +362,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '冻结金额:',
+                    '冻结本金:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
@@ -597,7 +597,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                             right: 0,
                             bottom: 0,
                             child: Text(
-                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime), dayFormat: DayFormat.Full)}',
+                              '${TimelineUtil.formatByDateTime(parseStrTime(activity.ctime),locale: 'zh', dayFormat: DayFormat.Full)}',
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 12,
