@@ -423,6 +423,11 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
 
   List<Widget> _getActions(Color color) {
     return <Widget>[
+      _AbsorberAction(
+        color: color,
+        context: widget.context,
+        receptorInfo: _receptorInfo,
+      ),
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () {
@@ -2169,5 +2174,77 @@ class _GeosphereMessageWrapper {
 
   String get distanceLabel {
     return _distanceLabel;
+  }
+}
+
+class _AbsorberAction extends StatefulWidget {
+  PageContext context;
+  ReceptorInfo receptorInfo;
+  Color color;
+
+  _AbsorberAction({
+    this.context,
+    this.receptorInfo,
+    this.color,
+  });
+
+  @override
+  __AbsorberActionState createState() => __AbsorberActionState();
+}
+
+class __AbsorberActionState extends State<_AbsorberAction> {
+  bool _isBindings = false; //是否已绑定了洇取器, 在robot中实现实体与洇取器的绑定关系，就可以判断该地理感知器是否绑定过洇取器了
+  @override
+  void initState() {
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var _receptorInfo = widget.receptorInfo;
+    if (!_isBindings) {
+      return IconButton(
+        onPressed: () {
+          widget.context.forward(
+            '/absorber/apply',
+            arguments: {
+              'title': _receptorInfo.title,
+              'location': _receptorInfo.latLng,
+              'radius': _receptorInfo.radius,
+              'category': 'receptor',
+              'proxy': {
+                'type': _receptorInfo.category,
+                'id': _receptorInfo.id,
+              },
+            },
+          ).then((value) {
+            if (value == null) {
+              return;
+            }
+            //与感知器绑定,一个感知器只能绑定一个洇取器
+          });
+        },
+        icon: Icon(
+          IconData(
+            0xe6b2,
+            fontFamily: 'absorber',
+          ),
+          size: 20,
+          color: widget.color,
+        ),
+      );
+    }
+    //存在
+    return IconButton(
+      icon: Icon(
+        IconData(
+          0xe6b2,
+          fontFamily: 'absorber',
+        ),
+        size: 20,
+        color: Colors.red,
+      ),
+    );
   }
 }

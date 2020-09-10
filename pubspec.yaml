@@ -188,3 +188,6 @@ flutter:
     - family: chats
       fonts:
         - asset: lib/portals/gbera/fonts/chats.ttf
+    - family: absorber
+      fonts:
+        - asset: lib/portals/gbera/fonts/absorber.ttf

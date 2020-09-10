@@ -7,6 +7,7 @@ import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/apply.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
@@ -177,6 +178,7 @@ import 'package:netos_app/portals/gbera/styles/orange-styles.dart';
 import 'package:netos_app/portals/gbera/styles/pink-styles.dart';
 import 'package:netos_app/portals/gbera/styles/purple-styles.dart';
 import 'package:netos_app/portals/gbera/styles/teal-styles.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
@@ -191,6 +193,7 @@ import 'desklets/chats/settings_qrcode.dart';
 import 'desklets/chats/settings_show_nickname.dart';
 import 'desklets/chats/settings_title.dart';
 import 'desklets/desklets.dart';
+import 'pages/absorber/org_licence.dart';
 import 'pages/desktop/wallpappers.dart';
 import 'pages/system/gbera_settings.dart';
 import 'pages/users/account_viewer.dart';
@@ -233,14 +236,15 @@ class GberaPortal {
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/bills': WalletBillRemote(),
           '/wybank/bill/prices': PriceRemote(),
-          '/remote/wybank':WybankRemote(),
-          '/remote/purchaser':DefaultWyBankPurchaserRemote(),
+          '/remote/wybank': WybankRemote(),
+          '/remote/purchaser': DefaultWyBankPurchaserRemote(),
           '/remote/org/isp': IspRemote(),
           '/remote/org/la': LaRemote(),
           '/remote/org/licence': LicenceRemote(),
           '/remote/org/receivingBank': ReceivingBankRemote(),
           '/remote/org/workflow': WorkflowRemote(),
           '/remote/chasechain/recommender': ChasechainRecommenderRemote(),
+          '/remote/robot':RobotRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -2198,6 +2202,15 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '查看营业执照',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/viewer/licenceById',
+          buildPage: (PageContext pageContext) => OrgLicenceByIdPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '扫码付款结果',
           subtitle: '',
           icon: Icons.business,
@@ -2284,6 +2297,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/chasechain/box/view',
           buildPage: (PageContext pageContext) => ContentBoxViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申请洇取器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/apply',
+          buildPage: (PageContext pageContext) => AbsorberApplyPage(
             context: pageContext,
           ),
         ),

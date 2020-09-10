@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_map_fluttify/amap_map_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
-import 'package:netos_app/portals/landagent/remote/robot.dart';
 
 class LocationMapPage extends StatefulWidget {
   PageContext context;
@@ -17,6 +15,8 @@ class LocationMapPage extends StatefulWidget {
 class _LocationMapPageState extends State<LocationMapPage> {
   LatLng _location;
   String _label;
+
+
   @override
   void initState() {
     _location = widget.context.parameters['location'];
@@ -39,7 +39,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
           markers: [
             MarkerOption(
               latLng: _location,
-              title: '${_label??''}',
+              title: '${_label ?? ''}',
               visible: true,
               widget: Wrap(
                 direction: Axis.vertical,
@@ -53,11 +53,11 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     color: Colors.red,
                   ),
                   Text(
-                    '${_label??''}',
+                    '${_label ?? ''}',
                     style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                      color: Colors.black54,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      color: Colors.red,
                     ),
                   ),
                 ],
@@ -68,5 +68,4 @@ class _LocationMapPageState extends State<LocationMapPage> {
       ),
     );
   }
-
 }

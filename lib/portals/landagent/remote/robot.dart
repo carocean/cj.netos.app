@@ -348,6 +348,9 @@ mixin IRobotRemote {
   Future<DomainBulletin> getDomainBucket(String bankid);
 
   withdrawHubTails(String bankid) {}
+
+  Future<AbsorberOR> createGeoAbsorber(String bankid, String title,
+      String category, proxy, LatLng location, double radius) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -387,7 +390,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
-  Future<DomainBulletin> getDomainBucket(String bankid) async{
+  Future<DomainBulletin> getDomainBucket(String bankid) async {
     var obj = await remotePorts.portGET(
       robotHubPorts,
       'getDomainBucket',
@@ -398,17 +401,38 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     if (obj == null) {
       return null;
     }
-    var bucket=obj['bucket'];
+    var bucket = obj['bucket'];
 
     return DomainBulletin(
       absorbCount: obj['absorbCount'],
       absorbWeights: obj['absorbWeights'],
       bucket: DomainBucket(
         bank: bucket['bank'],
-        utime:  bucket['utime'],
-        waaPrice:  bucket['waaPrice'],
+        utime: bucket['utime'],
+        waaPrice: bucket['waaPrice'],
       ),
     );
+  }
+
+  @override
+  Future<AbsorberOR> createGeoAbsorber(String bankid, String title,
+      String category, proxy, LatLng location, double radius) async{
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'createGeoAbsorber',
+      parameters: {
+        'bankid': bankid,
+        'title':title,
+        'category':category,
+        'proxy':jsonEncode(proxy),
+        'location':jsonEncode(location),
+        'radius':radius,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return AbsorberOR.parse(obj);
   }
 
   @override
