@@ -16,24 +16,25 @@ import 'package:uuid/uuid.dart';
 
 import 'weny_robot_absorbers.dart';
 
-class PlatformAbsorberDetails extends StatefulWidget {
+class AbsorberDetails extends StatefulWidget {
   PageContext context;
 
-  PlatformAbsorberDetails({this.context});
+  AbsorberDetails({this.context});
 
   @override
-  _PlatformAbsorberDetailsState createState() => _PlatformAbsorberDetailsState();
+  _AbsorberDetailsState createState() => _AbsorberDetailsState();
 }
 
-class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
-  AbsorberOR _absorberOR;
+class _AbsorberDetailsState extends State<AbsorberDetails> {
+  AbsorberResultOR _absorberOR;
 
   Future<Person> _future_creator;
 
   @override
   void initState() {
     _absorberOR = widget.context.parameters['absorber'];
-    _future_creator = _getPerson(widget.context.site, _absorberOR.creator);
+    _future_creator =
+        _getPerson(widget.context.site, _absorberOR.absorber.creator);
     super.initState();
   }
 
@@ -45,19 +46,21 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
 
   Future<void> _updateAbsorberState() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    if (_absorberOR.state == 0) {
-      await robotRemote.startAbsorber(_absorberOR.id);
+    var absorber = _absorberOR.absorber;
+    if (absorber.state == 1) {
+      await robotRemote.startAbsorber(absorber.id);
       return;
     }
-    if (_absorberOR.state == -1) {
-      await robotRemote.stopAbsorber(_absorberOR.id, _absorberOR.exitCause);
+    if (absorber.state == 0) {
+      await robotRemote.stopAbsorber(absorber.id, absorber.exitCause);
       return;
     }
   }
 
   Future<void> _reloadAbsorber() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    AbsorberOR absorberOR = await robotRemote.getAbsorber(_absorberOR.id);
+    AbsorberResultOR absorberOR =
+        await robotRemote.getAbsorber(_absorberOR.absorber.id);
     _absorberOR.updateBy(absorberOR);
     if (mounted) {
       setState(() {});
@@ -66,13 +69,15 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
 
   @override
   Widget build(BuildContext context) {
+    var absorber = _absorberOR.absorber;
+    var bucket = _absorberOR.bucket;
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (cxt, v) {
           return [
             SliverAppBar(
               pinned: true,
-              title: Text('${_absorberOR.title}'),
+              title: Text('${absorber.title}'),
               elevation: 0,
               actions: <Widget>[
                 FlatButton(
@@ -104,8 +109,7 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                     children: <Widget>[
                       CardItem(
                         title: '类别',
-                        tipsText:
-                            '${getAbsorberCategory(_absorberOR.category)}',
+                        tipsText: '${getAbsorberCategory(absorber.category)}',
                         paddingLeft: 20,
                         paddingRight: 20,
                         tail: SizedBox(
@@ -118,17 +122,16 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                       ),
                       CardItem(
                         title: '类型',
-                        tipsText:
-                            ' ${_absorberOR.type == 1 ? '地理洇取器' : '简单洇取器'}',
+                        tipsText: ' ${absorber.type == 1 ? '地理洇取器' : '简单洇取器'}',
                         paddingLeft: 20,
                         paddingRight: 20,
-                        tail: _absorberOR.type == 1
+                        tail: absorber.type == 1
                             ? null
                             : SizedBox(
                                 width: 0,
                                 height: 0,
                               ),
-                        onItemTap: _absorberOR.type == 0
+                        onItemTap: absorber.type == 0
                             ? null
                             : () {
                                 showModalBottomSheet(
@@ -144,8 +147,8 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                         height: 1,
                       ),
                       CardItem(
-                        title: '权重',
-                        tipsText: '${_absorberOR.weight.toStringAsFixed(2)}',
+                        title: '指数',
+                        tipsText: '${bucket.price.toStringAsFixed(14)}',
                         paddingLeft: 20,
                         paddingRight: 20,
                         tail: SizedBox(
@@ -183,39 +186,35 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                       ),
                       CardItem(
                         title: '状态',
-                        tipsText: '${_absorberOR.state == 0 ? '运行中' : '停用'}',
+                        tipsText: '${absorber.state == 1 ? '运行中' : '停用'}',
                         paddingLeft: 20,
                         paddingRight: 20,
                         tail: SizedBox(
-                          height: 0,
-                          width: 0,
+                          height: 20,
+                          child: Switch.adaptive(
+                            value: absorber.state == 1,
+                            onChanged: (v) async {
+                              if (v) {
+                                absorber.state = 1;
+                                absorber.exitCause = null;
+                              } else {
+                                absorber.state = 0;
+                                absorber.exitCause = '地商强制关停';
+                              }
+                              await _updateAbsorberState();
+                              setState(() {});
+                            },
+                          ),
                         ),
-//                        tail: SizedBox(
-//                          height: 20,
-//                          child: Switch.adaptive(
-//                            value: _absorberOR.state == 0,
-//                            onChanged: (v) async {
-//                              if (v) {
-//                                _absorberOR.state = 0;
-//                                _absorberOR.exitCause = null;
-//                              } else {
-//                                _absorberOR.state = -1;
-//                                _absorberOR.exitCause = '地商强制关停';
-//                              }
-//                              await _updateAbsorberState();
-//                              setState(() {});
-//                            },
-//                          ),
-//                        ),
                       ),
-                      _absorberOR.state == 0
+                      absorber.state == 1
                           ? SizedBox(
                               width: 0,
                               height: 0,
                             )
                           : CardItem(
                               title: '停用原因',
-                              tipsText: '${_absorberOR.exitCause ?? '-'}',
+                              tipsText: '${absorber.exitCause ?? '-'}',
                               paddingLeft: 40,
                               paddingRight: 20,
                               tail: SizedBox(
@@ -263,7 +262,7 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
             SliverPersistentHeader(
               pinned: true,
               delegate: _DemoHeader(
-                height: 35,
+                height: 55,
                 child: Flex(
                   direction: Axis.vertical,
                   children: <Widget>[
@@ -280,16 +279,7 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                           Text.rich(
                             TextSpan(
                               text: '洇取人',
-                              children: [
-                                TextSpan(
-                                  text:
-                                      ' 已发≈¥${(_absorberOR.currentAmount / 100).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                              children: [],
                             ),
                             style: TextStyle(
                               fontSize: 20,
@@ -330,6 +320,48 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
                         ],
                       ),
                     ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 15,right: 15,),
+                      child: Row(
+                        children: [
+                          Text(
+                            '¥${((bucket.pInvestAmount + bucket.wInvestAmount) / 100.00).toStringAsFixed(14)}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '=',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${((bucket.pInvestAmount) / 100.00).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '+',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '¥${((bucket.wInvestAmount) / 100.00).toStringAsFixed(14)}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -338,7 +370,7 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
         },
         body: Container(
           color: Colors.white,
-          child: _absorberOR.type == 1
+          child: absorber.type == 1
               ? _GeoAbsorberRecipients(
                   context: widget.context,
                   absorberOR: _absorberOR,
@@ -355,7 +387,7 @@ class _PlatformAbsorberDetailsState extends State<PlatformAbsorberDetails> {
 
 class _GeoAbsorberRecipients extends StatefulWidget {
   PageContext context;
-  AbsorberOR absorberOR;
+  AbsorberResultOR absorberOR;
 
   _GeoAbsorberRecipients({this.context, this.absorberOR});
 
@@ -364,7 +396,7 @@ class _GeoAbsorberRecipients extends StatefulWidget {
 }
 
 class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
-  AbsorberOR _absorberOR;
+  AbsorberResultOR _absorberOR;
   EasyRefreshController _controller;
   List<RecipientsOR> _recipients = [];
   int _limit = 40, _offset = 0;
@@ -385,7 +417,7 @@ class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
 
   @override
   void didUpdateWidget(_GeoAbsorberRecipients oldWidget) {
-    if (oldWidget.absorberOR.id != widget.absorberOR.id) {
+    if (oldWidget.absorberOR.absorber.id != widget.absorberOR.absorber.id) {
       widget.absorberOR = oldWidget.absorberOR;
     }
     super.didUpdateWidget(oldWidget);
@@ -399,8 +431,8 @@ class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
 
   Future<void> _onLoad() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    List<RecipientsOR> recipients =
-        await robotRemote.pageRecipients(_absorberOR.id, _limit, _offset);
+    List<RecipientsOR> recipients = await robotRemote.pageRecipients(
+        _absorberOR.absorber.id, _limit, _offset);
     if (recipients.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -521,7 +553,7 @@ class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
                                       fontSize: 12,
                                     ),
                                   ),
-                                  _absorberOR.type == 0
+                                  _absorberOR.absorber.type == 0
                                       ? SizedBox(
                                           height: 0,
                                           width: 0,
@@ -631,7 +663,7 @@ class __GeoAbsorberRecipientsState extends State<_GeoAbsorberRecipients> {
 
 class _SimpleAbsorberRecipients extends StatefulWidget {
   PageContext context;
-  AbsorberOR absorberOR;
+  AbsorberResultOR absorberOR;
 
   _SimpleAbsorberRecipients({this.context, this.absorberOR});
 
@@ -641,7 +673,7 @@ class _SimpleAbsorberRecipients extends StatefulWidget {
 }
 
 class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
-  AbsorberOR _absorberOR;
+  AbsorberResultOR _absorberOR;
   EasyRefreshController _controller;
   List<RecipientsSummaryOR> _recipients = [];
   int _limit = 40, _offset = 0;
@@ -662,7 +694,7 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
 
   @override
   void didUpdateWidget(_SimpleAbsorberRecipients oldWidget) {
-    if (oldWidget.absorberOR.id != widget.absorberOR.id) {
+    if (oldWidget.absorberOR.absorber.id != widget.absorberOR.absorber.id) {
       widget.absorberOR = oldWidget.absorberOR;
     }
     super.didUpdateWidget(oldWidget);
@@ -676,8 +708,8 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
 
   Future<void> _onLoad() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    List<RecipientsSummaryOR> recipients =
-        await robotRemote.pageSimpleRecipients(_absorberOR.id, _limit, _offset);
+    List<RecipientsSummaryOR> recipients = await robotRemote
+        .pageSimpleRecipients(_absorberOR.absorber.id, _limit, _offset);
     if (recipients.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -824,7 +856,7 @@ class __SimpleAbsorberRecipientsState extends State<_SimpleAbsorberRecipients> {
                         crossAxisAlignment: WrapCrossAlignment.end,
                         children: <Widget>[
                           Text(
-                            '${item.weights.toStringAsFixed(2)}',
+                            '${item.weights.toStringAsFixed(4)}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
@@ -939,7 +971,7 @@ class _DemoHeader extends SliverPersistentHeaderDelegate {
 
 class _InvestPopupWidget extends StatefulWidget {
   PageContext context;
-  AbsorberOR absorberOR;
+  AbsorberResultOR absorberOR;
 
   _InvestPopupWidget({this.context, this.absorberOR});
 
@@ -970,16 +1002,16 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
       (amount * 100).floor(),
       1,
       <String, dynamic>{
-        "payeeCode": "${widget.absorberOR.id}",
-        "payeeName": "${widget.absorberOR.title}",
+        "payeeCode": "${widget.absorberOR.absorber.id}",
+        "payeeName": "${widget.absorberOR.absorber.title}",
         "payeeType": "absorber",
         "orderno": "${new Uuid().v1()}",
-        "orderTitle": "平台派发",
-        "serviceid": "system.netos",
-        "serviceName": "平台系统",
+        "orderTitle": "地商派发",
+        "serviceid": "la.netos",
+        "serviceName": "地商系统",
         "note": "欢迎惠顾"
       },
-      '平台派发',
+      '地商派发',
     );
     widget.context.backward(result: {'succeed': true});
   }

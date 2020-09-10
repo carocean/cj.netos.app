@@ -137,6 +137,7 @@ class _PlatformWenyMarketState extends State<PlatformWenyMarket> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
+              pinned: true,
               title: Text('纹银市场'),
               elevation: 0.0,
             ),

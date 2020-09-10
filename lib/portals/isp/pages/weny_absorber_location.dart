@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 
-class IspAbsorberLocationPage extends StatefulWidget {
+class AbsorberLocationPage extends StatefulWidget {
   PageContext context;
 
-  IspAbsorberLocationPage({this.context});
+  AbsorberLocationPage({this.context});
 
   @override
-  _IspAbsorberLocationPageState createState() => _IspAbsorberLocationPageState();
+  _AbsorberLocationPageState createState() => _AbsorberLocationPageState();
 }
 
-class _IspAbsorberLocationPageState extends State<IspAbsorberLocationPage> {
-  AbsorberOR _absorberOR;
+class _AbsorberLocationPageState extends State<AbsorberLocationPage> {
+  AbsorberResultOR _absorberOR;
 
   @override
   void initState() {
@@ -23,6 +23,7 @@ class _IspAbsorberLocationPageState extends State<IspAbsorberLocationPage> {
 
   @override
   Widget build(BuildContext context) {
+    var absorber=_absorberOR.absorber;
     return Scaffold(
       appBar: AppBar(
         title: Text('位置'),
@@ -30,13 +31,13 @@ class _IspAbsorberLocationPageState extends State<IspAbsorberLocationPage> {
       ),
       body: Container(
         child: AmapView(
-          centerCoordinate: _absorberOR.location,
+          centerCoordinate: absorber.location,
           showCompass: true,
           zoomLevel: 18,
           markers: [
             MarkerOption(
-              latLng: _absorberOR.location,
-              title: '${_absorberOR.title}',
+              latLng: absorber.location,
+              title: '${absorber.title}',
               visible: true,
               widget: Wrap(
                 direction: Axis.vertical,
@@ -50,7 +51,7 @@ class _IspAbsorberLocationPageState extends State<IspAbsorberLocationPage> {
                     color: Colors.red,
                   ),
                   Text(
-                    '${_absorberOR.title}',
+                    '${absorber.title}',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
@@ -58,7 +59,7 @@ class _IspAbsorberLocationPageState extends State<IspAbsorberLocationPage> {
                     ),
                   ),
                   Text(
-                    '半径: ${_absorberOR.radius}米',
+                    '半径: ${absorber.radius}米',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

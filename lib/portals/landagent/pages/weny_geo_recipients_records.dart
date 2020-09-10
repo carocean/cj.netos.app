@@ -22,7 +22,7 @@ class GeoAbsorberRecipientsRecordsPage extends StatefulWidget {
 
 class _RecipientsRecordsState extends State<GeoAbsorberRecipientsRecordsPage> {
   RecipientsOR _recipients;
-  AbsorberOR _absorberOR;
+  AbsorberResultOR _absorberOR;
   List<RecipientsRecordOR> _records = [];
   EasyRefreshController _controller;
   int _limit = 50, _offset = 0;

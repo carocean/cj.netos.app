@@ -7,25 +7,27 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:intl/intl.dart' as intl;
 
-class PlatformRobotAbsorbersPage extends StatefulWidget {
+class RobotAbsorbersPage extends StatefulWidget {
   PageContext context;
 
-  PlatformRobotAbsorbersPage({this.context});
+  RobotAbsorbersPage({this.context});
 
   @override
-  _PlatformRobotAbsorbersPageState createState() => _PlatformRobotAbsorbersPageState();
+  _RobotAbsorbersPageState createState() => _RobotAbsorbersPageState();
 }
 
-class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage> {
+class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
   BankInfo _bank;
   EasyRefreshController _controller;
-  List<AbsorberOR> _absorbers = [];
+  List<AbsorberResultOR> _absorbers = [];
   int _limit = 50, _offset = 0;
-  int _selectType = 0;
+  int _selectType = -1;
+  DomainBulletin _bulletin;
 
   @override
   void initState() {
     _bank = widget.context.parameters['bank'];
+    _refreshDomain();
     _controller = EasyRefreshController();
     super.initState();
   }
@@ -35,16 +37,24 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
     _controller?.dispose();
     super.dispose();
   }
-
+  Future<void> _refreshDomain()async{
+    IRobotRemote robotRemote =
+    widget.context.site.getService('/wybank/robot');
+    _bulletin = await robotRemote.getDomainBucket(_bank.id);
+    if (mounted) {
+      setState(() {});
+    }
+  }
   Future<void> _onRefresh() async {
     _absorbers.clear();
     _offset = 0;
+    await _refreshDomain();
     await _onload();
   }
 
   Future<void> _onload() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    List<AbsorberOR> absorbers =
+    List<AbsorberResultOR> absorbers =
         await robotRemote.pageAbsorber(_bank.id, _selectType, _limit, _offset);
     if (absorbers.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
@@ -70,14 +80,16 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
         ),
       );
     }
-    for (var abosrber in _absorbers) {
+    for (var abosrberResult in _absorbers) {
+      var abosrber = abosrberResult.absorber;
+      var bucket = abosrberResult.bucket;
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
             widget.context.forward(
               '/weny/robot/absorbers/details',
-              arguments: {'absorber': abosrber},
+              arguments: {'absorber': abosrberResult},
             );
           },
           child: Column(
@@ -132,13 +144,41 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
                                 ),
                               ),
                               Text(
-                                '${abosrber.state == 0 ? '运行中' : '关停'}',
+                                '${abosrber.state == 1 ? '运行中' : '关停'}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey[500],
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: '指数:',
+                            children: [
+                              TextSpan(
+                                text: '${bucket.price.toStringAsFixed(14)}',
+                                style: TextStyle(
+                                  color:
+                                      bucket.price >= _bulletin.bucket.waaPrice
+                                          ? Colors.red
+                                          : Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -172,58 +212,7 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Text.rich(
-                                TextSpan(
-                                  text: '权重:',
-                                  children: [
-                                    TextSpan(
-                                      text: '${abosrber.weight}',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text.rich(
-                                TextSpan(
-                                  text: '洇取次数:',
-                                  children: [
-                                    TextSpan(
-                                      text: '${abosrber.currentTimes}',
-                                    ),
-                                  ],
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text.rich(
-                                TextSpan(
-                                  text: '洇取约:',
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          '¥${(abosrber.currentAmount / 100).toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+
                               Text.rich(
                                 TextSpan(
                                   text: '创建:',
@@ -244,6 +233,51 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
                         ),
                       ],
                     ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: '洇取次数:',
+                            children: [
+                              TextSpan(
+                                text: '${bucket.times}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(width: 5,),
+                        Text.rich(
+                          TextSpan(
+                            text: '洇取:',
+                            children: [
+                              TextSpan(
+                                text:
+                                '¥${((bucket.wInvestAmount + bucket.pInvestAmount) / 100).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -256,37 +290,72 @@ class _PlatformRobotAbsorbersPageState extends State<PlatformRobotAbsorbersPage>
       );
     }
     return Scaffold(
-        appBar: AppBar(
-          title: Text('洇取器'),
-          elevation: 0,
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () {
-                widget.context.forward(
-                  '/weny/records/withdraw',
-                  arguments: {
-                    'bank': _bank,
-                  },
-                );
-              },
-              child: Text('明细'),
+      appBar: AppBar(
+        title: Text('洇取器'),
+        elevation: 0,
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              widget.context.forward(
+                '/weny/records/withdraw',
+                arguments: {
+                  'bank': _bank,
+                },
+              );
+            },
+            child: Text('明细'),
+          ),
+        ],
+      ),
+      body: Container(
+        color: Colors.white,
+        constraints: BoxConstraints.expand(),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 20,
+            ),
+            Column(
+              children: [
+                Container(
+                  child: Text(
+                    '域指',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  '${_bulletin == null ? '-' : _bulletin.bucket.waaPrice.toStringAsFixed(14)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Expanded(
+              child: EasyRefresh(
+                controller: _controller,
+                onRefresh: _onRefresh,
+                onLoad: _onload,
+                firstRefresh: true,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: items,
+                ),
+              ),
             ),
           ],
         ),
-        body: Container(
-          color: Colors.white,
-          constraints: BoxConstraints.expand(),
-          child: EasyRefresh(
-            controller: _controller,
-            onRefresh: _onRefresh,
-            onLoad: _onload,
-            firstRefresh: true,
-            child: ListView(
-              shrinkWrap: true,
-              children: items,
-            ),
-          ),
-        ));
+      ),
+    );
   }
 }
 

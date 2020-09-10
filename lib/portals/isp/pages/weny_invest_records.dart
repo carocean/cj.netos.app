@@ -11,17 +11,17 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:intl/intl.dart' as intl;
 
-class IspInvestRecordsPage extends StatefulWidget {
+class InvestRecordsPage extends StatefulWidget {
   PageContext context;
 
-  IspInvestRecordsPage({this.context});
+  InvestRecordsPage({this.context});
 
   @override
-  _IspInvestRecordsPageState createState() => _IspInvestRecordsPageState();
+  _InvestRecordsPageState createState() => _InvestRecordsPageState();
 }
 
-class _IspInvestRecordsPageState extends State<IspInvestRecordsPage> {
-  AbsorberOR _absorberOR;
+class _InvestRecordsPageState extends State<InvestRecordsPage> {
+  AbsorberResultOR _absorberOR;
   List<InvestRecordOR> _records = [];
   EasyRefreshController _controller;
   int _limit = 50, _offset = 0;
@@ -49,9 +49,9 @@ class _IspInvestRecordsPageState extends State<IspInvestRecordsPage> {
 
   Future<void> _onLoad() async {
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
-    _totalInvestsAmount = await robotRemote.totalAmountInvests(_absorberOR.id);
+    _totalInvestsAmount = await robotRemote.totalAmountInvests(_absorberOR.absorber.id);
     List<InvestRecordOR> records =
-        await robotRemote.pageInvestRecord(_absorberOR.id, _limit, _offset);
+        await robotRemote.pageInvestRecord(_absorberOR.absorber.id, _limit, _offset);
     if (records.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {

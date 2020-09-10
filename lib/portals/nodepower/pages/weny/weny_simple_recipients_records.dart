@@ -11,19 +11,19 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:intl/intl.dart' as intl;
 
-class PlatformSimpleAbsorberRecipientsRecordsPage extends StatefulWidget {
+class SimpleAbsorberRecipientsRecordsPage extends StatefulWidget {
   PageContext context;
 
-  PlatformSimpleAbsorberRecipientsRecordsPage({this.context});
+  SimpleAbsorberRecipientsRecordsPage({this.context});
 
   @override
   _RecipientsRecordsState createState() => _RecipientsRecordsState();
 }
 
 class _RecipientsRecordsState
-    extends State<PlatformSimpleAbsorberRecipientsRecordsPage> {
+    extends State<SimpleAbsorberRecipientsRecordsPage> {
   RecipientsSummaryOR _recipients;
-  AbsorberOR _absorberOR;
+  AbsorberResultOR _absorberOR;
   List<RecipientsRecordOR> _records = [];
   EasyRefreshController _controller;
   int _limit = 50, _offset = 0;
@@ -53,7 +53,7 @@ class _RecipientsRecordsState
     IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
     List<RecipientsRecordOR> records =
         await robotRemote.pageRecipientsRecordByPerson(
-            _absorberOR.id, _recipients.person, _limit, _offset);
+            _absorberOR.absorber.id, _recipients.person, _limit, _offset);
     if (records.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {

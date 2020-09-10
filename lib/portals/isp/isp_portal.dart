@@ -420,7 +420,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/robot/absorbers',
-          buildPage: (PageContext pageContext) => IspRobotAbsorbersPage(
+          buildPage: (PageContext pageContext) => RobotAbsorbersPage(
             context: pageContext,
           ),
         ),
@@ -439,7 +439,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/recipients/records/simple',
           buildPage: (PageContext pageContext) =>
-              IspSimpleAbsorberRecipientsRecordsPage(
+              SimpleAbsorberRecipientsRecordsPage(
             context: pageContext,
           ),
         ),
@@ -449,7 +449,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/recipients/records/geo',
           buildPage: (PageContext pageContext) =>
-              IspGeoAbsorberRecipientsRecordsPage(
+              GeoAbsorberRecipientsRecordsPage(
             context: pageContext,
           ),
         ),
@@ -458,7 +458,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/records/invest',
-          buildPage: (PageContext pageContext) => IspInvestRecordsPage(
+          buildPage: (PageContext pageContext) => InvestRecordsPage(
             context: pageContext,
           ),
         ),
@@ -476,7 +476,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/robot/absorbers/details',
-          buildPage: (PageContext pageContext) => IspAbsorberDetails(
+          buildPage: (PageContext pageContext) => AbsorberDetails(
             context: pageContext,
           ),
         ),
@@ -486,7 +486,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/robot/absorbers/details/more',
           buildPage: (PageContext pageContext) =>
-              IspWenyAbsorberDetailsMorePage(
+              WenyAbsorberDetailsMorePage(
             context: pageContext,
           ),
         ),
@@ -495,7 +495,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/absorber/location',
-          buildPage: (PageContext pageContext) => IspAbsorberLocationPage(
+          buildPage: (PageContext pageContext) => AbsorberLocationPage(
             context: pageContext,
           ),
         ),

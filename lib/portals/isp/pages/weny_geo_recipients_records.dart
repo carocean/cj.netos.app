@@ -11,18 +11,18 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:intl/intl.dart' as intl;
 
-class IspGeoAbsorberRecipientsRecordsPage extends StatefulWidget {
+class GeoAbsorberRecipientsRecordsPage extends StatefulWidget {
   PageContext context;
 
-  IspGeoAbsorberRecipientsRecordsPage({this.context});
+  GeoAbsorberRecipientsRecordsPage({this.context});
 
   @override
   _RecipientsRecordsState createState() => _RecipientsRecordsState();
 }
 
-class _RecipientsRecordsState extends State<IspGeoAbsorberRecipientsRecordsPage> {
+class _RecipientsRecordsState extends State<GeoAbsorberRecipientsRecordsPage> {
   RecipientsOR _recipients;
-  AbsorberOR _absorberOR;
+  AbsorberResultOR _absorberOR;
   List<RecipientsRecordOR> _records = [];
   EasyRefreshController _controller;
   int _limit = 50, _offset = 0;

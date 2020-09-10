@@ -16,13 +16,7 @@ class AbsorberOR {
   int type;
   String creator;
   String ctime;
-  int exitExpire;
-  int exitAmount;
-  int exitTimes;
-  double weight;
   int maxRecipients;
-  double currentAmount;
-  int currentTimes;
   int state;
   String exitCause;
 
@@ -37,13 +31,7 @@ class AbsorberOR {
       this.type,
       this.creator,
       this.ctime,
-      this.exitExpire,
-      this.exitAmount,
-      this.exitTimes,
-      this.weight,
       this.maxRecipients,
-      this.currentAmount,
-      this.currentTimes,
       this.state,
       this.exitCause});
 
@@ -58,16 +46,94 @@ class AbsorberOR {
     this.type = absorberOR.type;
     this.creator = absorberOR.creator;
     this.ctime = absorberOR.ctime;
-    this.exitExpire = absorberOR.exitExpire;
-    this.exitAmount = absorberOR.exitAmount;
-    this.exitTimes = absorberOR.exitTimes;
-    this.weight = absorberOR.weight;
     this.maxRecipients = absorberOR.maxRecipients;
-    this.currentAmount = absorberOR.currentAmount;
-    this.currentTimes = absorberOR.currentTimes;
     this.state = absorberOR.state;
     this.exitCause = absorberOR.exitCause;
   }
+
+  AbsorberOR.parse(Map<String, dynamic> obj) {
+    this.id = obj['id'];
+    this.title = obj['title'];
+    this.bankid = obj['bankid'];
+    this.category = obj['category'];
+    this.proxy = obj['proxy'];
+    this.location =
+        obj['type'] == 1 ? LatLng.fromJson(jsonDecode(obj['location'])) : null;
+    this.radius = obj['radius'];
+    this.type = obj['type'];
+    this.creator = obj['creator'];
+    this.ctime = obj['ctime'];
+    this.maxRecipients = obj['maxRecipients'];
+    this.state = obj['state'];
+    this.exitCause = obj['exitCause'];
+  }
+}
+
+class AbsorbBucketOR {
+  String absorber;
+  String bank;
+  double wInvestAmount;
+  double pInvestAmount;
+  double price;
+  int times;
+  String utime;
+
+  AbsorbBucketOR(
+      {this.absorber,
+      this.bank,
+      this.wInvestAmount,
+      this.pInvestAmount,
+      this.price,
+      this.times,
+      this.utime});
+
+  AbsorbBucketOR.parse(Map<String, dynamic> obj) {
+    absorber = obj['absorber'];
+    bank = obj['bank'];
+    wInvestAmount = obj['wInvestAmount'];
+    pInvestAmount = obj['pInvestAmount'];
+    price = obj['price'];
+    times = obj['times'];
+    utime = obj['utime'];
+  }
+
+  void updateBy(AbsorbBucketOR bucket) {
+    this.absorber = bucket.absorber;
+    this.bank = bucket.bank;
+    this.wInvestAmount = bucket.wInvestAmount;
+    this.pInvestAmount = bucket.pInvestAmount;
+    this.price = bucket.price;
+    this.times = bucket.times;
+    this.utime = bucket.utime;
+  }
+}
+
+class AbsorberResultOR {
+  AbsorberOR absorber;
+  AbsorbBucketOR bucket;
+
+  AbsorberResultOR({this.absorber, this.bucket});
+
+  void updateBy(AbsorberResultOR absorberOR) {
+    absorber.updateBy(absorberOR.absorber);
+    bucket.updateBy(absorberOR.bucket);
+  }
+}
+
+class DomainBulletin {
+  DomainBucket bucket;
+  double absorbWeights;
+  int absorbCount;
+
+  DomainBulletin({this.bucket, this.absorbWeights, this.absorbCount});
+}
+
+class DomainBucket {
+  String bank;
+  double waaPrice;
+  String utime;
+
+  DomainBucket({this.bank, this.waaPrice, this.utime});
 }
 
 class RecipientsOR {
@@ -232,7 +298,7 @@ class HubTailsBillOR {
 mixin IRobotRemote {
   Future<double> getHubTails(String bankid) {}
 
-  Future<List<AbsorberOR>> pageAbsorber(
+  Future<List<AbsorberResultOR>> pageAbsorber(
       String bankid, int type, int limit, int offset) {}
 
   Future<List<RecipientsOR>> pageRecipients(String id, int limit, int offset) {}
@@ -244,7 +310,7 @@ mixin IRobotRemote {
   Future<void> investAbsorber(
       int amount, int type, Map<String, dynamic> details, note);
 
-  Future<AbsorberOR> getAbsorber(String absorberid) {}
+  Future<AbsorberResultOR> getAbsorber(String absorberid) {}
 
   Future<double> totalRecipientsRecord(String absorber, String person) {}
 
@@ -278,6 +344,8 @@ mixin IRobotRemote {
 
   Future<List<HubTailsBillOR>> getBillOfMonth(
       String bankid, DateTime selected, int limit, int offset) {}
+
+  Future<DomainBulletin> getDomainBucket(String bankid);
 
   withdrawHubTails(String bankid) {}
 }
@@ -319,7 +387,32 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<AbsorberOR>> pageAbsorber(
+  Future<DomainBulletin> getDomainBucket(String bankid) async{
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'getDomainBucket',
+      parameters: {
+        'bankid': bankid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    var bucket=obj['bucket'];
+
+    return DomainBulletin(
+      absorbCount: obj['absorbCount'],
+      absorbWeights: obj['absorbWeights'],
+      bucket: DomainBucket(
+        bank: bucket['bank'],
+        utime:  bucket['utime'],
+        waaPrice:  bucket['waaPrice'],
+      ),
+    );
+  }
+
+  @override
+  Future<List<AbsorberResultOR>> pageAbsorber(
       String bankid, int type, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotHubPorts,
@@ -331,35 +424,19 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         'offset': offset,
       },
     );
-    var absorbers = <AbsorberOR>[];
-    for (var obj in list) {
-      absorbers.add(
-        AbsorberOR(
-          id: obj['id'],
-          bankid: obj['bankid'],
-          title: obj['title'],
-          ctime: obj['ctime'],
-          state: obj['state'],
-          creator: obj['creator'],
-          type: obj['type'],
-          category: obj['category'],
-          currentAmount: obj['currentAmount'],
-          currentTimes: obj['currentTimes'],
-          exitAmount: obj['exitAmount'],
-          exitCause: obj['exitCause'],
-          exitExpire: obj['exitExpire'],
-          exitTimes: obj['exitTimes'],
-          location: obj['type'] == 1
-              ? LatLng.fromJson(jsonDecode(obj['location']))
-              : null,
-          maxRecipients: obj['maxRecipients'],
-          proxy: obj['proxy'],
-          radius: obj['radius'],
-          weight: obj['weight'],
+    var results = <AbsorberResultOR>[];
+    for (var result in list) {
+      var absorber = result['absorber'];
+      var bucket = result['bucket'];
+      results.add(
+        AbsorberResultOR(
+          absorber: AbsorberOR.parse(absorber),
+          bucket: AbsorbBucketOR.parse(bucket),
         ),
       );
     }
-    return absorbers;
+
+    return results;
   }
 
   @override
@@ -437,7 +514,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
-  Future<AbsorberOR> getAbsorber(String absorberid) async {
+  Future<AbsorberResultOR> getAbsorber(String absorberid) async {
     var obj = await remotePorts.portGET(
       robotHubPorts,
       'getAbsorber',
@@ -445,28 +522,11 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         'absorberid': absorberid,
       },
     );
-    return AbsorberOR(
-      id: obj['id'],
-      bankid: obj['bankid'],
-      title: obj['title'],
-      ctime: obj['ctime'],
-      state: obj['state'],
-      creator: obj['creator'],
-      type: obj['type'],
-      category: obj['category'],
-      currentAmount: obj['currentAmount'],
-      currentTimes: obj['currentTimes'],
-      exitAmount: obj['exitAmount'],
-      exitCause: obj['exitCause'],
-      exitExpire: obj['exitExpire'],
-      exitTimes: obj['exitTimes'],
-      location: obj['type'] == 1
-          ? LatLng.fromJson(jsonDecode(obj['location']))
-          : null,
-      maxRecipients: obj['maxRecipients'],
-      proxy: obj['proxy'],
-      radius: obj['radius'],
-      weight: obj['weight'],
+    var absorber = obj['absorber'];
+    var bucket = obj['bucket'];
+    return AbsorberResultOR(
+      absorber: AbsorberOR.parse(absorber),
+      bucket: AbsorbBucketOR.parse(bucket),
     );
   }
 

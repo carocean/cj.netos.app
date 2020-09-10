@@ -565,7 +565,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/robot/absorbers',
-          buildPage: (PageContext pageContext) => PlatformRobotAbsorbersPage(
+          buildPage: (PageContext pageContext) => RobotAbsorbersPage(
             context: pageContext,
           ),
         ),
@@ -574,7 +574,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/records/invest',
-          buildPage: (PageContext pageContext) => PlatformInvestRecordsPage(
+          buildPage: (PageContext pageContext) => InvestRecordsPage(
             context: pageContext,
           ),
         ),
@@ -592,7 +592,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/robot/absorbers/details',
-          buildPage: (PageContext pageContext) => PlatformAbsorberDetails(
+          buildPage: (PageContext pageContext) => AbsorberDetails(
             context: pageContext,
           ),
         ),
@@ -602,7 +602,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/robot/absorbers/details/more',
           buildPage: (PageContext pageContext) =>
-              PlatformWenyAbsorberDetailsMorePage(
+              WenyAbsorberDetailsMorePage(
                 context: pageContext,
               ),
         ),
@@ -611,7 +611,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '',
           icon: Icons.business,
           url: '/weny/absorber/location',
-          buildPage: (PageContext pageContext) => PlatformAbsorberLocationPage(
+          buildPage: (PageContext pageContext) => AbsorberLocationPage(
             context: pageContext,
           ),
         ),
@@ -630,7 +630,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/recipients/records/simple',
           buildPage: (PageContext pageContext) =>
-              PlatformSimpleAbsorberRecipientsRecordsPage(
+              SimpleAbsorberRecipientsRecordsPage(
                 context: pageContext,
               ),
         ),
@@ -640,7 +640,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/weny/recipients/records/geo',
           buildPage: (PageContext pageContext) =>
-              PlatformGeoAbsorberRecipientsRecordsPage(
+              GeoAbsorberRecipientsRecordsPage(
                 context: pageContext,
               ),
         ),
