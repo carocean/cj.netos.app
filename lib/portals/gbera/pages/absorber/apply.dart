@@ -32,15 +32,16 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
   String _licenceId;
   String _bankid;
   String _title;
-  String _category;
-  dynamic _proxy;
+  int _absorbUsage;
+  dynamic _absorbabler;
   LatLng _location;
+
   @override
   void initState() {
-    _location=widget.context.parameters['location'];
-    _title=widget.context.parameters['title'];
-    _category=widget.context.parameters['category'];
-    _proxy=widget.context.parameters['proxy'];
+    _location = widget.context.parameters['location'];
+    _title = widget.context.parameters['title'];
+    _absorbUsage = widget.context.parameters['usage'];
+    _absorbabler = widget.context.parameters['absorbabler'];
     _maxRadius = widget.context.parameters['radius'];
     if (_maxRadius >= 20) {
       _minRadius = 20;
@@ -69,8 +70,7 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
         await wyBankRemote.getAndAutoCreateWenyBankByDistrict(_districtCode);
     _label = bank.title;
     _licenceId = bank.licence;
-    _bankid=bank.id;
-
+    _bankid = bank.id;
   }
 
   Future<void> _createAbsorber() async {
@@ -78,8 +78,9 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
     if (mounted) {
       setState(() {});
     }
-    IRobotRemote robotRemote=widget.context.site.getService('/remote/robot');
-    await robotRemote.createGeoAbsorber(_bankid,_title,_category,_proxy,_location,_radius);
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    await robotRemote.createGeoAbsorber(
+        _bankid, _title, _absorbUsage, _absorbabler, _location, _radius);
 
     widget.context.backward();
   }
@@ -98,7 +99,7 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
                 ? null
                 : () {
                     _createAbsorber().then((value) {
-                      _isLoaded=true;
+                      _isLoaded = true;
                       if (mounted) {
                         setState(() {});
                       }
@@ -140,16 +141,11 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          SizedBox(
+          Image.asset(
+            'lib/portals/gbera/images/cat-grey.gif',
             width: 60,
-            child: Icon(
-              IconData(
-                0xe6b2,
-                fontFamily: 'absorber',
-              ),
-              color: Colors.grey[700],
-              size: 60,
-            ),
+            height: 60,
+            fit: BoxFit.contain,
           ),
           SizedBox(
             width: 10,
@@ -184,7 +180,7 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
   }
 
   Widget _renderBodyCard() {
-    String type = widget.context.parameters['proxy']['type'];
+    String absorbabler = widget.context.parameters['absorbabler'];
     var location = widget.context.parameters['location'];
     final ThemeData theme = Theme.of(context);
     return Column(
@@ -205,7 +201,7 @@ class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
                         title: '位置',
                         paddingRight: 15,
                         subtitle: Text(
-                          '${type.indexOf('.mobiles') > 0 ? '跟随' : '固定'}',
+                          '${absorbabler.indexOf('.mobiles') > 0 ? '跟随' : '固定'}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey,

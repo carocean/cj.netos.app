@@ -9,8 +9,8 @@ class AbsorberOR {
   String id;
   String title;
   String bankid;
-  String category;
-  String proxy;
+  int usage;
+  String absorbabler;
   LatLng location;
   int radius;
   int type;
@@ -24,8 +24,8 @@ class AbsorberOR {
       {this.id,
       this.title,
       this.bankid,
-      this.category,
-      this.proxy,
+      this.usage,
+      this.absorbabler,
       this.location,
       this.radius,
       this.type,
@@ -39,8 +39,8 @@ class AbsorberOR {
     this.id = absorberOR.id;
     this.title = absorberOR.title;
     this.bankid = absorberOR.bankid;
-    this.category = absorberOR.category;
-    this.proxy = absorberOR.proxy;
+    this.usage = absorberOR.usage;
+    this.absorbabler = absorberOR.absorbabler;
     this.location = absorberOR.location;
     this.radius = absorberOR.radius;
     this.type = absorberOR.type;
@@ -55,8 +55,8 @@ class AbsorberOR {
     this.id = obj['id'];
     this.title = obj['title'];
     this.bankid = obj['bankid'];
-    this.category = obj['category'];
-    this.proxy = obj['proxy'];
+    this.usage = obj['usage'];
+    this.absorbabler = obj['absorbabler'];
     this.location =
         obj['type'] == 1 ? LatLng.fromJson(jsonDecode(obj['location'])) : null;
     this.radius = obj['radius'];
@@ -312,6 +312,8 @@ mixin IRobotRemote {
 
   Future<AbsorberResultOR> getAbsorber(String absorberid) {}
 
+  Future<AbsorberResultOR> getAbsorberByAbsorbabler(String absorbabler) {}
+
   Future<double> totalRecipientsRecord(String absorber, String person) {}
 
   Future<List<RecipientsSummaryOR>> pageSimpleRecipients(
@@ -349,8 +351,24 @@ mixin IRobotRemote {
 
   withdrawHubTails(String bankid) {}
 
-  Future<AbsorberOR> createGeoAbsorber(String bankid, String title,
-      String category, proxy, LatLng location, double radius) {}
+  Future<AbsorberOR> createGeoAbsorber(String bankid, String title, int usage,
+      absorbabler, LatLng location, double radius) {}
+
+  Future<AbsorberOR> createSimpleAbsorber(
+      String bankid, String title, int usage, absorbabler, int maxRecipients) {}
+
+  Future<AbsorberOR> createBalanceAbsorber(String bankid, String title,
+      int usage, absorbabler, LatLng location, double radius) {}
+
+  Future<bool> isBindingsAbsorbabler(String absorberid, String absorbabler) {}
+
+  Future<void> bindAbsorbabler(String absorberid, String absorbabler) {}
+
+  Future<void> unbindAbsorbabler(String absorberid) {}
+
+  Future<void> updateAbsorberLocation(String absorberid, LatLng location) {}
+
+  Future<void> updateAbsorberRadius(String absorberid, int radius) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -412,27 +430,6 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         waaPrice: bucket['waaPrice'],
       ),
     );
-  }
-
-  @override
-  Future<AbsorberOR> createGeoAbsorber(String bankid, String title,
-      String category, proxy, LatLng location, double radius) async{
-    var obj = await remotePorts.portGET(
-      robotHubPorts,
-      'createGeoAbsorber',
-      parameters: {
-        'bankid': bankid,
-        'title':title,
-        'category':category,
-        'proxy':jsonEncode(proxy),
-        'location':jsonEncode(location),
-        'radius':radius,
-      },
-    );
-    if (obj == null) {
-      return null;
-    }
-    return AbsorberOR.parse(obj);
   }
 
   @override
@@ -546,6 +543,26 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         'absorberid': absorberid,
       },
     );
+    var absorber = obj['absorber'];
+    var bucket = obj['bucket'];
+    return AbsorberResultOR(
+      absorber: AbsorberOR.parse(absorber),
+      bucket: AbsorbBucketOR.parse(bucket),
+    );
+  }
+
+  @override
+  Future<AbsorberResultOR> getAbsorberByAbsorbabler(String absorbabler) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'getAbsorberByAbsorbabler',
+      parameters: {
+        'absorbabler': absorbabler,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
     var absorber = obj['absorber'];
     var bucket = obj['bucket'];
     return AbsorberResultOR(
@@ -876,6 +893,133 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       'withdrawHubTails',
       parameters: {
         'bankid': bankid,
+      },
+    );
+  }
+
+  @override
+  Future<AbsorberOR> createGeoAbsorber(String bankid, String title, int usage,
+      absorbabler, LatLng location, double radius) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'createGeoAbsorber',
+      parameters: {
+        'bankid': bankid,
+        'title': title,
+        'usage': usage,
+        'absorbabler': absorbabler,
+        'location': jsonEncode(location),
+        'radius': radius,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return AbsorberOR.parse(obj);
+  }
+
+  @override
+  Future<AbsorberOR> createBalanceAbsorber(String bankid, String title,
+      int usage, absorbabler, LatLng location, double radius) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'createBalanceAbsorber',
+      parameters: {
+        'bankid': bankid,
+        'title': title,
+        'usage': usage,
+        'absorbabler': absorbabler,
+        'location': jsonEncode(location),
+        'radius': radius,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return AbsorberOR.parse(obj);
+  }
+
+  @override
+  Future<AbsorberOR> createSimpleAbsorber(String bankid, String title,
+      int usage, absorbabler, int maxRecipients) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'createSimpleAbsorber',
+      parameters: {
+        'bankid': bankid,
+        'title': title,
+        'usage': usage,
+        'absorbabler': absorbabler,
+        'maxRecipients': maxRecipients,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return AbsorberOR.parse(obj);
+  }
+
+  @override
+  Future<bool> isBindingsAbsorbabler(
+      String absorberid, String absorbabler) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'isBindingsAbsorbabler',
+      parameters: {
+        'absorberid': absorberid,
+        'absorbabler': absorbabler,
+      },
+    );
+    if (obj == null) {
+      return false;
+    }
+    return obj;
+  }
+
+  @override
+  Future<void> bindAbsorbabler(String absorberid, String absorbabler) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'bindAbsorbabler',
+      parameters: {
+        'absorberid': absorberid,
+        'absorbabler': absorbabler,
+      },
+    );
+  }
+
+  @override
+  Future<void> unbindAbsorbabler(String absorberid) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'unbindAbsorbabler',
+      parameters: {
+        'absorberid': absorberid,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateAbsorberLocation(
+      String absorberid, LatLng location) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'updateAbsorberLocation',
+      parameters: {
+        'absorberid': absorberid,
+        'location': jsonEncode(location),
+      },
+    );
+  }
+
+  @override
+  Future<void> updateAbsorberRadius(String absorberid, int radius) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'updateAbsorberRadius',
+      parameters: {
+        'absorberid': absorberid,
+        'radius': radius,
       },
     );
   }

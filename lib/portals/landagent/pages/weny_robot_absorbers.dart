@@ -37,14 +37,15 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
     _controller?.dispose();
     super.dispose();
   }
-  Future<void> _refreshDomain()async{
-    IRobotRemote robotRemote =
-    widget.context.site.getService('/wybank/robot');
+
+  Future<void> _refreshDomain() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/wybank/robot');
     _bulletin = await robotRemote.getDomainBucket(_bank.id);
     if (mounted) {
       setState(() {});
     }
   }
+
   Future<void> _onRefresh() async {
     _absorbers.clear();
     _offset = 0;
@@ -114,8 +115,7 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
                               text: '${abosrber.title ?? ''}',
                               children: [
                                 TextSpan(
-                                  text:
-                                      ' ${getAbsorberCategory(abosrber.category)}',
+                                  text: ' ${getUsageDesc(abosrber.usage)}',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey,
@@ -212,7 +212,6 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-
                               Text.rich(
                                 TextSpan(
                                   text: '创建:',
@@ -256,14 +255,16 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: 5,),
+                        SizedBox(
+                          width: 5,
+                        ),
                         Text.rich(
                           TextSpan(
                             text: '洇取:',
                             children: [
                               TextSpan(
                                 text:
-                                '¥${((bucket.wInvestAmount + bucket.pInvestAmount) / 100).toStringAsFixed(2)}',
+                                    '¥${((bucket.wInvestAmount + bucket.pInvestAmount) / 100).toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: Colors.black,
                                 ),
@@ -359,18 +360,25 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
   }
 }
 
-getAbsorberCategory(String category) {
-  switch (category) {
-    case 'fountain':
+getUsageDesc(int usage) {
+//    用途：
+//    0网流管道
+//    1地理感知器
+//    2街道
+//    3金证喷泉
+//    4抢元宝
+  switch (usage) {
+    case 0:
+      return '网流管道';
+    case 1:
+      return '地理感知器';
+    case 2:
+      return '街道';
+    case 3:
       return '金证喷泉';
-    case 'shop':
-      return '实体店';
-    case 'netflow':
-      return '网流';
-    case 'geosphere':
-      return '地圈';
-    case 'chasingchain':
-      return '追链';
+    case 4:
+      return '抢元宝';
+    default:
+      return '-';
   }
-  return category;
 }

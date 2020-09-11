@@ -158,6 +158,9 @@ flutter:
     - lib/portals/gbera/wallpapers/6.png
     - lib/portals/gbera/data/depth.json
     - lib/portals/gbera/data/kline.json
+    - lib/portals/gbera/images/cat-green.gif
+    - lib/portals/gbera/images/cat-red.gif
+    - lib/portals/gbera/images/cat-grey.gif
     - lib/portals/gbera/images/default_watting.gif
     - lib/portals/nodepower/assets/wybank_config_template.yaml
   fonts:

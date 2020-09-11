@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/isp/pages/weny_robot_absorbers.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -96,7 +97,7 @@ class _WenyAbsorberDetailsMorePageState
               ),
               CardItem(
                 title: '指代类别',
-                tipsText: '${absorber.category ?? '-'}',
+                tipsText: '${getUsageDesc(absorber.usage)}',
                 paddingLeft: 20,
                 paddingRight: 20,
                 tail: SizedBox(
@@ -109,7 +110,7 @@ class _WenyAbsorberDetailsMorePageState
               ),
               CardItem(
                 title: '指代对象',
-                tipsText: '${absorber.proxy ?? '-'}',
+                tipsText: '${absorber.absorbabler ?? '-'}',
                 paddingLeft: 20,
                 paddingRight: 20,
                 tail: SizedBox(

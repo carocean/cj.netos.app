@@ -115,7 +115,7 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
                               children: [
                                 TextSpan(
                                   text:
-                                      ' ${getAbsorberCategory(abosrber.category)}',
+                                      ' ${getUsageDesc(abosrber.usage)}',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey,
@@ -359,18 +359,25 @@ class _RobotAbsorbersPageState extends State<RobotAbsorbersPage> {
   }
 }
 
-getAbsorberCategory(String category) {
-  switch (category) {
-    case 'fountain':
+getUsageDesc(int usage) {
+//    用途：
+//    0网流管道
+//    1地理感知器
+//    2街道
+//    3金证喷泉
+//    4抢元宝
+  switch (usage) {
+    case 0:
+      return '网流管道';
+    case 1:
+      return '地理感知器';
+    case 2:
+      return '街道';
+    case 3:
       return '金证喷泉';
-    case 'shop':
-      return '实体店';
-    case 'netflow':
-      return '网流';
-    case 'geosphere':
-      return '地圈';
-    case 'chasingchain':
-      return '追链';
+    case 4:
+      return '抢元宝';
+    default:
+      return '-';
   }
-  return category;
 }

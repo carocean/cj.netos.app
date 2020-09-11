@@ -108,19 +108,6 @@ class _AbsorberDetailsState extends State<AbsorberDetails> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       CardItem(
-                        title: '类别',
-                        tipsText: '${getAbsorberCategory(absorber.category)}',
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        tail: SizedBox(
-                          width: 0,
-                          height: 0,
-                        ),
-                      ),
-                      Divider(
-                        height: 1,
-                      ),
-                      CardItem(
                         title: '类型',
                         tipsText: ' ${absorber.type == 1 ? '地理洇取器' : '简单洇取器'}',
                         paddingLeft: 20,

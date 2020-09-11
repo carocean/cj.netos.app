@@ -28,6 +28,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
@@ -2193,36 +2194,66 @@ class _AbsorberAction extends StatefulWidget {
 }
 
 class __AbsorberActionState extends State<_AbsorberAction> {
-  bool _isBindings = false; //是否已绑定了洇取器, 在robot中实现实体与洇取器的绑定关系，就可以判断该地理感知器是否绑定过洇取器了
+  AbsorberResultOR _absorberResultOR;
+  DomainBulletin _bulletin;
+  bool _isLoaded = false;
+
   @override
   void initState() {
-
+    _load().then((value) {
+      _isLoaded = true;
+      if (mounted) setState(() {});
+    });
     super.initState();
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    _isLoaded = false;
+    if (mounted) setState(() {});
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorbabler =
+        '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
+    _absorberResultOR = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (_absorberResultOR == null) {
+      return;
+    }
+    _bulletin =
+        await robotRemote.getDomainBucket(_absorberResultOR.absorber.bankid);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var _receptorInfo = widget.receptorInfo;
-    if (!_isBindings) {
+    if (!_isLoaded) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+
+    if (_absorberResultOR == null) {
       return IconButton(
         onPressed: () {
+          var _receptorInfo = widget.receptorInfo;
           widget.context.forward(
             '/absorber/apply',
             arguments: {
               'title': _receptorInfo.title,
               'location': _receptorInfo.latLng,
               'radius': _receptorInfo.radius,
-              'category': 'receptor',
-              'proxy': {
-                'type': _receptorInfo.category,
-                'id': _receptorInfo.id,
-              },
+              'usage': 1,
+              'absorbabler': '${_receptorInfo.category}/${_receptorInfo.id}',
             },
           ).then((value) {
-            if (value == null) {
-              return;
-            }
-            //与感知器绑定,一个感知器只能绑定一个洇取器
+            _load().then((value) {
+              _isLoaded = true;
+              if (mounted) setState(() {});
+            });
           });
         },
         icon: Icon(
@@ -2243,8 +2274,14 @@ class __AbsorberActionState extends State<_AbsorberAction> {
           fontFamily: 'absorber',
         ),
         size: 20,
-        color: Colors.red,
+        color: _absorberResultOR.bucket.price >= _bulletin.bucket.waaPrice
+            ? Colors.red
+            : Colors.green,
       ),
+      onPressed: () {
+        widget.context.forward('/absorber/details',
+            arguments: {'absorber': _absorberResultOR.absorber.id});
+      },
     );
   }
 }

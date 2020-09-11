@@ -4,18 +4,20 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
+import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/apply.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
-import 'package:netos_app/common/location_map.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/person_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/profile.dart';
-import 'package:netos_app/portals/gbera/pages/chasechain/person_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/desktop.dart';
 import 'package:netos_app/portals/gbera/pages/desktop/desklets_settings.dart';
@@ -244,7 +246,7 @@ class GberaPortal {
           '/remote/org/receivingBank': ReceivingBankRemote(),
           '/remote/org/workflow': WorkflowRemote(),
           '/remote/chasechain/recommender': ChasechainRecommenderRemote(),
-          '/remote/robot':RobotRemote(),
+          '/remote/robot': RobotRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -2306,6 +2308,24 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/apply',
           buildPage: (PageContext pageContext) => AbsorberApplyPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/details',
+          buildPage: (PageContext pageContext) => GeoAbsorberDetailsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '投资记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/invest/details',
+          buildPage: (PageContext pageContext) => AbsorberInvestRecordsPage(
             context: pageContext,
           ),
         ),
