@@ -129,6 +129,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                           right: 15,
                           bottom: 4,
                         ),
+                        height: 33,
                         color: Theme.of(context).backgroundColor,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
