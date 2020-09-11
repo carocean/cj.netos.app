@@ -12,6 +12,8 @@ import 'package:netos_app/portals/gbera/pages/absorber/absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/recipients_records.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/recipients_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
@@ -2336,6 +2338,24 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/settings',
           buildPage: (PageContext pageContext) => AbsorberSettingsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取人视图',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/recipient/view',
+          buildPage: (PageContext pageContext) => AbsorberRecipientsViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '公众洇取记录',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/recipient/records',
+          buildPage: (PageContext pageContext) => AbsorberRecipientsRecordsPage(
             context: pageContext,
           ),
         ),

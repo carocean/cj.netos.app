@@ -558,7 +558,7 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            widget.context.forward('/weny/recipients/records/geo',
+            widget.context.forward('/absorber/recipient/view',
                 arguments: {'recipients': item, 'absorber': _absorberResultOR});
           },
           child: Column(

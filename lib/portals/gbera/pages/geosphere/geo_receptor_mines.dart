@@ -841,21 +841,21 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
               ],
             ),
           ),
-          _apps.isEmpty
-              ? Container(
-                  width: 0,
-                  height: 0,
-                )
-              : Container(
-                  height: 60,
-                  alignment: Alignment.center,
-                  child: ListView(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.all(0),
-                    children: _geoCategoryApps(),
-                  ),
-                ),
+//          _apps.isEmpty
+//              ? Container(
+//                  width: 0,
+//                  height: 0,
+//                )
+//              : Container(
+//                  height: 60,
+//                  alignment: Alignment.center,
+//                  child: ListView(
+//                    shrinkWrap: true,
+//                    scrollDirection: Axis.horizontal,
+//                    padding: EdgeInsets.all(0),
+//                    children: _geoCategoryApps(),
+//                  ),
+//                ),
           Padding(
             padding: EdgeInsets.only(
               top: 15,
