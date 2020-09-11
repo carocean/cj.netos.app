@@ -8,6 +8,7 @@ import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
@@ -2326,6 +2327,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/invest/details',
           buildPage: (PageContext pageContext) => AbsorberInvestRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '设置',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/settings',
+          buildPage: (PageContext pageContext) => AbsorberSettingsPage(
             context: pageContext,
           ),
         ),

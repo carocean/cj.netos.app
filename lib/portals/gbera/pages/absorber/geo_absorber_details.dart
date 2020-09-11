@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
-import 'package:intl/intl.dart' as intl;
-import 'dart:math' as math;
-
 import 'package:uuid/uuid.dart';
 
 class GeoAbsorberDetailsPage extends StatefulWidget {
@@ -37,11 +36,13 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
         Duration(
           seconds: 5,
         ), (count) async {
-      await _refresh();
+      if (mounted) {
+        await _refresh();
+      }
     }).listen((event) {});
     () async {
-      await _refresh();
       if (mounted) {
+        await _refresh();
         setState(() {});
       }
     }();
@@ -83,7 +84,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                     widget.context.forward('/absorber/invest/details',
                         arguments: {'absorber': _absorberResultOR});
                   },
-                  child: Text('小喵流水'),
+                  child: Text('谁喂过我?'),
                 ),
               ],
 //              backgroundColor: Colors.white,
@@ -102,80 +103,9 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                     ),
                   )
                 : SliverToBoxAdapter(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                      padding: EdgeInsets.only(
-                        left: 15,
-                        right: 15,
-                        bottom: 10,
-                        top: 10,
-                      ),
-                      margin: EdgeInsets.only(
-                        left: 15,
-                        right: 15,
-                      ),
-                      child: Stack(
-                        overflow: Overflow.visible,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                '¥${((_absorberResultOR.bucket.wInvestAmount + _absorberResultOR.bucket.pInvestAmount) / 100.00).toStringAsFixed(14)}',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 2,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('=',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      )),
-                                  Text(
-                                      '¥${(_absorberResultOR.bucket.pInvestAmount / 100.00).toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      )),
-                                  Text('+',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      )),
-                                  Text(
-                                      '¥${(_absorberResultOR.bucket.pInvestAmount / 100.00).toStringAsFixed(14)}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      )),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: Text(
-                              '已发',
-                              style: TextStyle(
-                                fontSize: 8,
-                                color: Colors.grey[300],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: _DashBoard(
+                      stream: _streamController.stream.asBroadcastStream(),
+                      absorberResultOR: _absorberResultOR,
                     ),
                   ),
             SliverToBoxAdapter(
@@ -190,71 +120,88 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                       width: 0,
                     ),
                   )
-                : SliverToBoxAdapter(
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        left: 15,
-                        right: 15,
-                        bottom: 4,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '发现',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 2,
-                          ),
-                          Expanded(
-                            child: Text(
-                              '半径${_absorberResultOR.absorber.radius}米',
+                : SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _DemoHeader(
+                      child: Container(
+                        padding: EdgeInsets.only(
+                          left: 15,
+                          right: 15,
+                          bottom: 4,
+                        ),
+                        color: Theme.of(context).backgroundColor,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '发现',
                               style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[400],
+                                fontSize: 20,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) {
-                                  return _InvestPopupWidget(
-                                    context: widget.context,
-                                    absorberResultOR: _absorberResultOR,
-                                    bulletin: _bulletin,
-                                  );
-                                },
-                              ).then((value) {
-                                if (value != null) {
-//                                  _reloadAbsorber();
-                                }
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                left: 15,
-                                right: 0,
-                                top: 3,
-                              ),
+                            SizedBox(
+                              width: 2,
+                            ),
+                            Expanded(
                               child: Text(
-                                '+喵喵',
+                                '半径${_absorberResultOR.absorber.radius}米',
                                 style: TextStyle(
-                                  color: Colors.blueGrey,
-                                  fontSize: 12,
-                                  decoration: TextDecoration.underline,
+                                  fontSize: 10,
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) {
+                                    return _InvestPopupWidget(
+                                      context: widget.context,
+                                      absorberResultOR: _absorberResultOR,
+                                      bulletin: _bulletin,
+                                    );
+                                  },
+                                ).then((value) {
+                                  if (value != null) {
+//                                  _reloadAbsorber();
+                                  }
+                                });
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  left: 15,
+                                  right: 0,
+                                  top: 3,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      size: 16,
+                                      color: Colors.black54,
+                                    ),
+                                    SizedBox(
+                                      width: 0,
+                                    ),
+                                    Text(
+                                      '喵喵',
+                                      style: TextStyle(
+                                        color: Colors.blueGrey,
+                                        fontSize: 12,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -363,23 +310,53 @@ class __HeaderCardState extends State<_HeaderCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${_absorberResultOR.absorber.title ?? ''}',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (ctx) {
+                          return widget.context.part(
+                            '/absorber/settings',
+                            context,
+                            arguments: {
+                              'absorber': _absorberResultOR,
+                            },
+                          );
+                        });
+                  },
+                  child: Text(
+                    '${_absorberResultOR.absorber.title ?? ''}',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
                 SizedBox(
                   height: 3,
                 ),
-                Text(
-                  '地理洇取器',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '地理洇取器',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                      '${_absorberResultOR.absorber.state == 1 ? '运行中' : '已关停'}',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 10,
@@ -661,12 +638,12 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  Text(
-                                    '${item.person}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
-                                  ),
+//                                  Text(
+//                                    '${item.person}',
+//                                    style: TextStyle(
+//                                      fontSize: 12,
+//                                    ),
+//                                  ),
                                   _absorberResultOR.absorber.type == 0
                                       ? SizedBox(
                                           height: 0,
@@ -688,6 +665,7 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                                     '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
                                     style: TextStyle(
                                       fontSize: 12,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -943,6 +921,139 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
   }
 }
 
+class _DashBoard extends StatefulWidget {
+  AbsorberResultOR absorberResultOR;
+  Stream stream;
+
+  _DashBoard({this.absorberResultOR, this.stream});
+
+  @override
+  __DashBoardState createState() => __DashBoardState();
+}
+
+class __DashBoardState extends State<_DashBoard> {
+  StreamSubscription _streamSubscription;
+  AbsorberResultOR _absorberResultOR;
+
+  @override
+  void initState() {
+    _streamSubscription = widget.stream.listen((event) async {
+      var absorberResultOR = event['absorber'];
+      if (mounted &&
+          (_absorberResultOR == null ||
+              _absorberResultOR.bucket.price !=
+                  absorberResultOR.bucket.price)) {
+        _absorberResultOR = absorberResultOR;
+        if (mounted) {
+          setState(() {});
+        }
+        return;
+      }
+      _absorberResultOR = absorberResultOR;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content;
+    if (_absorberResultOR == null) {
+      _absorberResultOR = widget.absorberResultOR;
+    }
+    if (_absorberResultOR == null) {
+      content = Center(
+        child: Text('-'),
+      );
+    } else {
+      content = Stack(
+        overflow: Overflow.visible,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                '¥${((_absorberResultOR.bucket.wInvestAmount + _absorberResultOR.bucket.pInvestAmount) / 100.00).toStringAsFixed(14)}',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(
+                height: 2,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('=',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      )),
+                  Text(
+                      '¥${(_absorberResultOR.bucket.pInvestAmount / 100.00).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      )),
+                  Text('+',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      )),
+                  Text(
+                      '¥${(_absorberResultOR.bucket.pInvestAmount / 100.00).toStringAsFixed(14)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      )),
+                ],
+              ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            child: Text(
+              '已发',
+              style: TextStyle(
+                fontSize: 8,
+                color: Colors.grey[300],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      padding: EdgeInsets.only(
+        left: 15,
+        right: 15,
+        bottom: 10,
+        top: 10,
+      ),
+      margin: EdgeInsets.only(
+        left: 15,
+        right: 15,
+      ),
+      child: content,
+    );
+  }
+}
+
 class _CustomThumbShape extends SliderComponentShape {
   static const double _thumbSize = 4.0;
   static const double _disabledThumbSize = 3.0;
@@ -1066,4 +1177,29 @@ Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
 Future<Person> _getPerson(IServiceProvider site, String person) async {
   IPersonService personService = site.getService('/gbera/persons');
   return await personService.getPerson(person);
+}
+
+class _DemoHeader extends SliverPersistentHeaderDelegate {
+  Widget child;
+  double height = 33.0;
+
+  _DemoHeader({this.child});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  } // 头部展示内容
+
+  @override
+  double get maxExtent {
+    return height;
+  } // 最大高度
+
+  @override
+  double get minExtent => height; // 最小高度
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) =>
+      false; // 因为所有的内容都是固定的，所以不需要更新
 }

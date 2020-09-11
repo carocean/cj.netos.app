@@ -141,7 +141,6 @@ class _AbsorberInvestRecordsPageState extends State<AbsorberInvestRecordsPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: Text('小猫流水'),
       ),
       body: Container(
         constraints: BoxConstraints.expand(),
