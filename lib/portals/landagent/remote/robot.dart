@@ -321,11 +321,16 @@ mixin IRobotRemote {
 
   Future<double> totalRecipientsRecordById(String recipientsId) {}
 
+  Future<double> totalRecipientsRecordWhere(String absorberid,String recipientsId) {}
+
   Future<List<RecipientsRecordOR>> pageRecipientsRecordByPerson(
       String absorberid, String recipients, int limit, int offset) {}
 
   Future<List<RecipientsRecordOR>> pageRecipientsRecordById(
       String recipientsId, int limit, int offset) {}
+
+  Future<List<RecipientsRecordOR>> pageByRecipientsRecordWhere(
+      String absorberid, String recipientsId, int limit, int offset);
 
   Future<List<InvestRecordOR>> pageInvestRecord(
       String absorber, int limit, int offset);
@@ -595,6 +600,19 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
+  Future<double> totalRecipientsRecordWhere(
+      String absorberid, String recipientsId) async{
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalRecipientsRecordWhere',
+      parameters: {
+        'absorberid': absorberid,
+        'recipientsId': recipientsId,
+      },
+    );
+  }
+
+  @override
   Future<List<RecipientsSummaryOR>> pageSimpleRecipients(
       String absorber, int limit, int offset) async {
     var list = await remotePorts.portGET(
@@ -661,6 +679,38 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       robotRecordPorts,
       'pageRecipientsRecordById',
       parameters: {
+        'recipientsId': recipientsId,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR(
+          encourageCode: obj['encourageCode'],
+          encourageCause: obj['encourageCause'],
+          absorber: obj['absorber'],
+          ctime: obj['ctime'],
+          amount: obj['amount'],
+          refsn: obj['refsn'],
+          sn: obj['sn'],
+          recipient: obj['recipient'],
+          recipientsId: obj['recipientsId'],
+        ),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageByRecipientsRecordWhere(
+      String absorberid, String recipientsId, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageByRecipientsRecordWhere',
+      parameters: {
+        'absorber': absorberid,
         'recipientsId': recipientsId,
         'limit': limit,
         'offset': offset,

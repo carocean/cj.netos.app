@@ -1,3 +1,4 @@
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
@@ -19,18 +20,22 @@ class AbsorberSettingsPage extends StatefulWidget {
 
 class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
   AbsorberResultOR _absorberResultOR;
-  int _radius=20;
+  int _radius = 20;
   int _minRadius = 20;
   int _maxRadius = 2000;
   Person _creator;
+  String _address;
 
   @override
   void initState() {
     _absorberResultOR = widget.context.page.parameters['absorber'];
-    _radius=_absorberResultOR.absorber.radius;
+    _radius = _absorberResultOR.absorber.radius;
     () async {
       _creator = await _getPerson(
           widget.context.site, _absorberResultOR.absorber.creator);
+      var location = _absorberResultOR.absorber.location;
+      var recode = await AmapSearch.searchReGeocode(location);
+      _address = await recode.formatAddress;
       if (mounted) {
         setState(() {});
       }
@@ -118,113 +123,141 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
                     height: 1,
                   ),
                   CardItem(
-                    title: '类型',
-                    subtitle: Text(
-                      '${absorber.type == 1 ? '地理洇取器' : '简单洇取器'}',
-                      style: TextStyle(
+                    title: '位置',
+                    paddingBottom: 0,
+                    tail: SizedBox(
+                      width: 0,
+                      height: 0,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 3,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
                         color: Colors.grey,
-                        fontSize: 12,
                       ),
-                    ),
-                    tail: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 24,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.my_location,
-                                    size: 14,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(
-                                    width: 2,
-                                  ),
-                                  Text(
-                                    '半径:${absorber.radius}米',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      SizedBox(
+                        width: 2,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            widget.context
+                                .forward('/gbera/location', arguments: {
+                              'location': _absorberResultOR.absorber.location,
+                              'label': '半径${_absorberResultOR.absorber.radius}米'
+                            });
+                          },
+                          child: Text(
+                            '${_address ?? ''}',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
                             ),
-                            widget.context.principal.person != absorber.creator
-                                ? SizedBox(
-                                    height: 0,
-                                    width: 0,
-                                  )
-                                : SliderTheme(
-                                    data: theme.sliderTheme.copyWith(
-                                      activeTrackColor: Colors.greenAccent,
-                                      inactiveTrackColor: theme
-                                          .colorScheme.onSurface
-                                          .withOpacity(0.5),
-                                      activeTickMarkColor: theme
-                                          .colorScheme.onSurface
-                                          .withOpacity(0.7),
-                                      inactiveTickMarkColor: theme
-                                          .colorScheme.surface
-                                          .withOpacity(0.7),
-                                      overlayColor: theme.colorScheme.onSurface
-                                          .withOpacity(0.12),
-                                      thumbColor: Colors.redAccent,
-                                      valueIndicatorColor:
-                                          Colors.deepPurpleAccent,
-                                      thumbShape: _CustomThumbShape(),
-                                      valueIndicatorShape:
-                                          _CustomValueIndicatorShape(),
-                                      valueIndicatorTextStyle:
-                                          theme.accentTextTheme.body2.copyWith(
-                                              color:
-                                                  theme.colorScheme.onSurface),
-                                    ),
-                                    child: Slider(
-                                      label: '$_radius米',
-                                      value: _radius * 1.0,
-                                      min: _minRadius * 1.0,
-                                      max: _maxRadius * 1.0,
-                                      divisions:
-                                          ((_maxRadius - _minRadius) / 10)
-                                              .floor(),
-                                      onChangeEnd: (v) async {
-                                        _radius = v.floor();
-                                        IRobotRemote robotRemote = widget
-                                            .context.site
-                                            .getService('/remote/robot');
-                                        await robotRemote.updateAbsorberRadius(
-                                            absorber.id, _radius);
-                                        absorber.radius=_radius;
-                                        if (mounted) {
-                                          setState(() {});
-                                        }
-                                      },
-                                      onChanged: (v) async {
-                                        _radius = v.floor();
-                                        if (mounted) {
-                                          setState(() {});
-                                        }
-                                      },
-                                    ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 18,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.my_location,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(
+                                  width: 2,
+                                ),
+                                Text(
+                                  '半径:${absorber.radius}米',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.black54,
                                   ),
-                          ],
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 18,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          widget.context.principal.person != absorber.creator
+                              ? SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                )
+                              : SliderTheme(
+                                  data: theme.sliderTheme.copyWith(
+                                    activeTrackColor: Colors.greenAccent,
+                                    inactiveTrackColor: theme
+                                        .colorScheme.onSurface
+                                        .withOpacity(0.5),
+                                    activeTickMarkColor: theme
+                                        .colorScheme.onSurface
+                                        .withOpacity(0.7),
+                                    inactiveTickMarkColor: theme
+                                        .colorScheme.surface
+                                        .withOpacity(0.7),
+                                    overlayColor: theme.colorScheme.onSurface
+                                        .withOpacity(0.12),
+                                    thumbColor: Colors.redAccent,
+                                    valueIndicatorColor:
+                                        Colors.deepPurpleAccent,
+                                    thumbShape: _CustomThumbShape(),
+                                    valueIndicatorShape:
+                                        _CustomValueIndicatorShape(),
+                                    valueIndicatorTextStyle:
+                                        theme.accentTextTheme.body2.copyWith(
+                                            color: theme.colorScheme.onSurface),
+                                  ),
+                                  child: Slider(
+                                    label: '$_radius米',
+                                    value: _radius * 1.0,
+                                    min: _minRadius * 1.0,
+                                    max: _maxRadius * 1.0,
+                                    divisions: ((_maxRadius - _minRadius) / 10)
+                                        .floor(),
+                                    onChangeEnd: (v) async {
+                                      _radius = v.floor();
+                                      IRobotRemote robotRemote = widget
+                                          .context.site
+                                          .getService('/remote/robot');
+                                      await robotRemote.updateAbsorberRadius(
+                                          absorber.id, _radius);
+                                      absorber.radius = _radius;
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                    onChanged: (v) async {
+                                      _radius = v.floor();
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                  ),
+                                ),
+                        ],
+                      ),
+                    ],
                   ),
                   Divider(
                     height: 1,

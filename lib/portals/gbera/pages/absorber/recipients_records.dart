@@ -29,7 +29,7 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
 
   @override
   void initState() {
-    _controller=EasyRefreshController();
+    _controller = EasyRefreshController();
     _recipients = widget.context.parameters['recipients'];
     _absorberOR = widget.context.parameters['absorber'];
     _onLoad();
@@ -50,8 +50,9 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
 
   Future<void> _onLoad() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    List<RecipientsRecordOR> records = await robotRemote
-        .pageRecipientsRecordById(_recipients.id, _limit, _offset);
+    List<RecipientsRecordOR> records =
+        await robotRemote.pageByRecipientsRecordWhere(
+            _absorberOR.absorber.id, _recipients.id, _limit, _offset);
     if (records.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {

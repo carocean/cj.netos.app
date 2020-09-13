@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -239,17 +241,18 @@ class __HeaderCardState extends State<_HeaderCard> {
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
   StreamSubscription _streamSubscription;
+  String _address;
 
   @override
   void initState() {
-    _streamSubscription = widget.stream.listen((event) {
+    _streamSubscription = widget.stream.listen((event) async {
       _absorberResultOR = event['absorber'];
       _bulletin = event['bulletin'];
+      await _load();
       if (mounted) {
         setState(() {});
       }
     });
-
     super.initState();
   }
 
@@ -257,6 +260,12 @@ class __HeaderCardState extends State<_HeaderCard> {
   void dispose() {
     _streamSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    var location = _absorberResultOR.absorber.location;
+    var recode = await AmapSearch.searchReGeocode(location);
+    _address = await recode.formatAddress;
   }
 
   @override
@@ -341,16 +350,6 @@ class __HeaderCardState extends State<_HeaderCard> {
                 Row(
                   children: [
                     Text(
-                      '地理洇取器',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text(
                       '${_absorberResultOR.absorber.state == 1 ? '运行中' : '已关停'}',
                       style: TextStyle(
                         color: Colors.grey,
@@ -359,6 +358,7 @@ class __HeaderCardState extends State<_HeaderCard> {
                     ),
                   ],
                 ),
+
                 SizedBox(
                   height: 10,
                 ),
@@ -529,9 +529,10 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
     }
   }
 
-  Future<double> _totalRecipientsRecordById(String recipientsId) async {
+  Future<double> _totalRecipientsRecordWhere(String recipientsId) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    return await robotRemote.totalRecipientsRecordById(recipientsId);
+    return await robotRemote.totalRecipientsRecordWhere(
+        _absorberResultOR.absorber.id, recipientsId);
   }
 
   @override
@@ -691,7 +692,7 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                               ),
                             ),
                             FutureBuilder<double>(
-                              future: _totalRecipientsRecordById(item.id),
+                              future: _totalRecipientsRecordWhere(item.id),
                               builder: (ctx, snapshot) {
                                 if (snapshot.connectionState !=
                                     ConnectionState.done) {
@@ -1012,7 +1013,7 @@ class __DashBoardState extends State<_DashBoard> {
                         color: Colors.grey,
                       )),
                   Text(
-                      '¥${(_absorberResultOR.bucket.pInvestAmount / 100.00).toStringAsFixed(14)}',
+                      '¥${(_absorberResultOR.bucket.wInvestAmount / 100.00).toStringAsFixed(14)}',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,

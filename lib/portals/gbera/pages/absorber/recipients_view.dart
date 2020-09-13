@@ -41,9 +41,9 @@ class _AbsorberRecipientsViewPageState
 
   Future<void> _load() async {}
 
-  Future<double> _totalRecipientsRecordById(String recipientsId) async {
+  Future<double> _totalRecipientsRecordWhere(String recipientsId) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    return await robotRemote.totalRecipientsRecordById(recipientsId);
+    return await robotRemote.totalRecipientsRecordWhere(_absorberResultOR.absorber.id,recipientsId);
   }
 
   @override
@@ -63,7 +63,7 @@ class _AbsorberRecipientsViewPageState
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               FutureBuilder<double>(
-                future: _totalRecipientsRecordById(_recipientsOR.id),
+                future: _totalRecipientsRecordWhere(_recipientsOR.id),
                 builder: (ctx, snapshot) {
                   if (snapshot.connectionState != ConnectionState.done) {
                     return Text(
