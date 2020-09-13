@@ -28,47 +28,28 @@ class GeoAbsorberDetailsPage extends StatefulWidget {
 class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
-  StreamController _streamController;
+  Stream _stream;
   StreamSubscription _streamSubscription;
 
   @override
   void initState() {
-    _streamController = StreamController.broadcast();
-    _streamSubscription = Stream.periodic(
-        Duration(
-          seconds: 5,
-        ), (count) async {
+    _stream = widget.context.parameters['stream'];
+    _absorberResultOR = widget.context.parameters['initAbsorber'];
+    _bulletin = widget.context.parameters['initBulletin'];
+    _streamSubscription = _stream.listen((event) {
+      _absorberResultOR = event['absorber'];
+      _bulletin = event['bulletin'];
       if (mounted) {
-        await _refresh();
-      }
-    }).listen((event) {});
-    () async {
-      if (mounted) {
-        await _refresh();
         setState(() {});
       }
-    }();
+    });
     super.initState();
   }
 
   @override
   void dispose() {
     _streamSubscription?.cancel();
-    _streamController?.close();
     super.dispose();
-  }
-
-  Future<void> _refresh() async {
-    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorber = widget.context.parameters['absorber'];
-    _absorberResultOR = await robotRemote.getAbsorber(absorber);
-    if (_absorberResultOR == null) {
-      return;
-    }
-    _bulletin =
-        await robotRemote.getDomainBucket(_absorberResultOR.absorber.bankid);
-    _streamController
-        .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
   }
 
   @override
@@ -94,7 +75,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
             SliverToBoxAdapter(
               child: _HeaderCard(
                 context: widget.context,
-                stream: _streamController.stream.asBroadcastStream(),
+                stream: _stream.asBroadcastStream(),
               ),
             ),
             _absorberResultOR == null
@@ -106,7 +87,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                   )
                 : SliverToBoxAdapter(
                     child: _DashBoard(
-                      stream: _streamController.stream.asBroadcastStream(),
+                      stream: _stream.asBroadcastStream(),
                       absorberResultOR: _absorberResultOR,
                     ),
                   ),
@@ -216,7 +197,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
           constraints: BoxConstraints.expand(),
           child: _GeoRecipientsCard(
             context: widget.context,
-            stream: _streamController.stream.asBroadcastStream(),
+            stream: _stream.asBroadcastStream(),
           ),
         ),
       ),
@@ -245,6 +226,8 @@ class __HeaderCardState extends State<_HeaderCard> {
 
   @override
   void initState() {
+    _absorberResultOR = widget.context.parameters['initAbsorber'];
+    _bulletin = widget.context.parameters['initBulletin'];
     _streamSubscription = widget.stream.listen((event) async {
       _absorberResultOR = event['absorber'];
       _bulletin = event['bulletin'];
@@ -358,7 +341,6 @@ class __HeaderCardState extends State<_HeaderCard> {
                     ),
                   ],
                 ),
-
                 SizedBox(
                   height: 10,
                 ),
@@ -482,17 +464,17 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
   @override
   void initState() {
     _controller = EasyRefreshController();
+    _absorberResultOR = widget.context.parameters['initAbsorber'];
+    _bulletin = widget.context.parameters['initBulletin'];
+    _onLoad().then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     _streamSubscription = widget.stream.listen((event) async {
       _absorberResultOR = event['absorber'];
-      DomainBulletin bulletin = event['bulletin'];
-      if (mounted &&
-          (_bulletin == null ||
-              _bulletin.bucket.waaPrice != bulletin.bucket.waaPrice)) {
-        _bulletin = bulletin;
-        await _onRefresh();
-        return;
-      }
-      _bulletin = bulletin;
+      _bulletin = event['bulletin'];
+      await _onRefresh();
     });
 
     super.initState();

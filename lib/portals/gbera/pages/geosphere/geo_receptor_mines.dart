@@ -2196,35 +2196,73 @@ class _AbsorberAction extends StatefulWidget {
 class __AbsorberActionState extends State<_AbsorberAction> {
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
-  bool _isLoaded = false;
+  bool _isLoaded = false, _isRefreshing = false;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
+    _streamController = StreamController.broadcast();
+    _isLoaded = false;
     _load().then((value) {
       _isLoaded = true;
       if (mounted) setState(() {});
+    });
+    _streamSubscription = Stream.periodic(
+        Duration(
+          seconds: 5,
+        ), (count) async {
+      if (!_isRefreshing && mounted) {
+        return await _refresh();
+      }
+    }).listen((event) async {
+      var v = await event;
+      if (v && !_streamController.isClosed) {
+        _streamController
+            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
+      }
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _streamSubscription?.cancel();
+    _streamController?.close();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    _isLoaded = false;
-    if (mounted) setState(() {});
+  Future<bool> _refresh() async {
+    _isRefreshing = true;
+    var diff = await _load();
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+    return diff;
+  }
+
+  Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbabler =
         '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
-    _absorberResultOR = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
-    if (_absorberResultOR == null) {
-      return;
+    var absorberResultOR =
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return false;
     }
-    _bulletin =
-        await robotRemote.getDomainBucket(_absorberResultOR.absorber.bankid);
+    var bulletin =
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+    bool diff = (_absorberResultOR == null ||
+        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
+        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
+    _bulletin = bulletin;
+    _absorberResultOR = absorberResultOR;
+    return diff;
   }
 
   @override
@@ -2279,8 +2317,12 @@ class __AbsorberActionState extends State<_AbsorberAction> {
             : Colors.green,
       ),
       onPressed: () {
-        widget.context.forward('/absorber/details',
-            arguments: {'absorber': _absorberResultOR.absorber.id});
+        widget.context.forward('/absorber/details', arguments: {
+          'absorber': _absorberResultOR.absorber.id,
+          'stream': _streamController.stream.asBroadcastStream(),
+          'initAbsorber': _absorberResultOR,
+          'initBulletin': _bulletin,
+        });
       },
     );
   }
