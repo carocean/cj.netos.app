@@ -189,18 +189,40 @@ class RecipientsRecordOR {
   String absorber;
   String encourageCode;
   String encourageCause;
+  int order;
+  int year;
+  int month;
   String recipientsId;
 
-  RecipientsRecordOR(
-      {this.sn,
-      this.recipient,
-      this.amount,
-      this.ctime,
-      this.refsn,
-      this.absorber,
-      this.encourageCode,
-      this.encourageCause,
-      this.recipientsId});
+  RecipientsRecordOR({
+    this.sn,
+    this.recipient,
+    this.amount,
+    this.ctime,
+    this.refsn,
+    this.absorber,
+    this.encourageCode,
+    this.encourageCause,
+    this.recipientsId,
+    this.month,
+    this.year,
+    this.order,
+  });
+
+  RecipientsRecordOR.parse(obj) {
+    this.order = obj['order'];
+    this.year = obj['year'];
+    this.month = obj['month'];
+    this.absorber = obj['absorber'];
+    this.sn = obj['sn'];
+    this.amount = obj['amount'];
+    this.ctime = obj['ctime'];
+    this.encourageCause = obj['encourageCause'];
+    this.encourageCode = obj['encourageCode'];
+    this.recipient = obj['recipient'];
+    this.recipientsId = obj['recipientsId'];
+    this.refsn = obj['refsn'];
+  }
 }
 
 class InvestRecordOR {
@@ -321,7 +343,14 @@ mixin IRobotRemote {
 
   Future<double> totalRecipientsRecordById(String recipientsId) {}
 
-  Future<double> totalRecipientsRecordWhere(String absorberid,String recipientsId) {}
+  Future<double> totalRecipientsRecordWhere(
+      String absorberid, String recipientsId) {}
+
+  Future<double> totalRecipientsRecordByOrderWhere(
+      String absorberid, String recipientsId, int order);
+
+  Future<double> totalRecipientsRecordByOrderWhere2(
+      String absorberid, String recipientsId, int order, int year, int month);
 
   Future<List<RecipientsRecordOR>> pageRecipientsRecordByPerson(
       String absorberid, String recipients, int limit, int offset) {}
@@ -329,8 +358,23 @@ mixin IRobotRemote {
   Future<List<RecipientsRecordOR>> pageRecipientsRecordById(
       String recipientsId, int limit, int offset) {}
 
-  Future<List<RecipientsRecordOR>> pageByRecipientsRecordWhere(
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordWhere(
       String absorberid, String recipientsId, int limit, int offset);
+
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordWhere3(String absorberid,
+      String recipientsId, int year, int month, int limit, int offset);
+
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByOrderWhere(
+      String absorberid, String recipientsId, int order, int limit, int offset);
+
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByOrderWhere2(
+      String absorberid,
+      String recipientsId,
+      int order,
+      int year,
+      int month,
+      int limit,
+      int offset);
 
   Future<List<InvestRecordOR>> pageInvestRecord(
       String absorber, int limit, int offset);
@@ -601,13 +645,43 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   @override
   Future<double> totalRecipientsRecordWhere(
-      String absorberid, String recipientsId) async{
+      String absorberid, String recipientsId) async {
     return await remotePorts.portGET(
       robotRecordPorts,
       'totalRecipientsRecordWhere',
       parameters: {
         'absorberid': absorberid,
         'recipientsId': recipientsId,
+      },
+    );
+  }
+
+  @override
+  Future<double> totalRecipientsRecordByOrderWhere(
+      String absorberid, String recipientsId, int order) async {
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalRecipientsRecordByOrderWhere',
+      parameters: {
+        'absorberid': absorberid,
+        'recipientsId': recipientsId,
+        'order': order,
+      },
+    );
+  }
+
+  @override
+  Future<double> totalRecipientsRecordByOrderWhere2(String absorberid,
+      String recipientsId, int order, int year, int month) async {
+    return await remotePorts.portGET(
+      robotRecordPorts,
+      'totalRecipientsRecordByOrderWhere2',
+      parameters: {
+        'absorberid': absorberid,
+        'recipientsId': recipientsId,
+        'order': order,
+        'year': year,
+        'month': month,
       },
     );
   }
@@ -656,17 +730,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     var recordList = <RecipientsRecordOR>[];
     for (var obj in list) {
       recordList.add(
-        RecipientsRecordOR(
-          encourageCode: obj['encourageCode'],
-          encourageCause: obj['encourageCause'],
-          absorber: obj['absorber'],
-          ctime: obj['ctime'],
-          amount: obj['amount'],
-          refsn: obj['refsn'],
-          sn: obj['sn'],
-          recipient: obj['recipient'],
-          recipientsId: obj['recipientsId'],
-        ),
+        RecipientsRecordOR.parse(obj),
       );
     }
     return recordList;
@@ -687,28 +751,18 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     var recordList = <RecipientsRecordOR>[];
     for (var obj in list) {
       recordList.add(
-        RecipientsRecordOR(
-          encourageCode: obj['encourageCode'],
-          encourageCause: obj['encourageCause'],
-          absorber: obj['absorber'],
-          ctime: obj['ctime'],
-          amount: obj['amount'],
-          refsn: obj['refsn'],
-          sn: obj['sn'],
-          recipient: obj['recipient'],
-          recipientsId: obj['recipientsId'],
-        ),
+        RecipientsRecordOR.parse(obj),
       );
     }
     return recordList;
   }
 
   @override
-  Future<List<RecipientsRecordOR>> pageByRecipientsRecordWhere(
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordWhere(
       String absorberid, String recipientsId, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotRecordPorts,
-      'pageByRecipientsRecordWhere',
+      'pageRecipientsRecordWhere',
       parameters: {
         'absorber': absorberid,
         'recipientsId': recipientsId,
@@ -719,17 +773,89 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     var recordList = <RecipientsRecordOR>[];
     for (var obj in list) {
       recordList.add(
-        RecipientsRecordOR(
-          encourageCode: obj['encourageCode'],
-          encourageCause: obj['encourageCause'],
-          absorber: obj['absorber'],
-          ctime: obj['ctime'],
-          amount: obj['amount'],
-          refsn: obj['refsn'],
-          sn: obj['sn'],
-          recipient: obj['recipient'],
-          recipientsId: obj['recipientsId'],
-        ),
+        RecipientsRecordOR.parse(obj),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordWhere3(String absorberid,
+      String recipientsId, int year, int month, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageRecipientsRecordWhere3',
+      parameters: {
+        'absorber': absorberid,
+        'recipientsId': recipientsId,
+        'year': year,
+        'month': month,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR.parse(obj),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByOrderWhere(
+      String absorberid,
+      String recipientsId,
+      int order,
+      int limit,
+      int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageRecipientsRecordByOrderWhere',
+      parameters: {
+        'absorber': absorberid,
+        'recipientsId': recipientsId,
+        'order': order,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR.parse(obj),
+      );
+    }
+    return recordList;
+  }
+
+  @override
+  Future<List<RecipientsRecordOR>> pageRecipientsRecordByOrderWhere2(
+      String absorberid,
+      String recipientsId,
+      int order,
+      int year,
+      int month,
+      int limit,
+      int offset) async {
+    var list = await remotePorts.portGET(
+      robotRecordPorts,
+      'pageRecipientsRecordByOrderWhere2',
+      parameters: {
+        'absorber': absorberid,
+        'recipientsId': recipientsId,
+        'order': order,
+        'year': year,
+        'month': month,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recordList = <RecipientsRecordOR>[];
+    for (var obj in list) {
+      recordList.add(
+        RecipientsRecordOR.parse(obj),
       );
     }
     return recordList;

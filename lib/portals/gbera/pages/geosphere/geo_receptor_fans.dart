@@ -30,6 +30,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
@@ -537,6 +538,11 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
 
   List<Widget> _getActions(Color color) {
     return <Widget>[
+      _AbsorberAction(
+        color: color,
+        context: widget.context,
+        receptorInfo: _receptorInfo,
+      ),
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () {
@@ -1043,7 +1049,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     children: _geoCategoryApps(),
                   ),
                 ),
-          _renderServiceMenu(),
+//          _renderServiceMenu(),
+        SizedBox(height: 10,),
           Padding(
             padding: EdgeInsets.only(
               top: 15,
@@ -1100,7 +1107,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 left: 5,
                               ),
                               child: Text(
-                                '粉丝',
+                                '我为粉丝',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 12,
@@ -2385,5 +2392,163 @@ class _GeosphereMessageWrapper {
 
   String get distanceLabel {
     return _distanceLabel;
+  }
+}
+
+class _AbsorberAction extends StatefulWidget {
+  PageContext context;
+  ReceptorInfo receptorInfo;
+  Color color;
+
+  _AbsorberAction({
+    this.context,
+    this.receptorInfo,
+    this.color,
+  });
+
+  @override
+  __AbsorberActionState createState() => __AbsorberActionState();
+}
+
+class __AbsorberActionState extends State<_AbsorberAction> {
+  AbsorberResultOR _absorberResultOR;
+  DomainBulletin _bulletin;
+  bool _isLoaded = false, _isRefreshing = false;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
+
+  @override
+  void initState() {
+    _streamController = StreamController.broadcast();
+    _isLoaded = false;
+    _load().then((value) {
+      _isLoaded = true;
+      if (mounted) setState(() {});
+    });
+    _streamSubscription = Stream.periodic(
+        Duration(
+          seconds: 5,
+        ), (count) async {
+      if (!_isRefreshing && mounted) {
+        return await _refresh();
+      }
+    }).listen((event) async {
+      var v = await event;
+      if (v && !_streamController.isClosed) {
+        _streamController
+            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _streamController?.close();
+    super.dispose();
+  }
+
+  Future<bool> _refresh() async {
+    _isRefreshing = true;
+    var diff = await _load();
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+    return diff;
+  }
+
+  Future<bool> _load() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorbabler =
+        '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
+    var absorberResultOR =
+    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return false;
+    }
+    var bulletin =
+    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+    bool diff = (_absorberResultOR == null ||
+        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
+        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
+    _bulletin = bulletin;
+    _absorberResultOR = absorberResultOR;
+    return diff;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+    if(widget.receptorInfo.creator!=widget.context.principal.person){
+      if (_absorberResultOR == null){
+        return SizedBox(
+          height: 0,
+          width: 0,
+        );
+      }
+    }
+    if (_absorberResultOR == null) {
+      return IconButton(
+        onPressed: () {
+          var _receptorInfo = widget.receptorInfo;
+          widget.context.forward(
+            '/absorber/apply',
+            arguments: {
+              'title': _receptorInfo.title,
+              'location': _receptorInfo.latLng,
+              'radius': _receptorInfo.radius,
+              'usage': 1,
+              'absorbabler': '${_receptorInfo.category}/${_receptorInfo.id}',
+            },
+          ).then((value) {
+            _load().then((value) {
+              _isLoaded = true;
+              if (mounted) setState(() {});
+            });
+          });
+        },
+        icon: Icon(
+          IconData(
+            0xe6b2,
+            fontFamily: 'absorber',
+          ),
+          size: 20,
+          color: widget.color,
+        ),
+      );
+    }
+
+    //存在
+    return IconButton(
+      icon: Icon(
+        IconData(
+          0xe6b2,
+          fontFamily: 'absorber',
+        ),
+        size: 20,
+        color: _absorberResultOR.bucket.price >= _bulletin.bucket.waaPrice
+            ? Colors.red
+            : Colors.green,
+      ),
+      onPressed: () {
+        widget.context.forward('/absorber/details', arguments: {
+          'absorber': _absorberResultOR.absorber.id,
+          'stream': _streamController.stream.asBroadcastStream(),
+          'initAbsorber': _absorberResultOR,
+          'initBulletin': _bulletin,
+        });
+      },
+    );
   }
 }

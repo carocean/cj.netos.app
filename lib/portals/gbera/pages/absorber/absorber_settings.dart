@@ -201,7 +201,7 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
                           ),
                           widget.context.principal.person != absorber.creator
                               ? SizedBox(
-                                  height: 0,
+                                  height: 15,
                                   width: 0,
                                 )
                               : SliderTheme(

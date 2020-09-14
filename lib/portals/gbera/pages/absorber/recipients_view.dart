@@ -249,6 +249,7 @@ class _AbsorberRecipientsViewPageState
       constraints: BoxConstraints.expand(),
       child: Column(
         children: [
+
           CardItem(
             title: '他的洇取记录',
             onItemTap: () {

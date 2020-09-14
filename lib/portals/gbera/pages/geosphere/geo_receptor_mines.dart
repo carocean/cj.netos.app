@@ -2217,6 +2217,9 @@ class __AbsorberActionState extends State<_AbsorberAction> {
       }
     }).listen((event) async {
       var v = await event;
+      if (v == null) {
+        return;
+      }
       if (v && !_streamController.isClosed) {
         _streamController
             .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
