@@ -990,7 +990,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     }
 //    print(docMap);
     var message = InsiteMessage(
-      Uuid().v1(),
+      MD5Util.MD5(Uuid().v1()),
       docMap['id'],
       frame.head('sender-person'),
       docMap['channel'],
@@ -1000,7 +1000,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       docMap['ctime'],
       DateTime.now().millisecondsSinceEpoch,
       docMap['content'],
-      docMap['tradeSn'],
+      docMap['purchaseSn'],
       null,
       widget.context.principal.person,
     );
@@ -1198,6 +1198,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
   Channel _channel;
   Person _person;
   PurchaseOR _purchaseOR;
+
   @override
   void initState() {
     () async {
@@ -1236,9 +1237,10 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
       return null;
     }
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
   }
+
   Future<Person> _loadPerson() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -1317,7 +1319,10 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                     text: '  ¥',
                     children: [
                       TextSpan(
-                        text: (((_purchaseOR?.principalAmount??0.00)/100.00) ?? 0).toStringAsFixed(2),
+                        text: (((_purchaseOR?.principalAmount ?? 0.00) /
+                                    100.00) ??
+                                0)
+                            .toStringAsFixed(2),
                         style: TextStyle(
                           color: Colors.blueGrey,
                           fontWeight: FontWeight.w500,

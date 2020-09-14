@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
@@ -9,6 +10,7 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:intl/intl.dart' as intl;
+import 'dart:math' as math;
 
 class AbsorberRecipientsViewPage extends StatefulWidget {
   PageContext context;
@@ -43,7 +45,8 @@ class _AbsorberRecipientsViewPageState
 
   Future<double> _totalRecipientsRecordWhere(String recipientsId) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    return await robotRemote.totalRecipientsRecordWhere(_absorberResultOR.absorber.id,recipientsId);
+    return await robotRemote.totalRecipientsRecordWhere(
+        _absorberResultOR.absorber.id, recipientsId);
   }
 
   @override
@@ -113,7 +116,6 @@ class _AbsorberRecipientsViewPageState
           ),
           SizedBox(
             height: 15,
-
           ),
           Expanded(
             child: _renderRecords(),
@@ -205,10 +207,34 @@ class _AbsorberRecipientsViewPageState
                   runSpacing: 5,
                   crossAxisAlignment: WrapCrossAlignment.start,
                   children: <Widget>[
-                    Text(
-                      '权重: ${_recipientsOR.weight?.toStringAsFixed(4)}',
-                      style: TextStyle(
-                        fontSize: 12,
+                    Text.rich(
+                      TextSpan(
+                        text: '权重: ',
+                        children: [
+                          TextSpan(
+                            text: '${_recipientsOR.weight?.toStringAsFixed(4)}',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) {
+                                    return _UpdateWeightPopupWidget(
+                                      context: widget.context,
+                                      recipientsOR: _recipientsOR,
+                                    );
+                                  },
+                                ).then((value) {
+                                  if (value != null) {}
+                                });
+                              },
+                          ),
+                        ],
+                        style: TextStyle(
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                     _absorberResultOR.absorber.type == 0
@@ -249,7 +275,6 @@ class _AbsorberRecipientsViewPageState
       constraints: BoxConstraints.expand(),
       child: Column(
         children: [
-
           CardItem(
             title: '他的洇取记录',
             onItemTap: () {
@@ -268,4 +293,240 @@ class _AbsorberRecipientsViewPageState
 Future<Person> _getPerson(IServiceProvider site, String person) async {
   IPersonService personService = site.getService('/gbera/persons');
   return await personService.getPerson(person);
+}
+
+class _UpdateWeightPopupWidget extends StatefulWidget {
+  PageContext context;
+  RecipientsOR recipientsOR;
+
+  _UpdateWeightPopupWidget({
+    this.context,
+    this.recipientsOR,
+  });
+
+  @override
+  __UpdateWeightPopupWidgetState createState() =>
+      __UpdateWeightPopupWidgetState();
+}
+
+class __UpdateWeightPopupWidgetState extends State<_UpdateWeightPopupWidget> {
+  @override
+  Widget build(BuildContext context) {
+    var recipients = widget.recipientsOR;
+    var theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        title: Text('调整权重'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                '1.00',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            constraints: BoxConstraints.tightForFinite(
+              width: double.maxFinite,
+              height: 100,
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Container(
+                  alignment: Alignment.bottomLeft,
+                  padding: EdgeInsets.only(
+                    left: 15,
+                  ),
+                  child: Text(
+                    '调整',
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 3,
+                ),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: SliderTheme(
+                      data: theme.sliderTheme.copyWith(
+                        activeTrackColor: Colors.greenAccent,
+                        inactiveTrackColor:
+                            theme.colorScheme.onSurface.withOpacity(0.5),
+                        activeTickMarkColor:
+                            theme.colorScheme.onSurface.withOpacity(0.7),
+                        inactiveTickMarkColor:
+                            theme.colorScheme.surface.withOpacity(0.7),
+                        overlayColor:
+                            theme.colorScheme.onSurface.withOpacity(0.12),
+                        thumbColor: Colors.redAccent,
+                        valueIndicatorColor: Colors.deepPurpleAccent,
+                        thumbShape: _CustomThumbShape(),
+                        valueIndicatorShape: _CustomValueIndicatorShape(),
+                        valueIndicatorTextStyle: theme.accentTextTheme.body2
+                            .copyWith(color: theme.colorScheme.onSurface),
+                      ),
+                      child: Slider(
+                        label: '${recipients.weight.toStringAsFixed(4)}',
+                        value: recipients.weight * 1.0,
+                        min: 1.0000,
+                        max: 100 * 1.0000,
+                        divisions: ((100 - 1.0000) / 1).floor(),
+                        onChangeEnd: (v) async {
+                          recipients.weight = v;
+                          IRobotRemote robotRemote =
+                              widget.context.site.getService('/remote/robot');
+                          await robotRemote.updateRecipientsWeights(recipients.id,recipients.weight);
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                        onChanged: (v) async {
+                          recipients.weight = v;
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CustomThumbShape extends SliderComponentShape {
+  static const double _thumbSize = 4.0;
+  static const double _disabledThumbSize = 3.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return isEnabled
+        ? const Size.fromRadius(_thumbSize)
+        : const Size.fromRadius(_disabledThumbSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledThumbSize,
+    end: _thumbSize,
+  );
+
+  @override
+  void paint(PaintingContext context, Offset thumbCenter,
+      {Animation<double> activationAnimation,
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
+    final Canvas canvas = context.canvas;
+    final ColorTween colorTween = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.thumbColor,
+    );
+    final double size = _thumbSize * sizeTween.evaluate(enableAnimation);
+    final Path thumbPath = _downTriangle(size, thumbCenter);
+    canvas.drawPath(
+        thumbPath, Paint()..color = colorTween.evaluate(enableAnimation));
+  }
+}
+
+class _CustomValueIndicatorShape extends SliderComponentShape {
+  static const double _indicatorSize = 4.0;
+  static const double _disabledIndicatorSize = 3.0;
+  static const double _slideUpHeight = 40.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(isEnabled ? _indicatorSize : _disabledIndicatorSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledIndicatorSize,
+    end: _indicatorSize,
+  );
+
+  @override
+  void paint(PaintingContext context, Offset thumbCenter,
+      {Animation<double> activationAnimation,
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
+    final Canvas canvas = context.canvas;
+    final ColorTween enableColor = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.valueIndicatorColor,
+    );
+    final Tween<double> slideUpTween = Tween<double>(
+      begin: 0.0,
+      end: _slideUpHeight,
+    );
+    final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
+    final Offset slideUpOffset =
+        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+    final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
+    final Color paintColor = enableColor
+        .evaluate(enableAnimation)
+        .withAlpha((255.0 * activationAnimation.value).round());
+    canvas.drawPath(
+      thumbPath,
+      Paint()..color = paintColor,
+    );
+    canvas.drawLine(
+        thumbCenter,
+        thumbCenter + slideUpOffset,
+        Paint()
+          ..color = paintColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0);
+    labelPainter.paint(
+        canvas,
+        thumbCenter +
+            slideUpOffset +
+            Offset(-labelPainter.width / 2.0, -labelPainter.height - 4.0));
+  }
+}
+
+Path _upTriangle(double size, Offset thumbCenter) =>
+    _downTriangle(size, thumbCenter, invert: true);
+
+Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
+  final Path thumbPath = Path();
+  final double height = math.sqrt(3.0) / 2.0;
+  final double centerHeight = size * height / 3.0;
+  final double halfSize = size / 2.0;
+  final double sign = invert ? -1.0 : 1.0;
+  thumbPath.moveTo(
+      thumbCenter.dx - halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.lineTo(thumbCenter.dx, thumbCenter.dy - 2.0 * sign * centerHeight);
+  thumbPath.lineTo(
+      thumbCenter.dx + halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.close();
+  return thumbPath;
 }

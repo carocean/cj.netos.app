@@ -8,10 +8,14 @@ import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
-import 'package:netos_app/portals/gbera/pages/absorber/absorber_settings.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
-import 'package:netos_app/portals/gbera/pages/absorber/apply.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/geo_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/select_persons.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/simple_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_records.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
@@ -2309,8 +2313,17 @@ class GberaPortal {
           title: '申请洇取器',
           subtitle: '',
           icon: Icons.business,
-          url: '/absorber/apply',
-          buildPage: (PageContext pageContext) => AbsorberApplyPage(
+          url: '/absorber/apply/geosphere',
+          buildPage: (PageContext pageContext) => AbsorberGeoApplyPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申请洇取器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/apply/simple',
+          buildPage: (PageContext pageContext) => AbsorberSimpleApplyPage(
             context: pageContext,
           ),
         ),
@@ -2318,8 +2331,17 @@ class GberaPortal {
           title: '洇取器',
           subtitle: '',
           icon: Icons.business,
-          url: '/absorber/details',
+          url: '/absorber/details/geo',
           buildPage: (PageContext pageContext) => GeoAbsorberDetailsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '洇取器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/details/simple',
+          buildPage: (PageContext pageContext) => SimpleAbsorberDetailsPage(
             context: pageContext,
           ),
         ),
@@ -2336,8 +2358,17 @@ class GberaPortal {
           title: '设置',
           subtitle: '',
           icon: Icons.business,
-          url: '/absorber/settings',
-          buildPage: (PageContext pageContext) => AbsorberSettingsPage(
+          url: '/absorber/settings/geo',
+          buildPage: (PageContext pageContext) => GeoAbsorberSettingsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '设置',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/settings/simple',
+          buildPage: (PageContext pageContext) => SimpleAbsorberSettingsPage(
             context: pageContext,
           ),
         ),
@@ -2356,6 +2387,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/recipient/records',
           buildPage: (PageContext pageContext) => AbsorberRecipientsRecordsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '选择公众',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/details/selectRecipients',
+          buildPage: (PageContext pageContext) => SelectPersons(
             context: pageContext,
           ),
         ),

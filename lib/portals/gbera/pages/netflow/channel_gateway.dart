@@ -114,13 +114,13 @@ class _ChannelGatewayState extends State<ChannelGateway> {
                       );
                     },
                   ),
-                  _CardItem(
-                    title: '微站',
-                    tipsText: '百味湘菜馆',
-                    onItemTap: () {
-                      widget.context.forward('/site/marchant');
-                    },
-                  ),
+//                  _CardItem(
+//                    title: '微站',
+//                    tipsText: '百味湘菜馆',
+//                    onItemTap: () {
+//                      widget.context.forward('/site/marchant');
+//                    },
+//                  ),
                   _CardItem(
                     title: '管道动态',
                     onItemTap: () {

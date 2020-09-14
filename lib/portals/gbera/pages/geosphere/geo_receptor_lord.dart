@@ -2295,7 +2295,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
         onPressed: () {
           var _receptorInfo = widget.receptorInfo;
           widget.context.forward(
-            '/absorber/apply',
+            '/absorber/apply/geosphere',
             arguments: {
               'title': _receptorInfo.title,
               'location': _receptorInfo.latLng,
@@ -2333,7 +2333,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
             : Colors.green,
       ),
       onPressed: () {
-        widget.context.forward('/absorber/details', arguments: {
+        widget.context.forward('/absorber/details/geo', arguments: {
           'absorber': _absorberResultOR.absorber.id,
           'stream': _streamController.stream.asBroadcastStream(),
           'initAbsorber': _absorberResultOR,

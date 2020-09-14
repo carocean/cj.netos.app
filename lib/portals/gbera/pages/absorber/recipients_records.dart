@@ -312,7 +312,7 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
                             right: 5,
                           ),
                           child: Text(
-                            '银行投资',
+                            '纹银洇金',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -337,7 +337,7 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
                             right: 5,
                           ),
                           child: Text(
-                            '公众投资',
+                            '公众洇金',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -386,15 +386,14 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
   }
 
   _parseOrder(int order) {
-    if(order==null) {
+    if (order == null) {
       return '-';
     }
-    if(order==0) {
-      return '纹银银行投资';
+    if (order == 0) {
+      return '纹银洇金';
     }
-    return '公众投资';
+    return '公众洇金';
   }
-
 }
 
 Future<Person> _getPerson(IServiceProvider site, String person) async {

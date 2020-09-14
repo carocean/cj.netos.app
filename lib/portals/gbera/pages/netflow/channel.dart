@@ -23,6 +23,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -266,6 +267,10 @@ class _ChannelPageState extends State<ChannelPage> {
         backgroundColor: Colors.transparent,
         toolbarOpacity: 1,
         actions: <Widget>[
+          _AbsorberAction(
+            context: widget.context,
+            channel: _channel,
+          ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: () {
@@ -557,6 +562,7 @@ class __MessageCardState extends State<_MessageCard> {
   Person _person;
   Future<Person> _future_getPerson;
   PurchaseOR _purchaseOR;
+  bool _isLoaded = false;
 
   @override
   void initState() {
@@ -578,8 +584,10 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   Future<void> _load() async {
+    _isLoaded = false;
     _person = await _getPerson();
     _purchaseOR = await _getPurchase();
+    _isLoaded = true;
   }
 
   Future<PurchaseOR> _getPurchase() async {
@@ -621,12 +629,11 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_person == null) {
+    if (!_isLoaded) {
       return Center(
         child: SizedBox(
-          height: 30,
-          width: 30,
-          child: CircularProgressIndicator(),
+          width: 0,
+          height: 0,
         ),
       );
     }
@@ -688,31 +695,31 @@ class __MessageCardState extends State<_MessageCard> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: IconButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return widget.context.part(
-                                      '/netflow/channel/serviceMenu', context);
-                                }).then((value) {
-                              print('-----$value');
-                              if (value == null) return;
-                              widget.context
-                                  .forward('/micro/app', arguments: value);
-                            });
-                          },
-                          icon: Icon(
-                            Icons.art_track,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
+//                      SizedBox(
+//                        height: 20,
+//                        width: 20,
+//                        child: IconButton(
+//                          padding: EdgeInsets.all(0),
+//                          onPressed: () {
+//                            showModalBottomSheet(
+//                                context: context,
+//                                builder: (context) {
+//                                  return widget.context.part(
+//                                      '/netflow/channel/serviceMenu', context);
+//                                }).then((value) {
+//                              print('-----$value');
+//                              if (value == null) return;
+//                              widget.context
+//                                  .forward('/micro/app', arguments: value);
+//                            });
+//                          },
+//                          icon: Icon(
+//                            Icons.art_track,
+//                            size: 20,
+//                            color: Colors.grey[700],
+//                          ),
+//                        ),
+//                      ),
                     ],
                   ),
                   Container(
@@ -802,68 +809,85 @@ class __MessageCardState extends State<_MessageCard> {
                                 );
                               }
 
-                              return Text.rich(
-                                TextSpan(
-                                  text: '${TimelineUtil.format(
-                                    widget.message.ctime,
-                                    locale: 'zh',
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                  children: [
-                                    TextSpan(text: '  '),
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
                                     TextSpan(
-                                      text:
-                                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                      text: '${TimelineUtil.format(
+                                        widget.message.ctime,
+                                        locale: 'zh',
+                                        dayFormat: DayFormat.Simple,
+                                      )}',
                                       style: TextStyle(
-                                        decoration: TextDecoration.underline,
+                                        fontSize: 12,
+                                        color: Colors.grey[400],
                                       ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () async {
-                                          IWyBankPurchaserRemote
+                                      children: [
+                                        TextSpan(text: '  '),
+                                        TextSpan(
+                                          text:
+                                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () async {
+                                              IWyBankPurchaserRemote
                                               purchaserRemote =
                                               widget.context.site.getService(
                                                   '/remote/purchaser');
-                                          WenyBank bank = await purchaserRemote
-                                              .getWenyBank(_purchaseOR.bankid);
-                                          widget.context.forward(
-                                            '/wybank/purchase/details',
-                                            arguments: {
-                                              'purch': _purchaseOR,
-                                              'bank': bank
-                                            },
-                                          );
-                                        },
-                                    ),
-                                    TextSpan(text: '\r\n'),
-                                    TextSpan(
-                                      text:
-                                          '${widget.context.principal?.person == snapshot.data.official ? '创建自 ' : '来自 '}',
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${widget.context.principal?.person == snapshot.data.official ? '我' : snapshot.data.nickName}',
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
+                                              WenyBank bank = await purchaserRemote
+                                                  .getWenyBank(_purchaseOR.bankid);
                                               widget.context.forward(
-                                                  "/site/personal",
-                                                  arguments: {
-                                                    'person': snapshot.data,
-                                                  });
+                                                '/wybank/purchase/details',
+                                                arguments: {
+                                                  'purch': _purchaseOR,
+                                                  'bank': bank
+                                                },
+                                              );
                                             },
                                         ),
                                       ],
-                                    )
-                                  ],
-                                ),
-                                softWrap: true,
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                  SizedBox(height: 3,),
+                                  Text.rich(
+                                    TextSpan(
+                                      text: '',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[400],
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                          '${widget.context.principal?.person == snapshot.data.official ? '创建自 ' : '来自 '}',
+                                          children: [
+                                            TextSpan(
+                                              text:
+                                              '${widget.context.principal?.person == snapshot.data.official ? '我' : snapshot.data.nickName}',
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                              recognizer: TapGestureRecognizer()
+                                                ..onTap = () {
+                                                  widget.context.forward(
+                                                      "/site/personal",
+                                                      arguments: {
+                                                        'person': snapshot.data,
+                                                      });
+                                                },
+                                            ),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                ],
                               );
                             }),
                       ),
@@ -1632,5 +1656,154 @@ class _InteractiveRegionRefreshAdapter {
     if (handler != null) {
       handler(cause);
     }
+  }
+}
+
+class _AbsorberAction extends StatefulWidget {
+  PageContext context;
+  Channel channel;
+
+  _AbsorberAction({
+    this.context,
+    this.channel,
+  });
+
+  @override
+  __AbsorberActionState createState() => __AbsorberActionState();
+}
+
+class __AbsorberActionState extends State<_AbsorberAction> {
+  AbsorberResultOR _absorberResultOR;
+  DomainBulletin _bulletin;
+  bool _isLoaded = false, _isRefreshing = false;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
+
+  @override
+  void initState() {
+    _streamController = StreamController.broadcast();
+    _isLoaded = false;
+    _load().then((value) {
+      _isLoaded = true;
+      if (mounted) setState(() {});
+    });
+    _streamSubscription = Stream.periodic(
+        Duration(
+          seconds: 5,
+        ), (count) async {
+      if (!_isRefreshing && mounted) {
+        return await _refresh();
+      }
+    }).listen((event) async {
+      var v = await event;
+      if (v == null) {
+        return;
+      }
+      if (v && !_streamController.isClosed) {
+        _streamController
+            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _streamController?.close();
+    super.dispose();
+  }
+
+  Future<bool> _refresh() async {
+    _isRefreshing = true;
+    var diff = await _load();
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+    return diff;
+  }
+
+  Future<bool> _load() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorbabler =
+        '${widget.channel.owner}/${widget.channel.id}';
+    var absorberResultOR =
+    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return false;
+    }
+    var bulletin =
+    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+    bool diff = (_absorberResultOR == null ||
+        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
+        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
+    _bulletin = bulletin;
+    _absorberResultOR = absorberResultOR;
+    return diff;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+
+    if (_absorberResultOR == null) {
+      return IconButton(
+        onPressed: () {
+          var channel = widget.channel;
+          widget.context.forward(
+            '/absorber/apply/simple',
+            arguments: {
+              'title': channel.name,
+              'usage': 0,
+              'absorbabler': '${widget.channel.owner}/${widget.channel.id}',
+            },
+          ).then((value) {
+            _load().then((value) {
+              _isLoaded = true;
+              if (mounted) setState(() {});
+            });
+          });
+        },
+        icon: Icon(
+          IconData(
+            0xe6b2,
+            fontFamily: 'absorber',
+          ),
+          size: 20,
+          color: Colors.grey,
+        ),
+      );
+    }
+    //存在
+    return IconButton(
+      icon: Icon(
+        IconData(
+          0xe6b2,
+          fontFamily: 'absorber',
+        ),
+        size: 20,
+        color: _absorberResultOR.bucket.price >= _bulletin.bucket.waaPrice
+            ? Colors.red
+            : Colors.green,
+      ),
+      onPressed: () {
+        widget.context.forward('/absorber/details/simple', arguments: {
+          'absorber': _absorberResultOR.absorber.id,
+          'stream': _streamController.stream.asBroadcastStream(),
+          'initAbsorber': _absorberResultOR,
+          'initBulletin': _bulletin,
+        });
+      },
+    );
   }
 }

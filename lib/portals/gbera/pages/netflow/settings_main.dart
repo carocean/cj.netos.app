@@ -53,24 +53,24 @@ class _SettingsMainState extends State<SettingsMain> {
               height: 10,
             ),
           ),
-          SliverToBoxAdapter(
-            child: _Card(
-              items: <Widget>[
-                CardItem(
-                  title: '微站',
-                  onItemTap: () {
-                    widget.context.forward('/netflow/activies/sites');
-                  },
-                ),
-                CardItem(
-                  title: '微应用',
-                  onItemTap: () {
-                    widget.context.forward('/netflow/activies/microapps');
-                  },
-                ),
-              ],
-            ),
-          ),
+//          SliverToBoxAdapter(
+//            child: _Card(
+//              items: <Widget>[
+//                CardItem(
+//                  title: '微站',
+//                  onItemTap: () {
+//                    widget.context.forward('/netflow/activies/sites');
+//                  },
+//                ),
+//                CardItem(
+//                  title: '微应用',
+//                  onItemTap: () {
+//                    widget.context.forward('/netflow/activies/microapps');
+//                  },
+//                ),
+//              ],
+//            ),
+//          ),
           SliverToBoxAdapter(
             child: Container(
               height: 10,

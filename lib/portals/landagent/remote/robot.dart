@@ -418,6 +418,22 @@ mixin IRobotRemote {
   Future<void> updateAbsorberLocation(String absorberid, LatLng location) {}
 
   Future<void> updateAbsorberRadius(String absorberid, int radius) {}
+
+  Future<int> countRecipients(String id) {}
+
+  Future<void> addRecipients(String absorberid, String encourageCode,
+      String encourageCause, int desireAmount);
+
+  Future<void> addRecipients2(String absorberid, String person, String nickName,
+      String encourageCode, String encourageCause, int desireAmount);
+
+  Future<void> removeRecipients(String absorberid, String person) {}
+
+  Future<bool> existsRecipients(String absorberid, String person) {}
+
+  Future<void> updateMaxRecipients(String absorberid, int maxRecipients) {}
+
+  Future<void> updateRecipientsWeights(recipientsId, double weights) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -454,6 +470,18 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       return 0.00;
     }
     return obj['tailAdmount'];
+  }
+
+  @override
+  Future<int> countRecipients(String absorberid) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'countRecipients',
+      parameters: {
+        'absorberid ': absorberid,
+      },
+    );
+    return obj;
   }
 
   @override
@@ -1196,6 +1224,86 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       parameters: {
         'absorberid': absorberid,
         'radius': radius,
+      },
+    );
+  }
+
+  @override
+  Future<void> addRecipients(String absorberid, String encourageCode,
+      String encourageCause, int desireAmount) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'addRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'encourageCode': encourageCode,
+        'encourageCause': encourageCause,
+        'desireAmount': desireAmount,
+      },
+    );
+  }
+
+  @override
+  Future<void> addRecipients2(String absorberid, String person, String nickName,
+      String encourageCode, String encourageCause, int desireAmount) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'addRecipients2',
+      parameters: {
+        'absorberid': absorberid,
+        'person': person,
+        'nickName': nickName,
+        'encourageCode': encourageCode,
+        'encourageCause': encourageCause,
+        'desireAmount': desireAmount,
+      },
+    );
+  }
+
+  @override
+  Future<void> removeRecipients(String absorberid, String person) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'removeRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<bool> existsRecipients(String absorberid, String person) async {
+    return await remotePorts.portGET(
+      robotHubPorts,
+      'existsRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateMaxRecipients(String absorberid, int maxRecipients) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'updateMaxRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'maxRecipients': maxRecipients,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateRecipientsWeights(recipientsId, double weights) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'updateRecipientsWeights',
+      parameters: {
+        'recipientsId': recipientsId,
+        'weights': weights,
       },
     );
   }

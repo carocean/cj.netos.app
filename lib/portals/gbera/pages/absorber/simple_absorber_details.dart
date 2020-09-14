@@ -7,6 +7,7 @@ import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:intl/intl.dart' as intl;
@@ -16,26 +17,29 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
-class GeoAbsorberDetailsPage extends StatefulWidget {
+class SimpleAbsorberDetailsPage extends StatefulWidget {
   PageContext context;
 
-  GeoAbsorberDetailsPage({this.context});
+  SimpleAbsorberDetailsPage({this.context});
 
   @override
   _AbsorberDetailsState createState() => _AbsorberDetailsState();
 }
 
-class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
+class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
   Stream _stream;
   StreamSubscription _streamSubscription;
+  int _recipientsCount = 0;
+  StreamController _reloadRecipientsController;
 
   @override
   void initState() {
     _stream = widget.context.parameters['stream'];
     _absorberResultOR = widget.context.parameters['initAbsorber'];
     _bulletin = widget.context.parameters['initBulletin'];
+    _reloadRecipientsController = StreamController.broadcast();
     _streamSubscription = _stream.listen((event) {
       _absorberResultOR = event['absorber'];
       _bulletin = event['bulletin'];
@@ -43,13 +47,36 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
         setState(() {});
       }
     });
+    () async {
+      IRobotRemote robotRemote =
+          widget.context.site.getService('/remote/robot');
+      _recipientsCount =
+          await robotRemote.countRecipients(_absorberResultOR.absorber.id);
+    }();
     super.initState();
   }
 
   @override
   void dispose() {
+    _reloadRecipientsController?.close();
     _streamSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _addRecipients(List<String> persons) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+
+    for (var person in persons) {
+      var exists = await robotRemote.existsRecipients(
+          _absorberResultOR.absorber.id, person);
+      if (exists) {
+        continue;
+      }
+      var p = await _getPerson(widget.context.site, person);
+      await robotRemote.addRecipients2(_absorberResultOR.absorber.id, person,
+          p.nickName, 'pull-in', '管道主拉入', 0);
+    }
+    _reloadRecipientsController.add({});
   }
 
   @override
@@ -118,7 +145,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '发现',
+                              '成员',
                               style: TextStyle(
                                 fontSize: 20,
                                 color: Colors.black54,
@@ -130,59 +157,120 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                             ),
                             Expanded(
                               child: Text(
-                                '半径${_absorberResultOR.absorber.radius}米',
+                                '$_recipientsCount个',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey[400],
                                 ),
                               ),
                             ),
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (ctx) {
-                                    return _InvestPopupWidget(
-                                      context: widget.context,
-                                      absorberResultOR: _absorberResultOR,
-                                      bulletin: _bulletin,
-                                    );
-                                  },
-                                ).then((value) {
-                                  if (value != null) {
-//                                  _reloadAbsorber();
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: 15,
-                                  right: 0,
-                                  top: 3,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Icon(
-                                      Icons.add,
-                                      size: 16,
-                                      color: Colors.black54,
-                                    ),
-                                    SizedBox(
-                                      width: 0,
-                                    ),
-                                    Text(
-                                      '喵喵',
-                                      style: TextStyle(
-                                        color: Colors.blueGrey,
-                                        fontSize: 12,
-                                        decoration: TextDecoration.underline,
+                            Row(
+                              children: [
+                                _absorberResultOR.absorber.creator !=
+                                        widget.context.principal.person
+                                    ? SizedBox(
+                                        height: 0,
+                                        width: 0,
+                                      )
+                                    : GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () {
+                                          widget.context.forward(
+                                              '/absorber/details/selectRecipients',
+                                              arguments: {
+                                                'personViewer': 'chasechain',
+                                                'action': 'select'
+                                              }).then((value) {
+                                            if (value == null) {
+                                              return;
+                                            }
+                                            _addRecipients(value);
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 15,
+                                            right: 0,
+                                            top: 3,
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Icon(
+                                                Icons.person_add,
+                                                size: 16,
+                                                color: Colors.black54,
+                                              ),
+                                              SizedBox(
+                                                width: 0,
+                                              ),
+                                              Text(
+                                                '加喵',
+                                                style: TextStyle(
+                                                  color: Colors.blueGrey,
+                                                  fontSize: 12,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) {
+                                        return _InvestPopupWidget(
+                                          context: widget.context,
+                                          absorberResultOR: _absorberResultOR,
+                                          bulletin: _bulletin,
+                                        );
+                                      },
+                                    ).then((value) {
+                                      if (value != null) {
+//                                  _reloadAbsorber();
+                                      }
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 15,
+                                      right: 0,
+                                      top: 3,
                                     ),
-                                  ],
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Icon(
+                                          IconData(
+                                            0xe6b2,
+                                            fontFamily: 'absorber',
+                                          ),
+                                          size: 16,
+                                          color: Colors.black54,
+                                        ),
+                                        SizedBox(
+                                          width: 0,
+                                        ),
+                                        Text(
+                                          '喂喵',
+                                          style: TextStyle(
+                                            color: Colors.blueGrey,
+                                            fontSize: 12,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
@@ -198,6 +286,8 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
           child: _GeoRecipientsCard(
             context: widget.context,
             stream: _stream.asBroadcastStream(),
+            refreshRecipients:
+                _reloadRecipientsController.stream.asBroadcastStream(),
           ),
         ),
       ),
@@ -231,7 +321,6 @@ class __HeaderCardState extends State<_HeaderCard> {
     _streamSubscription = widget.stream.listen((event) async {
       _absorberResultOR = event['absorber'];
       _bulletin = event['bulletin'];
-      await _load();
       if (mounted) {
         setState(() {});
       }
@@ -243,12 +332,6 @@ class __HeaderCardState extends State<_HeaderCard> {
   void dispose() {
     _streamSubscription?.cancel();
     super.dispose();
-  }
-
-  Future<void> _load() async {
-    var location = _absorberResultOR.absorber.location;
-    var recode = await AmapSearch.searchReGeocode(location);
-    _address = await recode.formatAddress;
   }
 
   @override
@@ -310,7 +393,7 @@ class __HeaderCardState extends State<_HeaderCard> {
                         context: context,
                         builder: (ctx) {
                           return widget.context.part(
-                            '/absorber/settings/geo',
+                            '/absorber/settings/simple',
                             context,
                             arguments: {
                               'absorber': _absorberResultOR,
@@ -446,8 +529,13 @@ class __HeaderCardState extends State<_HeaderCard> {
 class _GeoRecipientsCard extends StatefulWidget {
   PageContext context;
   Stream stream;
+  Stream refreshRecipients;
 
-  _GeoRecipientsCard({this.context, this.stream});
+  _GeoRecipientsCard({
+    this.context,
+    this.stream,
+    this.refreshRecipients,
+  });
 
   @override
   _GeoRecipientsCardState createState() => _GeoRecipientsCardState();
@@ -460,6 +548,7 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
   StreamSubscription _streamSubscription;
   List<RecipientsOR> _recipients = [];
   int _limit = 40, _offset = 0;
+  StreamSubscription _refreshRecipientsSubscription;
 
   @override
   void initState() {
@@ -476,12 +565,15 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
       _bulletin = event['bulletin'];
       await _onRefresh();
     });
-
+    _refreshRecipientsSubscription = widget.refreshRecipients.listen((event) {
+      _onRefresh();
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _refreshRecipientsSubscription?.cancel();
     _streamSubscription?.cancel();
     _controller?.dispose();
     super.dispose();
@@ -517,6 +609,22 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
         _absorberResultOR.absorber.id, recipientsId);
   }
 
+  Future<void> _removeRecipients(RecipientsOR recipientsOR) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    await robotRemote.removeRecipients(
+        recipientsOR.absorber, recipientsOR.person);
+    for (var i = 0; i < _recipients.length; i++) {
+      var o = _recipients[i];
+      if (o.id == recipientsOR.id) {
+        _recipients.removeAt(i);
+        if (mounted) {
+          setState(() {});
+        }
+        break;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
@@ -545,182 +653,184 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
             widget.context.forward('/absorber/recipient/view',
                 arguments: {'recipients': item, 'absorber': _absorberResultOR});
           },
-          child: Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(
-                  left: 15,
-                  right: 15,
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: 20,
-                          bottom: 20,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Container(
-                              width: 40,
-                              height: 40,
-                              padding: EdgeInsets.only(
-                                right: 10,
-                              ),
-                              child: FutureBuilder<Person>(
-                                future: _getPerson(
-                                    widget.context.site, item.person),
-                                builder: (ctx, snapshot) {
-                                  if (snapshot.connectionState !=
-                                      ConnectionState.done) {
-                                    return Image.asset(
-                                      'lib/portals/gbera/images/default_watting.gif',
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  var person = snapshot.data;
-                                  var avatar = person.avatar;
-                                  if (StringUtil.isEmpty(avatar)) {
-                                    return Image.asset(
-                                      'lib/portals/gbera/images/default_avatar.png',
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  if (avatar.startsWith('/')) {
-                                    return Image.file(
-                                      File(avatar),
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  return FadeInImage.assetNetwork(
-                                    placeholder:
+          child: Slidable(
+            actionPane: SlidableDrawerActionPane(),
+            secondaryActions: <Widget>[
+              IconSlideAction(
+                caption: '移除',
+                foregroundColor: Colors.grey[500],
+                icon: Icons.delete,
+                onTap: () async {
+                  _removeRecipients(item);
+                },
+              ),
+            ],
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: 20,
+                            bottom: 20,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                width: 40,
+                                height: 40,
+                                padding: EdgeInsets.only(
+                                  right: 10,
+                                ),
+                                child: FutureBuilder<Person>(
+                                  future: _getPerson(
+                                      widget.context.site, item.person),
+                                  builder: (ctx, snapshot) {
+                                    if (snapshot.connectionState !=
+                                        ConnectionState.done) {
+                                      return Image.asset(
                                         'lib/portals/gbera/images/default_watting.gif',
-                                    image:
-                                        '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
-                                    width: 40,
-                                    height: 40,
-                                  );
-                                },
+                                        width: 40,
+                                        height: 40,
+                                      );
+                                    }
+                                    var person = snapshot.data;
+                                    var avatar = person.avatar;
+                                    if (StringUtil.isEmpty(avatar)) {
+                                      return Image.asset(
+                                        'lib/portals/gbera/images/default_avatar.png',
+                                        width: 40,
+                                        height: 40,
+                                      );
+                                    }
+                                    if (avatar.startsWith('/')) {
+                                      return Image.file(
+                                        File(avatar),
+                                        width: 40,
+                                        height: 40,
+                                      );
+                                    }
+                                    return FadeInImage.assetNetwork(
+                                      placeholder:
+                                          'lib/portals/gbera/images/default_watting.gif',
+                                      image:
+                                          '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                      width: 40,
+                                      height: 40,
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: Wrap(
-                                direction: Axis.vertical,
-                                spacing: 5,
-                                runSpacing: 5,
-                                crossAxisAlignment: WrapCrossAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    '${item.personName}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  spacing: 5,
+                                  runSpacing: 5,
+                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      '${item.personName}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
 //                                  Text(
 //                                    '${item.person}',
 //                                    style: TextStyle(
 //                                      fontSize: 12,
 //                                    ),
 //                                  ),
-                                  _absorberResultOR.absorber.type == 0
-                                      ? SizedBox(
-                                          height: 0,
-                                          width: 0,
-                                        )
-                                      : Text(
-                                          '距中心: ${item.distance?.toStringAsFixed(2)}米',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                  Text(
-                                    '激励原因: ${item.encourageCause ?? ''}',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                                    Text(
+                                      '激励原因: ${item.encourageCause ?? ''}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                    Text(
+                                      '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Wrap(
-                          direction: Axis.vertical,
-                          spacing: 5,
-                          crossAxisAlignment: WrapCrossAlignment.end,
-                          children: <Widget>[
-                            Text(
-                              '${item.weight.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
+                      Row(
+                        children: <Widget>[
+                          Wrap(
+                            direction: Axis.vertical,
+                            spacing: 5,
+                            crossAxisAlignment: WrapCrossAlignment.end,
+                            children: <Widget>[
+                              Text(
+                                '${item.weight.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
-                            ),
-                            FutureBuilder<double>(
-                              future: _totalRecipientsRecordWhere(item.id),
-                              builder: (ctx, snapshot) {
-                                if (snapshot.connectionState !=
-                                    ConnectionState.done) {
+                              FutureBuilder<double>(
+                                future: _totalRecipientsRecordWhere(item.id),
+                                builder: (ctx, snapshot) {
+                                  if (snapshot.connectionState !=
+                                      ConnectionState.done) {
+                                    return Text(
+                                      '-',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  }
+                                  var v = snapshot.data;
+                                  if (v == null) {
+                                    v = 0.00;
+                                  }
                                   return Text(
-                                    '-',
+                                    '¥${(v / 100.00).toStringAsFixed(14)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
                                     ),
                                   );
-                                }
-                                var v = snapshot.data;
-                                if (v == null) {
-                                  v = 0.00;
-                                }
-                                return Text(
-                                  '¥${(v / 100.00).toStringAsFixed(14)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
+                                },
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: 5,
                             ),
-                          ],
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            left: 5,
+                            child: Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
                           ),
-                          child: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Divider(
-                height: 1,
-                indent: 55,
-              ),
-            ],
+                Divider(
+                  height: 1,
+                  indent: 55,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -765,8 +875,8 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
         "orderno": "${MD5Util.MD5(Uuid().v1())}",
         "orderTitle":
             "${widget.context.principal.nickName}喂了${creator?.nickName}的喵",
-        "serviceid": "geosphere",
-        "serviceName": "地圈",
+        "serviceid": "netflow",
+        "serviceName": "网流",
         "note": "谢谢"
       },
       '谢谢',

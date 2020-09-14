@@ -9,16 +9,16 @@ import 'dart:math' as math;
 
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-class AbsorberApplyPage extends StatefulWidget {
+class AbsorberGeoApplyPage extends StatefulWidget {
   PageContext context;
 
-  AbsorberApplyPage({this.context});
+  AbsorberGeoApplyPage({this.context});
 
   @override
-  _AbsorberApplyPageState createState() => _AbsorberApplyPageState();
+  _AbsorberGeoApplyPageState createState() => _AbsorberGeoApplyPageState();
 }
 
-class _AbsorberApplyPageState extends State<AbsorberApplyPage> {
+class _AbsorberGeoApplyPageState extends State<AbsorberGeoApplyPage> {
   double _radius = 0.0;
   double _maxRadius = 0.0;
   double _minRadius = 0.0;

@@ -9,33 +9,25 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'dart:math' as math;
 
-class AbsorberSettingsPage extends StatefulWidget {
+class SimpleAbsorberSettingsPage extends StatefulWidget {
   PageContext context;
 
-  AbsorberSettingsPage({this.context});
+  SimpleAbsorberSettingsPage({this.context});
 
   @override
-  _AbsorberSettingsPageState createState() => _AbsorberSettingsPageState();
+  _SimpleAbsorberSettingsPageState createState() => _SimpleAbsorberSettingsPageState();
 }
 
-class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
+class _SimpleAbsorberSettingsPageState extends State<SimpleAbsorberSettingsPage> {
   AbsorberResultOR _absorberResultOR;
-  int _radius = 20;
-  int _minRadius = 20;
-  int _maxRadius = 2000;
   Person _creator;
-  String _address;
 
   @override
   void initState() {
     _absorberResultOR = widget.context.page.parameters['absorber'];
-    _radius = _absorberResultOR.absorber.radius;
     () async {
       _creator = await _getPerson(
           widget.context.site, _absorberResultOR.absorber.creator);
-      var location = _absorberResultOR.absorber.location;
-      var recode = await AmapSearch.searchReGeocode(location);
-      _address = await recode.formatAddress;
       if (mounted) {
         setState(() {});
       }
@@ -60,7 +52,7 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
   Widget build(BuildContext context) {
     var absorber = _absorberResultOR.absorber;
     var bucket = _absorberResultOR.bucket;
-    final ThemeData theme = Theme.of(context);
+    var theme=Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('基本信息'),
@@ -123,146 +115,6 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
                     height: 1,
                   ),
                   CardItem(
-                    title: '位置',
-                    paddingBottom: 0,
-                    tail: SizedBox(
-                      width: 0,
-                      height: 0,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 3,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 12,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(
-                        width: 2,
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            widget.context
-                                .forward('/gbera/location', arguments: {
-                              'location': _absorberResultOR.absorber.location,
-                              'label': '半径${_absorberResultOR.absorber.radius}米'
-                            });
-                          },
-                          child: Text(
-                            '${_address ?? ''}',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 18,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.my_location,
-                                  size: 14,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(
-                                  width: 2,
-                                ),
-                                Text(
-                                  '半径:${absorber.radius}米',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          widget.context.principal.person != absorber.creator
-                              ? SizedBox(
-                                  height: 15,
-                                  width: 0,
-                                )
-                              : SliderTheme(
-                                  data: theme.sliderTheme.copyWith(
-                                    activeTrackColor: Colors.greenAccent,
-                                    inactiveTrackColor: theme
-                                        .colorScheme.onSurface
-                                        .withOpacity(0.5),
-                                    activeTickMarkColor: theme
-                                        .colorScheme.onSurface
-                                        .withOpacity(0.7),
-                                    inactiveTickMarkColor: theme
-                                        .colorScheme.surface
-                                        .withOpacity(0.7),
-                                    overlayColor: theme.colorScheme.onSurface
-                                        .withOpacity(0.12),
-                                    thumbColor: Colors.redAccent,
-                                    valueIndicatorColor:
-                                        Colors.deepPurpleAccent,
-                                    thumbShape: _CustomThumbShape(),
-                                    valueIndicatorShape:
-                                        _CustomValueIndicatorShape(),
-                                    valueIndicatorTextStyle:
-                                        theme.accentTextTheme.body2.copyWith(
-                                            color: theme.colorScheme.onSurface),
-                                  ),
-                                  child: Slider(
-                                    label: '$_radius米',
-                                    value: _radius * 1.0,
-                                    min: _minRadius * 1.0,
-                                    max: _maxRadius * 1.0,
-                                    divisions: ((_maxRadius - _minRadius) / 10)
-                                        .floor(),
-                                    onChangeEnd: (v) async {
-                                      _radius = v.floor();
-                                      IRobotRemote robotRemote = widget
-                                          .context.site
-                                          .getService('/remote/robot');
-                                      await robotRemote.updateAbsorberRadius(
-                                          absorber.id, _radius);
-                                      absorber.radius = _radius;
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-                                    },
-                                    onChanged: (v) async {
-                                      _radius = v.floor();
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-                                    },
-                                  ),
-                                ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Divider(
-                    height: 1,
-                  ),
-                  CardItem(
                     title: '创建人',
                     tipsText: '${_creator?.nickName ?? ''}',
                     onItemTap: () async {
@@ -299,6 +151,72 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
                     title: '最多人数',
                     tipsText:
                         '${absorber.maxRecipients == 0 ? '无限制' : absorber.maxRecipients}',
+                    tail: SizedBox(width: 0,height: 0,),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          widget.context.principal.person != absorber.creator
+                              ? SizedBox(
+                            height: 15,
+                            width: 0,
+                          )
+                              : SliderTheme(
+                            data: theme.sliderTheme.copyWith(
+                              activeTrackColor: Colors.greenAccent,
+                              inactiveTrackColor: theme
+                                  .colorScheme.onSurface
+                                  .withOpacity(0.5),
+                              activeTickMarkColor: theme
+                                  .colorScheme.onSurface
+                                  .withOpacity(0.7),
+                              inactiveTickMarkColor: theme
+                                  .colorScheme.surface
+                                  .withOpacity(0.7),
+                              overlayColor: theme.colorScheme.onSurface
+                                  .withOpacity(0.12),
+                              thumbColor: Colors.redAccent,
+                              valueIndicatorColor:
+                              Colors.deepPurpleAccent,
+                              thumbShape: _CustomThumbShape(),
+                              valueIndicatorShape:
+                              _CustomValueIndicatorShape(),
+                              valueIndicatorTextStyle:
+                              theme.accentTextTheme.body2.copyWith(
+                                  color: theme.colorScheme.onSurface),
+                            ),
+                            child: Slider(
+                              label: '${absorber.maxRecipients}人',
+                              value: absorber.maxRecipients * 1.0,
+                              min: 0.0,
+                              max: 1000 * 1.0,
+                              divisions: ((1000-0.0) / 50)
+                                  .floor(),
+                              onChangeEnd: (v) async {
+                                absorber.maxRecipients = v.floor();
+                                IRobotRemote robotRemote = widget
+                                    .context.site
+                                    .getService('/remote/robot');
+                                await robotRemote.updateMaxRecipients(
+                                    absorber.id, absorber.maxRecipients);
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              },
+                              onChanged: (v) async {
+                                absorber.maxRecipients = v.floor();
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -337,6 +255,7 @@ class _AbsorberSettingsPageState extends State<AbsorberSettingsPage> {
   }
 }
 
+
 class _CustomThumbShape extends SliderComponentShape {
   static const double _thumbSize = 4.0;
   static const double _disabledThumbSize = 3.0;
@@ -356,15 +275,15 @@ class _CustomThumbShape extends SliderComponentShape {
   @override
   void paint(PaintingContext context, Offset thumbCenter,
       {Animation<double> activationAnimation,
-      Animation<double> enableAnimation,
-      bool isDiscrete,
-      TextPainter labelPainter,
-      RenderBox parentBox,
-      SliderThemeData sliderTheme,
-      TextDirection textDirection,
-      double value,
-      double textScaleFactor,
-      Size sizeWithOverflow}) {
+        Animation<double> enableAnimation,
+        bool isDiscrete,
+        TextPainter labelPainter,
+        RenderBox parentBox,
+        SliderThemeData sliderTheme,
+        TextDirection textDirection,
+        double value,
+        double textScaleFactor,
+        Size sizeWithOverflow}) {
     final Canvas canvas = context.canvas;
     final ColorTween colorTween = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -395,15 +314,15 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
   @override
   void paint(PaintingContext context, Offset thumbCenter,
       {Animation<double> activationAnimation,
-      Animation<double> enableAnimation,
-      bool isDiscrete,
-      TextPainter labelPainter,
-      RenderBox parentBox,
-      SliderThemeData sliderTheme,
-      TextDirection textDirection,
-      double value,
-      double textScaleFactor,
-      Size sizeWithOverflow}) {
+        Animation<double> enableAnimation,
+        bool isDiscrete,
+        TextPainter labelPainter,
+        RenderBox parentBox,
+        SliderThemeData sliderTheme,
+        TextDirection textDirection,
+        double value,
+        double textScaleFactor,
+        Size sizeWithOverflow}) {
     final Canvas canvas = context.canvas;
     final ColorTween enableColor = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -415,7 +334,7 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     );
     final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
     final Offset slideUpOffset =
-        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+    Offset(0.0, -slideUpTween.evaluate(activationAnimation));
     final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
     final Color paintColor = enableColor
         .evaluate(enableAnimation)
