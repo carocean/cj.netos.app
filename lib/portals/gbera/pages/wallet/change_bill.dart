@@ -180,6 +180,7 @@ class _ChangeBillState extends State<ChangeBill> {
           top: 10,
           bottom: 10,
         ),
+        constraints: BoxConstraints.tightForFinite(width: double.maxFinite,),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
@@ -189,30 +190,32 @@ class _ChangeBillState extends State<ChangeBill> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 5,
-                    ),
-                    child: Text(
-                      '${bill.title}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 5,
+                      ),
+                      child: Text(
+                        '${bill.title}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime))}',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
+                    Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime))}',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -271,6 +274,7 @@ class _ChangeBillState extends State<ChangeBill> {
           onLoad: _loadBills,
           child: ListView.separated(
             itemBuilder: _itemBuilder,
+            shrinkWrap: true,
             itemCount: _bills.length,
             separatorBuilder: _separatorBuilder,
           ),
