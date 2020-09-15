@@ -263,19 +263,19 @@ class __ActivityCardState extends State<_ActivityCard> {
                         ),
                         child: Row(
                           children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 10,
-                              ),
-                              child: Text(
-                                '洇取:¥12.00',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[500],
-                                ),
-                              ),
-                            ),
+//                            Padding(
+//                              padding: EdgeInsets.only(
+//                                right: 10,
+//                              ),
+//                              child: Text(
+//                                '洇取:¥12.00',
+//                                style: TextStyle(
+//                                  fontSize: 12,
+//                                  fontWeight: FontWeight.w500,
+//                                  color: Colors.grey[500],
+//                                ),
+//                              ),
+//                            ),
                             Padding(
                               padding: EdgeInsets.only(
                                 right: 10,
@@ -485,13 +485,13 @@ class __DocumentRegionState extends State<_DocumentRegion> {
                             TextSpan(text: '  '),
                           ],
                         ),
-                        TextSpan(
-                          text: '洇金:¥',
-                          children: [
-                            TextSpan(
-                                text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
-                          ],
-                        )
+//                        TextSpan(
+//                          text: '洇金:¥',
+//                          children: [
+//                            TextSpan(
+//                                text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
+//                          ],
+//                        )
                       ],
                     ),
                   ),

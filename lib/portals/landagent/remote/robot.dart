@@ -325,6 +325,9 @@ mixin IRobotRemote {
 
   Future<List<RecipientsOR>> pageRecipients(String id, int limit, int offset) {}
 
+  Future<List<RecipientsOR>> pageSimpleRecipientsOnlyMe(
+      String absorberid, int limit, int offset) {}
+
   Future<void> startAbsorber(String absorberid) {}
 
   Future<void> stopAbsorber(String absorberid, String exitCause) {}
@@ -543,6 +546,40 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'pageRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var recipients = <RecipientsOR>[];
+    for (var obj in list) {
+      recipients.add(
+        RecipientsOR(
+          weight: obj['weight'],
+          ctime: obj['ctime'],
+          id: obj['id'],
+          personName: obj['personName'],
+          absorber: obj['absorber'],
+          desireAmount: obj['desireAmount'],
+          encourageCause: obj['encourageCause'],
+          encourageCode: obj['encourageCode'],
+          person: obj['person'],
+          distance: obj['distance'] == null
+              ? null
+              : double.parse('${obj['distance']}'),
+        ),
+      );
+    }
+    return recipients;
+  }
+
+  @override
+  Future<List<RecipientsOR>> pageSimpleRecipientsOnlyMe(
+      String absorberid, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageSimpleRecipientsOnlyMe',
       parameters: {
         'absorberid': absorberid,
         'limit': limit,

@@ -138,9 +138,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `absorber` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelMessage` (`id` TEXT, `upstreamPerson` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `onChannel` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `absorber` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelComment` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `text` TEXT, `ctime` INTEGER, `nickName` TEXT, `onChannel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -1650,6 +1650,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
                   'digests': item.digests,
                   'purchaseSn': item.purchaseSn,
                   'location': item.location,
+                  'absorber': item.absorber,
                   'sandbox': item.sandbox
                 });
 
@@ -1673,6 +1674,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
           row['digests'] as String,
           row['purchaseSn'] as String,
           row['location'] as String,
+          row['absorber'] as String,
           row['sandbox'] as String);
 
   final InsertionAdapter<InsiteMessage> _insiteMessageInsertionAdapter;
@@ -1787,6 +1789,7 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
                   'text': item.text,
                   'purchaseSn': item.purchaseSn,
                   'location': item.location,
+                  'absorber': item.absorber,
                   'sandbox': item.sandbox
                 });
 
@@ -1812,6 +1815,7 @@ class _$IChannelMessageDAO extends IChannelMessageDAO {
           row['text'] as String,
           row['purchaseSn'] as String,
           row['location'] as String,
+          row['absorber'] as String,
           row['sandbox'] as String);
 
   final InsertionAdapter<ChannelMessage> _channelMessageInsertionAdapter;

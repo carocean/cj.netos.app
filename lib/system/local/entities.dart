@@ -119,6 +119,7 @@ class InsiteMessage {
   final String digests;
   final String purchaseSn;
   final String location;
+  final String absorber;
   final String sandbox;
 
   InsiteMessage(
@@ -134,6 +135,7 @@ class InsiteMessage {
     this.digests,
     this.purchaseSn,
     this.location,
+    this.absorber,
     this.sandbox,
   );
 
@@ -153,6 +155,7 @@ class InsiteMessage {
       digests,
       purchaseSn,
       location,
+      absorber,
       sandbox,
     );
   }
@@ -175,6 +178,7 @@ class ChannelMessage {
   final String text;
   final String purchaseSn;
   final String location;
+  final String absorber;
   final String sandbox;
 
   ChannelMessage(
@@ -192,6 +196,7 @@ class ChannelMessage {
     this.text,
     this.purchaseSn,
     this.location,
+    this.absorber,
     this.sandbox,
   );
 
@@ -209,6 +214,7 @@ class ChannelMessage {
       text,
       purchaseSn,
       location,
+      absorber,
       sandbox,
     );
   }

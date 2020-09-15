@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -88,7 +89,10 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       setState(() {});
     }
   }
-
+  Future<AbsorberResultOR> _getAbsorberByAbsorbabler(String absorbabler) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+  }
   _publish() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
@@ -109,6 +113,13 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         '${user.person}/$msgid',
         '在管道${_channel.name}');
 
+    String absorbabler = '${_channel.owner}/${_channel.id}';
+    AbsorberResultOR absorberResultOR;
+    if(!StringUtil.isEmpty(absorbabler)) {
+      absorberResultOR=
+      await _getAbsorberByAbsorbabler(absorbabler);
+    }
+
     await channelMessageService.addMessage(
       ChannelMessage(
         msgid,
@@ -125,6 +136,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         content,
         purchaseOR.sn,
         null,
+        absorberResultOR?.absorber?.id,
         widget.context.principal.person,
       ),
     );

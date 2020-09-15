@@ -33,9 +33,12 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
   StreamSubscription _streamSubscription;
   int _recipientsCount = 0;
   StreamController _reloadRecipientsController;
-
+  bool _isMemberOfRecipients = false;
+  StreamController _filterRecipientsForMe;
+  String _filter = 'me'; //all
   @override
   void initState() {
+    _filterRecipientsForMe = StreamController.broadcast();
     _stream = widget.context.parameters['stream'];
     _absorberResultOR = widget.context.parameters['initAbsorber'];
     _bulletin = widget.context.parameters['initBulletin'];
@@ -52,12 +55,20 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
           widget.context.site.getService('/remote/robot');
       _recipientsCount =
           await robotRemote.countRecipients(_absorberResultOR.absorber.id);
-    }();
+      _isMemberOfRecipients = await robotRemote.existsRecipients(
+          _absorberResultOR.absorber.id, widget.context.principal.person);
+    }()
+        .then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _filterRecipientsForMe?.close();
     _reloadRecipientsController?.close();
     _streamSubscription?.cancel();
     super.dispose();
@@ -74,7 +85,7 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
       }
       var p = await _getPerson(widget.context.site, person);
       await robotRemote.addRecipients2(_absorberResultOR.absorber.id, person,
-          p.nickName, 'pull-in', '管道主拉入', 0);
+          p.nickName, 'pull-in', '管主拉入', 0);
     }
     _reloadRecipientsController.add({});
   }
@@ -82,6 +93,27 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: !_isMemberOfRecipients
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                _filterRecipientsForMe.add(_filter);
+                if (_filter == 'me') {
+                  _filter = 'all';
+                } else {
+                  _filter = 'me';
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              child: Text(
+                '${_filter == 'me' ? '我' : '全部'}',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
       body: NestedScrollView(
         headerSliverBuilder: (ctx, index) {
           var slivers = <Widget>[
@@ -283,11 +315,12 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
         body: Container(
           color: Colors.white,
           constraints: BoxConstraints.expand(),
-          child: _GeoRecipientsCard(
+          child: _RecipientsCard(
             context: widget.context,
             stream: _stream.asBroadcastStream(),
             refreshRecipients:
                 _reloadRecipientsController.stream.asBroadcastStream(),
+            filterRecipientsForMe: _filterRecipientsForMe.stream,
           ),
         ),
       ),
@@ -526,22 +559,24 @@ class __HeaderCardState extends State<_HeaderCard> {
   }
 }
 
-class _GeoRecipientsCard extends StatefulWidget {
+class _RecipientsCard extends StatefulWidget {
   PageContext context;
   Stream stream;
   Stream refreshRecipients;
+  Stream filterRecipientsForMe;
 
-  _GeoRecipientsCard({
+  _RecipientsCard({
     this.context,
     this.stream,
     this.refreshRecipients,
+    this.filterRecipientsForMe,
   });
 
   @override
-  _GeoRecipientsCardState createState() => _GeoRecipientsCardState();
+  _RecipientsCardState createState() => _RecipientsCardState();
 }
 
-class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
+class _RecipientsCardState extends State<_RecipientsCard> {
   EasyRefreshController _controller;
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
@@ -549,6 +584,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
   List<RecipientsOR> _recipients = [];
   int _limit = 40, _offset = 0;
   StreamSubscription _refreshRecipientsSubscription;
+  StreamSubscription _filterRecipientsForMeSubscription;
+  String _filter = 'all';
 
   @override
   void initState() {
@@ -565,14 +602,26 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
       _bulletin = event['bulletin'];
       await _onRefresh();
     });
-    _refreshRecipientsSubscription = widget.refreshRecipients.listen((event) {
+    _filterRecipientsForMeSubscription = _refreshRecipientsSubscription =
+        widget.refreshRecipients.listen((event) {
       _onRefresh();
+    });
+    widget.filterRecipientsForMe.listen((event) {
+      var filter = event;
+      if (filter == null || _filter == filter) {
+        return;
+      }
+      _filter = filter;
+      _onRefresh().then((value) {
+        if (mounted) setState(() {});
+      });
     });
     super.initState();
   }
 
   @override
   void dispose() {
+    _filterRecipientsForMeSubscription?.cancel();
     _refreshRecipientsSubscription?.cancel();
     _streamSubscription?.cancel();
     _controller?.dispose();
@@ -587,8 +636,14 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
 
   Future<void> _onLoad() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    List<RecipientsOR> recipients = await robotRemote.pageRecipients(
-        _absorberResultOR.absorber.id, _limit, _offset);
+    List<RecipientsOR> recipients;
+    if (_filter == 'all') {
+      recipients = await robotRemote.pageRecipients(
+          _absorberResultOR.absorber.id, _limit, _offset);
+    } else {
+      recipients = await robotRemote.pageSimpleRecipientsOnlyMe(
+          _absorberResultOR.absorber.id, _limit, _offset);
+    }
     if (recipients.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -656,14 +711,20 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
           child: Slidable(
             actionPane: SlidableDrawerActionPane(),
             secondaryActions: <Widget>[
-              IconSlideAction(
-                caption: '移除',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.delete,
-                onTap: () async {
-                  _removeRecipients(item);
-                },
-              ),
+              _absorberResultOR.absorber.creator !=
+                      widget.context.principal.person
+                  ? SizedBox(
+                      height: 0,
+                      width: 0,
+                    )
+                  : IconSlideAction(
+                      caption: '移除',
+                      foregroundColor: Colors.grey[500],
+                      icon: Icons.delete,
+                      onTap: () async {
+                        _removeRecipients(item);
+                      },
+                    ),
             ],
             child: Column(
               children: <Widget>[

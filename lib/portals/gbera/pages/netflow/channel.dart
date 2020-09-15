@@ -563,6 +563,7 @@ class __MessageCardState extends State<_MessageCard> {
   Future<Person> _future_getPerson;
   PurchaseOR _purchaseOR;
   bool _isLoaded = false;
+  AbsorberResultOR _absorberResultOR;
 
   @override
   void initState() {
@@ -583,11 +584,34 @@ class __MessageCardState extends State<_MessageCard> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(_MessageCard oldWidget) {
+    if (oldWidget.message.id != widget.message.id) {
+      oldWidget.message = widget.message;
+      _load().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   Future<void> _load() async {
     _isLoaded = false;
     _person = await _getPerson();
     _purchaseOR = await _getPurchase();
+    var absorber = widget.message.absorber;
+    _absorberResultOR = await _getAbsorber(absorber);
     _isLoaded = true;
+  }
+
+  Future<AbsorberResultOR> _getAbsorber(String absorber) async {
+    if (StringUtil.isEmpty(absorber)) {
+      return null;
+    }
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    return await robotRemote.getAbsorber(absorber);
   }
 
   Future<PurchaseOR> _getPurchase() async {
@@ -655,7 +679,9 @@ class __MessageCardState extends State<_MessageCard> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/site/marchant');
+                widget.context.forward("/site/personal", arguments: {
+                  'person': _person,
+                });
               },
               child: Padding(
                 padding: EdgeInsets.only(top: 5, right: 5),
@@ -684,7 +710,9 @@ class __MessageCardState extends State<_MessageCard> {
                     children: <Widget>[
                       GestureDetector(
                         onTap: () {
-                          widget.context.forward('/site/marchant');
+                          widget.context.forward("/site/personal", arguments: {
+                            'person': _person,
+                          });
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Text(
@@ -812,81 +840,93 @@ class __MessageCardState extends State<_MessageCard> {
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      text: '${TimelineUtil.format(
-                                        widget.message.ctime,
-                                        locale: 'zh',
-                                        dayFormat: DayFormat.Simple,
-                                      )}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                      children: [
-                                        TextSpan(text: '  '),
+                                  Row(
+                                    children: [
+                                      Text.rich(
                                         TextSpan(
-                                          text:
-                                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                          text: '${TimelineUtil.format(
+                                            widget.message.ctime,
+                                            locale: 'zh',
+                                            dayFormat: DayFormat.Simple,
+                                          )}',
                                           style: TextStyle(
-                                            decoration: TextDecoration.underline,
+                                            fontSize: 12,
+                                            color: Colors.grey[400],
                                           ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              IWyBankPurchaserRemote
-                                              purchaserRemote =
-                                              widget.context.site.getService(
-                                                  '/remote/purchaser');
-                                              WenyBank bank = await purchaserRemote
-                                                  .getWenyBank(_purchaseOR.bankid);
-                                              widget.context.forward(
-                                                '/wybank/purchase/details',
-                                                arguments: {
-                                                  'purch': _purchaseOR,
-                                                  'bank': bank
-                                                },
-                                              );
-                                            },
-                                        ),
-                                      ],
-                                    ),
-                                    softWrap: true,
-                                  ),
-                                  SizedBox(height: 3,),
-                                  Text.rich(
-                                    TextSpan(
-                                      text: '',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                          '${widget.context.principal?.person == snapshot.data.official ? '创建自 ' : '来自 '}',
                                           children: [
+                                            TextSpan(text: '  '),
                                             TextSpan(
                                               text:
-                                              '${widget.context.principal?.person == snapshot.data.official ? '我' : snapshot.data.nickName}',
+                                                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
                                               style: TextStyle(
-                                                color: Colors.grey,
-                                                decoration: TextDecoration.underline,
+                                                decoration:
+                                                    TextDecoration.underline,
                                               ),
                                               recognizer: TapGestureRecognizer()
-                                                ..onTap = () {
+                                                ..onTap = () async {
+                                                  IWyBankPurchaserRemote
+                                                      purchaserRemote = widget
+                                                          .context.site
+                                                          .getService(
+                                                              '/remote/purchaser');
+                                                  WenyBank bank =
+                                                      await purchaserRemote
+                                                          .getWenyBank(
+                                                              _purchaseOR
+                                                                  .bankid);
                                                   widget.context.forward(
-                                                      "/site/personal",
-                                                      arguments: {
-                                                        'person': snapshot.data,
-                                                      });
+                                                    '/wybank/purchase/details',
+                                                    arguments: {
+                                                      'purch': _purchaseOR,
+                                                      'bank': bank
+                                                    },
+                                                  );
                                                 },
                                             ),
                                           ],
-                                        )
-                                      ],
-                                    ),
-                                    softWrap: true,
+                                        ),
+                                        softWrap: true,
+                                      ),
+                                    ],
                                   ),
+//                                  SizedBox(
+//                                    height: 3,
+//                                  ),
+//                                  Text.rich(
+//                                    TextSpan(
+//                                      text: '',
+//                                      style: TextStyle(
+//                                        fontSize: 12,
+//                                        color: Colors.grey[400],
+//                                      ),
+//                                      children: [
+//                                        TextSpan(
+//                                          text:
+//                                              '${widget.context.principal?.person == snapshot.data.official ? '创建自 ' : '来自 '}',
+//                                          children: [
+//                                            TextSpan(
+//                                              text:
+//                                                  '${widget.context.principal?.person == snapshot.data.official ? '我' : snapshot.data.nickName}',
+//                                              style: TextStyle(
+//                                                color: Colors.grey,
+//                                                decoration:
+//                                                    TextDecoration.underline,
+//                                              ),
+//                                              recognizer: TapGestureRecognizer()
+//                                                ..onTap = () {
+//                                                  widget.context.forward(
+//                                                      "/site/personal",
+//                                                      arguments: {
+//                                                        'person': snapshot.data,
+//                                                      });
+//                                                },
+//                                            ),
+//                                          ],
+//                                        )
+//                                      ],
+//                                    ),
+//                                    softWrap: true,
+//                                  ),
                                 ],
                               );
                             }),
@@ -1730,15 +1770,14 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorbabler =
-        '${widget.channel.owner}/${widget.channel.id}';
+    var absorbabler = '${widget.channel.owner}/${widget.channel.id}';
     var absorberResultOR =
-    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
       return false;
     }
     var bulletin =
-    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
     bool diff = (_absorberResultOR == null ||
         (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
         (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));

@@ -294,52 +294,52 @@ class _PersonalSiteState extends State<PersonalSite> {
               height: 10,
             ),
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: EdgeInsets.only(
-                left: 10,
-                bottom: 2,
-                top: 5,
-              ),
-              child: Text(
-                '微站',
-                style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                    color: Colors.grey[600]),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: _Card(
-              channelItems: [
-                _ChannelItemInfo(
-                  title: '兰州拉面馆',
-                  images: [
-                    'http://b-ssl.duitang.com/uploads/item/201805/24/20180524220406_hllbq.jpg',
-                    'http://cdn.duitang.com/uploads/item/201606/14/20160614002619_WfLXj.jpeg',
-                  ],
-                  onTap: () {
-                    widget.context.forward('/site/marchant');
-                  },
-                ),
-                _ChannelItemInfo(
-                  title: '天主教堂',
-                  images: [
-                    'http://b-ssl.duitang.com/uploads/item/201805/24/20180524220406_hllbq.jpg',
-                  ],
-                  onTap: () {
-                    widget.context.forward('/site/marchant');
-                  },
-                ),
-              ],
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              height: 10,
-            ),
-          ),
+//          SliverToBoxAdapter(
+//            child: Container(
+//              padding: EdgeInsets.only(
+//                left: 10,
+//                bottom: 2,
+//                top: 5,
+//              ),
+//              child: Text(
+//                '微站',
+//                style: TextStyle(
+//                    fontWeight: FontWeight.w500,
+//                    fontSize: 14,
+//                    color: Colors.grey[600]),
+//              ),
+//            ),
+//          ),
+//          SliverToBoxAdapter(
+//            child: _Card(
+//              channelItems: [
+//                _ChannelItemInfo(
+//                  title: '兰州拉面馆',
+//                  images: [
+//                    'http://b-ssl.duitang.com/uploads/item/201805/24/20180524220406_hllbq.jpg',
+//                    'http://cdn.duitang.com/uploads/item/201606/14/20160614002619_WfLXj.jpeg',
+//                  ],
+//                  onTap: () {
+//                    widget.context.forward('/site/marchant');
+//                  },
+//                ),
+//                _ChannelItemInfo(
+//                  title: '天主教堂',
+//                  images: [
+//                    'http://b-ssl.duitang.com/uploads/item/201805/24/20180524220406_hllbq.jpg',
+//                  ],
+//                  onTap: () {
+//                    widget.context.forward('/site/marchant');
+//                  },
+//                ),
+//              ],
+//            ),
+//          ),
+//          SliverToBoxAdapter(
+//            child: Container(
+//              height: 10,
+//            ),
+//          ),
           SliverToBoxAdapter(
             child: Container(
               padding: EdgeInsets.only(

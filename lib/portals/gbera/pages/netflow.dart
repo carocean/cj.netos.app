@@ -13,6 +13,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/ball_pulse_footer.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/phoenix_footer.dart';
+import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
@@ -21,6 +22,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -959,6 +961,20 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     );
   }
 
+  Future<AbsorberResultOR> _getAbsorberByAbsorbabler(String absorbabler) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+  }
+
+  Future<AbsorberResultOR> _addRecipients(String absorberid) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var exists = await robotRemote.existsRecipients(
+        absorberid, widget.context.principal.person);
+    if (!exists) {
+      await robotRemote.addRecipients(absorberid, 'connectChannel', '连接管道', 0);
+    }
+  }
+
   Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
     IInsiteMessageService messageService =
         widget.context.site.getService('/insite/messages');
@@ -989,6 +1005,14 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       return null;
     }
 //    print(docMap);
+    String absorbabler = '${docMap['creator']}/${docMap['channel']}';
+    AbsorberResultOR absorberResultOR;
+    if (!StringUtil.isEmpty(absorbabler)) {
+      absorberResultOR = await _getAbsorberByAbsorbabler(absorbabler);
+      if (absorberResultOR != null) {
+        await _addRecipients(absorberResultOR.absorber.id,);
+      }
+    }
     var message = InsiteMessage(
       MD5Util.MD5(Uuid().v1()),
       docMap['id'],
@@ -1002,6 +1026,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       docMap['content'],
       docMap['purchaseSn'],
       null,
+      absorberResultOR?.absorber?.id,
       widget.context.principal.person,
     );
 
