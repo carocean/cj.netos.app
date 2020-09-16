@@ -146,7 +146,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
 
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    var purchaseOR = await purchaserRemote.getPurchaseRecord(
+    var purchaseOR = await purchaserRemote.getPurchaseRecordPerson(
         message.creator, message.purchaseSn);
 
     wrappers.add(

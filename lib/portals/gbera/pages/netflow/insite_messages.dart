@@ -152,10 +152,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
     }
     IWyBankPurchaserRemote purchaserRemote =
     widget.context.site.getService('/remote/purchaser');
-    int pos = sn.lastIndexOf('/');
-    String owner = sn.substring(0, pos);
-    String record_sn = sn.substring(pos + 1);
-    return await purchaserRemote.getPurchaseRecord(owner, record_sn);
+    return await purchaserRemote.getPurchaseRecordPerson(msg.creator,sn);
   }
   Future<void> _onLoadMessages() async {
     IInsiteMessageService messageService =
@@ -173,7 +170,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
     }
     offset += messages.length;
     for (var msg in messages) {
-        print('---insite messages-----');
+        // print('---insite messages-----');
       var person = await personService.getPerson(msg.creator);
       var timeText = TimelineUtil.formatByDateTime(
               DateTime.fromMillisecondsSinceEpoch(msg.atime),
@@ -186,7 +183,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
         who: person.nickName,
         channel: channel?.name,
         content: msg.digests,
-        money: ((purchaseOR.principalAmount ?? 0.0) / 100.00).toStringAsFixed(2),
+        money: ((purchaseOR?.principalAmount ?? 0.0) / 100.00).toStringAsFixed(2),
         time: timeText,
         picCount: 0,
         onTap: () {

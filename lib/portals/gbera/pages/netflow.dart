@@ -1263,7 +1263,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(widget.message.creator, sn);
   }
 
   Future<Person> _loadPerson() async {

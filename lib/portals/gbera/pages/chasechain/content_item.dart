@@ -78,7 +78,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecord(_doc?.message?.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(_doc?.message?.creator, sn);
   }
 
   Future<TrafficPool> _getPool() async {

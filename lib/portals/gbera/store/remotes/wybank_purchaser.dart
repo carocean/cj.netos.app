@@ -23,7 +23,9 @@ mixin IWyBankPurchaserRemote {
   Future<PurchaseOR> doPurchase(String bank, int amount, String outTradeType,
       String outTradeSn, String note);
 
-  Future<PurchaseOR> getPurchaseRecord(String owner, String record_sn);
+  Future<PurchaseOR> getPurchaseRecordPerson(String owner, String record_sn);
+
+  Future<PurchaseOR> getPurchaseRecord(String record_sn);
 
   Future<WenyBank> getWenyBank(String bankid) {}
 }
@@ -73,7 +75,16 @@ class DefaultWyBankPurchaserRemote
   }
 
   @override
-  Future<PurchaseOR> getPurchaseRecord(String owner, String record_sn) async {
+  Future<PurchaseOR> getPurchaseRecord(String record_sn) async {
+    if (StringUtil.isEmpty(record_sn)) {
+      return null;
+    }
+    return await walletRecordRemote.getPurchaseRecord(record_sn);
+  }
+
+  @override
+  Future<PurchaseOR> getPurchaseRecordPerson(
+      String owner, String record_sn) async {
     if (StringUtil.isEmpty(record_sn)) {
       return null;
     }

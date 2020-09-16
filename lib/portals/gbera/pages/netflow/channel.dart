@@ -621,7 +621,7 @@ class __MessageCardState extends State<_MessageCard> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecord(widget.message.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(widget.message.creator, sn);
   }
 
   Future<Person> _getPerson() async {

@@ -391,7 +391,7 @@ class __DocumentRegionState extends State<_DocumentRegion> {
     }
     IWyBankPurchaserRemote purchaserRemote =
     widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecord(_message.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(_message.creator, sn);
   }
   Future<void> _loadCreator() async {
     IPersonService personService =
