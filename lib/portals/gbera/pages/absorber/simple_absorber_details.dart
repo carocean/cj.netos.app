@@ -602,11 +602,11 @@ class _RecipientsCardState extends State<_RecipientsCard> {
       _bulletin = event['bulletin'];
       await _onRefresh();
     });
-    _filterRecipientsForMeSubscription = _refreshRecipientsSubscription =
-        widget.refreshRecipients.listen((event) {
+    _refreshRecipientsSubscription = widget.refreshRecipients.listen((event) {
       _onRefresh();
     });
-    widget.filterRecipientsForMe.listen((event) {
+    _filterRecipientsForMeSubscription =
+        widget.filterRecipientsForMe.listen((event) {
       var filter = event;
       if (filter == null || _filter == filter) {
         return;
@@ -664,6 +664,13 @@ class _RecipientsCardState extends State<_RecipientsCard> {
         _absorberResultOR.absorber.id, recipientsId);
   }
 
+  Future<double> _totalMy() async {
+    double all = 0.00;
+    for (var recipient in _recipients) {
+      all += await _totalRecipientsRecordWhere(recipient.id);
+    }
+    return all;
+  }
   Future<void> _removeRecipients(RecipientsOR recipientsOR) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     await robotRemote.removeRecipients(
@@ -894,6 +901,77 @@ class _RecipientsCardState extends State<_RecipientsCard> {
             ),
           ),
         ),
+      );
+    }
+    if (_filter == 'me') {
+      return Column(
+        children: [
+          FutureBuilder<double>(
+            future: _totalMy(),
+            builder: (ctx, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done ||
+                  snapshot.data == null) {
+                return SizedBox(
+                  height: 0,
+                  width: 0,
+                );
+              }
+              var double = snapshot.data;
+              return Container(
+                padding: EdgeInsets.only(
+                  top: 15,
+                  right: 15,
+                  bottom: 10,
+                  left: 20,
+                ),
+                margin: EdgeInsets.only(left: 15,),
+                alignment: Alignment.bottomLeft,
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 1,
+                      color: Colors.grey[200],
+                    ),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '合计',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 2,
+                    ),
+                    Text(
+                      '¥${(double / 100.00).toStringAsFixed(14)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          Expanded(
+            child: EasyRefresh(
+              onLoad: _onLoad,
+              onRefresh: _onRefresh,
+              controller: _controller,
+              child: ListView(
+                shrinkWrap: true,
+                children: items,
+              ),
+            ),
+          ),
+        ],
       );
     }
     return EasyRefresh(

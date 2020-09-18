@@ -237,7 +237,7 @@ class _AbsorberRecipientsViewPageState
                         ),
                       ),
                     ),
-                    _absorberResultOR.absorber.type == 0
+                    _absorberResultOR.absorber.type == 0||_recipientsOR.distance==null
                         ? SizedBox(
                             height: 0,
                             width: 0,

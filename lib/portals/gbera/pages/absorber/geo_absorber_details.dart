@@ -30,9 +30,12 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
   DomainBulletin _bulletin;
   Stream _stream;
   StreamSubscription _streamSubscription;
-
+  bool _isMemberOfRecipients = false;
+  StreamController _filterRecipientsForMe;
+  String _filter = 'me'; //al
   @override
   void initState() {
+    _filterRecipientsForMe = StreamController.broadcast();
     _stream = widget.context.parameters['stream'];
     _absorberResultOR = widget.context.parameters['initAbsorber'];
     _bulletin = widget.context.parameters['initBulletin'];
@@ -43,11 +46,23 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
         setState(() {});
       }
     });
+    () async {
+      IRobotRemote robotRemote =
+          widget.context.site.getService('/remote/robot');
+      _isMemberOfRecipients = await robotRemote.existsRecipients(
+          _absorberResultOR.absorber.id, widget.context.principal.person);
+    }()
+        .then((value) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _filterRecipientsForMe?.close();
     _streamSubscription?.cancel();
     super.dispose();
   }
@@ -55,6 +70,27 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: !_isMemberOfRecipients
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                _filterRecipientsForMe.add(_filter);
+                if (_filter == 'me') {
+                  _filter = 'all';
+                } else {
+                  _filter = 'me';
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              child: Text(
+                '${_filter == 'me' ? '我' : '全部'}',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
       body: NestedScrollView(
         headerSliverBuilder: (ctx, index) {
           var slivers = <Widget>[
@@ -198,6 +234,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
           child: _GeoRecipientsCard(
             context: widget.context,
             stream: _stream.asBroadcastStream(),
+            filterRecipientsForMe: _filterRecipientsForMe.stream,
           ),
         ),
       ),
@@ -446,8 +483,9 @@ class __HeaderCardState extends State<_HeaderCard> {
 class _GeoRecipientsCard extends StatefulWidget {
   PageContext context;
   Stream stream;
+  Stream filterRecipientsForMe;
 
-  _GeoRecipientsCard({this.context, this.stream});
+  _GeoRecipientsCard({this.context, this.stream, this.filterRecipientsForMe});
 
   @override
   _GeoRecipientsCardState createState() => _GeoRecipientsCardState();
@@ -460,6 +498,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
   StreamSubscription _streamSubscription;
   List<RecipientsOR> _recipients = [];
   int _limit = 40, _offset = 0;
+  StreamSubscription _filterRecipientsForMeSubscription;
+  String _filter = 'all';
 
   @override
   void initState() {
@@ -476,12 +516,23 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
       _bulletin = event['bulletin'];
       await _onRefresh();
     });
-
+    _filterRecipientsForMeSubscription =
+        widget.filterRecipientsForMe.listen((event) {
+      var filter = event;
+      if (filter == null || _filter == filter) {
+        return;
+      }
+      _filter = filter;
+      _onRefresh().then((value) {
+        if (mounted) setState(() {});
+      });
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _filterRecipientsForMeSubscription.cancel();
     _streamSubscription?.cancel();
     _controller?.dispose();
     super.dispose();
@@ -497,6 +548,13 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     List<RecipientsOR> recipients = await robotRemote.pageRecipients(
         _absorberResultOR.absorber.id, _limit, _offset);
+    if (_filter == 'all') {
+      recipients = await robotRemote.pageRecipients(
+          _absorberResultOR.absorber.id, _limit, _offset);
+    } else {
+      recipients = await robotRemote.pageRecipientsOnlyMe(
+          _absorberResultOR.absorber.id, _limit, _offset);
+    }
     if (recipients.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -515,6 +573,14 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     return await robotRemote.totalRecipientsRecordWhere(
         _absorberResultOR.absorber.id, recipientsId);
+  }
+
+  Future<double> _totalMy() async {
+    double all = 0.00;
+    for (var recipient in _recipients) {
+      all += await _totalRecipientsRecordWhere(recipient.id);
+    }
+    return all;
   }
 
   @override
@@ -628,7 +694,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
 //                                      fontSize: 12,
 //                                    ),
 //                                  ),
-                                  _absorberResultOR.absorber.type == 0
+                                  _absorberResultOR.absorber.type == 0 ||
+                                          item.distance == null
                                       ? SizedBox(
                                           height: 0,
                                           width: 0,
@@ -723,6 +790,77 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
             ],
           ),
         ),
+      );
+    }
+    if (_filter == 'me') {
+      return Column(
+        children: [
+          FutureBuilder<double>(
+            future: _totalMy(),
+            builder: (ctx, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done ||
+                  snapshot.data == null) {
+                return SizedBox(
+                  height: 0,
+                  width: 0,
+                );
+              }
+              var double = snapshot.data;
+              return Container(
+                padding: EdgeInsets.only(
+                  top: 15,
+                  right: 15,
+                  bottom: 10,
+                  left: 20,
+                ),
+                margin: EdgeInsets.only(left: 15,),
+                alignment: Alignment.bottomLeft,
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 1,
+                      color: Colors.grey[200],
+                    ),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '合计',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 2,
+                    ),
+                    Text(
+                      '¥${(double / 100.00).toStringAsFixed(14)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          Expanded(
+            child: EasyRefresh(
+              onLoad: _onLoad,
+              onRefresh: _onRefresh,
+              controller: _controller,
+              child: ListView(
+                shrinkWrap: true,
+                children: items,
+              ),
+            ),
+          ),
+        ],
       );
     }
     return EasyRefresh(
