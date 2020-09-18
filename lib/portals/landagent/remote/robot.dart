@@ -430,13 +430,28 @@ mixin IRobotRemote {
   Future<void> addRecipients2(String absorberid, String person, String nickName,
       String encourageCode, String encourageCause, int desireAmount);
 
+  Future<void> addRecipients3(String absorberid, String encourageCode,
+      String encourageCause, int desireAmount);
+
   Future<void> removeRecipients(String absorberid, String person) {}
 
+  Future<void> removeRecipients2(
+      String absorberid, String person, String encourageCode) {}
+
+  Future<void> removeRecipients3(String absorberid, String encourageCode) {}
+
   Future<bool> existsRecipients(String absorberid, String person) {}
+
+  Future<bool> existsRecipients2(
+      String absorberid, String person, String encourageCode) {}
 
   Future<void> updateMaxRecipients(String absorberid, int maxRecipients) {}
 
   Future<void> updateRecipientsWeights(recipientsId, double weights) {}
+
+  Future<void> addCommentWeightsOfRecipients(String absorberid) {}
+
+  Future<bool> subCommentWeightOfRecipients(String absorberid);
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -576,7 +591,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   @override
   Future<List<RecipientsOR>> pageSimpleRecipientsOnlyMe(
-      String absorberid, int limit, int offset) async{
+      String absorberid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'pageSimpleRecipientsOnlyMe',
@@ -1298,6 +1313,21 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
+  Future<void> addRecipients3(String absorberid, String encourageCode,
+      String encourageCause, int desireAmount) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'addRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'encourageCode': encourageCode,
+        'encourageCause': encourageCause,
+        'desireAmount': desireAmount,
+      },
+    );
+  }
+
+  @override
   Future<void> removeRecipients(String absorberid, String person) async {
     await remotePorts.portGET(
       robotHubPorts,
@@ -1310,6 +1340,33 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> removeRecipients2(
+      String absorberid, String person, String encourageCode) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'removeRecipients2',
+      parameters: {
+        'absorberid': absorberid,
+        'person': person,
+        'encourageCode': encourageCode,
+      },
+    );
+  }
+
+  @override
+  Future<Function> removeRecipients3(
+      String absorberid, String encourageCode) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'removeRecipients3',
+      parameters: {
+        'absorberid': absorberid,
+        'encourageCode': encourageCode,
+      },
+    );
+  }
+
+  @override
   Future<bool> existsRecipients(String absorberid, String person) async {
     return await remotePorts.portGET(
       robotHubPorts,
@@ -1317,6 +1374,20 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       parameters: {
         'absorberid': absorberid,
         'person': person,
+      },
+    );
+  }
+
+  @override
+  Future<bool> existsRecipients2(
+      String absorberid, String person, String encourageCode) async {
+    return await remotePorts.portGET(
+      robotHubPorts,
+      'existsRecipients2',
+      parameters: {
+        'absorberid': absorberid,
+        'person': person,
+        'encourageCode': encourageCode,
       },
     );
   }
@@ -1341,6 +1412,30 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       parameters: {
         'recipientsId': recipientsId,
         'weights': weights,
+      },
+    );
+  }
+
+  @override
+  Future<Function> addCommentWeightsOfRecipients(String absorberid) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'addCommentWeightsOfRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'encourageCode': 'comment',
+      },
+    );
+  }
+
+  @override
+  Future<bool> subCommentWeightOfRecipients(String absorberid) async {
+    return await remotePorts.portGET(
+      robotHubPorts,
+      'subCommentWeightOfRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'encourageCode': 'comment',
       },
     );
   }

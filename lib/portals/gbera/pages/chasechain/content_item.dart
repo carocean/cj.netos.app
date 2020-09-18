@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
@@ -8,6 +10,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 import 'collapsible_panel.dart';
@@ -36,15 +39,28 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
   Future<ContentBoxOR> _future_getContentBox;
   Future<ItemBehavior> _future_getItemInnerBehavior;
   PurchaseOR _purchaseOR;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
+    _streamController = StreamController.broadcast();
+    _streamSubscription = Stream.periodic(
+        Duration(
+          seconds: 5,
+        ), (count) {
+      return count;
+    }).listen((event) {
+      _streamController.add({'count': event});
+    });
     _loadDocumentContent();
     super.initState();
   }
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
+    _streamController?.close();
     super.dispose();
   }
 
@@ -78,7 +94,8 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecordPerson(_doc?.message?.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(
+        _doc?.message?.creator, sn);
   }
 
   Future<TrafficPool> _getPool() async {
@@ -327,33 +344,45 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                 ),
               ),
               SizedBox(
+                width: _purchaseOR == null ? 0 : 10,
+              ),
+              _purchaseOR == null
+                  ? SizedBox(
+                      width: 0,
+                      height: 0,
+                    )
+                  : GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      onTap: () async {
+                        if (_purchaseOR == null) {
+                          return;
+                        }
+                        IWyBankPurchaserRemote purchaserRemote =
+                            widget.context.site.getService('/remote/purchaser');
+                        WenyBank bank = await purchaserRemote
+                            .getWenyBank(_purchaseOR.bankid);
+                        widget.context.forward(
+                          '/wybank/purchase/details',
+                          arguments: {'purch': _purchaseOR, 'bank': bank},
+                        );
+                      },
+                    ),
+              SizedBox(
                 width: 10,
               ),
-              _purchaseOR==null?SizedBox(width: 0,height: 0,):
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                child: Text(
-                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-                onTap: () async {
-                  if (_purchaseOR == null) {
-                    return;
-                  }
-                  IWyBankPurchaserRemote purchaserRemote =
-                      widget.context.site.getService('/remote/purchaser');
-                  WenyBank bank =
-                      await purchaserRemote.getWenyBank(_purchaseOR.bankid);
-                  widget.context.forward(
-                    '/wybank/purchase/details',
-                    arguments: {'purch': _purchaseOR, 'bank': bank},
-                  );
-                },
+              _AbsorberAction(
+                context: widget.context,
+                doc: _doc,
+                timerStream: _streamController.stream,
               ),
             ],
           ),
@@ -609,6 +638,148 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: columns,
+    );
+  }
+}
+
+class _AbsorberAction extends StatefulWidget {
+  PageContext context;
+  RecommenderDocument doc;
+  Stream timerStream;
+
+  _AbsorberAction({
+    this.context,
+    this.doc,
+    this.timerStream,
+  });
+
+  @override
+  __AbsorberActionState createState() => __AbsorberActionState();
+}
+
+class __AbsorberActionState extends State<_AbsorberAction> {
+  AbsorberResultOR _absorberResultOR;
+  DomainBulletin _bulletin;
+  bool _isLoading = false, _isRefreshing = false;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
+  bool _isDiff = false;
+
+  @override
+  void initState() {
+    _load().then((value) {
+      if (mounted) setState(() {});
+    });
+    _streamController = StreamController.broadcast();
+    _streamSubscription = widget.timerStream.listen((event) async {
+      if (_isRefreshing) {
+        return;
+      }
+      await _refresh();
+      if (!_isDiff) {
+        return;
+      }
+      if (!_streamController.isClosed) {
+        _streamController
+            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _streamController?.close();
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    _isRefreshing = true;
+    await _load();
+    _isRefreshing = false;
+  }
+
+  @override
+  void didUpdateWidget(_AbsorberAction oldWidget) {
+    if (oldWidget.doc.item.id != widget.doc.item.id) {
+      oldWidget.doc = widget.doc;
+      _refresh().then((value) {
+        if (mounted) setState(() {});
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
+
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+
+    var item = widget.doc.item;
+    IChasechainRecommenderRemote recommender =
+        widget.context.site.getService('/remote/chasechain/recommender');
+    var box = await recommender.getContentBox(item.pool, item.box);
+    var pointer = box.pointer;
+    var pointerBoxID = box.pointer.id;
+    var absorbabler;
+    if (pointer.type.indexOf('geo.receptor.') >= 0) {
+      int pos = pointer.type.lastIndexOf('.');
+      var category = pointer.type.substring(pos + 1);
+      absorbabler = '$category/$pointerBoxID';
+    } else {
+      absorbabler = '${pointer.type}/$pointerBoxID';
+    }
+    var absorberResultOR =
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return false;
+    }
+    var bulletin =
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+    _isDiff = (_absorberResultOR == null ||
+        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
+        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
+    _bulletin = bulletin;
+    _absorberResultOR = absorberResultOR;
+    _isLoading = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading || _absorberResultOR == null) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+    //存在
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        widget.context.forward('/absorber/details/simple', arguments: {
+          'absorber': _absorberResultOR.absorber.id,
+          'stream': _streamController.stream.asBroadcastStream(),
+          'initAbsorber': _absorberResultOR,
+          'initBulletin': _bulletin,
+        });
+      },
+      child: Icon(
+        IconData(
+          0xe6b2,
+          fontFamily: 'absorber',
+        ),
+        size: 12,
+        color: _absorberResultOR.bucket.price >= _bulletin.bucket.waaPrice
+            ? Colors.red
+            : Colors.green,
+      ),
     );
   }
 }

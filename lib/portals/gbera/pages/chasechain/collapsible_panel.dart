@@ -8,6 +8,7 @@ import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 
 class CollapsiblePanel extends StatefulWidget {
@@ -140,15 +141,70 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
   Future<void> _doBehave(String behave, String attachment) async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
-    await recommender.doBehave(
-        widget.doc.item.pool, widget.doc.item.id, behave, attachment);
+
+    var item = widget.doc.item;
+    await recommender.doBehave(item.pool, item.id, behave, attachment);
+
+    var box = await recommender.getContentBox(item.pool, item.box);
+    var pointer = box.pointer;
+    var pointerBoxID = box.pointer.id;
+    var absorbabler;
+    if (pointer.type.indexOf('geo.receptor.') >= 0) {
+      int pos = pointer.type.lastIndexOf('.');
+      var category = pointer.type.substring(pos + 1);
+      absorbabler = '$category/$pointerBoxID';
+    } else {
+      absorbabler = '${pointer.type}/$pointerBoxID';
+    }
+    switch (behave) {
+      case 'like':
+        _tryAddRecipients(
+          absorbabler,
+          encourageCode: behave,
+          encourageCause: '点赞',
+        ); //不要等待执行
+        break;
+      case 'comment':
+        _tryAddRecipients(
+          absorbabler,
+          encourageCode: behave,
+          encourageCause: '评论',
+        ); //不要等待执行
+        break;
+    }
   }
 
   Future<void> _undoBehave(String behave) async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
-    await recommender.undoBehave(
-        widget.doc.item.pool, widget.doc.item.id, behave);
+    var item = widget.doc.item;
+    await recommender.undoBehave(item.pool, item.id, behave);
+
+    var box = await recommender.getContentBox(item.pool, item.box);
+    var pointer = box.pointer;
+    var pointerBoxID = box.pointer.id;
+    var absorbabler;
+    if (pointer.type.indexOf('geo.receptor.') >= 0) {
+      int pos = pointer.type.lastIndexOf('.');
+      var category = pointer.type.substring(pos + 1);
+      absorbabler = '$category/$pointerBoxID';
+    } else {
+      absorbabler = '${pointer.type}/$pointerBoxID';
+    }
+    switch (behave) {
+      case 'like':
+        _removeRecipients(
+          absorbabler,
+          encourageCode: behave,
+        ); //不要等待执行
+        break;
+      case 'comment':
+        _removeRecipients(
+          absorbabler,
+          encourageCode: behave,
+        ); //不要等待执行
+        break;
+    }
   }
 
   Future<void> _loadLikes() async {
@@ -228,6 +284,52 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     }
     _itemInnateBehavior =
         await recommender.getItemInnateBehavior(pool.id, widget.doc.item.id);
+  }
+
+  Future<void> _removeRecipients(
+    String absorbabler, {
+    String encourageCode,
+  }) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorberResultOR =
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return;
+    }
+    var absorberid = absorberResultOR.absorber.id;
+    if (encourageCode == 'comment') {
+      var success = await robotRemote.subCommentWeightOfRecipients(absorberid);
+      if (!success) {
+        await robotRemote.removeRecipients3(absorberid, encourageCode);
+      }
+    } else {
+      await robotRemote.removeRecipients3(absorberid, encourageCode);
+    }
+  }
+
+  Future<void> _tryAddRecipients(
+    String absorbabler, {
+    String encourageCode,
+    String encourageCause,
+  }) async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorberResultOR =
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return;
+    }
+    var id = absorberResultOR.absorber.id;
+    if (await robotRemote.existsRecipients2(
+        id, widget.context.principal.person, encourageCode)) {
+      if (encourageCode == 'comment') {
+        //每评一次则加一次权重
+        await robotRemote.addCommentWeightsOfRecipients(
+          absorberResultOR.absorber.id,
+        );
+      }
+      return;
+    }
+    await robotRemote.addRecipients3(id, encourageCode, encourageCause, 0);
   }
 
   @override
@@ -729,7 +831,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Text(
-                  '入池 ${TimelineUtil.format(widget.doc.item.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}',
+                  '入池 ${TimelineUtil.format(widget.doc.item.ctime, locale: 'zh', dayFormat: DayFormat.Simple)}',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
@@ -759,13 +861,13 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             color: Colors.blueGrey,
             decoration: TextDecoration.underline,
           ),
-          recognizer: TapGestureRecognizer()..onTap=(){
-            widget.context.forward('/chasechain/provider',
-                arguments: {
-                  'provider': person.official,
-                  'pool': widget.pool.id,
-                });
-          },
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              widget.context.forward('/chasechain/provider', arguments: {
+                'provider': person.official,
+                'pool': widget.pool.id,
+              });
+            },
         ),
       );
       spans.add(
@@ -818,12 +920,12 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             color: Colors.blueGrey,
             decoration: TextDecoration.underline,
           ),
-            recognizer: TapGestureRecognizer()..onTap=() {
-              widget.context.forward('/chasechain/provider',
-                  arguments: {
-                    'provider': person.official,
-                    'pool': widget.pool.id,
-                  });
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              widget.context.forward('/chasechain/provider', arguments: {
+                'provider': person.official,
+                'pool': widget.pool.id,
+              });
             },
         ),
       );
@@ -891,13 +993,14 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                 child: Text.rich(
                   TextSpan(
                     text: '${person?.nickName ?? comment.person}: ',
-                    recognizer: TapGestureRecognizer()..onTap=() {
-                      widget.context.forward('/chasechain/provider',
-                          arguments: {
-                            'provider': person.official,
-                            'pool': widget.pool.id,
-                          });
-                    },
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        widget.context
+                            .forward('/chasechain/provider', arguments: {
+                          'provider': person.official,
+                          'pool': widget.pool.id,
+                        });
+                      },
                     children: [
                       TextSpan(
                         text: '${comment.attachment ?? ''}',
@@ -908,7 +1011,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                       ),
                       TextSpan(
                         text:
-                            '  ${TimelineUtil.format(comment.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}  ',
+                            '  ${TimelineUtil.format(comment.ctime, locale: 'zh', dayFormat: DayFormat.Simple)}  ',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Colors.grey,
@@ -1134,7 +1237,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              '${TimelineUtil.format(detail.item.ctime,locale: 'zh', dayFormat: DayFormat.Simple)}',
+              '${TimelineUtil.format(detail.item.ctime, locale: 'zh', dayFormat: DayFormat.Simple)}',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
