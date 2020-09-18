@@ -763,7 +763,17 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        widget.context.forward('/absorber/details/simple', arguments: {
+        var absorber=_absorberResultOR.absorber;
+        if(absorber.type==0) {
+          widget.context.forward('/absorber/details/simple', arguments: {
+            'absorber': _absorberResultOR.absorber.id,
+            'stream': _streamController.stream.asBroadcastStream(),
+            'initAbsorber': _absorberResultOR,
+            'initBulletin': _bulletin,
+          });
+          return;
+        }
+        widget.context.forward('/absorber/details/geo', arguments: {
           'absorber': _absorberResultOR.absorber.id,
           'stream': _streamController.stream.asBroadcastStream(),
           'initAbsorber': _absorberResultOR,

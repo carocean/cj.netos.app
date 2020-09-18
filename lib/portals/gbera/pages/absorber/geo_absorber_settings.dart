@@ -380,14 +380,21 @@ class _GeoAbsorberSettingsPageState extends State<GeoAbsorberSettingsPage> {
               ),
               child: Column(
                 children: [
-                  CardItem(
-                    title: '指向',
-                    tail: Column(
+                  Padding(
+                    padding: EdgeInsets.only(top: 15,bottom: 15,),
+                    child: Row(
                       children: [
-                        Text(
-                          '${absorber.absorbabler}',
-                          style: TextStyle(
-                            fontSize: 12,
+                        Text('指向',style: TextStyle(fontSize: 15,fontWeight: FontWeight.w600,),),
+                        SizedBox(width: 10,),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '${absorber.absorbabler}',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ),
                       ],
