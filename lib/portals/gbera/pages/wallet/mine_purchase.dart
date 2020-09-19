@@ -229,9 +229,11 @@ class _MinePurchasesState extends State<MinePurchases> {
                                       children: <Widget>[
                                         Row(
                                           children: <Widget>[
-                                            Text(
-                                              '${purch.sn}',
-                                            ),
+                                           Expanded(
+                                             child:  Text(
+                                               '${purch.sn}',
+                                             ),
+                                           ),
                                           ],
                                         ),
                                         Padding(

@@ -12,6 +12,7 @@ import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_settings.dar
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/select_persons.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.dart';
@@ -2396,6 +2397,18 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/details/selectRecipients',
           buildPage: (PageContext pageContext) => SelectPersons(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '招财猫',
+          subtitle: '',
+          icon:  IconData(
+            0xe6b2,
+            fontFamily: 'absorber',
+          ),
+          url: '/myabsorbers',
+          buildPage: (PageContext pageContext) => MyAbsorbersPage(
             context: pageContext,
           ),
         ),

@@ -323,12 +323,20 @@ mixin IRobotRemote {
   Future<List<AbsorberResultOR>> pageAbsorber(
       String bankid, int type, int limit, int offset) {}
 
+  Future<List<AbsorberResultOR>> pageMyAbsorber(
+      int type, int limit, int offset) {}
+
+  Future<List<AbsorberResultOR>> pageMyAbsorberByUsage(
+      int usage, int limit, int offset) {}
+
+  Future<List<AbsorberResultOR>> pageJioninAbsorberByUsage(int usage, int limit, int offset) {}
   Future<List<RecipientsOR>> pageRecipients(String id, int limit, int offset) {}
 
   Future<List<RecipientsOR>> pageSimpleRecipientsOnlyMe(
       String absorberid, int limit, int offset) {}
 
-  Future<List<RecipientsOR>>  pageRecipientsOnlyMe(String id, int limit, int offset) {}
+  Future<List<RecipientsOR>> pageRecipientsOnlyMe(
+      String id, int limit, int offset) {}
 
   Future<void> startAbsorber(String absorberid) {}
 
@@ -454,6 +462,8 @@ mixin IRobotRemote {
   Future<void> addCommentWeightsOfRecipients(String absorberid) {}
 
   Future<bool> subCommentWeightOfRecipients(String absorberid);
+
+
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -558,6 +568,87 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<AbsorberResultOR>> pageMyAbsorber(
+      int type, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageMyAbsorber',
+      parameters: {
+        'type': type,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var results = <AbsorberResultOR>[];
+    for (var result in list) {
+      var absorber = result['absorber'];
+      var bucket = result['bucket'];
+      results.add(
+        AbsorberResultOR(
+          absorber: AbsorberOR.parse(absorber),
+          bucket: AbsorbBucketOR.parse(bucket),
+        ),
+      );
+    }
+
+    return results;
+  }
+
+  @override
+  Future<List<AbsorberResultOR>> pageMyAbsorberByUsage(
+      int usage, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageMyAbsorberByUsage',
+      parameters: {
+        'usage': usage,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var results = <AbsorberResultOR>[];
+    for (var result in list) {
+      var absorber = result['absorber'];
+      var bucket = result['bucket'];
+      results.add(
+        AbsorberResultOR(
+          absorber: AbsorberOR.parse(absorber),
+          bucket: AbsorbBucketOR.parse(bucket),
+        ),
+      );
+    }
+
+    return results;
+  }
+
+  @override
+  Future<List<AbsorberResultOR>> pageJioninAbsorberByUsage(
+      int usage, int limit, int offset) async{
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageJioninAbsorberByUsage',
+      parameters: {
+        'usage': usage,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var results = <AbsorberResultOR>[];
+    for (var result in list) {
+      var absorber = result['absorber'];
+      var bucket = result['bucket'];
+      results.add(
+        AbsorberResultOR(
+          absorber: AbsorberOR.parse(absorber),
+          bucket: AbsorbBucketOR.parse(bucket),
+        ),
+      );
+    }
+
+    return results;
+  }
+
+  @override
   Future<List<RecipientsOR>> pageRecipients(
       String absorberid, int limit, int offset) async {
     var list = await remotePorts.portGET(
@@ -627,7 +718,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   @override
   Future<List<RecipientsOR>> pageRecipientsOnlyMe(
-      String absorberid, int limit, int offset) async{
+      String absorberid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'pageRecipientsOnlyMe',

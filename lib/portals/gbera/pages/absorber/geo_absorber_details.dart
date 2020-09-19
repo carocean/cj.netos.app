@@ -578,7 +578,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
   Future<double> _totalMy() async {
     double all = 0.00;
     for (var recipient in _recipients) {
-      all += await _totalRecipientsRecordWhere(recipient.id);
+      var v = await _totalRecipientsRecordWhere(recipient.id);
+      all += v ?? 0.00;
     }
     return all;
   }
@@ -813,7 +814,9 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                   bottom: 10,
                   left: 20,
                 ),
-                margin: EdgeInsets.only(left: 15,),
+                margin: EdgeInsets.only(
+                  left: 15,
+                ),
                 alignment: Alignment.bottomLeft,
                 decoration: BoxDecoration(
                   border: Border(

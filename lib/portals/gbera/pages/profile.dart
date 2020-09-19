@@ -164,6 +164,60 @@ class _ProfileState extends State<Profile> {
               ),
             ),
           ),
+          Divider(
+            height: 1,
+            indent: 40,
+          ),
+          //招财锚
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward('/myabsorbers');
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      widget.context.findPage('/myabsorbers').icon,
+                      size: 30,
+                      color:
+                      widget.context.style('/profile/list/item-icon.color'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '招财猫',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -229,6 +283,10 @@ class _ProfileState extends State<Profile> {
               ),
             ),
           ),
+          Divider(
+            height: 1,
+            indent: 40,
+          ),
           //好友
           Container(
             padding: EdgeInsets.only(
@@ -267,125 +325,6 @@ class _ProfileState extends State<Profile> {
                       children: <Widget>[
                         Text(
                           '好友',
-                          style: widget.context
-                              .style('/profile/list/item-title.text'),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          size: 20,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    var card_11 = Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(
-        left: 10,
-        right: 10,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          //申请
-          Container(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context.forward(
-                  '/market/request/landagent',
-                );
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      IconData(0xe62d, fontFamily: 'geo_locations'),
-                      size: 30,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          '成为地商',
-                          style: widget.context
-                              .style('/profile/list/item-title.text'),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          size: 20,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Divider(
-            height: 1,
-            indent: 40,
-          ),
-          Container(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context.forward(
-                  '/market/request/isp',
-                );
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      Icons.developer_board,
-                      size: 30,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          '成为运营商',
                           style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),
@@ -606,12 +545,6 @@ class _ProfileState extends State<Profile> {
                           bottom: 10,
                         ),
                         child: card_1,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 10,
-                        ),
-                        child: card_11,
                       ),
                       Padding(
                         padding: EdgeInsets.only(

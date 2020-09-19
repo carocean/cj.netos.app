@@ -667,10 +667,12 @@ class _RecipientsCardState extends State<_RecipientsCard> {
   Future<double> _totalMy() async {
     double all = 0.00;
     for (var recipient in _recipients) {
-      all += await _totalRecipientsRecordWhere(recipient.id);
+      var v = await _totalRecipientsRecordWhere(recipient.id);
+      all += v ?? 0.00;
     }
     return all;
   }
+
   Future<void> _removeRecipients(RecipientsOR recipientsOR) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     await robotRemote.removeRecipients(
@@ -924,7 +926,9 @@ class _RecipientsCardState extends State<_RecipientsCard> {
                   bottom: 10,
                   left: 20,
                 ),
-                margin: EdgeInsets.only(left: 15,),
+                margin: EdgeInsets.only(
+                  left: 15,
+                ),
                 alignment: Alignment.bottomLeft,
                 decoration: BoxDecoration(
                   border: Border(

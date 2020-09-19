@@ -464,6 +464,125 @@ class _WalletState extends State<Wallet> {
         ],
       ),
     );
+    var card_apply=Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        left: 10,
+        right: 10,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          //申请
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward(
+                  '/market/request/landagent',
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      IconData(0xe62d, fontFamily: 'geo_locations'),
+                      size: 30,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '成为地商',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(
+            height: 1,
+            indent: 40,
+          ),
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.context.forward(
+                  '/market/request/isp',
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      Icons.developer_board,
+                      size: 30,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '成为运营商',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_right,
+                          size: 20,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
     var card_zq;
     if (_myWallet?.banks == null || _myWallet?.banks.isEmpty) {
       card_zq = Container(
@@ -539,6 +658,14 @@ class _WalletState extends State<Wallet> {
                   bottom: 10,
                 ),
                 child: card_op,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: 10,
+                ),
+                child: card_apply,
               ),
             ),
             SliverToBoxAdapter(

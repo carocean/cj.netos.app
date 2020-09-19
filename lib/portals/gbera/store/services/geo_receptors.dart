@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -22,6 +23,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   UserPrincipal get principal => site.getService('@.principal');
   IGeoReceptorDAO receptorDAO;
   IGeoReceptorRemote receptorRemote;
+  IRobotRemote robotRemote;
 
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
   IGeoReceptorCache receptorCache;
@@ -33,6 +35,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
     receptorDAO = db.geoReceptorDAO;
     receptorRemote = site.getService('/remote/geo/receptors');
     receptorCache = site.getService('/cache/geosphere/receptor');
+    robotRemote = site.getService('/remote/robot');
   }
 
   @override
@@ -205,11 +208,20 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<void> updateLocation(String category,String receptor, LatLng location,{bool isOnlyLocal=false}) async {
+  Future<void> updateLocation(String category, String receptor, LatLng location,
+      {bool isOnlyLocal = false}) async {
     var json = jsonEncode(location.toJson());
     await receptorDAO.updateLocation(json, receptor, principal.person);
-    if(!isOnlyLocal) {
-      await receptorRemote.updateLocation(category,receptor,json);
+    if (!isOnlyLocal) {
+      await receptorRemote.updateLocation(category, receptor, json);
+      if (category == 'mobiles') {
+        var absorbabler = '$category/$receptor';
+        var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+        if (absorber != null) {
+          await robotRemote.updateAbsorberLocation(
+              absorber.absorber.id, location);
+        }
+      }
     }
     return null;
   }
