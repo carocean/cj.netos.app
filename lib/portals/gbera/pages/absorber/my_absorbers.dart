@@ -296,6 +296,7 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
   List<AbsorberResultOR> _absorbers = [];
   int _limit = 10, _offset = 0;
   int _usage = -1;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -311,19 +312,27 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
+    if (mounted)
+      setState(() {
+        _isLoading = true;
+      });
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbers =
         await robotRemote.pageMyAbsorberByUsage(_usage, _limit, _offset);
     if (absorbers.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
     _offset += absorbers.length;
     _absorbers.addAll(absorbers);
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -336,7 +345,7 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> list;
-    if (_absorbers.isEmpty) {
+    if (_isLoading) {
       list = <Widget>[
         Container(
           alignment: Alignment.center,
@@ -345,7 +354,7 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
           ),
           color: Colors.white,
           child: Text(
-            '没有猫',
+            '正在加载...',
             style: TextStyle(
               color: Colors.grey[500],
             ),
@@ -353,25 +362,44 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
         ),
       ];
     } else {
-      list = _absorbers.map((e) {
-        return Column(
-          children: [
-            _AbsorberItemPannel(
-              context: widget.context,
-              absorberResultOR: e,
-              stream: widget.timerStream,
+      if (_absorbers.isEmpty) {
+        list = <Widget>[
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              top: 20,
             ),
-            SizedBox(
-              height: 20,
-              child: Divider(
-                height: 1,
-                indent: 60,
+            color: Colors.white,
+            child: Text(
+              '没有猫',
+              style: TextStyle(
+                color: Colors.grey[500],
               ),
             ),
-          ],
-        );
-      }).toList();
+          ),
+        ];
+      } else {
+        list = _absorbers.map((e) {
+          return Column(
+            children: [
+              _AbsorberItemPannel(
+                context: widget.context,
+                absorberResultOR: e,
+                stream: widget.timerStream,
+              ),
+              SizedBox(
+                height: 20,
+                child: Divider(
+                  height: 1,
+                  indent: 60,
+                ),
+              ),
+            ],
+          );
+        }).toList();
+      }
     }
+
     return Container(
       color: Colors.white,
       constraints: BoxConstraints.expand(),
@@ -693,6 +721,7 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
   List<AbsorberResultOR> _absorbers = [];
   int _limit = 10, _offset = 0;
   int _usage = -1;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -708,19 +737,28 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbers =
         await robotRemote.pageJioninAbsorberByUsage(_usage, _limit, _offset);
     if (absorbers.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
     _offset += absorbers.length;
     _absorbers.addAll(absorbers);
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -733,7 +771,7 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> list;
-    if (_absorbers.isEmpty) {
+    if (_isLoading) {
       list = <Widget>[
         Container(
           alignment: Alignment.center,
@@ -742,7 +780,7 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
           ),
           color: Colors.white,
           child: Text(
-            '没有猫',
+            '正在加载...',
             style: TextStyle(
               color: Colors.grey[500],
             ),
@@ -750,25 +788,44 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
         ),
       ];
     } else {
-      list = _absorbers.map((e) {
-        return Column(
-          children: [
-            _AbsorberItemPannel(
-              context: widget.context,
-              absorberResultOR: e,
-              stream: widget.timerStream,
+      if (_absorbers.isEmpty) {
+        list = <Widget>[
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              top: 20,
             ),
-            SizedBox(
-              height: 20,
-              child: Divider(
-                height: 1,
-                indent: 60,
+            color: Colors.white,
+            child: Text(
+              '没有猫',
+              style: TextStyle(
+                color: Colors.grey[500],
               ),
             ),
-          ],
-        );
-      }).toList();
+          ),
+        ];
+      } else {
+        list = _absorbers.map((e) {
+          return Column(
+            children: [
+              _AbsorberItemPannel(
+                context: widget.context,
+                absorberResultOR: e,
+                stream: widget.timerStream,
+              ),
+              SizedBox(
+                height: 20,
+                child: Divider(
+                  height: 1,
+                  indent: 60,
+                ),
+              ),
+            ],
+          );
+        }).toList();
+      }
     }
+
     return Container(
       color: Colors.white,
       constraints: BoxConstraints.expand(),
@@ -1091,6 +1148,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
   int _limit = 10, _offset = 0;
   int _usage = -1;
   GeoReceptor _myReceptor;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -1112,6 +1170,11 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
@@ -1125,7 +1188,9 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
     if (pois.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
     for (var poi in pois) {
@@ -1135,11 +1200,17 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
       if (absorber == null) {
         continue;
       }
+      var usage = absorber.absorber.usage;
+      if (_usage != -1 && _usage != usage) {
+        continue;
+      }
       _absorbers.add(absorber);
     }
     _offset += pois.length;
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -1152,7 +1223,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> list;
-    if (_absorbers.isEmpty) {
+    if (_isLoading) {
       list = <Widget>[
         Container(
           alignment: Alignment.center,
@@ -1161,7 +1232,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
           ),
           color: Colors.white,
           child: Text(
-            '没有猫',
+            '正在搜索附近的猫...',
             style: TextStyle(
               color: Colors.grey[500],
             ),
@@ -1169,25 +1240,44 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
         ),
       ];
     } else {
-      list = _absorbers.map((e) {
-        return Column(
-          children: [
-            _AbsorberItemPannel(
-              context: widget.context,
-              absorberResultOR: e,
-              stream: widget.timerStream,
+      if (_absorbers.isEmpty) {
+        list = <Widget>[
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              top: 20,
             ),
-            SizedBox(
-              height: 20,
-              child: Divider(
-                height: 1,
-                indent: 60,
+            color: Colors.white,
+            child: Text(
+              '没有猫',
+              style: TextStyle(
+                color: Colors.grey[500],
               ),
             ),
-          ],
-        );
-      }).toList();
+          ),
+        ];
+      } else {
+        list = _absorbers.map((e) {
+          return Column(
+            children: [
+              _AbsorberItemPannel(
+                context: widget.context,
+                absorberResultOR: e,
+                stream: widget.timerStream,
+              ),
+              SizedBox(
+                height: 20,
+                child: Divider(
+                  height: 1,
+                  indent: 60,
+                ),
+              ),
+            ],
+          );
+        }).toList();
+      }
     }
+
     return Container(
       color: Colors.white,
       constraints: BoxConstraints.expand(),
@@ -1202,47 +1292,6 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
                     return SimpleDialog(
                       title: Text('选择'),
                       children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            widget.context.backward(result: 'channel');
-                          },
-                          child: Container(
-                            padding: EdgeInsets.only(
-                              left: 25,
-                              right: 25,
-                              top: 15,
-                              bottom: 15,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '网流猫',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: Colors.grey[400],
-                                ),
-                              ],
-                              mainAxisSize: MainAxisSize.max,
-                            ),
-                            constraints: BoxConstraints.tightForFinite(
-                              width: double.maxFinite,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                          child: Divider(
-                            height: 1,
-                            indent: 20,
-                          ),
-                        ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () {
@@ -1398,9 +1447,6 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
                   return;
                 }
                 switch (value) {
-                  case 'channel':
-                    _usage = 0;
-                    break;
                   case 'receptor':
                     _usage = 1;
                     break;
