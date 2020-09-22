@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
@@ -464,7 +466,7 @@ class _WalletState extends State<Wallet> {
         ],
       ),
     );
-    var card_apply=Container(
+    var card_apply = Container(
       color: Colors.white,
       padding: EdgeInsets.only(
         left: 10,
@@ -760,6 +762,31 @@ class _WenyItemWidgetState extends State<WenyItemWidget> {
   @override
   Widget build(BuildContext context) {
     var bank = widget.bank;
+    var icon = bank.info.icon;
+    Widget iconWidget;
+    if (StringUtil.isEmpty(icon)) {
+      iconWidget = Icon(
+        FontAwesomeIcons.image,
+        size: 30,
+        color: widget.context.style('/profile/list/item-icon.color'),
+      );
+    } else {
+      if (icon.startsWith('/')) {
+        iconWidget = Image.file(
+          File(icon),
+          width: 30,
+          height: 30,
+        );
+      } else {
+        iconWidget = FadeInImage.assetNetwork(
+          placeholder: 'lib/portals/gbera/images/default_watting.gif',
+          image: '$icon?accessToken=${widget.context.principal.accessToken}',
+          width: 30,
+          height: 30,
+        );
+      }
+    }
+
     return Column(
       children: <Widget>[
         Container(
@@ -785,12 +812,7 @@ class _WenyItemWidgetState extends State<WenyItemWidget> {
                   padding: EdgeInsets.only(
                     right: 10,
                   ),
-                  child: Icon(
-                    FontAwesomeIcons.image,
-                    size: 30,
-                    color:
-                        widget.context.style('/profile/list/item-icon.color'),
-                  ),
+                  child: iconWidget,
                 ),
                 Expanded(
                   child: Row(

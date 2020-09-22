@@ -963,6 +963,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
               ],
             ),
           ),
+          /*
           Container(
             padding: EdgeInsets.only(
               bottom: 20,
@@ -1077,6 +1078,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
               ],
             ),
           ),
+           */
           Container(
 //            color: Colors.white54,
             child: Column(
@@ -1105,12 +1107,12 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
                     child: CardItem(
-                      title: '市场',
+                      title: '发现',
                       paddingBottom: 12,
                       paddingTop: 12,
                       titleColor: Colors.grey[600],
                       leading: Icon(
-                        FontAwesomeIcons.trademark,
+                      Icons.all_out,
                         color: Colors.grey[500],
                         size: 20,
                       ),

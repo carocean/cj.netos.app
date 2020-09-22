@@ -21,10 +21,11 @@ class CardItem extends StatefulWidget {
   Function() onItemTap;
   Function() onItemLongPress;
   TextDirection tipsTextDirection;
+
   CardItem({
     this.title,
     this.subtitle,
-    this.hiddenSubTitle=false,
+    this.hiddenSubTitle = false,
     this.titleColor,
     this.titleSize,
     this.tipsOverflow,
@@ -95,27 +96,27 @@ class CardItemState extends State<CardItem> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 3,
-                      ),
-                      child: Text(
-                        widget.title,
-                        style: TextStyle(
-                          color: widget.titleColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: widget.titleSize ?? 15,
-                        ),
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        color: widget.titleColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: widget.titleSize ?? 15,
                       ),
                     ),
-                    widget.subtitle == null||widget.hiddenSubTitle
-                        ? Container(
+                    widget.subtitle == null || widget.hiddenSubTitle
+                        ? SizedBox(
                             width: 0,
                             height: 0,
                           )
-                        : Flexible(
-                            fit: FlexFit.loose,
-                            child: widget.subtitle,
+                        : Padding(
+                            padding: EdgeInsets.only(
+                              top: 3,
+                            ),
+                            child: Flexible(
+                              fit: FlexFit.loose,
+                              child: widget.subtitle,
+                            ),
                           ),
                   ],
                 ),
@@ -144,10 +145,12 @@ class CardItemState extends State<CardItem> {
                                     widget.tipsText,
                                     softWrap: true,
                                     style: TextStyle(
-                                      color: widget.tipsColor??Colors.grey[600],
+                                      color:
+                                          widget.tipsColor ?? Colors.grey[600],
                                       fontSize: widget.tipsSize ?? 12,
                                     ),
-                                    textDirection: widget.tipsTextDirection??TextDirection.rtl,
+                                    textDirection: widget.tipsTextDirection ??
+                                        TextDirection.rtl,
                                     overflow: widget.tipsOverflow ?? null,
                                   ),
                                 ),
