@@ -199,6 +199,9 @@ class _GeosphereReceptorDiscoveryState
       return list;
     }
     for (var poi in _poiList) {
+      if (poi.creator == null) {
+        continue;
+      }
       String leading;
       var title;
       var subtitle;

@@ -21,6 +21,7 @@ import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
@@ -900,6 +901,9 @@ class _GeoDistrict extends StatefulWidget {
 
 class _GeoDistrictState extends State<_GeoDistrict> {
   String _locationLabel;
+  List<GeoPOI> _receptors = [];
+  LatLng _location;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -921,12 +925,39 @@ class _GeoDistrictState extends State<_GeoDistrict> {
       if (StringUtil.isEmpty(district)) {
         return;
       }
+      _location = await location.latLng;
       widget.location.setOffsetDistance('district', 1000);
       _locationLabel = '$city·$district';
       if (mounted) {
         setState(() {});
       }
+      await _searchAroundLocation();
     });
+  }
+
+  Future<void> _searchAroundLocation() async {
+    if (_isSearching) {
+      return;
+    }
+    _isSearching = true;
+    if (mounted) {
+      setState(() {});
+    }
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    var items =
+        await receptorRemote.searchAroundLocation(_location, 2000, null, 1/*各类取1个*/, 0);
+    for (var poi in items) {
+      if (poi.creator == null ||
+          poi.receptor.creator == widget.context.principal.person) {
+        continue;
+      }
+      _receptors.add(poi);
+    }
+    _isSearching = false;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -1101,27 +1132,54 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                     padding: EdgeInsets.only(
                       left: 10,
                       right: 10,
+                      top: 5,
+                      bottom: 5,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white70,
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
-                    child: CardItem(
-                      title: '发现',
-                      paddingBottom: 12,
-                      paddingTop: 12,
-                      titleColor: Colors.grey[600],
-                      leading: Icon(
-                      Icons.all_out,
-                        color: Colors.grey[500],
-                        size: 20,
-                      ),
-                      tail: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.grey[400],
-                        size: 18,
-                      ),
-                      tipsText: '本地区有3个',
+                    child: Row(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.all_out,
+                              size: 25,
+                              color: Colors.grey[500],
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '发现',
+                              style: TextStyle(
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: SizedBox(
+                            height: 35,
+                            child: ListView(
+                              padding: EdgeInsets.all(0),
+                              scrollDirection: Axis.horizontal,
+                              children: _rendReceptors(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey[400],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1131,6 +1189,68 @@ class _GeoDistrictState extends State<_GeoDistrict> {
         ],
       ),
     );
+  }
+
+  List<Widget> _rendReceptors() {
+    var items = <Widget>[];
+    if (_isSearching) {
+      items.add(
+        Center(
+          child: Text(
+            '搜索中...',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[400],
+            ),
+          ),
+        ),
+      );
+      return items;
+    }
+    for (var i = 0; i < _receptors.length; i++) {
+      var receptor = _receptors[i];
+      var img;
+      if (StringUtil.isEmpty(receptor.receptor.leading)) {
+        img = Image.asset('lib/portals/gbera/images/netflow.png');
+      } else {
+        img = FadeInImage.assetNetwork(
+          placeholder: 'lib/portals/gbera/images/default_watting.gif',
+          image:
+              '${receptor.receptor.leading}?accessToken=${widget.context.principal.accessToken}',
+        );
+      }
+      items.add(
+        Column(
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: img,
+              ),
+            ),
+            SizedBox(
+              height: 3,
+            ),
+            Center(
+              child: Text(
+                '${receptor.receptor.title}',
+                style: TextStyle(
+                  fontSize: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (i < _receptors.length - 1) {
+        items.add(
+          SizedBox(
+            width: 10,
+          ),
+        );
+      }
+    }
+    return items;
   }
 }
 

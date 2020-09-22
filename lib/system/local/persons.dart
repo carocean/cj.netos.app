@@ -84,6 +84,9 @@ class PersonService implements IPersonService, IServiceBuilder {
     }
     var dataText = content['dataText'];
     var obj = jsonDecode(dataText);
+    if (obj == null) {
+      return null;
+    }
     var lavatar = obj['avatar'];
     if (isDownloadAvatar) {
       lavatar = '${obj['avatar']}?accessToken=${principal.accessToken}';
