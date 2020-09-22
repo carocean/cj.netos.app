@@ -919,6 +919,9 @@ class _GeoDistrictState extends State<_GeoDistrict> {
 
   Future<void> _initDistrictLocation() async {
     widget.location.listen('district', 0, (location) async {
+      if(!StringUtil.isEmpty(_locationLabel)) {
+        return;
+      }
       //当坐标偏移一定距离时更新行政区信息
       var city = await location.city;
       var district = await location.district;
@@ -1154,6 +1157,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                             Text(
                               '发现',
                               style: TextStyle(
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -1162,11 +1166,12 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                           width: 15,
                         ),
                         Expanded(
-                          child: SizedBox(
-                            height: 35,
+                          child: Container(
+                            height: 40,
                             child: ListView(
                               padding: EdgeInsets.all(0),
                               scrollDirection: Axis.horizontal,
+                              reverse: true,
                               children: _rendReceptors(),
                             ),
                           ),
@@ -1193,6 +1198,20 @@ class _GeoDistrictState extends State<_GeoDistrict> {
 
   List<Widget> _rendReceptors() {
     var items = <Widget>[];
+    if (StringUtil.isEmpty(_locationLabel)) {
+      items.add(
+        Center(
+          child: Text(
+            '等待定位...',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[400],
+            ),
+          ),
+        ),
+      );
+      return items;
+    }
     if (_isSearching) {
       items.add(
         Center(
@@ -1207,8 +1226,9 @@ class _GeoDistrictState extends State<_GeoDistrict> {
       );
       return items;
     }
-    for (var i = 0; i < _receptors.length; i++) {
-      var receptor = _receptors[i];
+    List<GeoPOI> receptors=_receptors.reversed.toList();
+    for (var i = 0; i < receptors.length; i++) {
+      var receptor = receptors[i];
       var img;
       if (StringUtil.isEmpty(receptor.receptor.leading)) {
         img = Image.asset('lib/portals/gbera/images/netflow.png');
@@ -1225,24 +1245,39 @@ class _GeoDistrictState extends State<_GeoDistrict> {
             Expanded(
               child: AspectRatio(
                 aspectRatio: 1,
-                child: img,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                  child: img,
+                ),
               ),
             ),
             SizedBox(
               height: 3,
             ),
             Center(
-              child: Text(
-                '${receptor.receptor.title}',
-                style: TextStyle(
-                  fontSize: 8,
-                ),
+              child: Column(
+                children: [
+                  Text(
+                    '${receptor.receptor.title}',
+                    style: TextStyle(
+                      fontSize: 8,
+                    ),
+                  ),
+                  SizedBox(height: 2,),
+                  Text(
+                    '${getFriendlyDistance(receptor.distance)}',
+                    style: TextStyle(
+                      fontSize: 7,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       );
-      if (i < _receptors.length - 1) {
+      if (i < receptors.length - 1) {
         items.add(
           SizedBox(
             width: 10,
