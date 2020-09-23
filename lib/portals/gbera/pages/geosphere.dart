@@ -888,8 +888,7 @@ class _GeoDistrict extends StatefulWidget {
   Function() onTapFountain;
   Function() onTapYuanbao;
 
-  _GeoDistrict(
-      {this.context,  this.onTapYuanbao, this.onTapFountain});
+  _GeoDistrict({this.context, this.onTapYuanbao, this.onTapFountain});
 
   @override
   _GeoDistrictState createState() => _GeoDistrictState();
@@ -901,6 +900,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
   LatLng _location;
   bool _isSearching = false;
   ScrollController _controller;
+  int _updateBeginTime = 0;
 
   @override
   void initState() {
@@ -917,24 +917,30 @@ class _GeoDistrictState extends State<_GeoDistrict> {
   }
 
   Future<void> _initDistrictLocation() async {
-    geoLocation.listen('district', 100, (location) async {
-      if (!StringUtil.isEmpty(_locationLabel)) {
+    geoLocation.listen('district', 0, (location) async {
+      var nowTime = DateTime.now().millisecondsSinceEpoch;
+      if (_updateBeginTime != 0 && nowTime - _updateBeginTime <= 3000) {
+        //如果小于等于3秒则不更新位置
         return;
       }
+      _updateBeginTime = nowTime;
       //当坐标偏移一定距离时更新行政区信息
       var city = await location.city;
       var district = await location.district;
       if (StringUtil.isEmpty(district)) {
         return;
       }
-      _location = await location.latLng;
-      geoLocation.setOffsetDistance('district', 1000);
-      _locationLabel = '$city·$district';
-      if (mounted) {
-        setState(() {});
+      geoLocation.setOffsetDistance('district', 100); //将0米更新修改为多少米更新一次
+      if (StringUtil.isEmpty(_locationLabel)) {
+        _locationLabel = '$city·$district';
+        if (mounted) {
+          setState(() {});
+        }
       }
-      await _searchAroundLocation();
+      _location = await location.latLng;
 
+      _receptors.clear();
+      await _searchAroundLocation();
       WidgetsBinding.instance.addPostFrameCallback((d) {
         if (mounted) {
           setState(() {
@@ -1126,14 +1132,17 @@ class _GeoDistrictState extends State<_GeoDistrict> {
               children: <Widget>[
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return widget.context
-                              .part('/geosphere/region', context,arguments: {'location':_location});
-                        });
-                  },
+                  onTap: StringUtil.isEmpty(_locationLabel) || _isSearching
+                      ? null
+                      : () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return widget.context.part(
+                                    '/geosphere/region', context,
+                                    arguments: {'location': _location});
+                              });
+                        },
                   child: Container(
                     margin: EdgeInsets.only(
                       left: 20,
@@ -1187,11 +1196,16 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                         SizedBox(
                           width: 10,
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey[400],
-                        ),
+                        StringUtil.isEmpty(_locationLabel) || _isSearching
+                            ? SizedBox(
+                                width: 0,
+                                height: 0,
+                              )
+                            : Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey[400],
+                              ),
                       ],
                     ),
                   ),
@@ -1329,9 +1343,9 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   StreamSubscription _streamSubscription;
   @override
   void initState() {
-    geoLocation.listen('receptors', 1, _updateLocation);
+    geoLocation.listen('receptors', 10, _updateLocation);
 
-    _streamSubscription= widget.stream.listen((receptors) {
+    _streamSubscription = widget.stream.listen((receptors) async {
       if (receptors is String && receptors == 'refresh') {
         _receptors.clear();
         return;
@@ -1351,6 +1365,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         return;
       }
       _receptors.addAll(receptors);
+      await _sortReceptors();
       if (mounted) {
         setState(() {});
       }
@@ -1366,8 +1381,29 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
     super.dispose();
   }
 
+  Future<void> _sortReceptors() async {
+    if (_currentLatLng == null) {
+      return;
+    }
+    _receptors.sort((a, b) {
+      var aLocation =LatLng.fromJson(jsonDecode(a.location));
+      var bLocation = LatLng.fromJson(jsonDecode(b.location));
+      var aDistance = getDistance(start: _currentLatLng, end: aLocation);
+      var bDistance = getDistance(start: _currentLatLng, end: bLocation);
+      return aDistance > bDistance ? 1 : aDistance == bDistance ? 0 : -1;
+    });
+  }
+
   Future<void> _updateLocation(location) async {
+    bool isFirstSort=false;
+    if(_currentLatLng==null){
+      isFirstSort=true;
+    }
     _currentLatLng = await location.latLng;
+    if(isFirstSort) {
+      await _sortReceptors();
+      isFirstSort=false;
+    }
     if (mounted) {
       setState(() {});
     }
@@ -1407,6 +1443,10 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         }
       }
     });
+    if(!isFirstSort) {
+      await _sortReceptors();
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _updateReceptorCenter(category, id, location) async {

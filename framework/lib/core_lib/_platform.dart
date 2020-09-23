@@ -7,7 +7,7 @@ import 'package:framework/core_lib/_utimate.dart';
 import '_app_surface.dart';
 import '_navigator_observers.dart';
 import '_notifications.dart';
-
+import 'package:flutter/services.dart';
 /// 为了测试
 final app = _app;
 final IAppSurface _appSurface = DefaultAppSurface();
@@ -26,6 +26,7 @@ void platformRun(AppCreator creator) async {
       statusBarBrightness: Brightness.dark,
     );
     SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+    // SystemChrome.setEnabledSystemUIOverlays([]);
   }
 
   if (creator.onloading != null) {
@@ -99,6 +100,7 @@ class __PlatformAppState extends State<_PlatformApp> {
         builder: _appSurface.appDecorator,
         routes: _appSurface.routes,
         initialRoute: _appSurface.initialRoute,
+        debugShowCheckedModeBanner: false,
         onGenerateRoute: _appSurface.onGenerateRoute,
         onUnknownRoute: _appSurface.onUnknownRoute,
         onGenerateTitle: _appSurface.onGenerateTitle,

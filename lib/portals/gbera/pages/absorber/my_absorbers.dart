@@ -301,7 +301,18 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _onLoad();
+    () async {
+      if (mounted)
+        setState(() {
+          _isLoading = true;
+        });
+      await _onLoad();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }();
     super.initState();
   }
 
@@ -312,27 +323,20 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
-    if (mounted)
-      setState(() {
-        _isLoading = true;
-      });
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbers =
         await robotRemote.pageMyAbsorberByUsage(_usage, _limit, _offset);
     if (absorbers.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() {});
       }
+      return;
     }
     _offset += absorbers.length;
     _absorbers.addAll(absorbers);
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() {});
     }
   }
 
@@ -726,7 +730,20 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _onLoad();
+    () async {
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+      await _onLoad();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }();
+
     super.initState();
   }
 
@@ -737,28 +754,20 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbers =
         await robotRemote.pageJioninAbsorberByUsage(_usage, _limit, _offset);
     if (absorbers.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() {});
       }
+      return;
     }
     _offset += absorbers.length;
     _absorbers.addAll(absorbers);
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() {});
     }
   }
 
@@ -1157,7 +1166,17 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
       _myReceptor = await receptorRemote.getMyMobilReceptor();
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
       await _onLoad();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }();
 
     super.initState();
@@ -1170,11 +1189,6 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
   }
 
   Future<void> _onLoad() async {
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
@@ -1188,9 +1202,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
     if (pois.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() {});
       }
     }
     for (var poi in pois) {
@@ -1208,9 +1220,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
     }
     _offset += pois.length;
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() {});
     }
   }
 

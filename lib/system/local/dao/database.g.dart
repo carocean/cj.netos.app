@@ -188,6 +188,8 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE INDEX `index_ChannelOutputPerson_channel_person_atime` ON `ChannelOutputPerson` (`channel`, `person`, `atime`)');
         await database.execute(
+            'CREATE INDEX `index_GeoReceptor_category_creator` ON `GeoReceptor` (`category`, `creator`)');
+        await database.execute(
             'CREATE INDEX `index_GeosphereMediaOL_msgid_receptor` ON `GeosphereMediaOL` (`msgid`, `receptor`)');
         await database.execute(
             'CREATE INDEX `index_ContentItemOL_box_atime` ON `ContentItemOL` (`box`, `atime`)');
@@ -953,7 +955,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   @override
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM GeoReceptor WHERE sandbox=? ORDER BY ctime desc limit ? offset ?',
+        'SELECT * FROM GeoReceptor WHERE sandbox=? ORDER BY category desc, ctime desc limit ? offset ?',
         arguments: <dynamic>[sandbox, limit, offset],
         mapper: _geoReceptorMapper);
   }

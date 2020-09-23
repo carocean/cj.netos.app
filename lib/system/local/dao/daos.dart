@@ -652,7 +652,7 @@ abstract class IGeoReceptorDAO {
   Future<GeoReceptor> get(String id, String sandbox) {}
 
   @Query(
-      'SELECT *  FROM GeoReceptor WHERE sandbox=:sandbox ORDER BY ctime desc limit :limit, offset :offset')
+      'SELECT *  FROM GeoReceptor WHERE sandbox=:sandbox ORDER BY category desc, ctime desc limit :limit, offset :offset')
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
 
   @Query(

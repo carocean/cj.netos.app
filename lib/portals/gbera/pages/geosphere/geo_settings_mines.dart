@@ -7,7 +7,9 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'dart:math' as math;
 
 class GeoSettingsMines extends StatefulWidget {
   PageContext context;
@@ -92,6 +94,7 @@ class _GeoSettingsMinesState extends State<GeoSettingsMines> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -146,20 +149,101 @@ class _GeoSettingsMinesState extends State<GeoSettingsMines> {
                             color: Colors.grey,
                             size: 25,
                           ),
+                          onItemTap: () {
+                            widget.context
+                                .forward('/gbera/location', arguments: {
+                              'location': _receptor.latLng,
+                              'label':
+                                  '半径:${getFriendlyDistance(_receptor.radius)}'
+                            });
+                          },
                         ),
-                        Divider(
-                          height: 1,
-                          indent: 35,
+                        SizedBox(
+                          height: 15,
                         ),
-                        CardItem(
-                          title: '半径',
-                          tipsText:
-                              '${_receptor.radius < 1000 ? '${_receptor.radius.toStringAsFixed(0)}米' : '${(_receptor.radius / 1000.0).toStringAsFixed(3)}公里'}',
-                          leading: Icon(
-                            FontAwesomeIcons.streetView,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    right: 18,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.my_location,
+                                        size: 14,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(
+                                        width: 2,
+                                      ),
+                                      Text(
+                                        '半径:${getFriendlyDistance(_receptor.radius * 1.0)}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SliderTheme(
+                                  data: theme.sliderTheme.copyWith(
+                                    activeTrackColor: Colors.greenAccent,
+                                    inactiveTrackColor: theme
+                                        .colorScheme.onSurface
+                                        .withOpacity(0.5),
+                                    activeTickMarkColor: theme
+                                        .colorScheme.onSurface
+                                        .withOpacity(0.7),
+                                    inactiveTickMarkColor: theme
+                                        .colorScheme.surface
+                                        .withOpacity(0.7),
+                                    overlayColor: theme.colorScheme.onSurface
+                                        .withOpacity(0.12),
+                                    thumbColor: Colors.redAccent,
+                                    valueIndicatorColor:
+                                        Colors.deepPurpleAccent,
+                                    thumbShape: _CustomThumbShape(),
+                                    valueIndicatorShape:
+                                        _CustomValueIndicatorShape(),
+                                    valueIndicatorTextStyle:
+                                        theme.accentTextTheme.body2.copyWith(
+                                            color: theme.colorScheme.onSurface),
+                                  ),
+                                  child: Slider(
+                                    label:
+                                        '${getFriendlyDistance(_receptor.radius)}',
+                                    value: _receptor.radius,
+                                    min: 200 * 1.0,
+                                    max: 2000 * 1.0,
+                                    divisions: ((2000 - 200) / 100).floor(),
+                                    onChangeEnd: (v) async {
+                                      _receptor.radius = v.floor() * 1.0;
+                                      IGeoReceptorService receptorService =
+                                          widget.context.site.getService(
+                                              '/geosphere/receptors');
+                                      await receptorService.updateRadius(
+                                          _receptor.id, _receptor.radius);
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                    onChanged: (v) async {
+                                      _receptor.radius = v.floor() * 1.0;
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -411,4 +495,124 @@ class _GeoSettingsMinesState extends State<GeoSettingsMines> {
       ),
     );
   }
+}
+
+class _CustomThumbShape extends SliderComponentShape {
+  static const double _thumbSize = 4.0;
+  static const double _disabledThumbSize = 3.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return isEnabled
+        ? const Size.fromRadius(_thumbSize)
+        : const Size.fromRadius(_disabledThumbSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledThumbSize,
+    end: _thumbSize,
+  );
+
+  @override
+  void paint(PaintingContext context, Offset thumbCenter,
+      {Animation<double> activationAnimation,
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
+    final Canvas canvas = context.canvas;
+    final ColorTween colorTween = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.thumbColor,
+    );
+    final double size = _thumbSize * sizeTween.evaluate(enableAnimation);
+    final Path thumbPath = _downTriangle(size, thumbCenter);
+    canvas.drawPath(
+        thumbPath, Paint()..color = colorTween.evaluate(enableAnimation));
+  }
+}
+
+class _CustomValueIndicatorShape extends SliderComponentShape {
+  static const double _indicatorSize = 4.0;
+  static const double _disabledIndicatorSize = 3.0;
+  static const double _slideUpHeight = 40.0;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(isEnabled ? _indicatorSize : _disabledIndicatorSize);
+  }
+
+  static final Animatable<double> sizeTween = Tween<double>(
+    begin: _disabledIndicatorSize,
+    end: _indicatorSize,
+  );
+
+  @override
+  void paint(PaintingContext context, Offset thumbCenter,
+      {Animation<double> activationAnimation,
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
+    final Canvas canvas = context.canvas;
+    final ColorTween enableColor = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.valueIndicatorColor,
+    );
+    final Tween<double> slideUpTween = Tween<double>(
+      begin: 0.0,
+      end: _slideUpHeight,
+    );
+    final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
+    final Offset slideUpOffset =
+        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+    final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
+    final Color paintColor = enableColor
+        .evaluate(enableAnimation)
+        .withAlpha((255.0 * activationAnimation.value).round());
+    canvas.drawPath(
+      thumbPath,
+      Paint()..color = paintColor,
+    );
+    canvas.drawLine(
+        thumbCenter,
+        thumbCenter + slideUpOffset,
+        Paint()
+          ..color = paintColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0);
+    labelPainter.paint(
+        canvas,
+        thumbCenter +
+            slideUpOffset +
+            Offset(-labelPainter.width / 2.0, -labelPainter.height - 4.0));
+  }
+}
+
+Path _upTriangle(double size, Offset thumbCenter) =>
+    _downTriangle(size, thumbCenter, invert: true);
+
+Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
+  final Path thumbPath = Path();
+  final double height = math.sqrt(3.0) / 2.0;
+  final double centerHeight = size * height / 3.0;
+  final double halfSize = size / 2.0;
+  final double sign = invert ? -1.0 : 1.0;
+  thumbPath.moveTo(
+      thumbCenter.dx - halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.lineTo(thumbCenter.dx, thumbCenter.dy - 2.0 * sign * centerHeight);
+  thumbPath.lineTo(
+      thumbCenter.dx + halfSize, thumbCenter.dy + sign * centerHeight);
+  thumbPath.close();
+  return thumbPath;
 }

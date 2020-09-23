@@ -537,7 +537,9 @@ class Principal implements IPrincipal {
       this.device);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'])
+@Entity(primaryKeys: ['id', 'sandbox'], indices: [
+  Index(value: ['category', 'creator'])
+])
 class GeoReceptor {
   String id;
   String title;

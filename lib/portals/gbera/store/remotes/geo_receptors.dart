@@ -471,6 +471,24 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               isAutoScrollMessage:
                   receptor['isAutoScrollMessage'] == 'true' ? true : false,
               offset: item['distance'],
+              origin: GeoReceptor(
+                receptor['id'],
+                receptor['title'],
+                receptor['category'],
+                receptor['leading'],
+                receptor['creator'],
+                jsonEncode(receptor['location']),
+                receptor['radius'],
+                receptor['uDistance'],
+                receptor['ctime'],
+                receptor['foregroundMode'],
+                receptor['backgroundMode'],
+                receptor['background'],
+                receptor['isAutoScrollMessage'],
+                receptor['device'],
+                'false',
+                principal.person,
+              ),
             )),
       );
     }
@@ -479,12 +497,11 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<List<GeoPOI>> searchAroundLocation(
-      LatLng location, int radius, geoType, int limit, int offset)async {
+      LatLng location, int radius, geoType, int limit, int offset) async {
     AppKeyPair appKeyPair = site.getService('@.appKeyPair');
-    appKeyPair = await appKeyPair.getAppKeyPair(
-        'system.netos', site);
+    appKeyPair = await appKeyPair.getAppKeyPair('system.netos', site);
     var nonce = MD5Util.MD5(Uuid().v1());
-    var sign=appKeyPair.appSign(nonce);
+    var sign = appKeyPair.appSign(nonce);
     var list = await remotePorts.portGET(
       _geospherePortsUrl,
       'searchAroundLocation',
@@ -528,7 +545,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           break;
       }
       IGeoCategoryRemote categoryRemote =
-      site.getService('/remote/geo/categories');
+          site.getService('/remote/geo/categories');
       var category = await categoryRemote.getCategory(receptor['category']);
       var creator = await personService.getPerson(receptor['creator']);
       pois.add(
@@ -550,8 +567,26 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               category: receptor['category'],
               isMobileReceptor: receptor['category'] == 'mobiles',
               isAutoScrollMessage:
-              receptor['isAutoScrollMessage'] == 'true' ? true : false,
+                  receptor['isAutoScrollMessage'] == 'true' ? true : false,
               offset: item['distance'],
+              origin: GeoReceptor(
+                receptor['id'],
+                receptor['title'],
+                receptor['category'],
+                receptor['leading'],
+                receptor['creator'],
+                jsonEncode(receptor['location']),
+                receptor['radius'],
+                receptor['uDistance'],
+                receptor['ctime'],
+                receptor['foregroundMode'],
+                receptor['backgroundMode'],
+                receptor['background'],
+                receptor['isAutoScrollMessage'],
+                receptor['device'],
+                'false',
+                principal.person,
+              ),
             )),
       );
     }

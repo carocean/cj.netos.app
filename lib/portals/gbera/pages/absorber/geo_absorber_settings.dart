@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -190,7 +191,7 @@ class _GeoAbsorberSettingsPageState extends State<GeoAbsorberSettingsPage> {
                                   width: 2,
                                 ),
                                 Text(
-                                  '半径:${absorber.radius}米',
+                                  '半径:${getFriendlyDistance(absorber.radius*1.0)}',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.black54,

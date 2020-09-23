@@ -145,13 +145,14 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
                             color: Colors.grey,
                             size: 25,
                           ),
-                          tail: Text(
-                            '${_poiTitle ?? ''}附近',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 12,
-                            ),
-                          ),
+                          tipsText:  '${_poiTitle ?? ''}附近',
+                          onItemTap: () {
+                            widget.context.forward('/gbera/location',
+                                arguments: {
+                                  'location': _receptor.latLng,
+                                  'label': '半径:${getFriendlyDistance(_receptor.radius)}'
+                                });
+                          },
                         ),
                         Divider(
                           height: 1,
@@ -165,7 +166,7 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
                             size: 25,
                           ),
                           tail: Text(
-                            '${_receptor.radius < 1000 ? '${_receptor.radius.toStringAsFixed(0)}米' : '${(_receptor.radius / 1000.0).toStringAsFixed(3)}公里'}',
+                            '${getFriendlyDistance(_receptor.radius)}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[500],

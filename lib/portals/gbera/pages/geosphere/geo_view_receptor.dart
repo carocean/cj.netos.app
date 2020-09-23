@@ -204,7 +204,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
             onRenderAppBar: (appBar, RenderStateAppBar state) {
               switch (state) {
                 case RenderStateAppBar.origin:
-                  if (_receptorInfo.backgroundMode != BackgroundMode.none) {
+                  if (_receptorInfo.backgroundMode!=null&&_receptorInfo.backgroundMode != BackgroundMode.none) {
                     _showWhiteAppBar(appBar, showTitle: false);
                   } else {
                     _showBlackAppBar(appBar, showTitle: false);
@@ -536,11 +536,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      _arrivedMessageCount++;
 //      setState(() {});
 //    };
-    _loadServiceMenu().then((v) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+//     _loadServiceMenu().then((v) {
+//       if (mounted) {
+//         setState(() {});
+//       }
+//     });
     _loadFollow().then((v) {
       if (mounted) {
         setState(() {});
@@ -576,7 +576,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     _poiTitle = await list[0].title;
   }
-
+/*
   _loadServiceMenu() async {
     var services_page1 = <ThirdPartyService>[];
     services_page1.add(ThirdPartyService(
@@ -643,7 +643,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _serviceMenu.add(services_page1);
     _serviceMenu.add(services_page2);
   }
-
+*/
   _updateLocation(Location location) async {
     if (widget.categoryOL == null) {
       return;

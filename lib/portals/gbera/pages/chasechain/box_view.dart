@@ -277,29 +277,31 @@ class _PoolPageState extends State<ContentBoxViewPage> {
                           SizedBox(
                             width: 4,
                           ),
-                          FutureBuilder<String>(
-                            future: _future_doLocation,
-                            builder: (ctx, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return Text('...');
-                              }
-                              var locationText = snapshot.data;
-                              return GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  _goMap(_boxRealObject.location,
-                                      _boxRealObject.title);
-                                },
-                                child: Text(
-                                  locationText ?? '',
-                                  style: TextStyle(
-                                    color: Colors.blueGrey,
-                                    decoration: TextDecoration.underline,
+                          Expanded(
+                            child: FutureBuilder<String>(
+                              future: _future_doLocation,
+                              builder: (ctx, snapshot) {
+                                if (snapshot.connectionState !=
+                                    ConnectionState.done) {
+                                  return Text('...');
+                                }
+                                var locationText = snapshot.data;
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    _goMap(_boxRealObject.location,
+                                        _boxRealObject.title);
+                                  },
+                                  child: Text(
+                                    locationText ?? '',
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
