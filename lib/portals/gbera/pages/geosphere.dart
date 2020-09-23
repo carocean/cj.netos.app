@@ -904,22 +904,25 @@ class _GeoDistrictState extends State<_GeoDistrict> {
   List<GeoPOI> _receptors = [];
   LatLng _location;
   bool _isSearching = false;
+  ScrollController _controller;
 
   @override
   void initState() {
+    _controller = ScrollController(initialScrollOffset: 0);
     _initDistrictLocation();
     super.initState();
   }
 
   @override
   void dispose() {
+    _controller?.dispose();
     widget.location.unlisten('district');
     super.dispose();
   }
 
   Future<void> _initDistrictLocation() async {
     widget.location.listen('district', 0, (location) async {
-      if(!StringUtil.isEmpty(_locationLabel)) {
+      if (!StringUtil.isEmpty(_locationLabel)) {
         return;
       }
       //当坐标偏移一定距离时更新行政区信息
@@ -935,6 +938,14 @@ class _GeoDistrictState extends State<_GeoDistrict> {
         setState(() {});
       }
       await _searchAroundLocation();
+
+      WidgetsBinding.instance.addPostFrameCallback((d) {
+        if (mounted) {
+          setState(() {
+            _controller.jumpTo(_controller.position.maxScrollExtent);
+          });
+        }
+      });
     });
   }
 
@@ -948,8 +959,8 @@ class _GeoDistrictState extends State<_GeoDistrict> {
     }
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
-    var items =
-        await receptorRemote.searchAroundLocation(_location, 2000, null, 1/*各类取1个*/, 0);
+    var items = await receptorRemote.searchAroundLocation(
+        _location, 2000, null, 2 /*各类取2个*/, 0);
     for (var poi in items) {
       if (poi.creator == null ||
           poi.receptor.creator == widget.context.principal.person) {
@@ -1119,14 +1130,17 @@ class _GeoDistrictState extends State<_GeoDistrict> {
               children: <Widget>[
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context
-                              .part('/geosphere/region', context);
-                        });
-                  },
+                  onTap: StringUtil.isEmpty(_locationLabel) || _isSearching
+                      ? null
+                      : () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return widget.context.part(
+                                    '/geosphere/region', context,
+                                    arguments: {'location': _location});
+                              });
+                        },
                   child: Container(
                     margin: EdgeInsets.only(
                       left: 20,
@@ -1169,6 +1183,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                           child: Container(
                             height: 40,
                             child: ListView(
+                              controller: _controller,
                               padding: EdgeInsets.all(0),
                               scrollDirection: Axis.horizontal,
                               reverse: true,
@@ -1179,6 +1194,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                         SizedBox(
                           width: 10,
                         ),
+                        StringUtil.isEmpty(_locationLabel) || _isSearching?SizedBox(height: 0,width: 0,):
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 16,
@@ -1226,7 +1242,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
       );
       return items;
     }
-    List<GeoPOI> receptors=_receptors.reversed.toList();
+    List<GeoPOI> receptors = _receptors.reversed.toList();
     for (var i = 0; i < receptors.length; i++) {
       var receptor = receptors[i];
       var img;
@@ -1263,7 +1279,9 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                       fontSize: 8,
                     ),
                   ),
-                  SizedBox(height: 2,),
+                  SizedBox(
+                    height: 2,
+                  ),
                   Text(
                     '${getFriendlyDistance(receptor.distance)}',
                     style: TextStyle(

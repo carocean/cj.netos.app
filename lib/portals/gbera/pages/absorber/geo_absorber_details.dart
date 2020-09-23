@@ -649,6 +649,9 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                                     );
                                   }
                                   var person = snapshot.data;
+                                  if(person==null) {
+                                    return SizedBox(height: 0,width: 0,);
+                                  }
                                   var avatar = person.avatar;
                                   if (StringUtil.isEmpty(avatar)) {
                                     return Image.asset(
