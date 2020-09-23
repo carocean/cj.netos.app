@@ -140,6 +140,9 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     var title = await location.poiName;
     var address = await location.address;
     var poiId = await location.adCode;
+    if (StringUtil.isEmpty(address)) {
+      return;
+    }
 
     var distance = getDistance(start: latLng, end: _receptorInfo.latLng);
     if (distance == double.nan) {
@@ -2267,12 +2270,12 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     var absorbabler =
         '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
     var absorberResultOR =
-    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
       return false;
     }
     var bulletin =
-    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
     bool diff = (_absorberResultOR == null ||
         (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
         (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));

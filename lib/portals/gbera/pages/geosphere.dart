@@ -70,7 +70,6 @@ class _GeosphereState extends State<Geosphere>
     with AutomaticKeepAliveClientMixin, AmapLocationDisposeMixin {
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
-  GeoLocation _location;
   StreamController _receptorStreamController;
   StreamController _notifyStreamController;
   int _limit = 15, _offset = 0;
@@ -84,8 +83,7 @@ class _GeosphereState extends State<Geosphere>
   void initState() {
     _receptorStreamController = StreamController();
     _notifyStreamController = StreamController.broadcast();
-    _location = geoLocation;
-    _location.start();
+    geoLocation.start();
 
     _refreshController = EasyRefreshController();
     _onload().then((v) {
@@ -174,7 +172,7 @@ class _GeosphereState extends State<Geosphere>
     widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
     widget.context.unlistenMessage(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
-    _location.stop();
+    geoLocation.stop();
     _receptorStreamController.close();
     _notifyStreamController.close();
     geosphereEvents.listeners.clear();
@@ -667,7 +665,7 @@ class _GeosphereState extends State<Geosphere>
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     bool isInited = false;
-    _location.listen('checkMobileReceptor', 0, (location) async {
+    geoLocation.listen('checkMobileReceptor', 0, (location) async {
       if (!isInited) {
         isInited = true;
         if (await receptorService.init(location)) {
@@ -678,7 +676,7 @@ class _GeosphereState extends State<Geosphere>
           });
         }
       }
-      _location.unlisten('checkMobileReceptor');
+      geoLocation.unlisten('checkMobileReceptor');
     });
   }
 
@@ -838,7 +836,6 @@ class _GeosphereState extends State<Geosphere>
               SliverToBoxAdapter(
                 child: _GeoDistrict(
                   context: widget.context,
-                  location: _location,
                   onTapFountain: () {
                     widget.context.forward('/geosphere/fountain');
                   },
@@ -888,12 +885,11 @@ class _GeosphereState extends State<Geosphere>
 ///当前行政区划
 class _GeoDistrict extends StatefulWidget {
   PageContext context;
-  GeoLocation location;
   Function() onTapFountain;
   Function() onTapYuanbao;
 
   _GeoDistrict(
-      {this.context, this.location, this.onTapYuanbao, this.onTapFountain});
+      {this.context,  this.onTapYuanbao, this.onTapFountain});
 
   @override
   _GeoDistrictState createState() => _GeoDistrictState();
@@ -916,12 +912,12 @@ class _GeoDistrictState extends State<_GeoDistrict> {
   @override
   void dispose() {
     _controller?.dispose();
-    widget.location.unlisten('district');
+    geoLocation.unlisten('district');
     super.dispose();
   }
 
   Future<void> _initDistrictLocation() async {
-    widget.location.listen('district', 0, (location) async {
+    geoLocation.listen('district', 100, (location) async {
       if (!StringUtil.isEmpty(_locationLabel)) {
         return;
       }
@@ -932,7 +928,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
         return;
       }
       _location = await location.latLng;
-      widget.location.setOffsetDistance('district', 1000);
+      geoLocation.setOffsetDistance('district', 1000);
       _locationLabel = '$city·$district';
       if (mounted) {
         setState(() {});
@@ -1130,17 +1126,14 @@ class _GeoDistrictState extends State<_GeoDistrict> {
               children: <Widget>[
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: StringUtil.isEmpty(_locationLabel) || _isSearching
-                      ? null
-                      : () {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return widget.context.part(
-                                    '/geosphere/region', context,
-                                    arguments: {'location': _location});
-                              });
-                        },
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return widget.context
+                              .part('/geosphere/region', context,arguments: {'location':_location});
+                        });
+                  },
                   child: Container(
                     margin: EdgeInsets.only(
                       left: 20,
@@ -1194,7 +1187,6 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                         SizedBox(
                           width: 10,
                         ),
-                        StringUtil.isEmpty(_locationLabel) || _isSearching?SizedBox(height: 0,width: 0,):
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 16,
@@ -1334,12 +1326,12 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   List<GeoReceptor> _receptors = [];
   Map<String, _ReceptorItemStateBar> _stateBars = {};
   Map<String, GeoCategoryOL> _cacheCategories = {};
-
+  StreamSubscription _streamSubscription;
   @override
   void initState() {
     geoLocation.listen('receptors', 1, _updateLocation);
 
-    widget.stream.listen((receptors) {
+    _streamSubscription= widget.stream.listen((receptors) {
       if (receptors is String && receptors == 'refresh') {
         _receptors.clear();
         return;
@@ -1368,6 +1360,8 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
 
   @override
   void dispose() {
+    geoLocation.unlisten('receptors');
+    _streamSubscription?.cancel();
     _receptors.clear();
     super.dispose();
   }
