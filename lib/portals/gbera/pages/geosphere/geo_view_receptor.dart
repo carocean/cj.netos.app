@@ -204,7 +204,8 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
             onRenderAppBar: (appBar, RenderStateAppBar state) {
               switch (state) {
                 case RenderStateAppBar.origin:
-                  if (_receptorInfo.backgroundMode!=null&&_receptorInfo.backgroundMode != BackgroundMode.none) {
+                  if (_receptorInfo.backgroundMode != null &&
+                      _receptorInfo.backgroundMode != BackgroundMode.none) {
                     _showWhiteAppBar(appBar, showTitle: false);
                   } else {
                     _showBlackAppBar(appBar, showTitle: false);
@@ -576,6 +577,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     _poiTitle = await list[0].title;
   }
+
 /*
   _loadServiceMenu() async {
     var services_page1 = <ThirdPartyService>[];
@@ -884,7 +886,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
             ),
           ),
 //          _renderServiceMenu(),
-        SizedBox(height: 10,),
+          SizedBox(
+            height: 10,
+          ),
           Padding(
             padding: EdgeInsets.only(
               top: 15,
@@ -903,11 +907,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           padding: EdgeInsets.all(1),
                           child: ClipOval(
                             child: Image(
-                              image: FileImage(
-                                File(
-                                  widget.owner?.avatar,
-                                ),
-                              ),
+                              image: _getImageWidget(),
                               height: 30,
                               width: 30,
                               fit: BoxFit.fill,
@@ -1055,6 +1055,27 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
           ],
         ),
       ),
+    );
+  }
+
+  _getImageWidget() {
+    var avatar = widget.owner?.avatar;
+    if (StringUtil.isEmpty(avatar)) {
+      return FileImage(
+        File(
+          avatar,
+        ),
+      );
+    }
+    if (avatar.startsWith('/')) {
+      return FileImage(
+        File(
+          avatar,
+        ),
+      );
+    }
+    return NetworkImage(
+      '${avatar}?accessToken=${widget.context.principal.accessToken}',
     );
   }
 }
@@ -1938,12 +1959,12 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     var absorbabler =
         '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
     var absorberResultOR =
-    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
       return false;
     }
     var bulletin =
-    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
     bool diff = (_absorberResultOR == null ||
         (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
         (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
@@ -1960,8 +1981,8 @@ class __AbsorberActionState extends State<_AbsorberAction> {
         width: 0,
       );
     }
-    if(widget.receptorInfo.creator!=widget.context.principal.person){
-      if (_absorberResultOR == null){
+    if (widget.receptorInfo.creator != widget.context.principal.person) {
+      if (_absorberResultOR == null) {
         return SizedBox(
           height: 0,
           width: 0,

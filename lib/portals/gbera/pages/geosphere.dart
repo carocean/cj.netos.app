@@ -1341,6 +1341,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   Map<String, _ReceptorItemStateBar> _stateBars = {};
   Map<String, GeoCategoryOL> _cacheCategories = {};
   StreamSubscription _streamSubscription;
+
   @override
   void initState() {
     geoLocation.listen('receptors', 10, _updateLocation);
@@ -1386,7 +1387,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
       return;
     }
     _receptors.sort((a, b) {
-      var aLocation =LatLng.fromJson(jsonDecode(a.location));
+      var aLocation = LatLng.fromJson(jsonDecode(a.location));
       var bLocation = LatLng.fromJson(jsonDecode(b.location));
       var aDistance = getDistance(start: _currentLatLng, end: aLocation);
       var bDistance = getDistance(start: _currentLatLng, end: bLocation);
@@ -1395,14 +1396,14 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   }
 
   Future<void> _updateLocation(location) async {
-    bool isFirstSort=false;
-    if(_currentLatLng==null){
-      isFirstSort=true;
+    bool isFirstSort = false;
+    if (_currentLatLng == null) {
+      isFirstSort = true;
     }
     _currentLatLng = await location.latLng;
-    if(isFirstSort) {
+    if (isFirstSort) {
       await _sortReceptors();
-      isFirstSort=false;
+      isFirstSort = false;
     }
     if (mounted) {
       setState(() {});
@@ -1443,7 +1444,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         }
       }
     });
-    if(!isFirstSort) {
+    if (!isFirstSort) {
       await _sortReceptors();
     }
     if (mounted) setState(() {});
@@ -1665,7 +1666,9 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       }
     });
     _loadUnreadMessage().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -1682,6 +1685,12 @@ class _ReceptorItemState extends State<_ReceptorItem> {
 //    }
     if (oldWidget.receptor.id != widget.receptor.id) {
       oldWidget.receptor = widget.receptor;
+      _stateBar = _ReceptorItemStateBar(isShow: false);
+      _loadUnreadMessage().then((v) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     super.didUpdateWidget(oldWidget);
   }
