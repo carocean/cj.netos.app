@@ -48,7 +48,7 @@ class Deposit extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '单日交易限额 ¥ 50000.00',
+                      '单日交易限额遵循支付宝政策',
                       style: this
                           .context
                           .style('/wallet/change/deposit/method/subtitle.text'),
