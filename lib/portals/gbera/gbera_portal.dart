@@ -148,6 +148,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/recharge_result.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_absorb_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_profit_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_shunter_details.dart';
@@ -241,6 +242,7 @@ class GberaPortal {
           '/geosphere/receptor/messages': GeosphereMessageService(),
           '/geosphere/receptor/messages/medias': GeosphereMediaService(),
           '/cache/geosphere/receptor': GeoReceptorCache(),
+          '/wallet/payChannels': PayChannelRemote(),
           '/wallet/accounts': WalletAccountRemote(),
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
@@ -1453,6 +1455,15 @@ class GberaPortal {
           icon: Icons.account_balance_wallet,
           url: '/wallet',
           buildPage: (PageContext pageContext) => Wallet(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '充值结果',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/rechargeResult',
+          buildPage: (PageContext pageContext) => RechargeResultPage(
             context: pageContext,
           ),
         ),

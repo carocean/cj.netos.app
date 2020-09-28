@@ -60,28 +60,22 @@ class _PayablesState extends State<Payables> {
     _payChannels.add(
       PayChannel(
         code: 'gberaPay',
-        channelName: '零钱',
+        name: '零钱',
         note: '金证时代钱包',
-        limitAmount: 10000,
-        url: 'asset:lib/portals/gbera/images/gbera_op.png',
       ),
     );
     _payChannels.add(
       PayChannel(
         code: 'alipay',
-        channelName: '支付宝',
+        name: '支付宝',
         note: '',
-        limitAmount: 10000,
-        url: 'icon:0xf642',
       ),
     );
     _payChannels.add(
       PayChannel(
         code: 'wechat',
-        channelName: '微信',
+        name: '微信',
         note: '',
-        limitAmount: 10000,
-        url: 'icon:0xf1d7',
       ),
     );
     _selectedChannel = _payChannels[0];
@@ -121,7 +115,7 @@ class _PayablesState extends State<Payables> {
                         bottom: 0,
                       ),
                       child: Text(
-                        '${_selectedChannel?.channelName ?? ''}',
+                        '${_selectedChannel?.name ?? ''}',
                         style: widget.context
                             .style('/wallet/change/deposit/method/title.text'),
                       ),

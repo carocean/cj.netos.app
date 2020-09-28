@@ -75,6 +75,7 @@ void main() => platformRun(
             '@.prop.ports.document.geo.receptor':
                 'http://47.105.165.186/document/geo/receptor.service',
             '@.prop.ports.wallet': 'http://47.105.165.186/wallet/wallet.ports',
+            '@.prop.ports.wallet.payChannel': 'http://47.105.165.186/wallet/partner/payChannel.ports',
             '@.prop.ports.wallet.balance':
                 'http://47.105.165.186/wallet/balance.ports',
             '@.prop.ports.wallet.record':

@@ -1,6 +1,8 @@
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
+import 'wallet_trades.dart';
+
 class MyWallet {
   int total;
   int change;
@@ -84,12 +86,54 @@ class BankInfo {
   });
 }
 
+mixin IPayChannelRemote {
+  Future<List<PayChannel>> pagePayChannel(int limit, int offset);
+}
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
 
   Future<WenyBank> getWenyBankAcount(String bank) {}
 
   Future<BulletinBoard> getBulletinBoard(bank, DateTime today);
+}
+
+class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
+  IServiceProvider site;
+
+  UserPrincipal get principal => site.getService('@.principal');
+
+  IRemotePorts get remotePorts => site.getService('@.remote.ports');
+
+  get payChannelPorts => site.getService('@.prop.ports.wallet.payChannel');
+
+  @override
+  Future<void> builder(IServiceProvider site) async {
+    this.site = site;
+  }
+
+  @override
+  Future<List<PayChannel>> pagePayChannel(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      payChannelPorts,
+      'pagePayChannel',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<PayChannel> channels = [];
+    for (var obj in list) {
+      channels.add(
+        PayChannel(
+          code: obj['code'],
+          ctime: obj['ctime'],
+          name: obj['name'],
+          note: obj['note'],
+        ),
+      );
+    }
+    return channels;
+  }
 }
 
 class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
@@ -144,7 +188,7 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         'wenyBankID': bank,
       },
     );
-    var bankInfo=await _getBankInfo(bank);
+    var bankInfo = await _getBankInfo(bank);
     var bulletinBoard = await getBulletinBoard(bank, DateTime.now());
     return new WenyBank(
       price: priceAccount['price'],

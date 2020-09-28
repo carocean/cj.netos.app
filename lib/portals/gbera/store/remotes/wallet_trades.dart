@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -134,13 +136,11 @@ class P2PEvidence {
 
 class PayChannel {
   String code;
-  String channelName;
-  String url;
-  int limitAmount;
+  String name;
+  String ctime;
   String note;
 
-  PayChannel(
-      {this.code, this.channelName, this.url, this.limitAmount, this.note});
+  PayChannel({this.code, this.name, this.ctime, this.note});
 }
 
 class P2PResultOR {
@@ -175,7 +175,11 @@ mixin IWalletTradeRemote {
 
   Future<P2PEvidence> checkEvidence(String evidence) {}
 
-  Future<PurchaseOR> purchaseWeny(String bank, int amount,String outTradeType,String outTradeSn, String note) {}
+  Future<PurchaseOR> purchaseWeny(String bank, int amount, String outTradeType,
+      String outTradeSn, String note) {}
+
+  Future<String> recharge(
+      String currency, int amount, String payChannel, note) {}
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -416,16 +420,17 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
   }
 
   @override
-  Future<PurchaseOR> purchaseWeny(String bank, int amount,String outTradeType,String outTradeSn, String note) async{
+  Future<PurchaseOR> purchaseWeny(String bank, int amount, String outTradeType,
+      String outTradeSn, String note) async {
     var obj = await remotePorts.portGET(
       walletTradePorts,
       'purchaseWeny',
       parameters: {
         'wenyBankID': bank,
-        'amount':amount,
-        'outTradeType':outTradeType,
-        'outTradeSn':outTradeSn,
-        'note':note,
+        'amount': amount,
+        'outTradeType': outTradeType,
+        'outTradeSn': outTradeSn,
+        'note': note,
       },
     );
     if (obj == null) {
@@ -451,5 +456,21 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
       outTradeSn: obj['outTradeSn'],
       outTradeType: obj['outTradeType'],
     );
+  }
+
+  @override
+  Future<String> recharge(
+      String currency, int amount, String payChannel, note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'recharge',
+      parameters: {
+        'currency': currency,
+        'amount': amount,
+        'payChannel': payChannel,
+        'note': note,
+      },
+    );
+    return obj;
   }
 }
