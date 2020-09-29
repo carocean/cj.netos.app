@@ -37,7 +37,6 @@ class _PlatformWenyMarketState extends State<PlatformWenyMarket> {
             seconds: 5,
           ), (timer) {
         _updateManager();
-
       });
     });
     super.initState();
@@ -59,7 +58,11 @@ class _PlatformWenyMarketState extends State<PlatformWenyMarket> {
     _platformAmount = 0;
     IWyBankRemote bankRemote = widget.context.site.getService('/wybank/remote');
 
-    for (var bank in _banks) {
+    for (var i = 0; i < _banks.length; i++) {
+      var bank = _banks[i];
+      if (bank == null) {
+        continue;
+      }
       BusinessBuckets businessBuckets =
           await bankRemote.getBusinessBucketsOfBank(bank.id);
       ShuntBuckets shuntBuckets =
