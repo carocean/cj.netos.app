@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -442,6 +443,12 @@ class _DepositState extends State<Deposit> {
     switch (status) {
       case '9000':
         message = '订单支付成功。金额: ¥${double.parse(response['total_amount'])}';
+        // ignore: close_sinks
+        StreamController changeController =
+            widget.context.parameters['changeController'];
+        if(changeController!=null&&!changeController.isClosed) {
+          changeController?.add({});
+        }
         break;
       case '8000':
         message = '正在处理中，支付结果未知（有可能已经支付成功），请查询商户订单列表中订单的支付状态';

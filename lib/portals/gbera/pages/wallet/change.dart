@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
@@ -15,11 +16,35 @@ class Change extends StatefulWidget {
 
 class _ChangeState extends State<Change> {
   MyWallet _myWallet;
+  StreamController _changeStreamController;
+  StreamSubscription _streamSubscription;
+
   @override
   void initState() {
-    _myWallet=widget.context.parameters['wallet'];
+    _changeStreamController = StreamController.broadcast();
+    _myWallet = widget.context.parameters['wallet'];
+    _streamSubscription = _changeStreamController.stream.listen((event) {
+      _reloadMyWallet();
+    });
     super.initState();
   }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _changeStreamController?.close();
+    super.dispose();
+  }
+
+  Future<void> _reloadMyWallet() async {
+    IWalletAccountRemote walletAccountService =
+        widget.context.site.getService('/wallet/accounts');
+    _myWallet = await walletAccountService.getAllAcounts();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var card_main = Container(
@@ -49,7 +74,7 @@ class _ChangeState extends State<Change> {
                 ),
               ),
               Text(
-                '${_myWallet?.changeYan??'0.00'}',
+                '${_myWallet?.changeYan ?? '0.00'}',
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: widget.context.style('/wallet/change/money.text'),
@@ -70,13 +95,14 @@ class _ChangeState extends State<Change> {
             height: 36,
             child: RaisedButton(
               onPressed: () {
-                debugPrint('充值');
-                widget.context.forward('/wallet/change/deposit');
+                widget.context.forward('/wallet/change/deposit',
+                    arguments: {'changeController': _changeStreamController});
               },
-              textColor: widget.context.style('/wallet/change/deposit.textColor'),
+              textColor:
+                  widget.context.style('/wallet/change/deposit.textColor'),
               color: widget.context.style('/wallet/change/deposit.color'),
               highlightColor:
-              widget.context.style('/wallet/change/deposit.highlightColor'),
+                  widget.context.style('/wallet/change/deposit.highlightColor'),
               child: Text('充值'),
             ),
           ),
@@ -93,10 +119,11 @@ class _ChangeState extends State<Change> {
                 debugPrint('提现');
                 widget.context.forward('/wallet/change/cashout');
               },
-              textColor: widget.context.style('/wallet/change/cashout.textColor'),
+              textColor:
+                  widget.context.style('/wallet/change/cashout.textColor'),
               color: widget.context.style('/wallet/change/cashout.color'),
               highlightColor:
-              widget.context.style('/wallet/change/cashout.highlightColor'),
+                  widget.context.style('/wallet/change/cashout.highlightColor'),
               child: Text('提现'),
             ),
           ),
@@ -118,7 +145,8 @@ class _ChangeState extends State<Change> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              widget.context.forward('/wallet/change/bill',arguments: {'wallet':_myWallet});
+              widget.context.forward('/wallet/change/bill',
+                  arguments: {'wallet': _myWallet});
             },
             child: Text('明细'),
           ),
@@ -155,4 +183,3 @@ class _ChangeState extends State<Change> {
     );
   }
 }
-

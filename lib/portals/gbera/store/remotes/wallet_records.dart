@@ -21,6 +21,7 @@ class PurchaseOR {
   String outTradeType;
   String person;
   String personName;
+
   PurchaseOR({
     this.sn,
     this.purchAmount,
@@ -126,7 +127,9 @@ class RechargeOR {
   String currency;
   int demandAmount;
   int realAmount;
-  String fromChannel;
+  String toChannelAccount;
+  String payChannel;
+  String payAccount;
   int state;
   String ctime;
   String lutime;
@@ -141,7 +144,9 @@ class RechargeOR {
       this.currency,
       this.demandAmount,
       this.realAmount,
-      this.fromChannel,
+      this.toChannelAccount,
+      this.payChannel,
+      this.payAccount,
       this.state,
       this.ctime,
       this.lutime,
@@ -1046,7 +1051,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       person: obj['person'],
       demandAmount: obj['demandAmount'],
       realAmount: obj['realAmount'],
-      fromChannel: obj['fromChannel'],
+      toChannelAccount: obj['toChannelAccount'],
+      payAccount: obj['payAccount'],
+      payChannel: obj['payChannel'],
     );
   }
 

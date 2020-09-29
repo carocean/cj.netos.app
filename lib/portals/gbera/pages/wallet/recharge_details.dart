@@ -53,6 +53,13 @@ class _RechargeDetailsState extends State<RechargeDetails> {
     _activities = await recordRemote.getRechargeActivies(_recharge.sn);
   }
 
+  Future<PayChannel> _loadPayChannel() async {
+    IPayChannelRemote payChannelRemote =
+        widget.context.site.getService('/wallet/payChannels');
+    var channel = await payChannelRemote.getPayChannel(_recharge.payChannel);
+    return channel;
+  }
+
   @override
   Widget build(BuildContext context) {
     RechargeOR recharge = _recharge;
@@ -108,7 +115,7 @@ class _RechargeDetailsState extends State<RechargeDetails> {
           ),
           Center(
             child: Text(
-              '¥${(recharge.realAmount/100.00).toStringAsFixed(2)}',
+              '¥${(recharge.realAmount / 100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 30,
               ),
@@ -179,7 +186,7 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                 ),
                 Expanded(
                   child: Text(
-                    '¥${(recharge.demandAmount/100).toStringAsFixed(2)}',
+                    '¥${(recharge.demandAmount / 100).toStringAsFixed(2)}',
                   ),
                 ),
               ],
@@ -207,8 +214,17 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    '${recharge.fromChannel}',
+                  child: FutureBuilder<PayChannel>(
+                    future: _loadPayChannel(),
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return Text('-');
+                      }
+                      var ch = snapshot.data;
+                      return Text(
+                        '${ch?.name ?? '-'}',
+                      );
+                    },
                   ),
                 ),
               ],
@@ -264,7 +280,8 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(recharge.ctime))}'),
+                  child: Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(recharge.ctime))}'),
                 ),
               ],
             ),
@@ -291,7 +308,8 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(recharge.lutime))}'),
+                  child: Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(recharge.lutime))}'),
                 ),
               ],
             ),
@@ -371,8 +389,8 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                             ),
                             decoration: BoxDecoration(
                                 color: Colors.grey[500],
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(20))),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
                             child: Text(
                               '${activity.activityNo}',
                               style: TextStyle(
