@@ -437,8 +437,12 @@ class _DepositState extends State<Deposit> {
 
   doResultAlipay(Map map) {
     var status = map['resultStatus'];
-    var result = jsonDecode(map['result']);
-    var response = result['alipay_trade_app_pay_response'];
+    var result;
+    var response={};
+    if (!StringUtil.isEmpty(map['result'])) {
+      result = jsonDecode(map['result']);
+      response = result['alipay_trade_app_pay_response'];
+    }
     var message;
     switch (status) {
       case '9000':
@@ -446,7 +450,7 @@ class _DepositState extends State<Deposit> {
         // ignore: close_sinks
         StreamController changeController =
             widget.context.parameters['changeController'];
-        if(changeController!=null&&!changeController.isClosed) {
+        if (changeController != null && !changeController.isClosed) {
           changeController?.add({});
         }
         break;
