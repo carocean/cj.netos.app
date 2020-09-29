@@ -39,7 +39,10 @@ class _ChangeState extends State<Change> {
   Future<void> _reloadMyWallet() async {
     IWalletAccountRemote walletAccountService =
         widget.context.site.getService('/wallet/accounts');
-    _myWallet = await walletAccountService.getAllAcounts();
+    var myWallet = await walletAccountService.getAllAcounts();
+    _myWallet.change = myWallet.change;
+    _myWallet.absorb = myWallet.absorb;
+    _myWallet.total = myWallet.total;
     if (mounted) {
       setState(() {});
     }
