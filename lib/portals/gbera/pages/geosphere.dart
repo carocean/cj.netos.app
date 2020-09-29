@@ -1430,7 +1430,8 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         return;
       }
 //      print('----${category?.moveMode} ${getDistance(start: _currentLatLng, end: center)} $uDistance');
-      if (distance >= uDistance) {
+      if (distance >= uDistance &&
+          receptor.creator == widget.context.principal.person) {
 //        print('-更新位置---');
         try {
           await _updateReceptorCenter(category.id, receptor.id, _currentLatLng);
