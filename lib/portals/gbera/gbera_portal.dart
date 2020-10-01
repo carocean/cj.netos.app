@@ -130,6 +130,7 @@ import 'package:netos_app/portals/gbera/pages/viewers/view_licence.dart';
 import 'package:netos_app/portals/gbera/pages/wallet.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/absorb_bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/add_card.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/amount_settings.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/card_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/cards.dart';
@@ -145,6 +146,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/p2p_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/pay_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/person_cards.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/purchase_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
@@ -1459,6 +1461,24 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '银行卡',
+          subtitle: '',
+          icon: Icons.account_balance_wallet,
+          url: '/wallet/cards',
+          buildPage: (PageContext pageContext) => PersonCardPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '银行卡',
+          subtitle: '',
+          icon: Icons.account_balance_wallet,
+          url: '/wallet/addCard',
+          buildPage: (PageContext pageContext) => AddPersonCardPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '充值结果',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -2414,7 +2434,7 @@ class GberaPortal {
         LogicPage(
           title: '招财猫',
           subtitle: '',
-          icon:  IconData(
+          icon: IconData(
             0xe6b2,
             fontFamily: 'absorber',
           ),

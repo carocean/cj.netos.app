@@ -90,6 +90,8 @@ mixin IPayChannelRemote {
   Future<List<PayChannel>> pagePayChannel(int limit, int offset);
 
   Future<PayChannel> getPayChannel(String payChannel) {}
+
+  Future<int> totalPersonCard() {}
 }
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
@@ -155,6 +157,15 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
       name: obj['name'],
       ctime: obj['ctime'],
     );
+  }
+
+  @override
+  Future<int> totalPersonCard() async {
+    var obj = await remotePorts.portGET(
+      payChannelPorts,
+      'totalPersonCard',
+    );
+    return obj;
   }
 }
 
