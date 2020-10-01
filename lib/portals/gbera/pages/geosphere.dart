@@ -1155,7 +1155,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                       bottom: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white70,
+                      // color: Colors.white70,
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
                     child: Row(
@@ -1165,21 +1165,22 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                             Icon(
                               Icons.all_out,
                               size: 25,
-                              color: Colors.grey[500],
+                              color: Colors.grey[800],
                             ),
                             SizedBox(
-                              width: 5,
+                              width: 2,
                             ),
                             Text(
                               '发现',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
                         SizedBox(
-                          width: 15,
+                          width: 10,
                         ),
                         Expanded(
                           child: Container(
