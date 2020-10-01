@@ -69,12 +69,14 @@ class _PlatformWenyMarketState extends State<PlatformWenyMarket> {
           await bankRemote.getShuntBucketsOfBank(bank.id);
       BulletinBoard bulletinBoard =
           await bankRemote.getBulletinBoard(bank.id, DateTime.now());
-      _streamController.add({
-        'bank': bank,
-        'businessBuckets': businessBuckets,
-        'shuntBuckets': shuntBuckets,
-        'board': bulletinBoard
-      });
+      if(!_streamController.isClosed){
+        _streamController.add({
+          'bank': bank,
+          'businessBuckets': businessBuckets,
+          'shuntBuckets': shuntBuckets,
+          'board': bulletinBoard
+        });
+      }
       _platformAmount += shuntBuckets.platformAmount;
     }
     if (mounted) {

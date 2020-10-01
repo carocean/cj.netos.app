@@ -353,11 +353,11 @@ class _DemoHeader extends SliverPersistentHeaderDelegate {
 
   @override
   double get maxExtent {
-    return 105;
+    return 114;
   } // 最大高度
 
   @override
-  double get minExtent => 105.0; // 最小高度
+  double get minExtent => 114.0; // 最小高度
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) =>

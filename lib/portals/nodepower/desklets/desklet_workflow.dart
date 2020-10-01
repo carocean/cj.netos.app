@@ -153,7 +153,7 @@ class _WorkflowDeskletState extends State<WorkflowDesklet> {
           ),
           Container(
             color: Colors.white,
-            height: 400,
+            height: 600,
             padding: EdgeInsets.all(15),
             child: IndexedStack(
               index: _index_pannel,

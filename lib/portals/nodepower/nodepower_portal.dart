@@ -22,6 +22,7 @@ import 'package:netos_app/portals/nodepower/pages/colleagues.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
+import 'package:netos_app/portals/nodepower/pages/fund_enter.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
 import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
 import 'package:netos_app/portals/nodepower/pages/weny/exchange_details.dart';
@@ -601,10 +602,9 @@ var buildPortal = (IServiceProvider site) => Portal(
           subtitle: '更多配置',
           icon: Icons.business,
           url: '/weny/robot/absorbers/details/more',
-          buildPage: (PageContext pageContext) =>
-              WenyAbsorberDetailsMorePage(
-                context: pageContext,
-              ),
+          buildPage: (PageContext pageContext) => WenyAbsorberDetailsMorePage(
+            context: pageContext,
+          ),
         ),
         LogicPage(
           title: '查看洇取器位置',
@@ -631,8 +631,8 @@ var buildPortal = (IServiceProvider site) => Portal(
           url: '/weny/recipients/records/simple',
           buildPage: (PageContext pageContext) =>
               SimpleAbsorberRecipientsRecordsPage(
-                context: pageContext,
-              ),
+            context: pageContext,
+          ),
         ),
         LogicPage(
           title: '洇取人资金记录',
@@ -641,8 +641,17 @@ var buildPortal = (IServiceProvider site) => Portal(
           url: '/weny/recipients/records/geo',
           buildPage: (PageContext pageContext) =>
               GeoAbsorberRecipientsRecordsPage(
-                context: pageContext,
-              ),
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '进场资金',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/claf/fund/enter',
+          buildPage: (PageContext pageContext) => FundEnterPage(
+            context: pageContext,
+          ),
         ),
       ],
     );

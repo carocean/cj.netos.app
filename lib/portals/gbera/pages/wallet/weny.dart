@@ -414,8 +414,8 @@ class _PriceCardState extends State<_PriceCard> {
         children: <Widget>[
           Container(
             padding: EdgeInsets.only(
-              left: 40,
-              right: 40,
+              left: 30,
+              right: 30,
               top: 10,
               bottom: 10,
             ),
@@ -451,29 +451,32 @@ class _PriceCardState extends State<_PriceCard> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 5,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            '涨跌: ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 5,
+                          left: 10,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              '涨跌: ',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${( widget.bank.change ?? 0.00).toStringAsFixed(2)}%',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: widget.bank.change > 0
-                                  ? Colors.red
-                                  : widget.bank.change < 0 ? Colors.green : null,
+                            Text(
+                              '${( widget.bank.change ?? 0.00).toStringAsFixed(2)}%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: widget.bank.change > 0
+                                    ? Colors.red
+                                    : widget.bank.change < 0 ? Colors.green : null,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -504,26 +507,29 @@ class _PriceCardState extends State<_PriceCard> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 5,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            '今日承兑量: ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 5,
+                          left: 10,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              '今日承兑量: ',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
                             ),
-                          ),
-                          Text(
-                            '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              '¥${(_exchangeFundOfDay / 100.00).abs().toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
