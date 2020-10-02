@@ -4,6 +4,7 @@ import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
@@ -14,10 +15,12 @@ import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/landagent/styles/blue_styles.dart' as blue;
+import 'package:netos_app/portals/nodepower/pages/account_details.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_isp.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_la.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/adopt_wybank.dart';
 import 'package:netos_app/portals/nodepower/pages/adopt/ttm_config_dialog.dart';
+import 'package:netos_app/portals/nodepower/pages/channel_bill.dart';
 import 'package:netos_app/portals/nodepower/pages/colleagues.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
@@ -156,6 +159,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wybank/robot': RobotRemote(),
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
+          '/wallet/payChannels': PayChannelRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -650,6 +654,24 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/claf/fund/enter',
           buildPage: (PageContext pageContext) => FundEnterPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '渠道账户',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/claf/channel/account',
+          buildPage: (PageContext pageContext) => ChannelAccountDetailsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '渠道账户账单',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/claf/channel/account/bill',
+          buildPage: (PageContext pageContext) => PageChannelBillPage(
             context: pageContext,
           ),
         ),

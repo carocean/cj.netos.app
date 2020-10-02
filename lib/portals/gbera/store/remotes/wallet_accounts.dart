@@ -92,6 +92,30 @@ mixin IPayChannelRemote {
   Future<PayChannel> getPayChannel(String payChannel) {}
 
   Future<int> totalPersonCard() {}
+
+  Future<void> addAccount(
+      String channel,
+      String appid,
+      String serviceUrl,
+      String notifyUrl,
+      String publicKey,
+      String privateKey,
+      String keyPubtime,
+      int keyExpire,
+      int weight,
+      int limitAmount,
+      String note) {}
+
+  Future<void> addPayChannel(String code, String name, String note);
+
+  Future<void> getAccount(String accountid) {}
+
+  Future<List<ChannelAccountOR>> pageAccount(int limit, int offset) {}
+
+  Future<List<ChannelAccountOR>> pageAccountOfChannel(
+      String channel, int limit, int offset) {}
+
+  Future<void> removeAccount(String accountid) {}
 }
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
@@ -166,6 +190,141 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
       'totalPersonCard',
     );
     return obj;
+  }
+
+  @override
+  Future<void> addAccount(
+      String channel,
+      String appid,
+      String serviceUrl,
+      String notifyUrl,
+      String publicKey,
+      String privateKey,
+      String keyPubtime,
+      int keyExpire,
+      int weight,
+      int limitAmount,
+      String note) async {}
+
+  @override
+  Future<void> addPayChannel(String code, String name, String note) async {
+    await remotePorts.portGET(
+      payChannelPorts,
+      'addPayChannel',
+      parameters: {
+        'code': code,
+        'name': name,
+        'note': note,
+      },
+    );
+  }
+
+  @override
+  Future<void> getAccount(String accountid) async {
+    var obj = await remotePorts.portGET(
+      payChannelPorts,
+      'getAccount',
+      parameters: {
+        'accountid': accountid,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return ChannelAccountOR(
+      note: obj['note'],
+      appId: obj['appId'],
+      balanceAmount: obj['balanceAmount'],
+      balanceUtime: obj['balanceUtime'],
+      channel: obj['channel'],
+      id: obj['id'],
+      keyExpire: obj['keyExpire'],
+      keyPubtime: obj['keyPubtime'],
+      limitAmount: obj['limitAmount'],
+      notifyUrl: obj['notifyUrl'],
+      privateKey: obj['privateKey'],
+      publicKey: obj['publicKey'],
+      serviceUrl: obj['serviceUrl'],
+    );
+  }
+
+  @override
+  Future<List<ChannelAccountOR>> pageAccount(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      payChannelPorts,
+      'pageAccount',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var accounts = <ChannelAccountOR>[];
+    for (var obj in list) {
+      accounts.add(
+        ChannelAccountOR(
+          note: obj['note'],
+          appId: obj['appId'],
+          balanceAmount: obj['balanceAmount'],
+          balanceUtime: obj['balanceUtime'],
+          channel: obj['channel'],
+          id: obj['id'],
+          keyExpire: obj['keyExpire'],
+          keyPubtime: obj['keyPubtime'],
+          limitAmount: obj['limitAmount'],
+          notifyUrl: obj['notifyUrl'],
+          privateKey: obj['privateKey'],
+          publicKey: obj['publicKey'],
+          serviceUrl: obj['serviceUrl'],
+        ),
+      );
+    }
+    return accounts;
+  }
+
+  @override
+  Future<List<ChannelAccountOR>> pageAccountOfChannel(
+      String channel, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      payChannelPorts,
+      'pageAccountOfChannel',
+      parameters: {
+        'channel': channel,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var accounts = <ChannelAccountOR>[];
+    for (var obj in list) {
+      accounts.add(
+        ChannelAccountOR(
+          note: obj['note'],
+          appId: obj['appId'],
+          balanceAmount: obj['balanceAmount'],
+          balanceUtime: obj['balanceUtime'],
+          channel: obj['channel'],
+          id: obj['id'],
+          keyExpire: obj['keyExpire'],
+          keyPubtime: obj['keyPubtime'],
+          limitAmount: obj['limitAmount'],
+          notifyUrl: obj['notifyUrl'],
+          privateKey: obj['privateKey'],
+          publicKey: obj['publicKey'],
+          serviceUrl: obj['serviceUrl'],
+        ),
+      );
+    }
+    return accounts;
+  }
+
+  @override
+  Future<void> removeAccount(String accountid) async {
+    await remotePorts.portGET(
+      payChannelPorts,
+      'removeAccount',
+      parameters: {
+        'accountid': accountid,
+      },
+    );
   }
 }
 

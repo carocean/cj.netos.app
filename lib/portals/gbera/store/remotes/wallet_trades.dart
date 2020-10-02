@@ -143,6 +143,84 @@ class PayChannel {
   PayChannel({this.code, this.name, this.ctime, this.note});
 }
 
+class ChannelAccountOR {
+  String id;
+  String appId;
+  String channel;
+  int balanceAmount;
+  String balanceUtime;
+  int limitAmount;
+  String serviceUrl;
+  String notifyUrl;
+  String keyPubtime;
+  int keyExpire;
+  String publicKey;
+  String privateKey;
+  String note;
+
+  ChannelAccountOR({
+    this.id,
+    this.appId,
+    this.channel,
+    this.balanceAmount,
+    this.balanceUtime,
+    this.limitAmount,
+    this.serviceUrl,
+    this.notifyUrl,
+    this.keyPubtime,
+    this.keyExpire,
+    this.publicKey,
+    this.privateKey,
+    this.note,
+  });
+}
+
+class ChannelBillOR {
+  String sn;
+  String title;
+  String person;
+  String personName;
+  String channelAccount;
+  String currency;
+  int amount;
+  int balance;
+  int order;
+  String refSn;
+  String ctime;
+  String workday;
+  int day;
+  int month;
+  int season;
+  int year;
+  String refChSn;
+  String notifyId;
+  String channelPay;
+  String note;
+
+  ChannelBillOR({
+    this.sn,
+    this.title,
+    this.person,
+    this.personName,
+    this.channelAccount,
+    this.currency,
+    this.amount,
+    this.balance,
+    this.order,
+    this.refSn,
+    this.ctime,
+    this.workday,
+    this.day,
+    this.month,
+    this.season,
+    this.year,
+    this.refChSn,
+    this.notifyId,
+    this.channelPay,
+    this.note,
+  });
+}
+
 class P2PResultOR {
   String sn;
   String payer;
