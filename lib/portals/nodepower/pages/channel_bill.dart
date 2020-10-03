@@ -438,6 +438,7 @@ class _ChannelAccountBillTabViewState
                                                   fontSize: 12,
                                                 ),
                                               ),
+                                              Text('${bill.order == 0 ? '充值者' : '提现者'}  ${bill.personName}')
                                             ],
                                           ),
                                         ),
