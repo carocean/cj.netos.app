@@ -11,6 +11,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
 class PageChannelBillPage extends StatefulWidget {
@@ -283,6 +284,7 @@ class _ChannelAccountBillTabViewState
   StreamSubscription _date_picker_streamSubscription;
   bool _isLoading = false;
   ChannelAccountOR _accountOR;
+  MyWallet _myWallet;
 
   @override
   void initState() {
@@ -302,6 +304,7 @@ class _ChannelAccountBillTabViewState
           _isLoading = true;
         });
       }
+      await _loadMyWallet();
       await _onload();
       if (mounted) {
         setState(() {
@@ -331,6 +334,7 @@ class _ChannelAccountBillTabViewState
             _isLoading = true;
           });
         }
+        await _loadMyWallet();
         await _onload();
         if (mounted) {
           setState(() {
@@ -367,6 +371,16 @@ class _ChannelAccountBillTabViewState
     }
   }
 
+  Future<void> _loadMyWallet() async {
+    IWalletAccountRemote walletAccountService =
+        widget.context.site.getService('/wallet/accounts');
+    var myWallet = await walletAccountService.getAllAcounts();
+    _myWallet = myWallet;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -389,7 +403,40 @@ class _ChannelAccountBillTabViewState
                 return SliverToBoxAdapter(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {},
+                    onTap: () async {
+                      IWalletRecordRemote recordRemote =
+                          widget.context.site.getService('/wallet/records');
+                      switch (bill.order) {
+                        case 0:
+                          var recharge =
+                              await recordRemote.getRechargeRecord(bill.refSn);
+                          if (recharge == null) {
+                            return;
+                          }
+                          widget.context.forward(
+                            '/wallet/recharge/details',
+                            arguments: {
+                              'recharge': recharge,
+                              'wallet': _myWallet
+                            },
+                          );
+                          break;
+                        case 1:
+                          var withdraw =
+                              await recordRemote.getWithdrawRecord(bill.refSn);
+                          if (withdraw == null) {
+                            return;
+                          }
+                          widget.context.forward(
+                            '/wallet/withdraw/details',
+                            arguments: {
+                              'withdraw': withdraw,
+                              'wallet': _myWallet
+                            },
+                          );
+                          break;
+                      }
+                    },
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -431,6 +478,14 @@ class _ChannelAccountBillTabViewState
                                                 WrapCrossAlignment.end,
                                             children: <Widget>[
                                               Text(
+                                                '${bill.personName}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey[500],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              Text(
                                                 '类型：${bill.order == 0 ? '充值' : '提现'}',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w500,
@@ -438,7 +493,6 @@ class _ChannelAccountBillTabViewState
                                                   fontSize: 12,
                                                 ),
                                               ),
-                                              Text('${bill.order == 0 ? '充值者' : '提现者'}  ${bill.personName}')
                                             ],
                                           ),
                                         ),
@@ -478,7 +532,7 @@ class _ChannelAccountBillTabViewState
                                                     WrapCrossAlignment.end,
                                                 children: <Widget>[
                                                   Text(
-                                                    '${bill.order==0?'+':'-'}',
+                                                    '${bill.order == 0 ? '+' : '-'}',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,

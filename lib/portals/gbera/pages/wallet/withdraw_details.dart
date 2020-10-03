@@ -108,7 +108,7 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
           ),
           Center(
             child: Text(
-              '¥${(withdraw.realAmount/100.00).toStringAsFixed(2)}',
+              '¥${(withdraw.realAmount / 100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 30,
               ),
@@ -171,6 +171,35 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
                     minWidth: minWidth,
                   ),
                   child: Text(
+                    '提现者:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '${withdraw.personName}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
                     '请求金额:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
@@ -179,7 +208,7 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
                 ),
                 Expanded(
                   child: Text(
-                    '¥${(withdraw.demandAmount/100).toStringAsFixed(2)}',
+                    '¥${(withdraw.demandAmount / 100).toStringAsFixed(2)}',
                   ),
                 ),
               ],
@@ -264,7 +293,8 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.ctime))}'),
+                  child: Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.ctime))}'),
                 ),
               ],
             ),
@@ -291,7 +321,8 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
                   ),
                 ),
                 Expanded(
-                  child: Text('${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.lutime))}'),
+                  child: Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(withdraw.lutime))}'),
                 ),
               ],
             ),
@@ -371,8 +402,8 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
                             ),
                             decoration: BoxDecoration(
                                 color: Colors.grey[500],
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(20))),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
                             child: Text(
                               '${activity.activityNo}',
                               style: TextStyle(

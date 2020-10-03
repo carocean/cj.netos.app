@@ -3,6 +3,8 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -160,6 +162,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/payChannels': PayChannelRemote(),
+          '/wallet/accounts': WalletAccountRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -672,6 +675,26 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: Icons.business,
           url: '/claf/channel/account/bill',
           buildPage: (PageContext pageContext) => PageChannelBillPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '充值单查看',
+          icon: null,
+          url: '/wallet/recharge/details',
+          buildPage: (PageContext pageContext) => RechargeDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '提现单查看',
+          icon: null,
+          url: '/wallet/withdraw/details',
+          buildPage: (PageContext pageContext) => WithdrawDetails(
             context: pageContext,
           ),
         ),
