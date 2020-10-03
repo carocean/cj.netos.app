@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/market/tab_page.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
 class PageChannelBillPage extends StatefulWidget {
@@ -23,7 +26,7 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
     with SingleTickerProviderStateMixin {
   EasyRefreshController _controller;
   DateTime _selected;
-  double _totalInOfMonth = 0, _totalOutOfMonth = 0;
+  int _totalInOfMonth = 0, _totalOutOfMonth = 0;
   StreamController _datePickerNotify;
 
   @override
@@ -31,6 +34,9 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
     _controller = EasyRefreshController();
     _datePickerNotify = StreamController.broadcast();
     _selected = DateTime.now();
+    () async {
+      await _loadAcountIndexer();
+    }();
     super.initState();
   }
 
@@ -41,7 +47,18 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
     super.dispose();
   }
 
-  Future<void> _loadAcountIndexer() async {}
+  Future<void> _loadAcountIndexer() async {
+    IPayChannelRemote payChannelRemote =
+        widget.context.site.getService('/wallet/payChannels');
+    ChannelAccountOR accountOR = widget.context.parameters['account'];
+    _totalInOfMonth = await payChannelRemote.totalMonthBillByAccount(
+        accountOR.id, 0, _selected.year, _selected.month - 1);
+    _totalOutOfMonth = await payChannelRemote.totalMonthBillByAccount(
+        accountOR.id, 1, _selected.year, _selected.month - 1);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +67,7 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
         headerSliverBuilder: (ctx, v) {
           return <Widget>[
             SliverAppBar(
-              title: Text('进场账单'),
+              title: Text('账单'),
               pinned: true,
               elevation: 0,
             ),
@@ -149,11 +166,52 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              Text(
-                                '¥${((_totalInOfMonth ?? 0) / 100.00).toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      right: 5,
+                                    ),
+                                    child: Text(
+                                      '进场',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '¥${((_totalInOfMonth ?? 0) / 100.00).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      right: 5,
+                                    ),
+                                    child: Text(
+                                      '出场',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '¥${((_totalOutOfMonth ?? 0) / 100.00).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -190,9 +248,9 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
             ),
           ];
         },
-        body: _ChannelBillList(
+        body: _ChannelAccountBillTabView(
+          datePicker: _datePickerNotify.stream,
           context: widget.context,
-          datePicker: _datePickerNotify.stream.asBroadcastStream(),
           defaultDate: _selected,
         ),
       ),
@@ -200,30 +258,35 @@ class _PageChannelBillPageState extends State<PageChannelBillPage>
   }
 }
 
-class _ChannelBillList extends StatefulWidget {
+class _ChannelAccountBillTabView extends StatefulWidget {
   PageContext context;
   Stream datePicker;
   DateTime defaultDate;
 
-  _ChannelBillList({
+  _ChannelAccountBillTabView({
     this.context,
     this.datePicker,
     this.defaultDate,
   });
 
   @override
-  __ChannelBillListState createState() => __ChannelBillListState();
+  _ChannelAccountBillTabViewState createState() =>
+      _ChannelAccountBillTabViewState();
 }
 
-class __ChannelBillListState extends State<_ChannelBillList> {
-  List<ChannelBillOR> _fundBills = [];
+class _ChannelAccountBillTabViewState
+    extends State<_ChannelAccountBillTabView> {
+  List<ChannelBillOR> _channelBills = [];
   EasyRefreshController _controller;
   int _limit = 20, _offset = 0;
   DateTime _selectedDateTime;
   StreamSubscription _date_picker_streamSubscription;
+  bool _isLoading = false;
+  ChannelAccountOR _accountOR;
 
   @override
   void initState() {
+    _accountOR = widget.context.parameters['account'];
     _selectedDateTime = widget.defaultDate;
     _controller = EasyRefreshController();
     _date_picker_streamSubscription = widget.datePicker.listen((event) async {
@@ -233,8 +296,20 @@ class __ChannelBillListState extends State<_ChannelBillList> {
         setState(() {});
       }
     });
+    () async {
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+      await _onload();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }();
 
-    _onload();
     super.initState();
   }
 
@@ -245,19 +320,50 @@ class __ChannelBillListState extends State<_ChannelBillList> {
     super.dispose();
   }
 
-  Future<void> _onRefresh() async {
-    _offset = 0;
-    _fundBills.clear();
-    await _onload();
-  }
-
-  Future<void> _onload() async {}
-
   @override
-  void didUpdateWidget(_ChannelBillList oldWidget) {
+  void didUpdateWidget(_ChannelAccountBillTabView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.defaultDate != widget.defaultDate) {
       oldWidget.defaultDate = widget.defaultDate;
+      () async {
+        if (mounted) {
+          setState(() {
+            _isLoading = true;
+          });
+        }
+        await _onload();
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    _offset = 0;
+    _channelBills.clear();
+    await _onload();
+  }
+
+  Future<void> _onload() async {
+    IPayChannelRemote payChannelRemote =
+        widget.context.site.getService('/wallet/payChannels');
+    var time = _selectedDateTime;
+    var list = await payChannelRemote.monthBillByAccount(
+        _accountOR.id, time.year, time.month - 1, _limit, _offset);
+    if (list.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _channelBills.addAll(list);
+    _offset += list.length;
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -268,6 +374,7 @@ class __ChannelBillListState extends State<_ChannelBillList> {
         left: 10,
         right: 10,
         bottom: 10,
+        top: 10,
       ),
       color: Colors.white,
       constraints: BoxConstraints.expand(),
@@ -278,7 +385,7 @@ class __ChannelBillListState extends State<_ChannelBillList> {
               controller: _controller,
               onLoad: _onload,
               onRefresh: _onRefresh,
-              slivers: _fundBills.map((bill) {
+              slivers: _channelBills.map((bill) {
                 return SliverToBoxAdapter(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -324,60 +431,88 @@ class __ChannelBillListState extends State<_ChannelBillList> {
                                                 WrapCrossAlignment.end,
                                             children: <Widget>[
                                               Text(
-                                                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime, len: 14))}',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.grey[500],
-                                                        fontSize: 12,
-                                                      ),
+                                                '类型：${bill.order == 0 ? '充值' : '提现'}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey[500],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            top: 4,
+                                            bottom: 4,
+                                          ),
+                                          child: Wrap(
+                                            spacing: 5,
+                                            crossAxisAlignment:
+                                                WrapCrossAlignment.end,
+                                            children: <Widget>[
+                                              Text(
+                                                '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime, len: 14))}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey[500],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                top: 4,
+                                                bottom: 4,
+                                              ),
+                                              child: Wrap(
+                                                spacing: 5,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.end,
+                                                children: <Widget>[
+                                                  Text(
+                                                    '${bill.order==0?'+':'-'}',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
-                                            ],
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                WrapCrossAlignment.end,
-                                            children: <Widget>[
-                                              Text(
-                                                '金额:',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                                  ),
+                                                  Text(
+                                                    '¥${((bill.amount ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                                                  ),
+                                                ],
                                               ),
-                                              Text(
-                                                '¥${((bill.amount ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                top: 4,
+                                                bottom: 4,
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                WrapCrossAlignment.end,
-                                            children: <Widget>[
-                                              Text(
-                                                '余额:',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                              child: Wrap(
+                                                spacing: 5,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.end,
+                                                children: <Widget>[
+                                                  Text(
+                                                    '',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '¥${((bill.balance ?? 0.0) / 100.00).toStringAsFixed(2)}',
+                                                  ),
+                                                ],
                                               ),
-                                              Text(
-                                                '¥${((bill.balance ?? 0.0) / 100.00).toStringAsFixed(2)}',
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

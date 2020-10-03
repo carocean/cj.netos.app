@@ -10,20 +10,21 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:intl/intl.dart' as intl;
 
-class FundEnterPage extends StatefulWidget {
+class PlatformFundPage extends StatefulWidget {
   PageContext context;
 
-  FundEnterPage({this.context});
+  PlatformFundPage({this.context});
 
   @override
-  _FundEnterPageState createState() => _FundEnterPageState();
+  _PlatformFundPageState createState() => _PlatformFundPageState();
 }
 
-class _FundEnterPageState extends State<FundEnterPage> {
+class _PlatformFundPageState extends State<PlatformFundPage> {
   List<ChannelAccountOR> _accounts = [];
   int _limit = 20, _offset = 0;
   EasyRefreshController _controller;
   bool _isLoading = false;
+  int _allAccountBalance = 0;
 
   @override
   void initState() {
@@ -35,6 +36,7 @@ class _FundEnterPageState extends State<FundEnterPage> {
         });
       }
       await _onLoad();
+      await _totalAccountBalance();
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -77,6 +79,12 @@ class _FundEnterPageState extends State<FundEnterPage> {
     }
   }
 
+  Future<void> _totalAccountBalance() async {
+    IPayChannelRemote payChannelRemote =
+        widget.context.site.getService('/wallet/payChannels');
+    _allAccountBalance = await payChannelRemote.totalAccountBalance(null);
+  }
+
   Future<PayChannel> _loadChannel(code) async {
     IPayChannelRemote payChannelRemote =
         widget.context.site.getService('/wallet/payChannels');
@@ -105,12 +113,42 @@ class _FundEnterPageState extends State<FundEnterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('进场资金'),
+        title: Text('资金'),
         elevation: 0.0,
         titleSpacing: 0,
       ),
       body: Column(
         children: [
+          Padding(
+            padding: EdgeInsets.only(
+              right: 15,
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '现账余额',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                _isLoading
+                    ? Text('正在统计...')
+                    : Text(
+                        '¥${(_allAccountBalance / 100.00).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 30,
+                        ),
+                      ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 5,
+          ),
           Padding(
             padding: EdgeInsets.only(
               right: 15,
@@ -162,7 +200,7 @@ class _FundEnterPageState extends State<FundEnterPage> {
               },
             ),
           ],
-          child:Container(
+          child: Container(
             color: Colors.white,
             padding: EdgeInsets.only(
               left: 15,
@@ -175,13 +213,13 @@ class _FundEnterPageState extends State<FundEnterPage> {
                   return Text('...');
                 }
                 var ch = snapshot.data;
-                return  GestureDetector(
+                return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
                     widget.context.forward('/claf/channel/account',
-                        arguments: {'account': account,'payChannel':ch});
+                        arguments: {'account': account, 'payChannel': ch});
                   },
-                  child:  Padding(
+                  child: Padding(
                     padding: EdgeInsets.only(top: 10, bottom: 10),
                     child: Column(
                       children: [
@@ -215,7 +253,7 @@ class _FundEnterPageState extends State<FundEnterPage> {
                               child: Row(
                                 children: [
                                   Text(
-                                    '${ch.name}',
+                                    '渠道',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -223,7 +261,15 @@ class _FundEnterPageState extends State<FundEnterPage> {
                                   SizedBox(
                                     width: 10,
                                   ),
-                                  Text('${ch.code}'),
+                                  Text(
+                                    '${ch.name}',
+                                    style: TextStyle(
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 2,
+                                  ),
+                                  Text('(${ch.code})'),
                                 ],
                               ),
                             ),

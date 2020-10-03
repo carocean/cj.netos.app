@@ -116,6 +116,14 @@ mixin IPayChannelRemote {
       String channel, int limit, int offset) {}
 
   Future<void> removeAccount(String accountid) {}
+
+  Future<List<ChannelBillOR>> monthBillByAccount(
+      String accountid, int year, int month, int limit, int offset) {}
+
+  Future<int> totalAccountBalance(String channel) {}
+
+  Future<int> totalMonthBillByAccount(
+      String accountid, int order, int year, int month) {}
 }
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
@@ -133,6 +141,8 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
   IRemotePorts get remotePorts => site.getService('@.remote.ports');
 
   get payChannelPorts => site.getService('@.prop.ports.wallet.payChannel');
+
+  get channelBillPorts => site.getService('@.prop.ports.wallet.channelBill');
 
   @override
   Future<void> builder(IServiceProvider site) async {
@@ -323,6 +333,76 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
       'removeAccount',
       parameters: {
         'accountid': accountid,
+      },
+    );
+  }
+
+  @override
+  Future<List<ChannelBillOR>> monthBillByAccount(
+      String accountid, int year, int month, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      channelBillPorts,
+      'monthBillByAccount',
+      parameters: {
+        'channelAccount': accountid,
+        'year': year,
+        'month': month,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var bills = <ChannelBillOR>[];
+    for (var obj in list) {
+      bills.add(
+        ChannelBillOR(
+          note: obj['note'],
+          ctime: obj['ctime'],
+          title: obj['title'],
+          amount: obj['amount'],
+          balance: obj['balance'],
+          channelAccount: obj['channelAccount'],
+          channelPay: obj['channelPay'],
+          currency: obj['currency'],
+          day: obj['day'],
+          month: obj['month'],
+          notifyId: obj['notifyId'],
+          order: obj['order'],
+          person: obj['person'],
+          personName: obj['personName'],
+          refChSn: obj['refChSn'],
+          refSn: obj['refSn'],
+          season: obj['season'],
+          sn: obj['sn'],
+          workday: obj['workday'],
+          year: obj['year'],
+        ),
+      );
+    }
+    return bills;
+  }
+
+  @override
+  Future<int> totalMonthBillByAccount(
+      String accountid, int order, int year, int month) async {
+    return await remotePorts.portGET(
+      channelBillPorts,
+      'totalMonthBillByAccount',
+      parameters: {
+        'channelAccount': accountid,
+        'order': order,
+        'year': year,
+        'month': month,
+      },
+    );
+  }
+
+  @override
+  Future<int> totalAccountBalance(String channel) async {
+    return await remotePorts.portGET(
+      payChannelPorts,
+      'totalAccountBalance',
+      parameters: {
+        'channel': channel,
       },
     );
   }

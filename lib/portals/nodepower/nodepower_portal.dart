@@ -25,7 +25,7 @@ import 'package:netos_app/portals/nodepower/pages/colleagues.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
-import 'package:netos_app/portals/nodepower/pages/fund_enter.dart';
+import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
 import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
 import 'package:netos_app/portals/nodepower/pages/weny/exchange_details.dart';
@@ -652,8 +652,8 @@ var buildPortal = (IServiceProvider site) => Portal(
           title: '进场资金',
           subtitle: '',
           icon: Icons.business,
-          url: '/claf/fund/enter',
-          buildPage: (PageContext pageContext) => FundEnterPage(
+          url: '/claf/fund/platform',
+          buildPage: (PageContext pageContext) => PlatformFundPage(
             context: pageContext,
           ),
         ),

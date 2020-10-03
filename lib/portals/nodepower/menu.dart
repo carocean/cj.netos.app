@@ -85,12 +85,12 @@ Workbench nodePowerWorkbench = Workbench(
       title: '会计类服务',
       items: [
         MenuItem(
-          title: '进场资金',
-          id: 'claf.fund.enter.manager',
+          title: '平台资金池',
+          id: 'claf.fund.manager',
           icon: 'http://47.105.165.186:7100/app/system/zijin.png',
           onTap: (context) {
             context.forward(
-              '/claf/fund/enter',
+              '/claf/fund/platform',
             );
           },
         ),
