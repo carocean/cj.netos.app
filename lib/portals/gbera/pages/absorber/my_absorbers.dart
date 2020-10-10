@@ -108,6 +108,14 @@ class _MyAbsorbersPageState extends State<MyAbsorbersPage>
               title: Text('招财猫'),
               pinned: true,
               titleSpacing: 0,
+              actions: [
+                FlatButton(
+                  onPressed: (){
+                    widget.context.forward('/robot/qrcodeSlices');
+                  },
+                  child: Text('我的码片'),
+                ),
+              ],
             ),
           ];
           slivers.add(

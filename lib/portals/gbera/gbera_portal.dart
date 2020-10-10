@@ -8,17 +8,24 @@ import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/qrcode_image.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/qrcode_slices.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/select_persons.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_records.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_view.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_batch.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_templates.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
@@ -2440,6 +2447,69 @@ class GberaPortal {
           ),
           url: '/myabsorbers',
           buildPage: (PageContext pageContext) => MyAbsorbersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片列表',
+          subtitle: '',
+          icon: null,
+          url: '/robot/qrcodeSlices',
+          buildPage: (PageContext pageContext) => QrcodeSlicePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片批次',
+          subtitle: '',
+          icon: null,
+          url: '/robot/sliceBatchPage',
+          buildPage: (PageContext pageContext) => SliceBatchPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片视图',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/view',
+          buildPage: (PageContext pageContext) => QrcodeSliceView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image',
+          buildPage: (PageContext pageContext) => QrcodeSliceImagePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建码片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/createSlices',
+          buildPage: (PageContext pageContext) => CreateSlicesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template',
+          buildPage: (PageContext pageContext) => SliceTemplatePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片模板市场',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/templates',
+          buildPage: (PageContext pageContext) => SliceTemplatesPage(
             context: pageContext,
           ),
         ),

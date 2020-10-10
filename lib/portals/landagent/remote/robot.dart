@@ -317,6 +317,181 @@ class HubTailsBillOR {
       this.year});
 }
 
+class QrcodeSliceOR {
+  String id;
+  String href;
+  String creator;
+  String cname;
+  String consumer;
+  String template;
+  String ctime;
+  int expire;
+  String location;
+  int radius;
+  int maxAbsorbers;
+  String originAbsorber;
+  String originPerson;
+  String batchNo;
+  int state;
+  String note;
+  Map<String, SlicePropOR> props;
+
+  QrcodeSliceOR({
+    this.id,
+    this.href,
+    this.creator,
+    this.cname,
+    this.consumer,
+    this.template,
+    this.ctime,
+    this.expire,
+    this.location,
+    this.radius,
+    this.maxAbsorbers,
+    this.originAbsorber,
+    this.originPerson,
+    this.batchNo,
+    this.state,
+    this.note,
+    this.props,
+  });
+
+  QrcodeSliceOR.parse(obj) {
+    this.id = obj['id'];
+    this.href = obj['href'];
+    this.creator = obj['creator'];
+    this.cname = obj['cname'];
+    this.consumer = obj['consumer'];
+    this.template = obj['template'];
+    this.ctime = obj['ctime'];
+    this.expire = obj['expire'];
+    this.location = obj['location'];
+    this.radius = obj['radius'];
+    this.maxAbsorbers = obj['maxAbsorbers'];
+    this.originAbsorber = obj['originAbsorber'];
+    this.originPerson = obj['originPerson'];
+    this.batchNo = obj['batchNo'];
+    this.state = obj['state'];
+    this.note = obj['note'];
+    var propList = obj['properties'];
+    this.props = <String, SlicePropOR>{};
+    for (var pobj in propList) {
+      var prop = SlicePropOR.parse(pobj);
+      this.props[prop.propId] = prop;
+    }
+  }
+}
+
+class SlicePropOR {
+  String qrcodeSlice;
+  String propId;
+  String name;
+  String note;
+  String value;
+
+  SlicePropOR({
+    this.qrcodeSlice,
+    this.propId,
+    this.name,
+    this.note,
+    this.value,
+  });
+
+  SlicePropOR.parse(obj) {
+    this.qrcodeSlice = obj['qrcodeSlice'];
+    this.propId = obj['propId'];
+    this.name = obj['name'];
+    this.note = obj['note'];
+    this.value = obj['value'];
+  }
+}
+
+class SliceTemplateOR {
+  String id;
+  String name;
+  String ctime;
+  String note;
+  String copyright;
+  int maxAbsorbers;
+  int ownerWeight;
+  int participWeight;
+  int ingeoWeight;
+  Map<String, TemplatePropOR> props;
+
+  SliceTemplateOR({
+    this.id,
+    this.name,
+    this.ctime,
+    this.note,
+    this.copyright,
+    this.maxAbsorbers,
+    this.ownerWeight,
+    this.participWeight,
+    this.ingeoWeight,
+    this.props,
+  });
+
+  SliceTemplateOR.parse(obj) {
+    this.id = obj['id'];
+    this.name = obj['name'];
+    this.ctime = obj['ctime'];
+    this.note = obj['note'];
+    this.copyright = obj['copyright'];
+    this.maxAbsorbers = obj['maxAbsorbers'];
+    this.ownerWeight = obj['ownerWeight'];
+    this.participWeight = obj['participWeight'];
+    this.ingeoWeight = obj['ingeoWeight'];
+    var propList = obj['properties'];
+    this.props = <String, TemplatePropOR>{};
+    for (var pobj in propList) {
+      var prop = TemplatePropOR.parse(pobj);
+      this.props[prop.id] = prop;
+    }
+  }
+}
+
+class TemplatePropOR {
+  String id;
+  String name;
+  String template;
+  String value;
+  String note;
+
+  TemplatePropOR({
+    this.id,
+    this.name,
+    this.template,
+    this.value,
+    this.note,
+  });
+
+  TemplatePropOR.parse(obj) {
+    this.id = obj['id'];
+    this.name = obj['name'];
+    this.template = obj['template'];
+    this.value = obj['value'];
+    this.note = obj['note'];
+  }
+}
+
+class SliceBatchOR {
+  String id;
+  String creator;
+  String ctime;
+
+  SliceBatchOR({
+    this.id,
+    this.creator,
+    this.ctime,
+  });
+
+  SliceBatchOR.parse(obj) {
+    this.id = obj['id'];
+    this.creator = obj['creator'];
+    this.ctime = obj['ctime'];
+  }
+}
+
 mixin IRobotRemote {
   Future<double> getHubTails(String bankid) {}
 
@@ -329,7 +504,9 @@ mixin IRobotRemote {
   Future<List<AbsorberResultOR>> pageMyAbsorberByUsage(
       int usage, int limit, int offset) {}
 
-  Future<List<AbsorberResultOR>> pageJioninAbsorberByUsage(int usage, int limit, int offset) {}
+  Future<List<AbsorberResultOR>> pageJioninAbsorberByUsage(
+      int usage, int limit, int offset) {}
+
   Future<List<RecipientsOR>> pageRecipients(String id, int limit, int offset) {}
 
   Future<List<RecipientsOR>> pageSimpleRecipientsOnlyMe(
@@ -463,7 +640,17 @@ mixin IRobotRemote {
 
   Future<bool> subCommentWeightOfRecipients(String absorberid);
 
+  Future<List<QrcodeSliceOR>> pageQrcodeSlice(int limit, int offset) {}
 
+  Future<List<QrcodeSliceOR>> pageQrcodeSliceOfBatch(
+      String selectedBatchNo, int limit, int offset) {}
+
+  Future<SliceTemplateOR> getQrcodeSliceTemplate(String id) {}
+
+  Future<List<SliceTemplateOR>> pageQrcodeSliceTemplate(
+      int limit, int offset) {}
+
+  Future<List<SliceBatchOR>> pageQrcodeSliceBatch(int limit, int offset) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -596,7 +783,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   @override
   Future<List<AbsorberResultOR>> pageMyAbsorberByUsage(
-      int usage, int limit, int offset) async{
+      int usage, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'pageMyAbsorberByUsage',
@@ -623,7 +810,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
 
   @override
   Future<List<AbsorberResultOR>> pageJioninAbsorberByUsage(
-      int usage, int limit, int offset) async{
+      int usage, int limit, int offset) async {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'pageJioninAbsorberByUsage',
@@ -1565,5 +1752,95 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         'encourageCode': 'comment',
       },
     );
+  }
+
+  @override
+  Future<List<QrcodeSliceOR>> pageQrcodeSlice(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageQrcodeSlice',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var slices = <QrcodeSliceOR>[];
+    for (var slice in list) {
+      slices.add(
+        QrcodeSliceOR.parse(slice),
+      );
+    }
+    return slices;
+  }
+
+  @override
+  Future<List<QrcodeSliceOR>> pageQrcodeSliceOfBatch(
+      String selectedBatchNo, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageQrcodeSliceOfBatch',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+        'batchno': selectedBatchNo,
+      },
+    );
+    var slices = <QrcodeSliceOR>[];
+    for (var slice in list) {
+      slices.add(
+        QrcodeSliceOR.parse(slice),
+      );
+    }
+    return slices;
+  }
+
+  @override
+  Future<SliceTemplateOR> getQrcodeSliceTemplate(String id) async {
+    var obj = await remotePorts.portGET(
+      robotHubPorts,
+      'getQrcodeSliceTemplate',
+      parameters: {
+        'id': id,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return SliceTemplateOR.parse(obj);
+  }
+
+  @override
+  Future<List<SliceTemplateOR>> pageQrcodeSliceTemplate(
+      int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageQrcodeSliceTemplate',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<SliceTemplateOR> items = [];
+    for (var obj in list) {
+      items.add(SliceTemplateOR.parse(obj));
+    }
+    return items;
+  }
+
+  @override
+  Future<List<SliceBatchOR>> pageQrcodeSliceBatch(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'pageQrcodeSliceBatch',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<SliceBatchOR> items = [];
+    for (var obj in list) {
+      items.add(SliceBatchOR.parse(obj));
+    }
+    return items;
   }
 }

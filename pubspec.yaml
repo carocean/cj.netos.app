@@ -137,7 +137,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 
-
   assets:
     - lib/portals/gbera/images/gbera.png
     - lib/portals/gbera/images/gbera_bk.png
@@ -166,6 +165,7 @@ flutter:
     - lib/portals/gbera/images/cat-grey.gif
     - lib/portals/gbera/images/default_watting.gif
     - lib/portals/nodepower/assets/wybank_config_template.yaml
+
   fonts:
     - family: geo_discovery
       fonts:
