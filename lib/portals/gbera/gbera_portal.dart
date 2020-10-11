@@ -9,6 +9,7 @@ import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/create_progress.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_apply.dart';
@@ -2492,6 +2493,15 @@ class GberaPortal {
           icon: null,
           url: '/robot/createSlices',
           buildPage: (PageContext pageContext) => CreateSlicesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片生成过程',
+          subtitle: '',
+          icon: null,
+          url: '/robot/createSlices/progress',
+          buildPage: (PageContext pageContext) => CreateSlicesProgressPage(
             context: pageContext,
           ),
         ),

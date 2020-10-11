@@ -24,7 +24,10 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
   var qrcodeKey = GlobalKey();
   int _isExporting = 0; //0为重新开始，1为正在导；2为已完成
   bool _isShowAction = false;
+  bool _isAutoExport = false;
+  String _progressTips = '';
   SliceTemplateOR _templateOR;
+  List<QrcodeSliceOR> _slices = [];
 
   @override
   void initState() {
@@ -37,7 +40,43 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
       _isShowAction = widget.context.parameters['isShowAction'];
     }
     _isShowAction = _isShowAction ?? false;
-    _load();
+    _slices = widget.context.parameters['slices'];
+    _isAutoExport = widget.context.parameters['isAutoExport'];
+    _isAutoExport = _isAutoExport ?? false;
+    if (_isAutoExport && _slices != null && _slices.isNotEmpty) {
+      _qrcodeSliceOR = _slices[0];
+    }
+    () async {
+      await _loadTemplate();
+      if (!_isAutoExport) {
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _progressTips = '开始导出码片到相册...';
+        });
+      }
+      int i = 0;
+      do {
+        if (mounted) {
+          setState(() {
+            _progressTips = '准备导出第${i + 1}张...';
+          });
+        }
+        await _exportSlice();
+        if (mounted) {
+          setState(() {
+            _progressTips = '第${i + 1}张已导出，图片名:${_qrcodeSliceOR.id}.png';
+          });
+        }
+        _qrcodeSliceOR = _slices[i];
+        i++;
+      } while (i < _slices.length);
+
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        widget.context.backward();
+      });
+    }();
     super.initState();
   }
 
@@ -47,7 +86,12 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  @override
+  void didUpdateWidget(QrcodeSliceImagePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadTemplate() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     _templateOR =
         await robotRemote.getQrcodeSliceTemplate(_qrcodeSliceOR.template);
@@ -56,7 +100,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     }
   }
 
-  Future<void> _exportSlice() async {
+  Future<String> _exportSlice() async {
     setState(() {
       _isExporting = 1;
     });
@@ -71,12 +115,14 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     ///本来应该保存到相册，但相册是手机的共享目录，得找第三方插件才能实现,下面先保存到应用目录，用户是看不到的。
     Directory dir = await getApplicationDocumentsDirectory();
     await File('${dir.path}/${_qrcodeSliceOR.id}.png').writeAsBytes(pngBytes);
-    await ImageGallerySaver.saveFile('${dir.path}/${_qrcodeSliceOR.id}.png');
+    var f = '${dir.path}/${_qrcodeSliceOR.id}.png';
+    await ImageGallerySaver.saveFile(f);
     if (mounted) {
       setState(() {
         _isExporting = 2;
       });
     }
+    return f;
   }
 
   @override
@@ -118,44 +164,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
               ),
             ),
           ),
-          !_isShowAction
-              ? SizedBox(
-                  height: 0,
-                  width: 0,
-                )
-              : Positioned(
-                  top: 50,
-                  left: 25,
-                  right: 25,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          widget.context.backward();
-                        },
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          _exportSlice();
-                        },
-                        child: Text(
-                          '${_isExporting == 0 ? '导出到相册' : _isExporting == 1 ? '正在导出...' : '已保存'}',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          _rendPosition(),
         ],
       ),
     );
@@ -234,6 +243,72 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
           height: 4,
         ),
       ],
+    );
+  }
+
+  _rendPosition() {
+    if (_isAutoExport) {
+      return Positioned(
+        top: 50,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                '$_progressTips',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+    if (!_isShowAction) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+    return Positioned(
+      top: 50,
+      left: 25,
+      right: 25,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.backward();
+            },
+            child: Icon(
+              Icons.arrow_back_ios,
+              size: 20,
+              color: Colors.white,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              _exportSlice();
+            },
+            child: Text(
+              '${_isExporting == 0 ? '导出到相册' : _isExporting == 1 ? '正在导出...' : '已保存'}',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

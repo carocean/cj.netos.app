@@ -186,6 +186,7 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
       items.add(
         Container(
           height: 50,
+          alignment: Alignment.center,
           child: Text('正在加载...'),
         ),
       );
@@ -195,6 +196,7 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
       items.add(
         Container(
           height: 50,
+          alignment: Alignment.center,
           child: Text('没有码片'),
         ),
       );

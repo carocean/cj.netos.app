@@ -1,3 +1,5 @@
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -6,6 +8,9 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'dart:math' as math;
 
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 
 class CreateSlicesPage extends StatefulWidget {
@@ -18,12 +23,23 @@ class CreateSlicesPage extends StatefulWidget {
 }
 
 class _CreateSlicesPageState extends State<CreateSlicesPage> {
-  int _sliceCount = 12;
+  int _sliceCount = 5;
   SliceTemplateOR _selectedSliceTemplate;
+  LatLng _location;
+  String _address;
+  int _radius = 500;
+  AbsorberOR _originAbsorber;
+  Map<String, AbsorberResultOR> _absorbers = {};
+  String _progressTips = '准备索引招财猫...';
+  bool _searchAbsorbersDone = false;
 
   @override
   void initState() {
-    _load();
+    () async {
+      await _loadTemplate();
+      await _fetchLocation();
+      await _searchAbsorbers();
+    }();
     super.initState();
   }
 
@@ -33,10 +49,103 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _loadTemplate() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     _selectedSliceTemplate = await robotRemote.getQrcodeSliceTemplate('normal');
     if (mounted) setState(() {});
+  }
+
+  Future<void> _fetchLocation() async {
+    if (_originAbsorber == null) {
+      //如果不是自指定的猫创建，则取当前用户位置
+      var location = await AmapLocation.fetchLocation();
+      _location = await location.latLng;
+      _address = await location.address;
+      return;
+    }
+    _location = _originAbsorber.location;
+    _radius = _originAbsorber.radius;
+    ReGeocode regeo =
+        await AmapSearch.searchReGeocode(_location, radius: _radius * 1.0);
+    _address = await regeo.formatAddress;
+  }
+
+  Future<void> _searchAbsorbers() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var totalWeight = _selectedSliceTemplate.ingeoWeight +
+        _selectedSliceTemplate.ownerWeight +
+        _selectedSliceTemplate.participWeight;
+    var per = _selectedSliceTemplate.maxAbsorbers / totalWeight;
+    var myAbsorberCount = _selectedSliceTemplate.ownerWeight * per;
+    if (mounted) {
+      setState(() {
+        _progressTips = '准备发现当前的招财猫...';
+      });
+    }
+    var myAbsorbers =
+        await robotRemote.pageMyAbsorberByUsage(-1, myAbsorberCount.floor(), 0);
+    for (var o in myAbsorbers) {
+      _absorbers[o.absorber.id] = o;
+    }
+    if (mounted) {
+      setState(() {
+        _progressTips = '已发现当前的招财猫${myAbsorbers.length}个';
+      });
+    }
+    var joininAbsorberCount = _selectedSliceTemplate.participWeight * per;
+    if (mounted) {
+      setState(() {
+        _progressTips = '准备发现其参与的招财猫...';
+      });
+    }
+    var joininAbsorbers = await robotRemote.pageJioninAbsorberByUsage(
+        -1, joininAbsorberCount.floor(), 0);
+    for (var o in joininAbsorbers) {
+      _absorbers[o.absorber.id] = o;
+    }
+    if (mounted) {
+      setState(() {
+        _progressTips = '已发现其参与的招财猫${joininAbsorbers.length}个';
+      });
+    }
+    var geoAbsorberCount = _selectedSliceTemplate.ingeoWeight * per;
+    if (mounted) {
+      setState(() {
+        _progressTips = '准备发现附近的招财猫...';
+      });
+    }
+    var ingeoAbsorbers = <AbsorberResultOR>[];
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    List<GeoPOI> pois = await receptorRemote.searchAroundLocation(
+        _location, _radius, null, geoAbsorberCount.floor(), 0);
+    for (var poi in pois) {
+      var receptor = poi.receptor;
+      var absorbabler = '${receptor.category}/${receptor.id}';
+      var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+      if (absorber == null) {
+        continue;
+      }
+      var usage = absorber.absorber.usage;
+      if (usage != 1) {
+        continue;
+      }
+      ingeoAbsorbers.add(absorber);
+    }
+    for (var o in ingeoAbsorbers) {
+      _absorbers[o.absorber.id] = o;
+    }
+    if (mounted) {
+      setState(() {
+        _progressTips = '已发现我附近的招财猫${ingeoAbsorbers.length}个';
+      });
+    }
+    print(
+        '-----我的猫${myAbsorbers.length}---我参与的${joininAbsorbers.length}----我附近的${ingeoAbsorbers.length}');
+    _searchAbsorbersDone = true;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -84,7 +193,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                       children: [
                         Text.rich(
                           TextSpan(
-                            text: '常规',
+                            text: '${_selectedSliceTemplate?.name ?? ''}',
                           ),
                           style: TextStyle(
                             fontSize: 12,
@@ -139,65 +248,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                       SizedBox(
                         height: 10,
                       ),
-                      Row(
-                        children: [
-                          Image.asset(
-                            'lib/portals/gbera/images/default_avatar.png',
-                            width: 30,
-                            height: 30,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '飞机票',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.my_location,
-                                      size: 14,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        '107乡道',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      '半径 100米',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                      _renderOrigin(),
                     ],
                   ),
                 ),
@@ -205,7 +256,28 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                   height: 60,
                   color: Colors.white,
                   alignment: Alignment.center,
-                  child: Text('正在搜索招财猫...'),
+                  child: !_searchAbsorbersDone
+                      ? Text('$_progressTips')
+                      : Text.rich(
+                          TextSpan(
+                            text: '',
+                            children: [
+                              TextSpan(text: '搜索完成，共发现'),
+                              TextSpan(
+                                text: '  ${_absorbers.length}个  ',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.blueGrey,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              TextSpan(text: '招财猫'),
+                            ],
+                          ),
+                          style: TextStyle(
+                            color: Colors.grey,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -262,9 +334,9 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                       child: Slider(
                         label: '$_sliceCount张',
                         value: _sliceCount * 1.0,
-                        min: 5.0,
+                        min: 1.0,
                         max: 20.0,
-                        divisions: ((20 - 5) / 1).floor(),
+                        divisions: 20 - 1,
                         onChanged: (v) {
                           setState(() {
                             _sliceCount = v.floor();
@@ -275,18 +347,38 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                   ],
                 ),
               ),
-              Container(
-                color: Colors.green,
-                alignment: Alignment.center,
-                padding: EdgeInsets.only(
-                  top: 20,
-                  bottom: 20,
-                ),
-                child: Text(
-                  '生成',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _absorbers.isEmpty || !_searchAbsorbersDone
+                    ? null
+                    : () {
+                        widget.context.forward('/robot/createSlices/progress',
+                            arguments: {
+                              'template': _selectedSliceTemplate,
+                              'location':_location,
+                              'radius':_radius,
+                              'originAbsorber':_originAbsorber,
+                              'count':_sliceCount,
+                              'absorbers':_absorbers,
+                            });
+                      },
+                child: Container(
+                  color: _absorbers.isEmpty || !_searchAbsorbersDone
+                      ? Colors.grey
+                      : Colors.green,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.only(
+                    top: 20,
+                    bottom: 20,
+                  ),
+                  child: Text(
+                    '${_absorbers.isEmpty || !_searchAbsorbersDone ? '稍候点生成...' : '生成码片'}',
+                    style: TextStyle(
+                      color: _absorbers.isEmpty || !_searchAbsorbersDone
+                          ? Colors.grey[400]
+                          : Colors.white,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -294,6 +386,135 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _renderOrigin() {
+    if (_originAbsorber == null) {
+      var avatar = widget.context.principal.avatarOnRemote;
+      return Row(
+        children: [
+          FadeInImage.assetNetwork(
+            placeholder: 'lib/portals/gbera/images/default_watting.gif',
+            image:
+                '$avatar?accessToken=${widget.context.principal.accessToken}',
+            width: 30,
+            height: 30,
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${widget.context.principal.nickName}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.my_location,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    Expanded(
+                      child: Text(
+                        '${_address ?? ''}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    Text(
+                      '半径 ${getFriendlyDistance(_radius * 1.0)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Icon(
+          IconData(
+            0xe6b2,
+            fontFamily: 'absorber',
+          ),
+          size: 30,
+          color: Colors.grey,
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_originAbsorber.title}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.my_location,
+                    size: 14,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${_address ?? ''}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Text(
+                    '半径 ${getFriendlyDistance(_radius * 1.0)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -651,6 +651,19 @@ mixin IRobotRemote {
       int limit, int offset) {}
 
   Future<List<SliceBatchOR>> pageQrcodeSliceBatch(int limit, int offset) {}
+
+  Future<List<QrcodeSliceOR>> createQrcodeSlice(
+      String template,
+      int expire,
+      LatLng location,
+      int radius,
+      String originAbsorber,
+      String originPerson,
+      int count,
+      String note) {}
+
+  Future<void> addQrcodeSliceRecipients(
+      String absorberid, String qrcodeSlice) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -1842,5 +1855,49 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       items.add(SliceBatchOR.parse(obj));
     }
     return items;
+  }
+
+  @override
+  Future<List<QrcodeSliceOR>> createQrcodeSlice(
+      String template,
+      int expire,
+      LatLng location,
+      int radius,
+      String originAbsorber,
+      String originPerson,
+      int count,
+      String note) async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'createQrcodeSlice',
+      parameters: {
+        'template': template,
+        'expire': expire,
+        'location': jsonEncode(location.toJson()),
+        'radius': radius,
+        'originAbsorber': originAbsorber,
+        'originPerson': originPerson,
+        'count': count,
+        'note': note,
+      },
+    );
+    List<QrcodeSliceOR> items = [];
+    for (var obj in list) {
+      items.add(QrcodeSliceOR.parse(obj));
+    }
+    return items;
+  }
+
+  @override
+  Future<void> addQrcodeSliceRecipients(
+      String absorberid, String qrcodeSlice) async {
+    await remotePorts.portGET(
+      robotHubPorts,
+      'addQrcodeSliceRecipients',
+      parameters: {
+        'absorberid': absorberid,
+        'qrcodeSlice': qrcodeSlice,
+      },
+    );
   }
 }
