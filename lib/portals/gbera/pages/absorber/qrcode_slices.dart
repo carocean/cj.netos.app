@@ -97,7 +97,9 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
         actions: [
           IconButton(
             onPressed: () {
-              widget.context.forward('/robot/createSlices');
+              widget.context.forward('/robot/createSlices').then((value){
+                _onRefresh();
+              });
             },
             icon: Icon(
               Icons.add,
