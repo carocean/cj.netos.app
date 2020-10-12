@@ -101,10 +101,12 @@ class _QrcodeSliceViewState extends State<QrcodeSliceView> {
                     ),
                   ),
                 ),
+                _qrcodeSliceOR.state<1?SizedBox(width: 0,height: 0,):
                 SizedBox(
                   height: 10,
                   child: Divider(height: 1,),
                 ),
+                _qrcodeSliceOR.state<1?SizedBox(width: 0,height: 0,):
                 Container(
                   color: Colors.white,
                   padding: EdgeInsets.only(

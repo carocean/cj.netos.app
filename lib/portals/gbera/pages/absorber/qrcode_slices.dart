@@ -359,7 +359,7 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
   _getSliceState(QrcodeSliceOR slice) {
     switch (slice.state) {
       case -1:
-        return '待添加招财猫';
+        return '需要添加招财猫';
       case 0:
         return '等待扫码消费';
       case 1:

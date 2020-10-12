@@ -115,13 +115,17 @@ class _CreateSlicesProgressPageState extends State<CreateSlicesProgressPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              bottom: 20,
+            ),
+            child: SingleChildScrollView(
+              child: Text('$_progressTips'),
+            ),
           ),
-          child: Text('$_progressTips'),
         ),
       ],
     );

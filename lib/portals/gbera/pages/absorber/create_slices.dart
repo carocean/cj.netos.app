@@ -23,7 +23,9 @@ class CreateSlicesPage extends StatefulWidget {
 }
 
 class _CreateSlicesPageState extends State<CreateSlicesPage> {
-  int _sliceCount = 5;
+  int _sliceCount = 1;
+  int _maxAbsorbers = 0; //最大的猫数是参与的+在圈的,且没有发过码片的
+  int _createdSliceAbsorbers = 0;
   SliceTemplateOR _selectedSliceTemplate;
   LatLng _location;
   String _address;
@@ -101,7 +103,16 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
     var joininAbsorbers = await robotRemote.pageJioninAbsorberByUsage(
         -1, joininAbsorberCount.floor(), 0);
     for (var o in joininAbsorbers) {
+      if (_absorbers.containsKey(o.absorber.id)) {
+        continue;
+      }
+      bool exists = await robotRemote.existsPubSliceRecipients(o.absorber.id);
+      if (exists) {
+        _createdSliceAbsorbers++;
+        continue;
+      }
       _absorbers[o.absorber.id] = o;
+      _maxAbsorbers++;
     }
     if (mounted) {
       setState(() {
@@ -133,7 +144,16 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
       ingeoAbsorbers.add(absorber);
     }
     for (var o in ingeoAbsorbers) {
+      if (_absorbers.containsKey(o.absorber.id)) {
+        continue;
+      }
+      bool exists = await robotRemote.existsPubSliceRecipients(o.absorber.id);
+      if (exists) {
+        _createdSliceAbsorbers++;
+        continue;
+      }
       _absorbers[o.absorber.id] = o;
+      _maxAbsorbers++;
     }
     if (mounted) {
       setState(() {
@@ -291,79 +311,30 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                   right: 15,
                   top: 10,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text.rich(
-                      TextSpan(
-                        text: '码片数 ',
-                        children: [
-                          TextSpan(
-                            text: '$_sliceCount张',
-                            style: TextStyle(
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 4,
-                    ),
-                    SliderTheme(
-                      data: theme.sliderTheme.copyWith(
-                        activeTrackColor: Colors.greenAccent,
-                        inactiveTrackColor:
-                            theme.colorScheme.onSurface.withOpacity(0.5),
-                        activeTickMarkColor:
-                            theme.colorScheme.onSurface.withOpacity(0.7),
-                        inactiveTickMarkColor:
-                            theme.colorScheme.surface.withOpacity(0.7),
-                        overlayColor:
-                            theme.colorScheme.onSurface.withOpacity(0.12),
-                        thumbColor: Colors.redAccent,
-                        valueIndicatorColor: Colors.deepPurpleAccent,
-                        thumbShape: _CustomThumbShape(),
-                        valueIndicatorShape: _CustomValueIndicatorShape(),
-                        valueIndicatorTextStyle: theme.accentTextTheme.body2
-                            .copyWith(color: theme.colorScheme.onSurface),
-                      ),
-                      child: Slider(
-                        label: '$_sliceCount张',
-                        value: _sliceCount * 1.0,
-                        min: 1.0,
-                        max: 20.0,
-                        divisions: 20 - 1,
-                        onChanged: (v) {
-                          setState(() {
-                            _sliceCount = v.floor();
-                          });
-                        },
-                      ),
-                    ),
-                  ],
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
                 ),
+                child: RenderSlider(theme),
               ),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _absorbers.isEmpty || !_searchAbsorbersDone
+                onTap: !_searchAbsorbersDone || _maxAbsorbers < 1
                     ? null
                     : () {
-                        widget.context.forward('/robot/createSlices/progress',
-                            arguments: {
-                              'template': _selectedSliceTemplate,
-                              'location':_location,
-                              'radius':_radius,
-                              'originAbsorber':_originAbsorber,
-                              'count':_sliceCount,
-                              'absorbers':_absorbers,
-                            });
+                        widget.context.forward(
+                          '/robot/createSlices/progress',
+                          arguments: {
+                            'template': _selectedSliceTemplate,
+                            'location': _location,
+                            'radius': _radius,
+                            'originAbsorber': _originAbsorber,
+                            'count': _sliceCount,
+                            'absorbers': _absorbers,
+                          },
+                        );
                       },
                 child: Container(
-                  color: _absorbers.isEmpty || !_searchAbsorbersDone
+                  color: !_searchAbsorbersDone || _maxAbsorbers < 1
                       ? Colors.grey
                       : Colors.green,
                   alignment: Alignment.center,
@@ -372,9 +343,9 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                     bottom: 20,
                   ),
                   child: Text(
-                    '${_absorbers.isEmpty || !_searchAbsorbersDone ? '稍候点生成...' : '生成码片'}',
+                    '${!_searchAbsorbersDone || _maxAbsorbers < 1 ? '稍候点生成...' : '生成码片'}',
                     style: TextStyle(
-                      color: _absorbers.isEmpty || !_searchAbsorbersDone
+                      color: !_searchAbsorbersDone || _maxAbsorbers < 1
                           ? Colors.grey[400]
                           : Colors.white,
                       fontSize: 16,
@@ -514,6 +485,112 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget RenderSlider(ThemeData theme) {
+    if (!_searchAbsorbersDone) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
+    }
+    if (_maxAbsorbers == 0&&_createdSliceAbsorbers==0) {
+      return Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(
+          top: 0,
+          bottom: 20,
+        ),
+        child: Text(
+          '不能生成码片，没有发现到招财猫',
+          style: TextStyle(
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
+    if (_maxAbsorbers == 0) {
+      return Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(
+          top: 0,
+          bottom: 20,
+        ),
+        child: Text(
+          '不符合生成码片的条件，已有$_createdSliceAbsorbers个猫被装载过码片了',
+          style: TextStyle(
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
+
+    if (_maxAbsorbers == 1) {
+      return Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(
+          top: 0,
+          bottom: 20,
+        ),
+        child: Text(
+          '可以生成1张码片',
+          style: TextStyle(
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: '码片数 ',
+            children: [
+              TextSpan(
+                text: '$_sliceCount张',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ],
+            style: TextStyle(
+              color: Colors.black,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 4,
+        ),
+        SliderTheme(
+          data: theme.sliderTheme.copyWith(
+            activeTrackColor: Colors.greenAccent,
+            inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.5),
+            activeTickMarkColor: theme.colorScheme.onSurface.withOpacity(0.7),
+            inactiveTickMarkColor: theme.colorScheme.surface.withOpacity(0.7),
+            overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
+            thumbColor: Colors.redAccent,
+            valueIndicatorColor: Colors.deepPurpleAccent,
+            thumbShape: _CustomThumbShape(),
+            valueIndicatorShape: _CustomValueIndicatorShape(),
+            valueIndicatorTextStyle: theme.accentTextTheme.body2
+                .copyWith(color: theme.colorScheme.onSurface),
+          ),
+          child: Slider(
+            label: '$_sliceCount张',
+            value: _sliceCount * 1.0,
+            min: 1.0,
+            max: _maxAbsorbers * 1.0,
+            divisions: _maxAbsorbers - 1,
+            onChanged: (v) {
+              setState(() {
+                _sliceCount = v.floor();
+              });
+            },
+          ),
+        )
       ],
     );
   }

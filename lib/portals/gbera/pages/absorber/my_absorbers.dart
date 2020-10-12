@@ -1221,7 +1221,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
         continue;
       }
       var usage = absorber.absorber.usage;
-      if (_usage != -1 && _usage != usage) {
+      if (1!= usage) {
         continue;
       }
       _absorbers.add(absorber);

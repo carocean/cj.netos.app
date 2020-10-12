@@ -664,6 +664,8 @@ mixin IRobotRemote {
 
   Future<void> addQrcodeSliceRecipients(
       String absorberid, String qrcodeSlice) {}
+
+  Future<bool> existsPubSliceRecipients(String absorberid) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -1897,6 +1899,17 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       parameters: {
         'absorberid': absorberid,
         'qrcodeSlice': qrcodeSlice,
+      },
+    );
+  }
+
+  @override
+  Future<bool> existsPubSliceRecipients(String absorberid) async {
+    return await remotePorts.portGET(
+      robotHubPorts,
+      'existsPubSliceRecipients',
+      parameters: {
+        'absorberid': absorberid,
       },
     );
   }
