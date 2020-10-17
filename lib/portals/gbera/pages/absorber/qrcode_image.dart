@@ -211,7 +211,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
                   child: RepaintBoundary(
                     child: QrImage(
                       ///二维码数据
-                      data: '${_qrcodeSliceOR.href}?slice=${_qrcodeSliceOR.id}',
+                      data: '${_qrcodeSliceOR.href}?id=${_qrcodeSliceOR.id}',
                       version: QrVersions.auto,
                       gapless: false,
                       padding: EdgeInsets.all(0),

@@ -32,7 +32,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
   int _radius = 500;
   AbsorberOR _originAbsorber;
   Map<String, AbsorberResultOR> _absorbers = {};
-  String _progressTips = '准备索引招财猫...';
+  String _progressTips = '准备搜索招财猫...';
   bool _searchAbsorbersDone = false;
 
   @override
