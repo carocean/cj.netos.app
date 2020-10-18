@@ -474,6 +474,22 @@ class __HeaderCardState extends State<_HeaderCard> {
               ],
             ),
           ),
+          SizedBox(
+            width: 5,
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: (){
+              widget.context.forward('/robot/createSlices',arguments: {'originAbsorber':_absorberResultOR.absorber,}).then((value){
+
+              });
+            },
+            child: Icon(
+              Icons.share,
+              size: 16,
+              color: Colors.grey[600],
+            ),
+          ),
         ],
       ),
     );
@@ -649,8 +665,11 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                                     );
                                   }
                                   var person = snapshot.data;
-                                  if(person==null) {
-                                    return SizedBox(height: 0,width: 0,);
+                                  if (person == null) {
+                                    return SizedBox(
+                                      height: 0,
+                                      width: 0,
+                                    );
                                   }
                                   var avatar = person.avatar;
                                   if (StringUtil.isEmpty(avatar)) {

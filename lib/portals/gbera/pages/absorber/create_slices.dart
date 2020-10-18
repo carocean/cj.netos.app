@@ -37,6 +37,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
 
   @override
   void initState() {
+    _originAbsorber=widget.context.parameters['originAbsorber'];
     () async {
       await _loadTemplate();
       await _fetchLocation();
