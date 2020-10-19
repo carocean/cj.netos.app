@@ -385,6 +385,7 @@ class QrcodeSliceOR {
 class SlicePropOR {
   String qrcodeSlice;
   String propId;
+  String type;
   String name;
   String note;
   String value;
@@ -392,6 +393,7 @@ class SlicePropOR {
   SlicePropOR({
     this.qrcodeSlice,
     this.propId,
+    this.type,
     this.name,
     this.note,
     this.value,
@@ -401,6 +403,7 @@ class SlicePropOR {
     this.qrcodeSlice = obj['qrcodeSlice'];
     this.propId = obj['propId'];
     this.name = obj['name'];
+    this.type = obj['type'];
     this.note = obj['note'];
     this.value = obj['value'];
   }
@@ -410,6 +413,7 @@ class SliceTemplateOR {
   String id;
   String name;
   String ctime;
+  String background;
   String note;
   String copyright;
   int maxAbsorbers;
@@ -422,6 +426,7 @@ class SliceTemplateOR {
     this.id,
     this.name,
     this.ctime,
+    this.background,
     this.note,
     this.copyright,
     this.maxAbsorbers,
@@ -435,6 +440,7 @@ class SliceTemplateOR {
     this.id = obj['id'];
     this.name = obj['name'];
     this.ctime = obj['ctime'];
+    this.background = obj['background'];
     this.note = obj['note'];
     this.copyright = obj['copyright'];
     this.maxAbsorbers = obj['maxAbsorbers'];
@@ -453,6 +459,7 @@ class SliceTemplateOR {
 class TemplatePropOR {
   String id;
   String name;
+  String type;
   String template;
   String value;
   String note;
@@ -460,6 +467,7 @@ class TemplatePropOR {
   TemplatePropOR({
     this.id,
     this.name,
+    this.type,
     this.template,
     this.value,
     this.note,
@@ -468,9 +476,21 @@ class TemplatePropOR {
   TemplatePropOR.parse(obj) {
     this.id = obj['id'];
     this.name = obj['name'];
+    this.type = obj['type'];
     this.template = obj['template'];
     this.value = obj['value'];
     this.note = obj['note'];
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'name': name,
+      'type': type,
+      'template': template,
+      'value': value,
+      'note': note,
+    };
   }
 }
 
@@ -660,12 +680,15 @@ mixin IRobotRemote {
       String originAbsorber,
       String originPerson,
       int count,
+      Map<String, TemplatePropOR> props,
       String note) {}
 
   Future<void> addQrcodeSliceRecipients(
       String absorberid, String qrcodeSlice) {}
 
-  Future<bool> existsPubSliceRecipients(String absorberid) {}
+  Future<bool> canntPubSliceRecipients(String absorberid) {}
+
+  Future<bool> cannotCreateQrocdeSlice() {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -1868,7 +1891,13 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       String originAbsorber,
       String originPerson,
       int count,
+      Map<String, TemplatePropOR> props,
       String note) async {
+    Map<String, Map<String, dynamic>> _props = {};
+    for (String key in props.keys) {
+      var p = props[key];
+      _props[key] = p.toJson();
+    }
     var list = await remotePorts.portGET(
       robotHubPorts,
       'createQrcodeSlice',
@@ -1880,6 +1909,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
         'originAbsorber': originAbsorber,
         'originPerson': originPerson,
         'count': count,
+        'props': jsonEncode(_props),
         'note': note,
       },
     );
@@ -1904,13 +1934,21 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
-  Future<bool> existsPubSliceRecipients(String absorberid) async {
+  Future<bool> canntPubSliceRecipients(String absorberid) async {
     return await remotePorts.portGET(
       robotHubPorts,
-      'existsPubSliceRecipients',
+      'canntPubSliceRecipients',
       parameters: {
         'absorberid': absorberid,
       },
+    );
+  }
+
+  @override
+  Future<bool> cannotCreateQrocdeSlice() async {
+    return await remotePorts.portGET(
+      robotHubPorts,
+      'cannotCreateQrocdeSlice',
     );
   }
 }

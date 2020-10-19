@@ -21,10 +21,11 @@ class QrcodeSliceView extends StatefulWidget {
 
 class _QrcodeSliceViewState extends State<QrcodeSliceView> {
   QrcodeSliceOR _qrcodeSliceOR;
-
+  TemplatePropOR _templatePropOR;
   @override
   void initState() {
     _qrcodeSliceOR = widget.context.parameters['slice'];
+    _templatePropOR = widget.context.parameters['template'];
     super.initState();
   }
 
@@ -57,7 +58,7 @@ class _QrcodeSliceViewState extends State<QrcodeSliceView> {
                 bottom: 10,
               ),
               child: widget.context.part('/robot/slice/image', context,
-                  arguments: {'slice': _qrcodeSliceOR}),
+                  arguments: {'slice': _qrcodeSliceOR,}),
             ),
           ),
           Container(
@@ -68,6 +69,45 @@ class _QrcodeSliceViewState extends State<QrcodeSliceView> {
             ),
             child: Column(
               children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.forward('/robot/slice/webview',arguments: {'slice':_qrcodeSliceOR,});
+                  },
+                  child: Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.only(
+                      top: 15,
+                      bottom: 15,
+                      left: 10,
+                      right: 10,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '查看码片信息',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                _qrcodeSliceOR.state==1?SizedBox(width: 0,height: 0,):
+                SizedBox(
+                  height: 10,
+                  child: Divider(height: 1,),
+                ),
+                _qrcodeSliceOR.state==1?SizedBox(width: 0,height: 0,):
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -101,37 +141,10 @@ class _QrcodeSliceViewState extends State<QrcodeSliceView> {
                     ),
                   ),
                 ),
-                _qrcodeSliceOR.state<1?SizedBox(width: 0,height: 0,):
+                _qrcodeSliceOR.state==1?SizedBox(width: 0,height: 0,):
                 SizedBox(
                   height: 10,
                   child: Divider(height: 1,),
-                ),
-                _qrcodeSliceOR.state<1?SizedBox(width: 0,height: 0,):
-                Container(
-                  color: Colors.white,
-                  padding: EdgeInsets.only(
-                    top: 15,
-                    bottom: 15,
-                    left: 10,
-                    right: 10,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '添加招财猫',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),

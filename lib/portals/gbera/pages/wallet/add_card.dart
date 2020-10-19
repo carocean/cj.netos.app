@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:card_scanner/card_scanner.dart';
 
 class AddPersonCardPage extends StatefulWidget {
   PageContext context;
@@ -164,14 +163,14 @@ class _AddPersonCardPageState extends State<AddPersonCardPage> {
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: ()async{
-                            var cardDetails = await CardScanner.scanCard(
-                                scanOptions: CardScanOptions (
-                                    scanCardHolderName: true,
-                                    scanCardIssuer: true,
-                                )
-                            );
-
-                            print(cardDetails);
+                            // var cardDetails = await CardScanner.scanCard(
+                            //     scanOptions: CardScanOptions (
+                            //         scanCardHolderName: true,
+                            //         scanCardIssuer: true,
+                            //     )
+                            // );
+                            //
+                            // print(cardDetails);
                           },
                           child: Icon(
                             Icons.camera_enhance,

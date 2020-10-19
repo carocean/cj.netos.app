@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -56,25 +57,28 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
           _progressTips = '开始导出码片到相册...';
         });
       }
-      int i = 0;
-      do {
-        if (mounted) {
-          setState(() {
-            _progressTips = '准备导出第${i + 1}张...';
-          });
-        }
-        await _exportSlice();
-        if (mounted) {
-          setState(() {
-            _progressTips = '第${i + 1}张已导出，图片名:${_qrcodeSliceOR.id}.png';
-          });
-        }
-        _qrcodeSliceOR = _slices[i];
-        i++;
-      } while (i < _slices.length);
+      Future.delayed(Duration(seconds: 1,), ()async{
 
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        int i = 0;
+        do {
+          if (mounted) {
+            setState(() {
+              _progressTips = '准备导出第${i + 1}张...';
+            });
+          }
+          await _exportSlice();
+          if (mounted) {
+            setState(() {
+              _progressTips = '第${i + 1}张已导出';
+            });
+          }
+          _qrcodeSliceOR = _slices[i];
+          i++;
+        } while (i < _slices.length);
         widget.context.backward();
+      });
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async{
+
       });
     }();
     super.initState();
@@ -88,6 +92,8 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
 
   @override
   void didUpdateWidget(QrcodeSliceImagePage oldWidget) {
+    _qrcodeSliceOR = widget.context.page.parameters['slice'];
+    _slices = widget.context.parameters['slices'];
     super.didUpdateWidget(oldWidget);
   }
 
@@ -127,17 +133,6 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
 
   @override
   Widget build(BuildContext context) {
-    Widget slice;
-    switch (_qrcodeSliceOR.template) {
-      case 'normal':
-        slice = _renderNormalSlice();
-        break;
-      default:
-        slice = Container(
-          child: Text('不支持的模板'),
-        );
-        break;
-    }
     return Scaffold(
       body: Stack(
         children: [
@@ -151,17 +146,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
             ),
             child: RepaintBoundary(
               key: qrcodeKey,
-              child: Container(
-                constraints: BoxConstraints.expand(),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: NetworkImage(
-                        'http://47.105.165.186:7100/app/qrcodeslice/normal.jpg?accessToken=${widget.context.principal.accessToken}'),
-                  ),
-                ),
-                child: slice,
-              ),
+              child: _renderSlice(),
             ),
           ),
           _rendPosition(),
@@ -170,80 +155,23 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     );
   }
 
-  Widget _renderNormalSlice() {
-    var prop = _qrcodeSliceOR.props['welcome'];
-    return Column(
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${prop?.name ?? ''}',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 26,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 40,
-              right: 40,
-              bottom: 20,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                    top: 60,
-                  ),
-                  height: 120,
-                  width: 120,
-                  color: Colors.white,
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.all(10),
-                  child: RepaintBoundary(
-                    child: QrImage(
-                      ///二维码数据
-                      data: '${_qrcodeSliceOR.href}?id=${_qrcodeSliceOR.id}',
-                      version: QrVersions.auto,
-                      gapless: false,
-                      padding: EdgeInsets.all(0),
-                      // embeddedImage:
-                      // FileImage(File(widget.context.principal.avatarOnLocal)),
-                      embeddedImageStyle: QrEmbeddedImageStyle(
-                        size: Size(40, 40),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${_templateOR?.copyright ?? ''}',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: 4,
-        ),
-      ],
-    );
+  _renderSlice() {
+    if(_templateOR==null) {
+      return SizedBox(height: 0,width: 0,);
+    }
+    Widget slice;
+    switch (_qrcodeSliceOR.template) {
+      case 'normal':
+        slice = widget.context.part('/robot/slice/image/normal', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      default:
+        slice = Container(
+          child: Text('不支持的模板'),
+        );
+        break;
+    }
+    return slice;
   }
 
   _rendPosition() {

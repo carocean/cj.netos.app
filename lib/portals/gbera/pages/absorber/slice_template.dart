@@ -44,111 +44,85 @@ class _SliceTemplatePageState extends State<SliceTemplatePage> {
 
   @override
   Widget build(BuildContext context) {
-    dynamic body;
-    if (_fitted) {
-      body = FittedBox(
-        fit: BoxFit.contain,
+    if (_selectSliceTemplate == null) {
+      return Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('正在加载...'),
+          ],
+        ),
+      );
+    }
+
+    var template = _getTemplate();
+    if (!_fitted) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward('/robot/editor/template/', arguments: {
+                'sliceTemplate': _selectSliceTemplate
+              }).then((value) {
+                if (value == null) {
+                  return;
+                }
+                var modifiedProps = value as Map;
+                var props = _selectSliceTemplate.props;
+                for (var key in modifiedProps.keys) {
+                  var p = props[key];
+                  p.value = modifiedProps[key].value;
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              });
+            },
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Adapt.screenW(),
+                  maxHeight: Adapt.screenH() - 60,
+                ),
+                child: template,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return Scaffold(
+      body: FittedBox(
+        fit: BoxFit.cover,
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: Adapt.screenW(),
             maxHeight: Adapt.screenH() - 60,
           ),
-          child: _renderNormalSlice(),
+          child: template,
         ),
-      );
-    } else {
-      body = _renderNormalSlice();
-    }
-    return Scaffold(
-      body: body,
+      ),
     );
   }
 
-  Widget _renderNormalSlice() {
-    var prop = _selectSliceTemplate == null
-        ? null
-        : _selectSliceTemplate.props['welcome'];
-    return Container(
-      constraints: BoxConstraints.expand(),
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          fit: BoxFit.cover,
-          image: NetworkImage(
-              'http://47.105.165.186:7100/app/qrcodeslice/normal.jpg?accessToken=${widget.context.principal.accessToken}'),
-        ),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${prop?.name ?? ''}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 26,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 40,
-                right: 40,
-                bottom: 20,
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(
-                      top: 60,
-                    ),
-                    height: 120,
-                    width: 120,
-                    color: Colors.white,
-                    padding: EdgeInsets.all(10),
-                    alignment: Alignment.center,
-                    child: RepaintBoundary(
-                      child: QrImage(
-                        ///二维码数据
-                        data: '只是模板，此时无效',
-                        version: QrVersions.auto,
-                        gapless: false,
-                        padding: EdgeInsets.all(0),
-                        // embeddedImage:
-                        // FileImage(File(widget.context.principal.avatarOnLocal)),
-                        embeddedImageStyle: QrEmbeddedImageStyle(
-                          size: Size(40, 40),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${_selectSliceTemplate?.copyright ?? ''}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 4,
-          ),
-        ],
-      ),
-    );
+  _getTemplate() {
+    switch (_selectSliceTemplate.id) {
+      case 'normal':
+        return widget.context.part('/robot/slice/template/normal', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      default:
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('不支持的模板:${_selectSliceTemplate.id}'),
+          ],
+        );
+    }
   }
 }

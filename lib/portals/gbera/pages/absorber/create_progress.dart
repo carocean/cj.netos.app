@@ -44,8 +44,16 @@ class _CreateSlicesProgressPageState extends State<CreateSlicesProgressPage> {
     }
     List<QrcodeSliceOR> slices;
     try {
-      slices = await robotRemote.createQrcodeSlice(templateOR.id, 0, location,
-          radius, absorberOR?.id, widget.context.principal.person, count, null);
+      slices = await robotRemote.createQrcodeSlice(
+          templateOR.id,
+          0,
+          location,
+          radius,
+          absorberOR?.id,
+          widget.context.principal.person,
+          count,
+          templateOR.props,
+          null);
     } catch (e) {
       _progressTips = '$e';
       if (mounted) setState(() {});

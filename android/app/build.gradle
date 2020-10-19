@@ -34,7 +34,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "cj.netos.netos_app"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 28
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -48,6 +48,11 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
         }
+    }
+
+    configurations {
+//这里要排除到这个包，这个包会与 com.google.guava 冲突，导致编译不过
+        all*.exclude group: 'com.google.guava', module: 'listenablefuture'
     }
 }
 

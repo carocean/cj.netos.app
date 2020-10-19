@@ -17,6 +17,8 @@ import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.d
 import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_image.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_slices.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/normal_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/select_persons.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.dart';
@@ -27,6 +29,8 @@ import 'package:netos_app/portals/gbera/pages/absorber/slice_batch.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_templates.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_view.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_webview.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/template_editor.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
 import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
@@ -2520,6 +2524,42 @@ class GberaPortal {
           icon: null,
           url: '/robot/slice/templates',
           buildPage: (PageContext pageContext) => SliceTemplatesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片浏览器',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/webview',
+          buildPage: (PageContext pageContext) => SliceWebViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '常规码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/normal',
+          buildPage: (PageContext pageContext) => NormalSliceTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '常规码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/normal',
+          buildPage: (PageContext pageContext) => NormalSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '码片模板编辑器',
+          subtitle: '',
+          icon: null,
+          url: '/robot/editor/template/',
+          buildPage: (PageContext pageContext) => SliceTemplateEditor(
             context: pageContext,
           ),
         ),

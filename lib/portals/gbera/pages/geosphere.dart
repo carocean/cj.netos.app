@@ -1847,8 +1847,8 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                                   height: 0,
                                 )
                               : Badge(
-                                  position: BadgePosition.topRight(
-                                    right: -3,
+                                  position: BadgePosition.topEnd(
+                                    end: -3,
                                     top: 3,
                                   ),
                                   elevation: 0,

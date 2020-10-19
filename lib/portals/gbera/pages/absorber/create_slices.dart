@@ -25,7 +25,7 @@ class CreateSlicesPage extends StatefulWidget {
 class _CreateSlicesPageState extends State<CreateSlicesPage> {
   int _sliceCount = 1;
   int _maxAbsorbers = 0; //最大的猫数是参与的+在圈的,且没有发过码片的
-  int _createdSliceAbsorbers = 0;
+//  int _createdSliceAbsorbers = 0;
   SliceTemplateOR _selectedSliceTemplate;
   LatLng _location;
   String _address;
@@ -34,11 +34,16 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
   Map<String, AbsorberResultOR> _absorbers = {};
   String _progressTips = '准备搜索招财猫...';
   bool _searchAbsorbersDone = false;
+  bool _cannotCreateQrocdeSlice = true;
 
   @override
   void initState() {
-    _originAbsorber=widget.context.parameters['originAbsorber'];
+    _originAbsorber = widget.context.parameters['originAbsorber'];
     () async {
+      await _loadCannotCreateQrocdeSlice();
+      if (_cannotCreateQrocdeSlice) {
+        return;
+      }
       await _loadTemplate();
       await _fetchLocation();
       await _searchAbsorbers();
@@ -48,8 +53,13 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
+  }
+
+  Future<void> _loadCannotCreateQrocdeSlice() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    _cannotCreateQrocdeSlice = await robotRemote.cannotCreateQrocdeSlice();
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadTemplate() async {
@@ -107,11 +117,11 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
       if (_absorbers.containsKey(o.absorber.id)) {
         continue;
       }
-      bool exists = await robotRemote.existsPubSliceRecipients(o.absorber.id);
-      if (exists) {
-        _createdSliceAbsorbers++;
-        continue;
-      }
+//      bool exists = await robotRemote.canntPubSliceRecipients(o.absorber.id);
+//      if (exists) {
+//        _createdSliceAbsorbers++;
+//        continue;
+//      }
       _absorbers[o.absorber.id] = o;
       _maxAbsorbers++;
     }
@@ -148,11 +158,11 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
       if (_absorbers.containsKey(o.absorber.id)) {
         continue;
       }
-      bool exists = await robotRemote.existsPubSliceRecipients(o.absorber.id);
-      if (exists) {
-        _createdSliceAbsorbers++;
-        continue;
-      }
+//      bool exists = await robotRemote.canntPubSliceRecipients(o.absorber.id);
+//      if (exists) {
+//        _createdSliceAbsorbers++;
+//        continue;
+//      }
       _absorbers[o.absorber.id] = o;
       _maxAbsorbers++;
     }
@@ -164,6 +174,11 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
     print(
         '-----我的猫${myAbsorbers.length}---我参与的${joininAbsorbers.length}----我附近的${ingeoAbsorbers.length}');
     _searchAbsorbersDone = true;
+    if (_maxAbsorbers > 20) {
+      _sliceCount = 15;
+    } else {
+      _sliceCount = _maxAbsorbers;
+    }
     if (mounted) {
       setState(() {});
     }
@@ -171,193 +186,241 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('生成码片'),
         titleSpacing: 0,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Container(
-                  padding: EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                  ),
-                  alignment: Alignment.bottomRight,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (ctx) {
-                            return widget.context
-                                .part('/robot/slice/templates', context);
-                          }).then((value) {
-                        if (value == null) {
-                          return;
-                        }
-                        _selectedSliceTemplate = value;
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      });
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text.rich(
-                          TextSpan(
-                            text: '${_selectedSliceTemplate?.name ?? ''}',
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Icon(
-                          FontAwesomeIcons.filter,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
+      body: _renderBody(),
+    );
+  }
+
+  Widget _renderBody() {
+    if (_cannotCreateQrocdeSlice) {
+      return Container(
+        constraints: BoxConstraints.tightForFinite(
+          width: double.maxFinite,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+              ),
+              child: Text(
+                'I a sorry, 不能发码！',
+                style: TextStyle(
+                  color: Colors.redAccent,
                 ),
-                SizedBox(
-                  height: 4,
-                ),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: Adapt.screenW() / Adapt.screenH(),
-                      child: widget.context.part(
-                        '/robot/slice/template',
-                        context,
-                        arguments: {
-                          'selectedSliceTemplate': _selectedSliceTemplate
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Divider(
-                  height: 1,
-                ),
-                Container(
-                  padding: EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                  ),
-                  color: Colors.white,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 10,
-                      ),
-                      _renderOrigin(),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 60,
-                  color: Colors.white,
-                  alignment: Alignment.center,
-                  child: !_searchAbsorbersDone
-                      ? Text('$_progressTips')
-                      : Text.rich(
-                          TextSpan(
-                            text: '',
-                            children: [
-                              TextSpan(text: '搜索完成，共发现'),
-                              TextSpan(
-                                text: '  ${_absorbers.length}个  ',
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.blueGrey,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              TextSpan(text: '招财猫'),
-                            ],
-                          ),
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                ),
-              ],
+              ),
             ),
-          ),
-          Column(
+            SizedBox(
+              height: 10,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+              ),
+              child: Text(
+                '你还有未被消费的码片，请将码片发给朋友消费。',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    var theme = Theme.of(context);
+    return Column(
+      children: [
+        Expanded(
+          child: Column(
             children: [
               Container(
-                color: Colors.white,
                 padding: EdgeInsets.only(
                   left: 15,
                   right: 15,
-                  top: 10,
                 ),
-                constraints: BoxConstraints.tightForFinite(
-                  width: double.maxFinite,
-                ),
-                child: RenderSlider(theme),
-              ),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: !_searchAbsorbersDone || _maxAbsorbers < 1
-                    ? null
-                    : () {
-                        widget.context.forward(
-                          '/robot/createSlices/progress',
-                          arguments: {
-                            'template': _selectedSliceTemplate,
-                            'location': _location,
-                            'radius': _radius,
-                            'originAbsorber': _originAbsorber,
-                            'count': _sliceCount,
-                            'absorbers': _absorbers,
-                          },
-                        );
-                      },
-                child: Container(
-                  color: !_searchAbsorbersDone || _maxAbsorbers < 1
-                      ? Colors.grey
-                      : Colors.green,
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.only(
-                    top: 20,
-                    bottom: 20,
+                alignment: Alignment.bottomRight,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return widget.context
+                              .part('/robot/slice/templates', context);
+                        }).then((value) {
+                      if (value == null) {
+                        return;
+                      }
+                      _selectedSliceTemplate = value;
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    });
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          text: '${_selectedSliceTemplate?.name ?? ''}',
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(
+                        FontAwesomeIcons.filter,
+                        size: 16,
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    '${!_searchAbsorbersDone || _maxAbsorbers < 1 ? '稍候点生成...' : '生成码片'}',
-                    style: TextStyle(
-                      color: !_searchAbsorbersDone || _maxAbsorbers < 1
-                          ? Colors.grey[400]
-                          : Colors.white,
-                      fontSize: 16,
+                ),
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: Adapt.screenW() / Adapt.screenH(),
+                    child: widget.context.part(
+                      '/robot/slice/template',
+                      context,
+                      arguments: {
+                        'selectedSliceTemplate': _selectedSliceTemplate,
+                        'fitted':false,
+                      },
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                height: 10,
+              ),
+              Divider(
+                height: 1,
+              ),
+              Container(
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                ),
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    _renderOrigin(),
+                  ],
+                ),
+              ),
+              Container(
+                height: 60,
+                color: Colors.white,
+                alignment: Alignment.center,
+                child: !_searchAbsorbersDone
+                    ? Text('$_progressTips')
+                    : Text.rich(
+                        TextSpan(
+                          text: '',
+                          children: [
+                            TextSpan(text: '搜索完成，共发现'),
+                            TextSpan(
+                              text: '  ${_absorbers.length}个  ',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            TextSpan(text: '招财猫'),
+                          ],
+                        ),
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+        Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: EdgeInsets.only(
+                left: 15,
+                right: 15,
+                top: 10,
+              ),
+              constraints: BoxConstraints.tightForFinite(
+                width: double.maxFinite,
+              ),
+              child: RenderSlider(theme),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: !_searchAbsorbersDone || _maxAbsorbers < 1
+                  ? null
+                  : () {
+                      widget.context.forward(
+                        '/robot/createSlices/progress',
+                        arguments: {
+                          'template': _selectedSliceTemplate,
+                          'location': _location,
+                          'radius': _radius,
+                          'originAbsorber': _originAbsorber,
+                          'count': _sliceCount,
+                          'absorbers': _absorbers,
+                        },
+                      );
+                    },
+              child: Container(
+                color: !_searchAbsorbersDone || _maxAbsorbers < 1
+                    ? Colors.grey
+                    : Colors.green,
+                alignment: Alignment.center,
+                padding: EdgeInsets.only(
+                  top: 20,
+                  bottom: 20,
+                ),
+                child: Text(
+                  '${!_searchAbsorbersDone || _maxAbsorbers < 1 ? '稍候点生成...' : '生成码片'}',
+                  style: TextStyle(
+                    color: !_searchAbsorbersDone || _maxAbsorbers < 1
+                        ? Colors.grey[400]
+                        : Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -497,7 +560,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
         height: 0,
       );
     }
-    if (_maxAbsorbers == 0&&_createdSliceAbsorbers==0) {
+    if (_maxAbsorbers == 0) {
       return Container(
         alignment: Alignment.center,
         padding: EdgeInsets.only(
@@ -520,7 +583,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
           bottom: 20,
         ),
         child: Text(
-          '不符合生成码片的条件，已有$_createdSliceAbsorbers个猫被装载过码片了',
+          '您没有猫供生成码片，请去追链加入更多的猫',
           style: TextStyle(
             fontSize: 12,
           ),
@@ -536,7 +599,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
           bottom: 20,
         ),
         child: Text(
-          '可以生成1张码片',
+          '可生成1张码片',
           style: TextStyle(
             fontSize: 12,
           ),
@@ -556,6 +619,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                   color: Colors.red,
                 ),
               ),
+
             ],
             style: TextStyle(
               color: Colors.black,
