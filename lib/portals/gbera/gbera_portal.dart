@@ -17,6 +17,8 @@ import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.d
 import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_image.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_slices.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/happiness_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/happiness_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
@@ -2537,6 +2539,15 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '码片模板编辑器',
+          subtitle: '',
+          icon: null,
+          url: '/robot/editor/template/',
+          buildPage: (PageContext pageContext) => SliceTemplateEditor(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '常规码片模板',
           subtitle: '',
           icon: null,
@@ -2555,11 +2566,20 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '码片模板编辑器',
+          title: '小确幸码片模板',
           subtitle: '',
           icon: null,
-          url: '/robot/editor/template/',
-          buildPage: (PageContext pageContext) => SliceTemplateEditor(
+          url: '/robot/slice/template/happiness',
+          buildPage: (PageContext pageContext) => HappinessTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '小确幸码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/happiness',
+          buildPage: (PageContext pageContext) => HappinessSliceImage(
             context: pageContext,
           ),
         ),

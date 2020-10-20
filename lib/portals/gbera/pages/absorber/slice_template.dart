@@ -21,24 +21,26 @@ class _SliceTemplatePageState extends State<SliceTemplatePage> {
   @override
   void initState() {
     _selectSliceTemplate =
-        widget.context.page.parameters['selectedSliceTemplate'];
-    _fitted = widget.context.page.parameters['fitted'];
+        widget.context.partArgs['selectedSliceTemplate'];
+    _fitted = widget.context.partArgs['fitted'];
     _fitted = _fitted ?? false;
+
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
   @override
   void didUpdateWidget(SliceTemplatePage oldWidget) {
+    oldWidget.context = widget.context;
     _selectSliceTemplate =
-        widget.context.page.parameters['selectedSliceTemplate'];
-    _fitted = widget.context.page.parameters['fitted'];
+    widget.context.partArgs['selectedSliceTemplate'];
+    _fitted = widget.context.partArgs['fitted'];
     _fitted = _fitted ?? false;
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -111,9 +113,13 @@ class _SliceTemplatePageState extends State<SliceTemplatePage> {
   }
 
   _getTemplate() {
+    print('--${_selectSliceTemplate.id}');
     switch (_selectSliceTemplate.id) {
       case 'normal':
         return widget.context.part('/robot/slice/template/normal', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'happiness':
+        return widget.context.part('/robot/slice/template/happiness', context,
             arguments: {'sliceTemplate': _selectSliceTemplate});
       default:
         return Column(

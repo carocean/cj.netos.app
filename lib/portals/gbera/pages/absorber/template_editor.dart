@@ -127,6 +127,26 @@ class _SliceTemplateEditorState extends State<SliceTemplateEditor> {
   List<Widget> _renderProperties() {
     var items = <Widget>[];
     var props = _sliceTemplate.props;
+    if (props.isEmpty) {
+      return <Widget>[
+        Column(
+          children: [
+            SizedBox(
+              height: 100,
+            ),
+            Center(
+              child: Text(
+                '没有属性',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ];
+    }
     Widget propControl;
     for (var prop in props.values) {
       switch (prop.type) {

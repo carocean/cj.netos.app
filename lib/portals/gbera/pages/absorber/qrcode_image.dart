@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:path_provider/path_provider.dart';
@@ -57,8 +58,10 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
           _progressTips = '开始导出码片到相册...';
         });
       }
-      Future.delayed(Duration(seconds: 1,), ()async{
-
+      Future.delayed(
+          Duration(
+            seconds: 1,
+          ), () async {
         int i = 0;
         do {
           if (mounted) {
@@ -77,9 +80,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
         } while (i < _slices.length);
         widget.context.backward();
       });
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async{
-
-      });
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {});
     }();
     super.initState();
   }
@@ -144,6 +145,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
               top: !_isShowAction ? 10 : 40,
               bottom: 10,
             ),
+            alignment: Alignment.center,
             child: RepaintBoundary(
               key: qrcodeKey,
               child: _renderSlice(),
@@ -156,13 +158,20 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
   }
 
   _renderSlice() {
-    if(_templateOR==null) {
-      return SizedBox(height: 0,width: 0,);
+    if (_templateOR == null) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
     }
     Widget slice;
     switch (_qrcodeSliceOR.template) {
       case 'normal':
         slice = widget.context.part('/robot/slice/image/normal', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'happiness':
+        slice = widget.context.part('/robot/slice/image/happiness', context,
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
       default:
@@ -171,7 +180,14 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
         );
         break;
     }
-    return slice;
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        height: Adapt.screenH()-60,
+        width: Adapt.screenW(),
+        child: slice,
+      ),
+    );
   }
 
   _rendPosition() {

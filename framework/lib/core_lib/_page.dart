@@ -24,6 +24,7 @@ class LogicPage {
   final String subtitle;
   final String previousTitle;
   final String desc;
+  ///注意：该参数存在并发访问问题。由于页面实例全局只有一个，当使用pagecontext.part(args)传参时，如果多次调用传不同的参数，则后面会将前面的覆盖掉，导致页面显示不正确，可使用pagecontext.argsOfPart替代
   Map<String, Object> _parameters={};
 
   ///构建页面。如果使用自定义动画则必须使用buildRoute，两个方法必有一个非空；当二者均有实现时则优先buildRoute

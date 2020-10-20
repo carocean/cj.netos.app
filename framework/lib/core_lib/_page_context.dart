@@ -26,9 +26,15 @@ class PageContext {
   final BuildContext context;
   final String sourceScene;
   final String sourceTheme;
+  final Map<String, dynamic> partArgs;
 
   PageContext(
-      {this.page, this.sourceScene, this.sourceTheme, this.site, this.context});
+      {this.page,
+      this.sourceScene,
+      this.sourceTheme,
+      this.site,
+      this.context,
+      this.partArgs = const <String, Object>{}});
 
   UserPrincipal get principal => site.getService('@.principal');
 
@@ -101,6 +107,7 @@ class PageContext {
       page: page,
       site: site,
       context: context,
+      partArgs: arguments,
       sourceTheme: currentTheme(),
       sourceScene: currentScene(),
     );
