@@ -1,5 +1,6 @@
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -310,7 +311,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                       context,
                       arguments: {
                         'selectedSliceTemplate': _selectedSliceTemplate,
-                        'fitted':false,
+                        'fitted': false,
                       },
                     ),
                   ),
@@ -355,6 +356,11 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                                 color: Colors.blueGrey,
                                 fontWeight: FontWeight.w600,
                               ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  widget.context.forward('/robot/slice/showAbsorbers',
+                                      arguments: {'absorbers': _absorbers});
+                                },
                             ),
                             TextSpan(text: '招财猫'),
                           ],
@@ -619,7 +625,6 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
                   color: Colors.red,
                 ),
               ),
-
             ],
             style: TextStyle(
               color: Colors.black,

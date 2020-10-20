@@ -39,6 +39,7 @@ import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.d
 import 'package:netos_app/portals/gbera/pages/absorber/simple_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_records.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/recipients_view.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/slice_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_batch.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/slice_templates.dart';
@@ -2700,6 +2701,15 @@ class GberaPortal {
           icon: null,
           url: '/robot/slice/image/love',
           buildPage: (PageContext pageContext) => LoveSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '展示发现的猫',
+          subtitle: '展示发现的猫',
+          icon: null,
+          url: '/robot/slice/showAbsorbers',
+          buildPage: (PageContext pageContext) => ShowSliceAbsorbersPage(
             context: pageContext,
           ),
         ),
