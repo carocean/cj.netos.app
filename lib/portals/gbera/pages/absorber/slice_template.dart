@@ -113,13 +113,30 @@ class _SliceTemplatePageState extends State<SliceTemplatePage> {
   }
 
   _getTemplate() {
-    print('--${_selectSliceTemplate.id}');
     switch (_selectSliceTemplate.id) {
       case 'normal':
         return widget.context.part('/robot/slice/template/normal', context,
             arguments: {'sliceTemplate': _selectSliceTemplate});
       case 'happiness':
         return widget.context.part('/robot/slice/template/happiness', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'xibao':
+        return widget.context.part('/robot/slice/template/xibao', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'caisheng':
+        return widget.context.part('/robot/slice/template/caisheng', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'minxinpian':
+        return widget.context.part('/robot/slice/template/minxinpian', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'chiji':
+        return widget.context.part('/robot/slice/template/chiji', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'wangzherongyao':
+        return widget.context.part('/robot/slice/template/wangzherongyao', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'love':
+        return widget.context.part('/robot/slice/template/love', context,
             arguments: {'sliceTemplate': _selectSliceTemplate});
       default:
         return Column(

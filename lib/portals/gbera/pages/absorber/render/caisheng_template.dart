@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class HappinessTemplate extends StatefulWidget {
+class CaishengTemplate extends StatefulWidget {
   PageContext context;
 
-  HappinessTemplate({this.context});
+  CaishengTemplate({this.context});
 
   @override
-  _HappinessTemplateState createState() => _HappinessTemplateState();
+  _CaishengTemplateState createState() => _CaishengTemplateState();
 }
 
-class _HappinessTemplateState extends State<HappinessTemplate> {
+class _CaishengTemplateState extends State<CaishengTemplate> {
   SliceTemplateOR _sliceTemplate;
 
   @override
@@ -24,13 +22,14 @@ class _HappinessTemplateState extends State<HappinessTemplate> {
   }
 
   @override
-  void didUpdateWidget(HappinessTemplate oldWidget) {
+  void didUpdateWidget(CaishengTemplate oldWidget) {
     _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
+    var advices = _sliceTemplate.props['advices'];
     return Scaffold(
       body: Stack(
         children: [
@@ -45,29 +44,22 @@ class _HappinessTemplateState extends State<HappinessTemplate> {
             ),
           ),
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 124,
+            left: 30,
+            bottom: 20,
+            child: SizedBox(
+              width: 170,
+              child: Text(
+                '${advices.value ?? ''}',
+                style: TextStyle(
+                  fontSize: 16,
                 ),
-                Center(
-                  child:Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child:  _renderAvatar(),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           Positioned(
             bottom: 20,
             right: 20,
-            child:  Container(
+            child: Container(
               margin: EdgeInsets.only(
                 top: 60,
               ),
@@ -97,17 +89,6 @@ class _HappinessTemplateState extends State<HappinessTemplate> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _renderAvatar() {
-    var avatarUrl = widget.context.principal.avatarOnRemote;
-    return FadeInImage.assetNetwork(
-      placeholder: 'lib/portals/gbera/images/default_watting.gif',
-      image: '$avatarUrl?accessToken=${widget.context.principal.accessToken}',
-      width: 120,
-      height: 100,
-      fit: BoxFit.cover,
     );
   }
 }

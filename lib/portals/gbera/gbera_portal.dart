@@ -17,10 +17,22 @@ import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.d
 import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_image.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_slices.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/caisheng_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/caisheng_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/chiji_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/chiji_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/happiness_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/happiness_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/love_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/love_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/minxinpian_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/minxinpian_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/wangzheruyao_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/wangzheruyao_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/xibao_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/xibao_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/select_persons.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/simple_absorber_details.dart';
@@ -2580,6 +2592,114 @@ class GberaPortal {
           icon: null,
           url: '/robot/slice/image/happiness',
           buildPage: (PageContext pageContext) => HappinessSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '喜报码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/xibao',
+          buildPage: (PageContext pageContext) => XibaoSliceTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '喜报码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/xibao',
+          buildPage: (PageContext pageContext) => XibaoSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '财神码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/caisheng',
+          buildPage: (PageContext pageContext) => CaishengTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '财神码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/caisheng',
+          buildPage: (PageContext pageContext) => CaishengSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '明信片码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/minxinpian',
+          buildPage: (PageContext pageContext) => MinXinPianTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '明信片码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/minxinpian',
+          buildPage: (PageContext pageContext) => MinXinPianSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '吃鸡码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/chiji',
+          buildPage: (PageContext pageContext) => ChijiTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '吃鸡码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/chiji',
+          buildPage: (PageContext pageContext) => ChijiSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '王者荣耀码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/wangzherongyao',
+          buildPage: (PageContext pageContext) => WangzheruyaoTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '王者荣耀码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/wangzherongyao',
+          buildPage: (PageContext pageContext) => WangzheruyaoSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '爱情耀码片模板',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/love',
+          buildPage: (PageContext pageContext) => LoveTemplate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '爱情荣耀码片图片',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/love',
+          buildPage: (PageContext pageContext) => LoveSliceImage(
             context: pageContext,
           ),
         ),

@@ -100,8 +100,8 @@ class _HappnissSliceState extends State<HappinessSliceImage> {
       placeholder: 'lib/portals/gbera/images/default_watting.gif',
       image: '$avatarUrl?accessToken=${widget.context.principal.accessToken}',
       width: 110,
-      height: 95,
-      fit: BoxFit.contain,
+      height: 105,
+      fit: BoxFit.cover,
     );
   }
 }

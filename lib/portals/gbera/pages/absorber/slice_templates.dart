@@ -80,7 +80,7 @@ class _SliceTemplatesPageState extends State<SliceTemplatesPage> {
         //一行的Widget数量
         crossAxisCount: 2,
         //子Widget宽高比例
-        childAspectRatio: 0.72,
+        childAspectRatio: 0.62,
         children: _renderTemplates(),
       );
     }
@@ -104,7 +104,7 @@ class _SliceTemplatesPageState extends State<SliceTemplatesPage> {
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: (){
+          onTap: () {
             widget.context.backward(result: template);
           },
           child: Column(
@@ -130,6 +130,32 @@ class _SliceTemplatesPageState extends State<SliceTemplatesPage> {
               Column(
                 children: [
                   Text('${template.name}'),
+                  SizedBox(
+                    height: 2,
+                  ),
+                  Container(
+                    constraints: BoxConstraints.tightForFinite(
+                      width: double.maxFinite,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${template.note ?? ''}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
