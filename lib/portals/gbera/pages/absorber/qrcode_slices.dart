@@ -97,7 +97,7 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
         actions: [
           IconButton(
             onPressed: () {
-              widget.context.forward('/robot/createSlices').then((value){
+              widget.context.forward('/robot/createSlices').then((value) {
                 _onRefresh();
               });
             },
@@ -211,8 +211,8 @@ class _QrcodeSlicePageState extends State<QrcodeSlicePage> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context
-                    .forward('/robot/slice/view', arguments: {'slice': slice});
+                widget.context.forward('/robot/slice/view',
+                    arguments: {'slice': slice}).then((value) => _onRefresh());
               },
               child: Container(
                 padding: EdgeInsets.only(

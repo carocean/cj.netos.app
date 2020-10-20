@@ -174,6 +174,30 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
         slice = widget.context.part('/robot/slice/image/happiness', context,
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
+      case 'xibao':
+        slice = widget.context.part('/robot/slice/image/xibao', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'caisheng':
+        slice = widget.context.part('/robot/slice/image/caisheng', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'minxinpian':
+        slice = widget.context.part('/robot/slice/image/minxinpian', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'chiji':
+        slice = widget.context.part('/robot/slice/image/chiji', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'wangzherongyao':
+        slice = widget.context.part('/robot/slice/image/wangzherongyao', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'love':
+        slice = widget.context.part('/robot/slice/image/love', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
       default:
         slice = Container(
           child: Text('不支持的模板'),
