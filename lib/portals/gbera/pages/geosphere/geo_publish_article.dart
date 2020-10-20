@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
@@ -42,6 +45,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   PurchaseInfo _purchaseInfo;
   bool _canPublish = false;
   GeoReceptor _receptorObj;
+  bool _isVideoCompressing = false;
+
   @override
   void initState() {
     _category = widget.context.parameters['category'];
@@ -75,12 +80,12 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       poiId: poiId,
     );
     IGeoReceptorRemote receptorRemote =
-    widget.context.site.getService('/remote/geo/receptors');
-   _receptorObj= await receptorRemote.getReceptor(_category, _receptor);
+        widget.context.site.getService('/remote/geo/receptors');
+    _receptorObj = await receptorRemote.getReceptor(_category, _receptor);
     _enablePublishButton =
         _poi != null && !StringUtil.isEmpty(_contentController.text);
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
     if (purchaseInfo.bankInfo == null) {
       _isLoaded = true;
@@ -119,7 +124,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     var msgid = MD5Util.MD5(Uuid().v1());
 
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     var purchaseOR = await purchaserRemote.doPurchase(
         _purchaseInfo.bankInfo.id,
         _purchse_amount,
@@ -258,6 +263,21 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
+            !_isVideoCompressing
+                ? SliverToBoxAdapter(child: SizedBox(
+              height: 0,
+              width: 0,
+            ),)
+                : SliverToBoxAdapter(child: Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.only(bottom: 10,top: 10,),
+              child: Text(
+                '正在压缩视频，请稍候...',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+            ),),
             SliverFillRemaining(
               child: Container(
                 color: Colors.white,
@@ -280,13 +300,17 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickImage(
-                                  source: ImageSource.gallery);
+                              var image = await ImagePicker().getImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 80,
+                                maxHeight: Adapt.screenH(),
+                              );
                               if (image == null) {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.image));
+                                  src: File(image.path),
+                                  type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -325,14 +349,39 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickVideo(
+                              var image = await ImagePicker().getVideo(
                                 source: ImageSource.gallery,
+                                maxDuration: Duration(
+                                  seconds: 15,
+                                ),
                               );
                               if (image == null) {
                                 return;
                               }
-                              shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.video));
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = true;
+                                });
+                              }
+                              var videoCompress = FlutterVideoCompress();
+                              var info = await videoCompress.compressVideo(
+                                image.path,
+                                quality: VideoQuality.MediumQuality,
+                                // 默认(VideoQuality.DefaultQuality)
+                                deleteOrigin: true, // 默认(false)
+                                // frameRate: 10,
+                              );
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = false;
+                                });
+                              }
+                              shower_key.currentState.addImage(
+                                MediaFile(
+                                  src: info.file,
+                                  type: MediaFileType.video,
+                                ),
+                              );
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -371,13 +420,17 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickImage(
-                                  source: ImageSource.camera);
+                              var image = await ImagePicker().getImage(
+                                source: ImageSource.camera,
+                                imageQuality: 80,
+                                maxHeight: Adapt.screenH(),
+                              );
                               if (image == null) {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.image));
+                                  src: File(image.path),
+                                  type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -416,14 +469,36 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickVideo(
+                              var image = await ImagePicker().getVideo(
                                 source: ImageSource.camera,
+                                maxDuration: Duration(seconds: 15),
                               );
                               if (image == null) {
                                 return;
                               }
+                              var videoCompress = FlutterVideoCompress();
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = true;
+                                });
+                              }
+                              var info = await videoCompress.compressVideo(
+                                image.path,
+                                quality: VideoQuality.MediumQuality,
+                                // 默认(VideoQuality.DefaultQuality)
+                                deleteOrigin: true, // 默认(false)
+                                // frameRate: 10,
+                              );
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = false;
+                                });
+                              }
+                              // print('-----$info');
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.video));
+                                src: info.file,
+                                type: MediaFileType.video,
+                              ));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -537,22 +612,22 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                       onTap: StringUtil.isEmpty(_districtCode)
                           ? null
                           : () async {
-                        widget.context.forward('/channel/article/buywy',
-                            arguments: {
-                              'purchaseInfo': _purchaseInfo,
-                              'purchaseAmount': _purchse_amount
-                            }).then((value) {
-                          if (value == null) {
-                            return;
-                          }
-                          _purchse_amount = value;
-                          _label =
-                          '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      },
+                              widget.context.forward('/channel/article/buywy',
+                                  arguments: {
+                                    'purchaseInfo': _purchaseInfo,
+                                    'purchaseAmount': _purchse_amount
+                                  }).then((value) {
+                                if (value == null) {
+                                  return;
+                                }
+                                _purchse_amount = value;
+                                _label =
+                                    '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              });
+                            },
                     ),
                     Divider(
                       height: 1,
@@ -706,7 +781,7 @@ class _MediaShowerState extends State<_MediaShower> {
               break;
             case MediaFileType.video:
               mediaRegion = AspectRatio(
-                aspectRatio: 16/9,
+                aspectRatio: 16 / 9,
                 child: VideoView(
                   src: mediaFile.src,
                 ),
