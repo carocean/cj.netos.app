@@ -790,6 +790,19 @@ class _PlusPannelState extends State<_PlusPannel> {
           color: Colors.grey[600],
         ),
       ),
+      TalkPlugin(
+        id: 'transTo',
+        title: '转账',
+        leading: SizedBox(
+          width: 30,
+          height: 30,
+          child: Icon(
+            FontAwesomeIcons.exchangeAlt,
+            size: 25,
+            color: Colors.grey[600],
+          ),
+        ),
+      ),
     ];
   }
 }
