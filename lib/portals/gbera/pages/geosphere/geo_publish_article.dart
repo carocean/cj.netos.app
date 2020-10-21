@@ -476,12 +476,12 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               if (image == null) {
                                 return;
                               }
-                              var videoCompress = FlutterVideoCompress();
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = true;
                                 });
                               }
+                              var videoCompress = FlutterVideoCompress();
                               var info = await videoCompress.compressVideo(
                                 image.path,
                                 quality: VideoQuality.MediumQuality,

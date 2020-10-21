@@ -6,6 +6,7 @@ import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,7 +32,7 @@ class ChannelPublishArticle extends StatefulWidget {
 
 class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
-
+  bool _isVideoCompressing = false;
   TextEditingController _contentController;
   Channel _channel;
   var _type;
@@ -275,6 +276,21 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
+            !_isVideoCompressing
+                ? SliverToBoxAdapter(child: SizedBox(
+              height: 0,
+              width: 0,
+            ),)
+                : SliverToBoxAdapter(child: Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.only(bottom: 10,top: 10,),
+              child: Text(
+                '正在压缩视频，请稍候...',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+            ),),
             SliverFillRemaining(
               child: Container(
                 color: Colors.white,
@@ -297,13 +313,16 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickImage(
-                                  source: ImageSource.gallery);
+                              var image = await ImagePicker().getImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 80,
+                                maxHeight: Adapt.screenH(),
+                              );
                               if (image == null) {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.image));
+                                  src: File(image.path), type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -342,14 +361,35 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickVideo(
+                              var image = await ImagePicker().getVideo(
                                 source: ImageSource.gallery,
+                                maxDuration: Duration(
+                                  seconds: 15,
+                                ),
                               );
                               if (image == null) {
                                 return;
                               }
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = true;
+                                });
+                              }
+                              var videoCompress = FlutterVideoCompress();
+                              var info = await videoCompress.compressVideo(
+                                image.path,
+                                quality: VideoQuality.MediumQuality,
+                                // 默认(VideoQuality.DefaultQuality)
+                                deleteOrigin: true, // 默认(false)
+                                // frameRate: 10,
+                              );
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = false;
+                                });
+                              }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.video));
+                                  src: info.file,type: MediaFileType.video));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -388,13 +428,16 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickImage(
-                                  source: ImageSource.camera);
+                              var image = await ImagePicker().getImage(
+                                source: ImageSource.camera,
+                                imageQuality: 80,
+                                maxHeight: Adapt.screenH(),
+                              );
                               if (image == null) {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.image));
+                                  src: File(image.path), type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -433,14 +476,33 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker.pickVideo(
+                              var image = await ImagePicker().getVideo(
                                 source: ImageSource.camera,
+                                maxDuration: Duration(seconds: 15),
                               );
                               if (image == null) {
                                 return;
                               }
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = true;
+                                });
+                              }
+                              var videoCompress = FlutterVideoCompress();
+                              var info = await videoCompress.compressVideo(
+                                image.path,
+                                quality: VideoQuality.MediumQuality,
+                                // 默认(VideoQuality.DefaultQuality)
+                                deleteOrigin: true, // 默认(false)
+                                // frameRate: 10,
+                              );
+                              if (mounted) {
+                                setState(() {
+                                  _isVideoCompressing = false;
+                                });
+                              }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: image, type: MediaFileType.video));
+                                  src: info.file, type: MediaFileType.video));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(

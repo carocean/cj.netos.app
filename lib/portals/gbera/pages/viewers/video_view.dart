@@ -71,9 +71,7 @@ class _VideoViewState extends State<VideoView> {
       children: <Widget>[
         Container(
           constraints: BoxConstraints(
-            minHeight: 100,
             minWidth: 100,
-            maxHeight: Adapt.screenH() - 70,
           ),
           child: FutureBuilder(
             future: _future_waitfor_inited,
@@ -97,16 +95,16 @@ class _VideoViewState extends State<VideoView> {
 
 //              final Size size = controller.value.size;
               return ClipRect(
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Colors.grey[200],
-                    child: Center(
-                        child: AspectRatio(
-                          aspectRatio: controller.value.aspectRatio,
-                          child: VideoPlayer(controller),
-                        )),
-                  ));
+                child: Container(
+                  color: Colors.grey[200],
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: controller.value.aspectRatio,
+                      child: VideoPlayer(controller),
+                    ),
+                  ),
+                ),
+              );
             },
           ),
         ),

@@ -8,6 +8,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
+import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -46,6 +47,7 @@ class _ChatTalkState extends State<ChatTalk> {
   int _limit = 12, _offset = 0;
   StreamSubscription _streamSubscription;
   bool _isloaded = false;
+  bool _isVideoCompressing = false;
 
   @override
   void initState() {
@@ -226,6 +228,14 @@ class _ChatTalkState extends State<ChatTalk> {
         );
         break;
       case 'video':
+        if ('beginVideoCompressing' == cmd.message) {
+          _isVideoCompressing = true;
+          return;
+        }
+        if ('doneVideoCompressing' == cmd.message) {
+          _isVideoCompressing = false;
+          return;
+        }
         var image = cmd.message;
         var map = {'path': image};
         var content = jsonEncode(map);
@@ -262,6 +272,14 @@ class _ChatTalkState extends State<ChatTalk> {
         );
         break;
       case 'recordVideo':
+        if ('beginVideoCompressing' == cmd.message) {
+          _isVideoCompressing = true;
+          return;
+        }
+        if ('doneVideoCompressing' == cmd.message) {
+          _isVideoCompressing = false;
+          return;
+        }
         var image = cmd.message;
         var map = {'path': image};
         var content = jsonEncode(map);
@@ -383,6 +401,29 @@ class _ChatTalkState extends State<ChatTalk> {
                 ),
               ),
             ),
+            !_isVideoCompressing
+                ? SizedBox(
+                    height: 0,
+                    width: 0,
+                  )
+                : Container(
+                    padding: EdgeInsets.only(
+                      top: 20,
+                      bottom: 20,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '正在压缩视频...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
             _ChatSendPannel(
               context: widget.context,
               onTapEvents: _onTapEvents,
@@ -555,7 +596,10 @@ class _PlusPannelState extends State<_PlusPannel> {
   _tapPlugin(TalkPlugin plugin) async {
     switch (plugin.id) {
       case 'image':
-        var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+        var image = await ImagePicker().getImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
         if (image == null) {
           break;
         }
@@ -567,19 +611,45 @@ class _PlusPannelState extends State<_PlusPannel> {
         );
         break;
       case 'video':
-        var image = await ImagePicker.pickVideo(source: ImageSource.gallery);
+        var image = await ImagePicker().getVideo(
+          source: ImageSource.gallery,
+          maxDuration: Duration(seconds: 15),
+        );
         if (image == null) {
           break;
         }
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
-            message: image.path,
+            message: 'beginVideoCompressing',
+          ),
+        );
+        var videoCompress = FlutterVideoCompress();
+        var info = await videoCompress.compressVideo(
+          image.path,
+          quality: VideoQuality.MediumQuality,
+          // 默认(VideoQuality.DefaultQuality)
+          deleteOrigin: true, // 默认(false)
+          // frameRate: 10,
+        );
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: 'doneVideoCompressing',
+          ),
+        );
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: info.file.path,
           ),
         );
         break;
       case 'takePhoto':
-        var image = await ImagePicker.pickImage(source: ImageSource.camera);
+        var image = await ImagePicker().getImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+        );
         if (image == null) {
           break;
         }
@@ -591,8 +661,9 @@ class _PlusPannelState extends State<_PlusPannel> {
         );
         break;
       case 'recordVideo':
-        var image = await ImagePicker.pickVideo(
+        var image = await ImagePicker().getVideo(
           source: ImageSource.camera,
+          maxDuration: Duration(seconds: 15),
         );
         if (image == null) {
           break;
@@ -600,7 +671,27 @@ class _PlusPannelState extends State<_PlusPannel> {
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
-            message: image.path,
+            message: 'beginVideoCompressing',
+          ),
+        );
+        var videoCompress = FlutterVideoCompress();
+        var info = await videoCompress.compressVideo(
+          image.path,
+          quality: VideoQuality.MediumQuality,
+          // 默认(VideoQuality.DefaultQuality)
+          deleteOrigin: true, // 默认(false)
+          // frameRate: 10,
+        );
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: 'doneVideoCompressing',
+          ),
+        );
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: info.file.path,
           ),
         );
         break;
@@ -1048,6 +1139,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   RoomMember _member;
   bool isShowNick = false;
   ChatRoomModel _model;
+
   @override
   void initState() {
     _model = widget.context.parameters['model'];
@@ -1310,6 +1402,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   RoomMember _member;
   bool isShowNick = false;
   ChatRoomModel _model;
+
   @override
   void initState() {
     _model = widget.context.parameters['model'];
@@ -1342,7 +1435,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       super.didUpdateWidget(oldWidget);
       return;
     }
-    oldWidget.p2pMessage=widget.p2pMessage;
+    oldWidget.p2pMessage = widget.p2pMessage;
     _model = widget.context.parameters['model'];
     _loadSender().then((p) {
       if (mounted) setState(() {});

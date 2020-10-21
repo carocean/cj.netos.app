@@ -421,7 +421,6 @@ class _RequestISPState extends State<RequestISP> {
   }
 
   Future<void> _uploadCropLogo() async {
-//    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
     widget.context.forward('/widgets/avatar', arguments: {
       'aspectRatio': -1.0,
     }).then((avatar) async {

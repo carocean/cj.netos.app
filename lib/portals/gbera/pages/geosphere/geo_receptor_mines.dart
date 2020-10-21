@@ -16,6 +16,7 @@ import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
@@ -476,14 +477,14 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
                     icon: Icons.image,
                     color: Colors.grey[500],
                     onPressed: () async {
-                      var image = await ImagePicker.pickImage(
-                          source: ImageSource.gallery);
+                      var image = await ImagePicker().getImage(
+                          source: ImageSource.gallery,maxHeight: Adapt.screenH(),imageQuality: 80,);
                       widget.context.backward(result: <String, dynamic>{
                         'type': 'gallery',
                         'category': _category.id,
                         'receptor': _receptorInfo.id,
                         'mediaFile':
-                            MediaFile(type: MediaFileType.image, src: image),
+                            MediaFile(type: MediaFileType.image, src: File(image.path)),
                       });
                     },
                   ),

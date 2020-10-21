@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:framework/framework.dart';
 import 'package:image_crop/image_crop.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/util.dart';
 
 class GberaAvatar extends StatefulWidget {
   PageContext context;
@@ -56,10 +57,10 @@ class _GberaAvatarState extends State<GberaAvatar> {
                 )
               : IconButton(
                   onPressed: () async {
-                    var image = await ImagePicker.pickImage(
-                        source: ImageSource.gallery);
+                    var image = await ImagePicker().getImage(
+                        source: ImageSource.gallery,imageQuality: 80,maxHeight: Adapt.screenH(),);
                     setState(() {
-                      _image = image;
+                      _image = File(image.path);
                       _background = Colors.black;
                     });
                   },
@@ -76,9 +77,9 @@ class _GberaAvatarState extends State<GberaAvatar> {
               : IconButton(
                   onPressed: () async {
                     var image =
-                        await ImagePicker.pickImage(source: ImageSource.camera);
+                        await ImagePicker().getImage(source: ImageSource.camera,imageQuality: 80,maxHeight: Adapt.screenH(),);
                     setState(() {
-                      _image = image;
+                      _image = File(image.path);
                       _background = Colors.black;
                     });
                   },
