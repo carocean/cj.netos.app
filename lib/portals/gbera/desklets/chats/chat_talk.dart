@@ -743,7 +743,7 @@ class _PlusPannelState extends State<_PlusPannel> {
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         mainAxisSpacing: 20.0,
         crossAxisSpacing: 30.0,
-        maxCrossAxisExtent: 80,
+        maxCrossAxisExtent: 60,
       ),
       scrollDirection: Axis.vertical,
       children: items.map((item) {
