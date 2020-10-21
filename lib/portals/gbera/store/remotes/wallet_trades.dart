@@ -258,6 +258,9 @@ mixin IWalletTradeRemote {
 
   Future<String> recharge(
       String currency, int amount, String payChannel, note) {}
+
+ Future<P2PRecordOR> transTo(int amount, String payee, int type, String note) {}
+
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -380,6 +383,24 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
       bankid: obj['bankid'],
       shunter: obj['shunter'],
     );
+  }
+
+  @override
+  Future<P2PRecordOR> transTo(int amount, String payee, int type, String note) async{
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'transTo',
+      parameters: {
+        'amount': amount,
+        'payee': payee,
+        'type': type,
+        'note': note,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return P2PRecordOR.parse(obj);
   }
 
   @override

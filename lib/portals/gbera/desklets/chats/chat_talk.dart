@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
@@ -13,15 +12,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/emoji.dart';
-import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
-import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
-import 'package:objectdb/objectdb.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatTalk extends StatefulWidget {
@@ -435,6 +431,8 @@ class _ChatTalkState extends State<ChatTalk> {
                 }
               },
               plusPanel: _PlusPannel(
+                context: widget.context,
+                room: _model,
                 pluginTap: (cmd) {
                   _doCommand(cmd).then((v) {
                     if (mounted) {
@@ -567,8 +565,10 @@ class _EmojiPanelState extends State<_EmojiPanel> {
 
 class _PlusPannel extends StatefulWidget {
   Function(_ChatCommand command) pluginTap;
+  PageContext context;
+  ChatRoomModel room;
 
-  _PlusPannel({this.pluginTap});
+  _PlusPannel({this.pluginTap, this.context, this.room});
 
   @override
   _PlusPannelState createState() => _PlusPannelState();
@@ -695,6 +695,30 @@ class _PlusPannelState extends State<_PlusPannel> {
           ),
         );
         break;
+      case 'transTo':
+        var members = widget.room.members;
+        var payee;
+        for (var m in members) {
+          if (m.official != widget.context.principal.person) {
+            payee = m;
+            break;
+          }
+        }
+        showDialog(
+            context: context,
+            builder: (ctx) {
+              return widget.context.part('/wallet/receipt/transTo', context,
+                  arguments: {'payee': payee});
+            }).then((value) {
+          if (value == null || value == '') {
+            return;
+          }
+          print('------$value');
+        });
+        break;
+      default:
+        print('不支持的发布插件:${plugin.id}');
+        break;
     }
   }
 
@@ -753,7 +777,7 @@ class _PlusPannelState extends State<_PlusPannel> {
   }
 
   List<TalkPlugin> _getPlugins() {
-    return [
+    var plugins = <TalkPlugin>[
       TalkPlugin(
         id: 'image',
         title: '图片',
@@ -790,20 +814,36 @@ class _PlusPannelState extends State<_PlusPannel> {
           color: Colors.grey[600],
         ),
       ),
-      TalkPlugin(
-        id: 'transTo',
-        title: '转账',
-        leading: SizedBox(
-          width: 30,
-          height: 30,
-          child: Icon(
-            FontAwesomeIcons.exchangeAlt,
-            size: 25,
-            color: Colors.grey[600],
-          ),
-        ),
-      ),
     ];
+    var room = widget.room;
+    var members = room.members;
+    if (members.length == 2) {
+      var hasMe = false;
+      for (var m in members) {
+        if (m.official == widget.context.principal.person) {
+          hasMe = true;
+          break;
+        }
+      }
+      if (hasMe) {
+        plugins.add(
+          TalkPlugin(
+            id: 'transTo',
+            title: '转账',
+            leading: SizedBox(
+              width: 30,
+              height: 30,
+              child: Icon(
+                FontAwesomeIcons.exchangeAlt,
+                size: 25,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    return plugins;
   }
 }
 

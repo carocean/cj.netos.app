@@ -7,6 +7,7 @@ import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/trans_to.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_progress.dart';
@@ -1659,6 +1660,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/absorb/bill',
           buildPage: (PageContext pageContext) => AbsorbBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '转账',
+          subtitle: '',
+          desc: 'p2p转账',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/receipt/transTo',
+          buildPage: (PageContext pageContext) => TranslateToPage(
             context: pageContext,
           ),
         ),

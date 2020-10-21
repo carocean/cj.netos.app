@@ -583,6 +583,23 @@ class P2PRecordOR {
     this.type,
     this.direct,
   });
+
+  P2PRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.payer = obj['payer'];
+    this.payerName = obj['payerName'];
+    this.payee = obj['payee'];
+    this.payeeName = obj['payeeName'];
+    this.currency = obj['currency'];
+    this.amount = obj['amount'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.lutime = obj['lutime'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.type = obj['type'];
+    this.direct = obj['direct'];
+  }
 }
 
 class P2PActivityOR {
