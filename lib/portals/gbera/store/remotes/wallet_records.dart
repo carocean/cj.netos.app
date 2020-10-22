@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:framework/framework.dart';
 
 class PurchaseOR {
@@ -600,6 +602,26 @@ class P2PRecordOR {
     this.type = obj['type'];
     this.direct = obj['direct'];
   }
+
+ Map<String,dynamic> toJson() {
+    return {
+      'sn':sn,
+      'payer':payer,
+      'payerName':payerName,
+      'payee':payee,
+      'payeeName':payeeName,
+      'currency':currency,
+      'amount':amount,
+      'state':state,
+      'ctime':ctime,
+      'lutime':lutime,
+      'status':status,
+      'message':message,
+      'type':type,
+      'direct':direct,
+    };
+ }
+
 }
 
 class P2PActivityOR {

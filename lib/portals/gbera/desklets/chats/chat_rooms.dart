@@ -45,7 +45,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   void initState() {
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
     _notifyStreamController = StreamController.broadcast();
-    chatroomNotifyStreamController=_notifyStreamController;
+    chatroomNotifyStreamController = _notifyStreamController;
     if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
       widget.context.listenMessage(_onmessage, matchPath: '/chat/room/message');
     }
@@ -425,6 +425,26 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
               '${listenPath}?msgid=$msgid&sender=$sender&room=$room&contentType=$contentType&content=$content&ctime=$ctime',
         );
         break;
+      case 'transTo':
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          StringUtil.isEmpty(ctime)
+              ? DateTime.now().millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        _notifyStreamController
+            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        break;
       default:
         print('收到未知的消息类型：$contentType');
         break;
@@ -579,7 +599,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   @override
   Widget build(BuildContext context) {
     if (!_isloaded) {
-      return Container(height: 0,width: 0,);
+      return Container(
+        height: 0,
+        width: 0,
+      );
     }
     var content;
 
@@ -860,6 +883,9 @@ class __ChatroomItemState extends State<_ChatroomItem> {
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
         _stateBar.tips = '$whois: 发来视频';
+        break;
+      case 'transTo':
+        _stateBar.tips = '$whois: 转账给我';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');

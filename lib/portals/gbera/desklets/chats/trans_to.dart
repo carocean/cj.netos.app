@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +23,9 @@ class _TranslateToPageState extends State<TranslateToPage> {
   TextEditingController _controller;
   Friend _payee;
   String note;
-  bool _waittingTransDone = false;
+  int _transToProgress = 0; //0为初始；1为处理中；2为处理完成
   StreamSubscription _streamSubscription;
+  P2PRecordOR _p2pRecordOR;
 
   @override
   void initState() {
@@ -70,16 +72,26 @@ class _TranslateToPageState extends State<TranslateToPage> {
     var result = await tradeRemote.transTo(amount, _payee.official, 0, note);
     if (mounted) {
       setState(() {
-        _waittingTransDone = true;
+        _transToProgress = 1;
       });
     }
     _streamSubscription = Stream.periodic(Duration(seconds: 1), (count) async {
       var record = await recordRemote.getP2PRecord(result.sn);
-      return record.state == 1;
+      _p2pRecordOR = record;
+      return record;
     }).listen((event) async {
       event.then((value) {
-        if (value) {
-          widget.context.backward(result: _controller.text);
+        var record = value;
+        if (record.state == 1) {
+          _transToProgress = 2;
+          if (record.status == 200) {
+            widget.context.backward(result: _p2pRecordOR);
+          } else {
+            if (mounted) {
+              setState(() {
+              });
+            }
+          }
         }
       });
     });
@@ -105,8 +117,8 @@ class _TranslateToPageState extends State<TranslateToPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset(
-                  '${widget.context.principal.avatarOnLocal}',
+                Image.file(
+                  File('${widget.context.principal.avatarOnLocal}'),
                   width: 50,
                   height: 50,
                 ),
@@ -172,42 +184,8 @@ class _TranslateToPageState extends State<TranslateToPage> {
                   ),
                   Expanded(
                     child: Column(
-                      children: [
-                        _waittingTransDone
-                            ? Container(
-                                padding: EdgeInsets.only(
-                                  top: 40,
-                                  bottom: 10,
-                                ),
-                                alignment: Alignment.center,
-                                child: Text('转账指令已发送，请稍候...'),
-                              )
-                            : Container(
-                                alignment: Alignment.bottomRight,
-                                padding: EdgeInsets.only(
-                                  bottom: 20,
-                                ),
-                                child: SizedBox(
-                                  height: 60,
-                                  child: FlatButton(
-                                    color: Colors.green,
-                                    onPressed: !_validAmount()
-                                        ? null
-                                        : () {
-                                            _transTo();
-                                          },
-                                    disabledColor: Colors.grey[400],
-                                    disabledTextColor: Colors.grey[500],
-                                    child: Text(
-                                      '转账',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                      ],
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: _renderPanel(),
                     ),
                   ),
                 ],
@@ -217,5 +195,63 @@ class _TranslateToPageState extends State<TranslateToPage> {
         ],
       ),
     );
+  }
+
+  List<Widget> _renderPanel() {
+    var items = <Widget>[];
+    var button = Container(
+      alignment: Alignment.bottomRight,
+      padding: EdgeInsets.only(
+        bottom: 20,
+      ),
+      child: SizedBox(
+        height: 60,
+        child: FlatButton(
+          color: Colors.green,
+          onPressed: !_validAmount()
+              ? null
+              : () {
+                  _transTo();
+                },
+          disabledColor: Colors.grey[400],
+          disabledTextColor: Colors.grey[500],
+          child: Text(
+            '转账',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+    var tips = Container(
+      padding: EdgeInsets.only(
+        top: 40,
+        bottom: 10,
+      ),
+      alignment: Alignment.center,
+      child: Text('转账指令已发送，请稍候...'),
+    );
+    switch (_transToProgress) {
+      case 0:
+        items.add(button);
+        break;
+      case 1:
+        items.add(tips);
+        break;
+      case 2:
+        items.add(
+          Container(
+            padding: EdgeInsets.only(
+              top: 40,
+              bottom: 20,
+            ),
+            alignment: Alignment.center,
+            child: Text('${_p2pRecordOR.status} ${_p2pRecordOR.message}',style: TextStyle(fontSize: 16,color: Colors.red,),),
+          ),
+        );
+        break;
+    }
+    return items;
   }
 }

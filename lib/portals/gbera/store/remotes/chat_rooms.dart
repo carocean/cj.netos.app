@@ -141,7 +141,8 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoomForeground(String room, bool isForegroundWhite) async{
+  Future<Function> updateRoomForeground(
+      String room, bool isForegroundWhite) async {
     remotePorts.portTask.addPortGETTask(
       chatPortsUrl,
       'updateRoomForeground',
@@ -540,6 +541,22 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           [localPath],
           callbackUrl:
               '$listenPath?creator=$creator&room=${message.room}&msgid=${message.id}&content=${message.content}&localPath=$localPath',
+        );
+        break;
+      case 'transTo':
+        remotePorts.portTask.addPortPOSTTask(
+          chatFlowPortsUrl,
+          'pushMessage',
+          parameters: {
+            'creator': creator,
+            'room': message.room,
+            'msgid': message.id,
+            'contentType': 'transTo',
+            'interval': 10,
+          },
+          data: {
+            'content': message.content,
+          },
         );
         break;
       default:

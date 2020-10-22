@@ -16,6 +16,7 @@ import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
@@ -284,6 +285,22 @@ class _ChatTalkState extends State<ChatTalk> {
           widget.context.principal.person,
           _chatRoom.id,
           'video',
+          content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      case 'transTo':
+        var content = cmd.message;
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'transTo',
           content,
           'sended',
           DateTime.now().millisecondsSinceEpoch,
@@ -713,7 +730,13 @@ class _PlusPannelState extends State<_PlusPannel> {
           if (value == null || value == '') {
             return;
           }
-          print('------$value');
+          P2PRecordOR recordOR = value as P2PRecordOR;
+          widget.pluginTap(
+            _ChatCommand(
+              cmd: plugin.id,
+              message: jsonEncode(recordOR.toJson()),
+            ),
+          );
         });
         break;
       default:
@@ -1425,6 +1448,57 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             src: File(file),
           ),
         );
+      case 'transTo':
+        var json = widget.p2pMessage.content;
+        var obj = jsonDecode(json);
+        var record=P2PRecordOR.parse(obj);
+        //
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: (){
+            widget.context.forward('/wallet/p2p/details',arguments: {'p2p':record});
+          },
+          child: Container(
+            padding: EdgeInsets.only(
+              top: 5,
+            ),
+            constraints: BoxConstraints.tightForFinite(
+              width: double.maxFinite,
+            ),
+            child: Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Color(0xFFD81919),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '收到转账！',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Center(
+                    child: Text(
+                      '¥${(record.amount / 100.00).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       default:
         print('不支持的消息类型:${widget.p2pMessage.contentType}');
         return Container(
@@ -1657,6 +1731,57 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           ),
           child: VideoView(
             src: File(file),
+          ),
+        );
+        break;
+      case 'transTo':
+        var json = widget.p2pMessage.content;
+        var obj = jsonDecode(json);
+        var record = P2PRecordOR.parse(obj);
+        display = Container(
+          padding: EdgeInsets.only(
+            top: 5,
+          ),
+          constraints: BoxConstraints.tightForFinite(
+            width: double.maxFinite,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: (){
+              widget.context.forward('/wallet/p2p/details',arguments: {'p2p':record});
+            },
+            child: Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Color(0xFFD81919),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '转出成功！',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Center(
+                    child: Text(
+                      '¥${(record.amount / 100.00).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
         break;
