@@ -335,7 +335,7 @@ class _WalletState extends State<Wallet> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Text(
-                          '银行卡',
+                          '公众卡',
                           style: widget.context
                               .style('/profile/list/item-title.text'),
                         ),

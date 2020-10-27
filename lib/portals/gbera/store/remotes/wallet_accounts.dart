@@ -180,6 +180,8 @@ mixin IPayChannelRemote {
 
   Future<PersonCardOR> createPersonCardByAuthCode(
       String payChannel, String authCode) {}
+
+  Future<List<PersonCardOR>> pagePersonCard(int limit, int offset) {}
 }
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
@@ -508,6 +510,23 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
       return null;
     }
     return PersonCardOR.parse(obj);
+  }
+
+  @override
+  Future<List<PersonCardOR>> pagePersonCard(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      payChannelPorts,
+      'pagePersonCard',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var cards=<PersonCardOR>[];
+    for(var obj in list) {
+      cards.add(PersonCardOR.parse(obj));
+    }
+    return cards;
   }
 }
 
