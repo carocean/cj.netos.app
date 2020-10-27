@@ -190,7 +190,9 @@ import 'package:netos_app/portals/gbera/pages/wallet/weny_account_stock.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Freezen.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_Profit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_bill_stock.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/withdraw_cancel.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/withdraw_result.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
@@ -1516,6 +1518,15 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '提现结果',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/withdrawResult',
+          buildPage: (PageContext pageContext) => WithdrawResultPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '银行卡',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1750,6 +1761,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/withdraw/details',
           buildPage: (PageContext pageContext) => WithdrawDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '提现撤销单',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/withdraw/cancel',
+          buildPage: (PageContext pageContext) => WithdrawCancel(
             context: pageContext,
           ),
         ),

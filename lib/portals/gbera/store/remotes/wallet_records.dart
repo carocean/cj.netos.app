@@ -183,7 +183,9 @@ class WithdrawOR {
   String currency;
   int demandAmount;
   int realAmount;
-  String toChannel;
+  String payChannel;
+  String payAccount;
+  String personCard;
   int state;
   String ctime;
   String lutime;
@@ -198,13 +200,33 @@ class WithdrawOR {
       this.currency,
       this.demandAmount,
       this.realAmount,
-      this.toChannel,
+      this.payChannel,
+      this.payAccount,
+      this.personCard,
       this.state,
       this.ctime,
       this.lutime,
       this.status,
       this.message,
       this.note});
+
+  WithdrawOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.person = obj['person'];
+    this.personName = obj['personName'];
+    this.currency = obj['currency'];
+    this.demandAmount = obj['demandAmount'];
+    this.realAmount = obj['realAmount'];
+    this.payChannel = obj['payChannel'];
+    this.payAccount = obj['payAccount'];
+    this.personCard = obj['personCard'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.lutime = obj['lutime'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.note = obj['note'];
+  }
 }
 
 class WithdrawActivityOR {
@@ -603,25 +625,24 @@ class P2PRecordOR {
     this.direct = obj['direct'];
   }
 
- Map<String,dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     return {
-      'sn':sn,
-      'payer':payer,
-      'payerName':payerName,
-      'payee':payee,
-      'payeeName':payeeName,
-      'currency':currency,
-      'amount':amount,
-      'state':state,
-      'ctime':ctime,
-      'lutime':lutime,
-      'status':status,
-      'message':message,
-      'type':type,
-      'direct':direct,
+      'sn': sn,
+      'payer': payer,
+      'payerName': payerName,
+      'payee': payee,
+      'payeeName': payeeName,
+      'currency': currency,
+      'amount': amount,
+      'state': state,
+      'ctime': ctime,
+      'lutime': lutime,
+      'status': status,
+      'message': message,
+      'type': type,
+      'direct': direct,
     };
- }
-
+  }
 }
 
 class P2PActivityOR {
@@ -1061,7 +1082,9 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       person: obj['person'],
       demandAmount: obj['demandAmount'],
       realAmount: obj['realAmount'],
-      toChannel: obj['toChannel'],
+      payChannel: obj['payChannel'],
+      payAccount: obj['payAccount'],
+      personCard: obj['personCard'],
     );
   }
 

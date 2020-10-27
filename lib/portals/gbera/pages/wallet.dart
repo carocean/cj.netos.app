@@ -20,7 +20,9 @@ class _WalletState extends State<Wallet> {
   @override
   void initState() {
     _loadAccounts().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -36,13 +38,39 @@ class _WalletState extends State<Wallet> {
         widget.context.site.getService('/wallet/accounts');
     _myWallet = await walletAccountService.getAllAcounts();
   }
-  Future<int> _totalPersonCard()async{
+
+  Future<int> _totalPersonCard() async {
     IPayChannelRemote payChannelRemote =
-    widget.context.site.getService('/wallet/payChannels');
+        widget.context.site.getService('/wallet/payChannels');
     return await payChannelRemote.totalPersonCard();
   }
+
   @override
   Widget build(BuildContext context) {
+    if (_myWallet == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('钱包'),
+          titleSpacing: 0,
+          elevation: 0,
+        ),
+        body: ConstrainedBox(
+          constraints: BoxConstraints.expand(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 40,
+                width: 40,
+                child: CircularProgressIndicator(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     var card_header = Container(
       constraints: BoxConstraints.expand(
         height: 100,
@@ -297,7 +325,7 @@ class _WalletState extends State<Wallet> {
                       Icons.credit_card,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(

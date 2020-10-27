@@ -78,6 +78,9 @@ class _DepositState extends State<Deposit> {
       case 'alipay':
         doResultAlipay(map);
         break;
+      default:
+        print('暂不支持渠道：${_selected.name}');
+        break;
     }
   }
 
@@ -487,13 +490,13 @@ getPayChannelIcon(PayChannel selected) {
     case 'alipay':
       return Icon(
         FontAwesomeIcons.alipay,
-        size: 25,
+        size: 35,
         color: Colors.blueAccent,
       );
     case 'wechat':
       return Icon(
         FontAwesomeIcons.weixin,
-        size: 25,
+        size: 35,
         color: Colors.green,
       );
     default:

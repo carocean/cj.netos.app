@@ -66,6 +66,13 @@ class _OnorderBillState extends State<OnorderBill> {
           arguments: {'withdraw': withdraw, 'wallet': _wallet},
         );
         break;
+      case 7: //提现撤销
+        var withdraw = await recordRemote.getWithdrawRecord(bill.refsn);
+        widget.context.forward(
+          '/wallet/withdraw/cancel',
+          arguments: {'withdraw': withdraw, 'wallet': _wallet},
+        );
+        break;
       case 8: //申购
         var purch = await recordRemote.getPurchaseRecord(bill.refsn);
         var bank;
@@ -106,42 +113,44 @@ class _OnorderBillState extends State<OnorderBill> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 5,
-                    ),
-                    child: Text(
-                      '${bill.order == 2 ? '提现预扣款-' : bill.order == 8 ? '申购预扣款-' : ''}${bill.title}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 5,
+                      ),
+                      child: Text(
+                        '${bill.order == 2 ? '提现预扣款-' : bill.order == 8 ? '申购预扣款-' : ''}${bill.title}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 5,
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 5,
+                      ),
+                      child: Text(
+                        '订单:${bill.refsn}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      '订单:${bill.refsn}',
+                    Text(
+                      '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime))}',
                       style: TextStyle(
-                        fontSize: 12,
                         color: Colors.grey[500],
+                        fontSize: 12,
                       ),
                     ),
-                  ),
-                  Text(
-                    '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime))}',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,

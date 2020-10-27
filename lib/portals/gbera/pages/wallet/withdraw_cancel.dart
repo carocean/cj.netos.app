@@ -10,16 +10,16 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 
-class WithdrawDetails extends StatefulWidget {
+class WithdrawCancel extends StatefulWidget {
   PageContext context;
 
-  WithdrawDetails({this.context});
+  WithdrawCancel({this.context});
 
   @override
-  _WithdrawDetailsState createState() => _WithdrawDetailsState();
+  _WithdrawCancelState createState() => _WithdrawCancelState();
 }
 
-class _WithdrawDetailsState extends State<WithdrawDetails> {
+class _WithdrawCancelState extends State<WithdrawCancel> {
   List<WithdrawActivityOR> _activities = [];
   Timer _timer;
   WithdrawOR _withdraw;
@@ -69,7 +69,7 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
             pinned: true,
             elevation: 0,
             automaticallyImplyLeading: true,
-            title: Text('提现单'),
+            title: Text('提现撤销单'),
             centerTitle: true,
           ),
           SliverToBoxAdapter(
@@ -108,7 +108,7 @@ class _WithdrawDetailsState extends State<WithdrawDetails> {
           ),
           Center(
             child: Text(
-              '¥${((withdraw.realAmount??0) / 100.00).toStringAsFixed(2)}',
+              '¥${((withdraw.demandAmount ?? 0) / 100.00).toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 30,
               ),

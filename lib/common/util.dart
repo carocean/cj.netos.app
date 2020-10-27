@@ -224,3 +224,20 @@ String parseInt(int count, int fractionDigits) {
   }
   return '${(count / 1024.00 / 1024.00 / 1024.00).toStringAsFixed(fractionDigits)}g';
 }
+Map<String,String> parseUrlParams(String paramStr){
+  Map<String,String> map={};
+  List<String> list=paramStr.split('&');
+  for(var pv in list){
+    if(StringUtil.isEmpty(pv)) {
+      continue;
+    }
+    List<String> keyPair=pv.split('=');
+    String k=keyPair[0];
+    String v='';
+    if(keyPair.length>1) {
+      v=keyPair[1];
+    }
+    map[k]=v;
+  }
+  return map;
+}

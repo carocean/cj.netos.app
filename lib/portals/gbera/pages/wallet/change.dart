@@ -120,7 +120,7 @@ class _ChangeState extends State<Change> {
             child: RaisedButton(
               onPressed: () {
                 debugPrint('提现');
-                widget.context.forward('/wallet/change/cashout');
+                widget.context.forward('/wallet/change/cashout',arguments: {'wallet':_myWallet,'changeController': _changeStreamController});
               },
               textColor:
                   widget.context.style('/wallet/change/cashout.textColor'),

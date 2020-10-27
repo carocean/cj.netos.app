@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
 
 class ExchangeResult {
   String sn;
@@ -259,8 +260,10 @@ mixin IWalletTradeRemote {
   Future<String> recharge(
       String currency, int amount, String payChannel, note) {}
 
- Future<P2PRecordOR> transTo(int amount, String payee, int type, String note) {}
+  Future<P2PRecordOR> transTo(
+      int amount, String payee, int type, String note) {}
 
+  Future<WithdrawOR> withdraw(int amount, String personCard, note) {}
 }
 
 class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
@@ -386,7 +389,8 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
   }
 
   @override
-  Future<P2PRecordOR> transTo(int amount, String payee, int type, String note) async{
+  Future<P2PRecordOR> transTo(
+      int amount, String payee, int type, String note) async {
     var obj = await remotePorts.portGET(
       walletTradePorts,
       'transTo',
@@ -397,7 +401,7 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
         'note': note,
       },
     );
-    if(obj==null) {
+    if (obj == null) {
       return null;
     }
     return P2PRecordOR.parse(obj);
@@ -571,5 +575,22 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
       },
     );
     return obj;
+  }
+
+  @override
+  Future<WithdrawOR> withdraw(int amount, String personCard, note) async {
+    var obj = await remotePorts.portGET(
+      walletTradePorts,
+      'withdraw',
+      parameters: {
+        'amount': amount,
+        'personCard': personCard,
+        'note': note,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return WithdrawOR.parse(obj);
   }
 }

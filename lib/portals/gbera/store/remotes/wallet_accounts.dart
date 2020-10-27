@@ -86,7 +86,60 @@ class BankInfo {
   });
 }
 
+class PersonCardOR {
+  String id;
+  String person;
+  String cardSn;
+  String cardHolder;
+  String cardName;
+  String cardAvatar;
+  String cardAttrBank;
+  String cardPubBank;
+  int cardType;
+  String cardPhone;
+
+  String payChannel;
+  String payPwd;
+  String ctime;
+
+  PersonCardOR({
+    this.id,
+    this.person,
+    this.cardSn,
+    this.cardHolder,
+    this.cardName,
+    this.cardAvatar,
+    this.cardAttrBank,
+    this.cardPubBank,
+    this.cardType,
+    this.cardPhone,
+    this.payChannel,
+    this.payPwd,
+    this.ctime,
+  });
+
+  PersonCardOR.parse(obj) {
+    this.id = obj['id'];
+    this.person = obj['person'];
+    this.cardSn = obj['cardSn'];
+    this.cardHolder = obj['cardHolder'];
+    this.cardName = obj['cardName'];
+    this.cardAvatar = obj['cardAvatar'];
+    this.cardAttrBank = obj['cardAttrBank'];
+    this.cardPubBank = obj['cardPubBank'];
+    this.cardType = obj['cardType'];
+    this.cardPhone = obj['cardPhone'];
+    this.payChannel = obj['payChannel'];
+    this.payPwd = obj['payPwd'];
+    this.ctime = obj['ctime'];
+  }
+}
+
 mixin IPayChannelRemote {
+  Future<PersonCardOR> getPersonCardById(String id);
+
+  Future<PersonCardOR> getPersonCard(String payChannelID);
+
   Future<List<PayChannel>> pagePayChannel(int limit, int offset);
 
   Future<PayChannel> getPayChannel(String payChannel) {}
@@ -124,6 +177,9 @@ mixin IPayChannelRemote {
 
   Future<int> totalMonthBillByAccount(
       String accountid, int order, int year, int month) {}
+
+  Future<PersonCardOR> createPersonCardByAuthCode(
+      String payChannel, String authCode) {}
 }
 mixin IWalletAccountRemote {
   Future<MyWallet> getAllAcounts() {}
@@ -405,6 +461,53 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
         'channel': channel,
       },
     );
+  }
+
+  @override
+  Future<PersonCardOR> getPersonCard(String payChannelID) async {
+    var obj = await remotePorts.portGET(
+      payChannelPorts,
+      'getPersonCard',
+      parameters: {
+        'payChannel': payChannelID,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return PersonCardOR.parse(obj);
+  }
+
+  @override
+  Future<PersonCardOR> getPersonCardById(String id) async {
+    var obj = await remotePorts.portGET(
+      payChannelPorts,
+      'getPersonCardById',
+      parameters: {
+        'id': id,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return PersonCardOR.parse(obj);
+  }
+
+  @override
+  Future<PersonCardOR> createPersonCardByAuthCode(
+      String payChannel, String authCode) async {
+    var obj = await remotePorts.portGET(
+      payChannelPorts,
+      'createPersonCardByAuthCode',
+      parameters: {
+        'payChannel': payChannel,
+        'authCode': authCode,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return PersonCardOR.parse(obj);
   }
 }
 

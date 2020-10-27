@@ -282,6 +282,23 @@ class WithdrawRecordOR {
       this.refsn,
       this.status,
       this.message});
+
+  WithdrawRecordOR.parse(obj) {
+    this.sn=obj['sn'];
+    this.bankid=obj['bankid'];
+    this.shunter=obj['shunter'];
+    this.alias=obj['alias'];
+    this.withdrawer=obj['withdrawer'];
+    this.personName=obj['personName'];
+    this.reqAmount=obj['reqAmount'];
+    this.realAmount=obj['realAmount'];
+    this.ctime=obj['ctime'];
+    this.cBtime=obj['cBtime'];
+    this.state=obj['state'];
+    this.refsn=obj['refsn'];
+    this.status=obj['status'];
+    this.message=obj['message'];
+  }
 }
 
 class HubTailsBillOR {
