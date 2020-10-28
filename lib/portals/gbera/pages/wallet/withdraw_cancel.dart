@@ -98,7 +98,7 @@ class _WithdrawCancelState extends State<WithdrawCancel> {
               bottom: 4,
             ),
             child: Text(
-              '金额:',
+              '提出金额:',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[400],
@@ -209,6 +209,64 @@ class _WithdrawCancelState extends State<WithdrawCancel> {
                 Expanded(
                   child: Text(
                     '¥${(withdraw.demandAmount / 100).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '服务费:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(withdraw.feeAmount / 100).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '费率:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '${(withdraw.feeRatio*100)?.toStringAsFixed(2)}%',
                   ),
                 ),
               ],

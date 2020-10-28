@@ -85,6 +85,9 @@ class _CashoutState extends State<Cashout> {
       personCardOR = await _discoveryAndBindCard(payChannelRemote);
       if (personCardOR == null) {
         _errorTips = '不能提现，没有公众卡';
+        if (mounted) {
+          setState(() {});
+        }
         return;
       }
     }
@@ -147,7 +150,7 @@ class _CashoutState extends State<Cashout> {
   }
 
   bool _isValidButton() {
-    _errorTips=null;
+    _errorTips = null;
     if (_isCashing) {
       return false;
     }

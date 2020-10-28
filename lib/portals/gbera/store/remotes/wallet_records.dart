@@ -183,6 +183,8 @@ class WithdrawOR {
   String currency;
   int demandAmount;
   int realAmount;
+  int feeAmount;
+  double feeRatio;
   String payChannel;
   String payAccount;
   String personCard;
@@ -200,6 +202,8 @@ class WithdrawOR {
       this.currency,
       this.demandAmount,
       this.realAmount,
+      this.feeAmount,
+      this.feeRatio,
       this.payChannel,
       this.payAccount,
       this.personCard,
@@ -217,6 +221,8 @@ class WithdrawOR {
     this.currency = obj['currency'];
     this.demandAmount = obj['demandAmount'];
     this.realAmount = obj['realAmount'];
+    this.feeAmount = obj['feeAmount'];
+    this.feeRatio = obj['feeRatio'];
     this.payChannel = obj['payChannel'];
     this.payAccount = obj['payAccount'];
     this.personCard = obj['personCard'];
@@ -1069,23 +1075,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
         'record_sn': refsn,
       },
     );
-    return WithdrawOR(
-      ctime: obj['ctime'],
-      lutime: obj['lutime'],
-      state: obj['state'],
-      message: obj['message'],
-      note: obj['note'],
-      sn: obj['sn'],
-      status: obj['status'],
-      personName: obj['personName'],
-      currency: obj['currency'],
-      person: obj['person'],
-      demandAmount: obj['demandAmount'],
-      realAmount: obj['realAmount'],
-      payChannel: obj['payChannel'],
-      payAccount: obj['payAccount'],
-      personCard: obj['personCard'],
-    );
+    return WithdrawOR.parse(obj);
   }
 
   @override
