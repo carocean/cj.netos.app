@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
+import 'package:netos_app/system/local/app_upgrade.dart';
 import 'package:netos_app/system/task_bar.dart';
+import 'package:open_file/open_file.dart';
 
 import 'system/local/dao/database.dart';
 import 'system/system.dart';
@@ -58,6 +60,7 @@ void main() => platformRun(
             '@.prop.ports.uc.app': 'http://47.105.165.186/uc/app/self.service',
             '@.prop.ports.uc.platform':
                 'http://47.105.165.186/uc/platform/self.service',
+            '@.prop.ports.uc.product': 'http://47.105.165.186/uc/product.ports',
             '@.prop.ports.asc': 'http://47.105.165.186/asc/center.ports',
             '@.prop.fs.delfile': 'http://47.105.165.186:7110/del/file/',
             '@.prop.fs.uploader':
@@ -75,8 +78,10 @@ void main() => platformRun(
             '@.prop.ports.document.geo.receptor':
                 'http://47.105.165.186/document/geo/receptor.service',
             '@.prop.ports.wallet': 'http://47.105.165.186/wallet/wallet.ports',
-            '@.prop.ports.wallet.payChannel': 'http://47.105.165.186/wallet/partner/payChannel.ports',
-            '@.prop.ports.wallet.channelBill': 'http://47.105.165.186/wallet/partner/channel/bill.ports',
+            '@.prop.ports.wallet.payChannel':
+                'http://47.105.165.186/wallet/partner/payChannel.ports',
+            '@.prop.ports.wallet.channelBill':
+                'http://47.105.165.186/wallet/partner/channel/bill.ports',
             '@.prop.ports.wallet.balance':
                 'http://47.105.165.186/wallet/balance.ports',
             '@.prop.ports.wallet.record':
@@ -127,8 +132,10 @@ void main() => platformRun(
                 'http://47.105.165.186/robot/record.ports',
             '@.prop.ports.robot.hubTails':
                 'http://47.105.165.186/robot/bill/hubTails.ports',
-            '@.prop.ports.chasechain.recommender':'http://47.105.165.186/chasechain.recommender/recommender.ports',
-            '@.prop.ports.chasechain.trafficPool':'http://47.105.165.186/chasechain.recommender/trafficPool.ports',
+            '@.prop.ports.chasechain.recommender':
+                'http://47.105.165.186/chasechain.recommender/recommender.ports',
+            '@.prop.ports.chasechain.trafficPool':
+                'http://47.105.165.186/chasechain.recommender/trafficPool.ports',
           },
           buildServices: (site) async {
             final database = await $FloorAppDatabase
@@ -190,33 +197,268 @@ void main() => platformRun(
           }),
     );
 
-class Window extends StatelessWidget {
+class Window extends StatefulWidget {
   Widget viewport;
   IServiceProvider site;
 
   Window({this.viewport, this.site});
 
   @override
+  _WindowState createState() => _WindowState();
+}
+
+class _WindowState extends State<Window> {
+  UpgradeInfo _upgradeInfo;
+  double _progressValue = 0.0;
+  int _isInstalling = 0; //1下戴中；2正在安装；
+  @override
+  void initState() {
+    () async {
+      IAppUpgrade appUpgrade = widget.site.getService('/app/upgrade');
+      _upgradeInfo = await appUpgrade.loadUpgradeInfo();
+      if (mounted) {
+        setState(() {});
+      }
+    }();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _installApp() async {
+    if (Platform.isIOS) {
+      // await InstallPlugin.gotoAppStore(_upgradeInfo.newestVersionDownloadUrl);
+      return;
+    }
+    if (mounted) {
+      setState(() {
+        _isInstalling = 1;
+      });
+    }
+    IAppUpgrade appUpgrade = widget.site.getService('/app/upgrade');
+    appUpgrade.downloadApp((i, j, f) async {
+      if (mounted) {
+        setState(() {
+          _progressValue = (i * 1.0) / j;
+        });
+      }
+      if (i == j) {
+        //完成下载
+        if (mounted) {
+          _isInstalling = 2;
+        }
+        await OpenFile.installApk(f);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var items = <Widget>[
+      widget.viewport,
+      Positioned(
+        top: Platform.isAndroid ? 6 : 14,
+        left: Platform.isAndroid ? 90 : 30,
+        right: 0,
+        child: StatusBar(),
+      ),
+      Positioned(
+        top: Platform.isAndroid ? 23 : 31,
+        left: Platform.isAndroid ? 90 : 30,
+        height: 1,
+        width: 30,
+        child: TaskBar(widget.site, _progressTaskBar),
+      ),
+    ];
+    if (_upgradeInfo != null &&
+        !_upgradeInfo.isHide &&
+        _upgradeInfo.canUpgrade) {
+      items.add(Scaffold(
+        backgroundColor: Color(0xdd8E8E8E),
+        body: Container(
+          constraints: BoxConstraints.expand(),
+          padding: EdgeInsets.only(
+            left: 40,
+            right: 40,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8)),
+                ),
+                padding: EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 15,
+                  bottom: 10,
+                ),
+                child: Text(
+                  '检测到新版本 ${_upgradeInfo.currentVersion}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 1,
+                child: LinearProgressIndicator(
+                  value: _progressValue,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                ),
+              ),
+              Container(
+                color: Colors.white,
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _renderFunctionList(),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8)),
+                ),
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _renderButtons(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ));
+    }
     return Stack(
       fit: StackFit.loose,
-      children: <Widget>[
-        this.viewport,
-        Positioned(
-          top: Platform.isAndroid ? 6 : 14,
-          left: Platform.isAndroid ? 90 : 30,
-          right: 0,
-          child: StatusBar(),
-        ),
-        Positioned(
-          top: Platform.isAndroid ? 23 : 31,
-          left: Platform.isAndroid ? 90 : 30,
-          height: 1,
-          width: 30,
-          child: TaskBar(site, _progressTaskBar),
-        ),
-      ],
+      children: items,
     );
+  }
+
+  _renderFunctionList() {
+    var items = <Widget>[];
+    var functionList = _upgradeInfo?.productVersion?.functionList ?? [];
+    for (var i = 0; i < functionList.length; i++) {
+      var f = functionList[i];
+      if (StringUtil.isEmpty(f)) {
+        continue;
+      }
+      items.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '*',
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            SizedBox(
+              width: 5,
+            ),
+            Expanded(
+              child: Text(
+                '$f',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (i < functionList.length - 1) {
+        items.add(
+          SizedBox(
+            height: 10,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  _renderButtons() {
+    var items = <Widget>[];
+    var forceUpgrade = _upgradeInfo.productVersion?.forceUpgrade ?? 0;
+    if (forceUpgrade == 0) {
+      items.add(
+        RaisedButton(
+          color: Colors.grey,
+          textColor: Colors.white,
+          onPressed: () {
+            _upgradeInfo.isHide = true;
+            if (mounted) {
+              setState(() {});
+            }
+          },
+          child: Text('下次再说'),
+        ),
+      );
+      items.add(
+        SizedBox(
+          width: 10,
+        ),
+      );
+    }
+    items.add(
+      RaisedButton(
+        color: _isInstalling == 0 ? Colors.green : Colors.grey,
+        textColor: Colors.white,
+        onPressed: _isInstalling > 0
+            ? null
+            : () {
+                _installApp();
+              },
+        child: Text('${_rendProgressTips()}'),
+      ),
+    );
+    return items;
+  }
+
+  _rendProgressTips() {
+    if (_isInstalling == 0) {
+      return '立即升级';
+    }
+    if (_isInstalling == 1) {
+      return '下载中... ${(_progressValue * 100).toStringAsFixed(2)}%';
+    }
+    if (_isInstalling == 2) {
+      return '正在安装...';
+    }
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/system/local/app_upgrade.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/pages/person_card.dart';
@@ -28,6 +29,7 @@ System buildSystem(IServiceProvider site) {
         '/remote/persons': PersonRemote(),
         '/cache/persons': PersonCache(),
         '/cache/channels': ChannelCache(),
+        '/app/upgrade': DefaultAppUpgrade(),
       };
     },
     buildThemes: buildThemes,
