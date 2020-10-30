@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
@@ -138,8 +139,24 @@ void main() => platformRun(
                 'http://47.105.165.186/chasechain.recommender/trafficPool.ports',
           },
           buildServices: (site) async {
+            final callback = Callback(
+              onCreate: (database, version) {
+                /* database has been created */
+                print('--------database onCreate $version');
+              },
+              onOpen: (database) {
+                /* database has been opened */
+                print('--------database onOpen}');
+              },
+              onUpgrade: (database, startVersion, endVersion) {
+                print('--------database onUpgrade $startVersion $endVersion');
+                /* database has been upgraded */
+              },
+            );
+
             final database = await $FloorAppDatabase
                 .databaseBuilder('app_database.db')
+                .addCallback(callback)
                 .build();
             return <String, dynamic>{
               '@.db': database,
