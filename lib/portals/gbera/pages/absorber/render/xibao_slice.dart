@@ -32,7 +32,7 @@ class _XibaoSliceImageState extends State<XibaoSliceImage> {
 
   @override
   Widget build(BuildContext context) {
-    var greetings = _sliceTemplate.props['greetings'];
+    var greetings = _qrcodeSliceOR.props['greetings'];
     return Scaffold(
       body: Stack(
         children: [

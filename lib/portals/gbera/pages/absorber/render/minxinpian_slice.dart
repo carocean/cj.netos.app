@@ -32,7 +32,7 @@ class _MinXinPianSliceImageState extends State<MinXinPianSliceImage> {
 
   @override
   Widget build(BuildContext context) {
-    var content = _sliceTemplate.props['content'];
+    var content = _qrcodeSliceOR.props['content'];
     return Scaffold(
       body: Stack(
         children: [

@@ -32,7 +32,7 @@ class _CaishengSliceImageState extends State<CaishengSliceImage> {
 
   @override
   Widget build(BuildContext context) {
-    var advices = _sliceTemplate.props['advices'];
+    var advices = _qrcodeSliceOR.props['advices'];
     return Scaffold(
       body: Stack(
         children: [

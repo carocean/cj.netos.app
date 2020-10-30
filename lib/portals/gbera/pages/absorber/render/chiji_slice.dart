@@ -31,7 +31,7 @@ class _ChijiSliceImageState extends State<ChijiSliceImage> {
   }
   @override
   Widget build(BuildContext context) {
-    var note = _sliceTemplate.props['note'];
+    var note = _qrcodeSliceOR.props['note'];
     return Scaffold(
       body: Stack(
         children: [

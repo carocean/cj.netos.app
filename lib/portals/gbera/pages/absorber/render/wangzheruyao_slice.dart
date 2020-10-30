@@ -32,7 +32,7 @@ class _WangzheruyaoSliceImageState extends State<WangzheruyaoSliceImage> {
   }
   @override
   Widget build(BuildContext context) {
-    var note = _sliceTemplate.props['note'];
+    var note = _qrcodeSliceOR.props['note'];
     return Scaffold(
       body: Stack(
         children: [

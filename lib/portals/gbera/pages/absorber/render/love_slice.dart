@@ -32,7 +32,7 @@ class _LoveSliceImageState extends State<LoveSliceImage> {
 
   @override
   Widget build(BuildContext context) {
-    var poetry = _sliceTemplate.props['poetry'];
+    var poetry = _qrcodeSliceOR.props['poetry'];
     return Scaffold(
       body: Stack(
         children: [
