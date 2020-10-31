@@ -41,6 +41,8 @@ mixin IPersonService {
   Future<void> removePerson(String person) {}
 
   Future<void> updateRights(String official, param1) {}
+
+  Future<bool> existsAccount(String accountCode) {}
 }
 mixin IChannelService {
   ///地圈管道标识
@@ -245,8 +247,7 @@ mixin IChannelPinService {
   Future<void> updateInputPersonRights(
       String official, String channel, String rights) {}
 
- Future<ChannelOutputPerson> getLastOutputPerson(String channel) {}
-
+  Future<ChannelOutputPerson> getLastOutputPerson(String channel) {}
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}

@@ -68,15 +68,18 @@ class _PoolPageState extends State<PersonViewPage> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     var dio = widget.context.site.getService('@.http');
+    var avatar = _person.avatar.startsWith('/')
+        ? _person.avatar
+        : await downloadPersonAvatar(
+            dio: dio,
+            avatarUrl:
+                '${_person.avatar}?accessToken=${widget.context.principal.accessToken}');
     Person person = Person(
         _person.official,
         _person.uid,
         _person.accountCode,
         _person.appid,
-        await downloadPersonAvatar(
-            dio: dio,
-            avatarUrl:
-                '${_person.avatar}?accessToken=${widget.context.principal.accessToken}'),
+        avatar,
         null,
         _person.nickName,
         _person.signature,
@@ -191,33 +194,31 @@ class _PoolPageState extends State<PersonViewPage> {
           ),
         ],
       ),
-      body: Container(
-        constraints: BoxConstraints.expand(),
-        child: Column(
-          children: <Widget>[
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.only(
-                left: 15,
-                right: 15,
-                top: 10,
-              ),
-              child: Column(
-                children: <Widget>[
-                  _renderProviderInfoPanel(),
-                  SizedBox(
-                    height: 40,
-                  ),
+      body: Column(
+        children: <Widget>[
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(
+              left: 15,
+              right: 15,
+              top: 10,
+            ),
+            child: Column(
+              children: <Widget>[
+                _renderProviderInfoPanel(),
+                SizedBox(
+                  height: 40,
+                ),
 //              CardItem(
 //                title: '权限',
 //                tipsText: '',
 //              ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
 //                        Icon(
 //                          Icons.add,
 //                          size: 12,
@@ -226,68 +227,68 @@ class _PoolPageState extends State<PersonViewPage> {
 //                        SizedBox(
 //                          width: 2,
 //                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _isSaving ||
-                                  _person.official ==
-                                      widget.context.principal.person
-                              ? null
-                              : () {
-                                  if (_isAdded) {
-                                    _removePerson();
-                                  } else {
-                                    _addPerson();
-                                  }
-                                },
-                          child: Text(
-                            '${_getActionLabel()}',
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              decoration: TextDecoration.underline,
-                            ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _isSaving ||
+                                _person.official ==
+                                    widget.context.principal.person
+                            ? null
+                            : () {
+                                if (_isAdded) {
+                                  _removePerson();
+                                } else {
+                                  _addPerson();
+                                }
+                              },
+                        child: Text(
+                          '${_getActionLabel()}',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+              ],
             ),
-            SizedBox(
-              height: 10,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
             ),
-            Container(
-              color: Colors.white,
+            alignment: Alignment.center,
+            child: Column(
+              children: _renderActionPanel(),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Expanded(
+            child: Container(
               padding: EdgeInsets.only(
-                top: 15,
-                bottom: 15,
+                top: 10,
               ),
-              alignment: Alignment.center,
-              child: Column(
-                children: _renderActionPanel(),
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.only(
-                  top: 10,
-                ),
-                color: Colors.white,
-                child: _ContentBoxListPanel(
-                  context: widget.context,
-                ),
+              color: Colors.white,
+              constraints: BoxConstraints.expand(),
+              child: _ContentBoxListPanel(
+                context: widget.context,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -405,7 +406,7 @@ class _PoolPageState extends State<PersonViewPage> {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           messageSender
-              .open(widget.context, members:<String>[ _person.official]);
+              .open(widget.context, members: <String>[_person.official]);
         },
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -503,47 +504,85 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
       onLoad: _load,
       slivers: _boxList.map((box) {
         return SliverToBoxAdapter(
-          child: Column(
-            children: <Widget>[
-              CardItem(
-                title: '${box.pointer.title}',
-                leading: StringUtil.isEmpty(box.pointer.leading)
-                    ? Image.asset(
-                        'lib/portals/gbera/images/netflow.png',
-                        width: 40,
-                        height: 40,
-                      )
-                    : FadeInImage.assetNetwork(
-                        placeholder:
-                            'lib/portals/gbera/images/default_watting.gif',
-                        image:
-                            '${box.pointer.leading}?accessToken=${widget.context.principal.accessToken}',
-                        width: 40,
-                        height: 40,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward(
+                '/chasechain/box',
+                arguments: {'box': box, 'pool': box.pool},
+              );
+            },
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      StringUtil.isEmpty(box.pointer.leading)
+                          ? Image.asset(
+                              'lib/portals/gbera/images/netflow.png',
+                              width: 40,
+                              height: 40,
+                            )
+                          : FadeInImage.assetNetwork(
+                              placeholder:
+                                  'lib/portals/gbera/images/default_watting.gif',
+                              image:
+                                  '${box.pointer.leading}?accessToken=${widget.context.principal.accessToken}',
+                              width: 40,
+                              height: 40,
+                            ),
+                      SizedBox(
+                        width: 10,
                       ),
-                subtitle: Text(
-                  '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${box.pointer.title}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: Colors.grey[400],
+                      ),
+                    ],
                   ),
                 ),
-                paddingLeft: 15,
-                paddingRight: 15,
-                onItemTap: () {
-                  widget.context.forward(
-                    '/chasechain/box',
-                    arguments: {'box': box, 'pool': box.pool},
-                  );
-                },
-              ),
-              SizedBox(
-                height: 15,
-                child: Divider(
-                  height: 1,
+                SizedBox(
+                  height: 15,
+                  child: Divider(
+                    height: 1,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),

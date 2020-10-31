@@ -284,20 +284,20 @@ class WithdrawRecordOR {
       this.message});
 
   WithdrawRecordOR.parse(obj) {
-    this.sn=obj['sn'];
-    this.bankid=obj['bankid'];
-    this.shunter=obj['shunter'];
-    this.alias=obj['alias'];
-    this.withdrawer=obj['withdrawer'];
-    this.personName=obj['personName'];
-    this.reqAmount=obj['reqAmount'];
-    this.realAmount=obj['realAmount'];
-    this.ctime=obj['ctime'];
-    this.cBtime=obj['cBtime'];
-    this.state=obj['state'];
-    this.refsn=obj['refsn'];
-    this.status=obj['status'];
-    this.message=obj['message'];
+    this.sn = obj['sn'];
+    this.bankid = obj['bankid'];
+    this.shunter = obj['shunter'];
+    this.alias = obj['alias'];
+    this.withdrawer = obj['withdrawer'];
+    this.personName = obj['personName'];
+    this.reqAmount = obj['reqAmount'];
+    this.realAmount = obj['realAmount'];
+    this.ctime = obj['ctime'];
+    this.cBtime = obj['cBtime'];
+    this.state = obj['state'];
+    this.refsn = obj['refsn'];
+    this.status = obj['status'];
+    this.message = obj['message'];
   }
 }
 
@@ -391,10 +391,12 @@ class QrcodeSliceOR {
     this.state = obj['state'];
     this.note = obj['note'];
     var propList = obj['properties'];
-    this.props = <String, SlicePropOR>{};
-    for (var pobj in propList) {
-      var prop = SlicePropOR.parse(pobj);
-      this.props[prop.propId] = prop;
+    if(propList!=null) {
+      this.props = <String, SlicePropOR>{};
+      for (var pobj in propList) {
+        var prop = SlicePropOR.parse(pobj);
+        this.props[prop.propId] = prop;
+      }
     }
   }
 }
@@ -706,6 +708,8 @@ mixin IRobotRemote {
   Future<bool> canntPubSliceRecipients(String absorberid) {}
 
   Future<bool> cannotCreateQrocdeSlice() {}
+
+  Future<List<QrcodeSliceOR>> listUnconsumeSlices() {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -1967,5 +1971,21 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       robotHubPorts,
       'cannotCreateQrocdeSlice',
     );
+  }
+
+
+  @override
+  Future<List<QrcodeSliceOR>> listUnconsumeSlices()async {
+    var list = await remotePorts.portGET(
+      robotHubPorts,
+      'listUnconsumeSlices',
+      parameters: {
+      },
+    );
+    List<QrcodeSliceOR> items = [];
+    for (var obj in list) {
+      items.add(QrcodeSliceOR.parse(obj));
+    }
+    return items;
   }
 }

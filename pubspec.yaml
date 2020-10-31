@@ -1,6 +1,11 @@
 name: netos_app
 description: 地微
 
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
@@ -14,7 +19,8 @@ description: 地微
 version: 0.0.6
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
+
 dependencies:
   flutter:
     sdk: flutter
@@ -58,7 +64,7 @@ dependencies:
   amap_location_fluttify: ^0.8.11+481e45c
   amap_search_fluttify: ^0.7.9+481e45c
   amap_map_fluttify: ^0.18.2+c038d50
-  extended_text_field: ^4.0.0
+  extended_text_field: ^5.0.0
   #已将源码拷到工程
   #  w_popup_menu: ^0.3.0
   popup_menu: ^1.0.5
@@ -94,6 +100,11 @@ dependencies:
   package_info: ^0.4.3
   open_file:
     path: open_file
+  azlistview: ^1.0.1
+  easy_contact_picker: ^0.0.2
+  flutter_contact: ^0.5.1
+  flutter_sms: ^2.1.1
+  url_launcher: ^5.7.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -170,7 +181,7 @@ flutter:
     - lib/portals/gbera/images/cat-grey.gif
     - lib/portals/gbera/images/default_watting.gif
     - lib/portals/nodepower/assets/wybank_config_template.yaml
-
+    - lib/portals/gbera/images/ic_index_bar_bubble_gray.png
   fonts:
     - family: geo_discovery
       fonts:

@@ -6,6 +6,8 @@ import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
+import 'package:netos_app/portals/gbera/contants/cardcases.dart';
+import 'package:netos_app/portals/gbera/contants/public_persons.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/trans_to.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
@@ -224,6 +226,7 @@ import 'package:netos_app/portals/gbera/styles/teal-styles.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 import 'desklets/chats/add_friend.dart';
 import 'desklets/chats/chat_talk.dart';
@@ -901,6 +904,24 @@ class GberaPortal {
           icon: Icons.settings_input_composite,
           url: '/netflow/channel/settings/persons',
           buildPage: (PageContext pageContext) => SettingsPersons(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '公众',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/person/public',
+          buildPage: (PageContext pageContext) => PublicPersonsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '名片夹',
+          subtitle: '',
+          icon: null,
+          url: '/cardcases',
+          buildPage: (PageContext pageContext) => CardcasesPage(
             context: pageContext,
           ),
         ),

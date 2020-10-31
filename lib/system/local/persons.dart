@@ -61,6 +61,37 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
+  Future<bool> existsAccount(String accountCode) async {
+    var response = await _dio.get(
+      _personUrl,
+      options: Options(
+        headers: {
+          'Rest-Command': 'existsPerson',
+          'cjtoken': principal.accessToken,
+        },
+      ),
+      queryParameters: {
+        'accountCode': accountCode,
+        'appid': 'gbera.netos',
+      },
+    );
+    if (response.statusCode >= 400) {
+      throw FlutterError('${response.statusCode} ${response.statusMessage}');
+    }
+    var data = response.data;
+    var content = jsonDecode(data);
+    if (content['status'] >= 400) {
+      throw FlutterError('${content['status']} ${content['message']}');
+    }
+    var dataText = content['dataText'];
+    var obj = jsonDecode(dataText);
+    if (obj == null) {
+      return null;
+    }
+    return obj;
+  }
+
+  @override
   Future<Person> fetchPerson(official, {bool isDownloadAvatar = false}) async {
     var response = await _dio.get(
       _personUrl,
