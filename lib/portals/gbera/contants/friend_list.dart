@@ -3,29 +3,30 @@ import 'dart:io';
 import 'package:azlistview/azlistview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:framework/core_lib/_utimate.dart';
+import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
-import 'package:netos_app/portals/gbera/contants/person_menus.dart';
-import 'package:netos_app/portals/gbera/contants/person_models.dart';
-import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
-class PublicPersonsPage extends StatefulWidget {
+import 'friend_models.dart';
+
+class FriendsPage extends StatefulWidget {
   PageContext context;
 
-  PublicPersonsPage({this.context});
+  FriendsPage({this.context});
 
   @override
-  _PublicPersonsPageState createState() => _PublicPersonsPageState();
+  _FriendsPgeState createState() => _FriendsPgeState();
 }
 
-class _PublicPersonsPageState extends State<PublicPersonsPage> {
-  List<ContactInfo> _contactList = [];
+class _FriendsPgeState extends State<FriendsPage> {
+  List<FriendInfo> _contactList = [];
   TextEditingController _controller;
   String _query;
   FocusNode _focusNode;
+
   @override
   void initState() {
     _focusNode = FocusNode();
@@ -35,7 +36,6 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
       }
     });
     _controller = TextEditingController();
-    person.registerQrcodeAction(widget.context);
     _onLoad();
     super.initState();
   }
@@ -53,23 +53,29 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
   }
 
   Future<void> _onLoad() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    List<Person> persons;
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
+    List<Friend> friends;
     if (StringUtil.isEmpty(_query)) {
-      persons = await personService.pagePerson(10000000, 0);
+      friends = await friendService.pageFriend(10000000, 0);
     } else {
-      persons =
-      await personService.pagePersonLikeName0('%$_query%', 10000000, 0);
+      List<String> officials = [];
+      friends = await friendService.pageFriendLikeName(
+          '%$_query%', officials, 10000000, 0);
     }
-    persons.forEach((v) {
-      _contactList.add(ContactInfo.fromJson(v));
+    friends.forEach((v) {
+      _contactList.add(FriendInfo.fromJson(v));
     });
     _handleList(_contactList);
   }
 
-  void _handleList(List<ContactInfo> list) {
-    if (list == null || list.isEmpty) return;
+  void _handleList(List<FriendInfo> list) {
+    if (list == null || list.isEmpty) {
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
     for (int i = 0, length = list.length; i < length; i++) {
       String pinyin = PinyinHelper.getPinyinE(list[i].nickName);
       String tag = pinyin.substring(0, 1).toUpperCase();
@@ -95,13 +101,26 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
   Widget build(BuildContext context) {
     var body;
     if (_contactList.isEmpty) {
-      body = Container();
+      body = Container(
+        constraints: BoxConstraints.expand(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '没有好友',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
     } else {
       body = AzListView(
         data: _contactList,
         itemCount: _contactList.length,
         itemBuilder: (BuildContext context, int index) {
-          ContactInfo model = _contactList[index];
+          FriendInfo model = _contactList[index];
           return _getContactListItem(
             context,
             model,
@@ -112,7 +131,7 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
         },
         physics: BouncingScrollPhysics(),
         susItemBuilder: (BuildContext context, int index) {
-          ContactInfo model = _contactList[index];
+          FriendInfo model = _contactList[index];
           if ('↑' == model.getSuspensionTag()) {
             return Container();
           }
@@ -161,13 +180,13 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
             border: InputBorder.none,
             filled: true,
             fillColor: Theme.of(context).backgroundColor,
-            hintText: _focusNode.hasFocus ?'输入公众名、电话、手机号':'公众',
+            hintText: _focusNode.hasFocus ?'输入好友名、电话、手机号':'好友',
             hintStyle: _focusNode.hasFocus
                 ? null
                 : TextStyle(
-              fontSize: 20,
-              color: Colors.black,
-            ),
+                    fontSize: 20,
+                    color: Colors.black,
+                  ),
             suffix: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: (){
@@ -181,14 +200,19 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
             ),
           ),
         ),
-        elevation: 0,
-        centerTitle: true,
         titleSpacing: 0,
-        actions: <Widget>[
-          getPersonsPagePopupMenu(
-            refresh: _refresh,
-            pageContext: widget.context,
-            context: context,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              FontAwesomeIcons.userPlus,
+              size: 20,
+            ),
+            onPressed: () {
+              widget.context.forward('/contacts/person/selector').then((value) {
+                _refresh();
+              });
+            },
           ),
         ],
       ),
@@ -220,7 +244,7 @@ Widget _getSusItem(BuildContext context, String tag, {double susHeight = 40}) {
 
 Widget _getContactListItem(
   BuildContext context,
-  ContactInfo model, {
+  FriendInfo model, {
   double susHeight = 40,
   Color defHeaderBgColor,
   PageContext pageContext,
@@ -250,7 +274,7 @@ Widget _getContactListItem(
 
 Widget _getContactItem(
   BuildContext context,
-  ContactInfo model, {
+  FriendInfo model, {
   Color defHeaderBgColor,
   PageContext pageContext,
   Future<void> Function() refresh,
@@ -289,10 +313,14 @@ Widget _getContactItem(
               size: 20,
             ),
     ),
-    title: Text(model.nickName),
+    title: Text(
+      model.nickName,
+    ),
     onTap: () {
-      pageContext.forward('/person/view',
-          arguments: {'person': model.attach}).then((value) {
+      Friend friend = model.attach;
+      var person = friend.toPerson();
+      pageContext
+          .forward('/person/view', arguments: {'person': person}).then((value) {
         refresh();
       });
     },

@@ -3,25 +3,29 @@ import 'dart:io';
 import 'package:azlistview/azlistview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
-import 'package:framework/core_lib/_utimate.dart';
+import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/contants/person_menus.dart';
 import 'package:netos_app/portals/gbera/contants/person_models.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
 
-class PublicPersonsPage extends StatefulWidget {
+class PersonsSelector extends StatefulWidget {
   PageContext context;
 
-  PublicPersonsPage({this.context});
+  PersonsSelector({this.context});
 
   @override
-  _PublicPersonsPageState createState() => _PublicPersonsPageState();
+  _PersonsSelectorState createState() => _PersonsSelectorState();
 }
 
-class _PublicPersonsPageState extends State<PublicPersonsPage> {
+class _PersonsSelectorState extends State<PersonsSelector> {
   List<ContactInfo> _contactList = [];
   TextEditingController _controller;
   String _query;
@@ -60,16 +64,25 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
       persons = await personService.pagePerson(10000000, 0);
     } else {
       persons =
-      await personService.pagePersonLikeName0('%$_query%', 10000000, 0);
+          await personService.pagePersonLikeName0('%$_query%', 10000000, 0);
     }
+    var offical = widget.context.principal.person;
     persons.forEach((v) {
+      if (offical == v.official) {
+        return true;
+      }
       _contactList.add(ContactInfo.fromJson(v));
     });
     _handleList(_contactList);
   }
 
   void _handleList(List<ContactInfo> list) {
-    if (list == null || list.isEmpty) return;
+    if (list == null || list.isEmpty) {
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
     for (int i = 0, length = list.length; i < length; i++) {
       String pinyin = PinyinHelper.getPinyinE(list[i].nickName);
       String tag = pinyin.substring(0, 1).toUpperCase();
@@ -95,7 +108,20 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
   Widget build(BuildContext context) {
     var body;
     if (_contactList.isEmpty) {
-      body = Container();
+      body = Container(
+        constraints: BoxConstraints.expand(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '没有好友',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
     } else {
       body = AzListView(
         data: _contactList,
@@ -156,7 +182,6 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
           focusNode: _focusNode,
           keyboardType: TextInputType.text,
           textInputAction: TextInputAction.search,
-          textAlign: _focusNode.hasFocus ? TextAlign.left : TextAlign.center,
           decoration: InputDecoration(
             border: InputBorder.none,
             filled: true,
@@ -182,7 +207,6 @@ class _PublicPersonsPageState extends State<PublicPersonsPage> {
           ),
         ),
         elevation: 0,
-        centerTitle: true,
         titleSpacing: 0,
         actions: <Widget>[
           getPersonsPagePopupMenu(
@@ -236,12 +260,29 @@ Widget _getContactListItem(
       ),
       Container(
         color: Colors.white,
-        child: _getContactItem(
-          context,
-          model,
-          defHeaderBgColor: defHeaderBgColor,
-          pageContext: pageContext,
-          refresh: refresh,
+        constraints: BoxConstraints.tightForFinite(
+          width: double.maxFinite,
+        ),
+        padding: EdgeInsets.only(
+          right: 30,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _getContactItem(
+                context,
+                model,
+                defHeaderBgColor: defHeaderBgColor,
+                pageContext: pageContext,
+                refresh: refresh,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            _OperatorsPanel(
+                context: pageContext, model: model, refresh: refresh),
+          ],
         ),
       ),
     ],
@@ -297,4 +338,108 @@ Widget _getContactItem(
       });
     },
   );
+}
+
+class _OperatorsPanel extends StatefulWidget {
+  ContactInfo model;
+  PageContext context;
+  Future<void> Function() refresh;
+
+  _OperatorsPanel({this.model, this.context, this.refresh});
+
+  @override
+  __OperatorsPanelState createState() => __OperatorsPanelState();
+}
+
+class __OperatorsPanelState extends State<_OperatorsPanel> {
+  bool _isExists = false;
+
+  @override
+  void initState() {
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _OperatorsPanel oldWidget) {
+    if (oldWidget.model != widget.model) {
+      oldWidget.model = widget.model;
+      oldWidget.refresh = widget.refresh;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    IFriendService friendService =
+        widget.context.site.getService('/gbera/friends');
+    _isExists = await friendService.exists(widget.model.person);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _addFriend() async {
+    IFriendService friendService =
+        widget.context.site.getService('/gbera/friends');
+    Person person = widget.model.attach;
+    await friendService.addFriend(
+      Friend.formPerson(person),
+    );
+    _load();
+  }
+
+  Future<void> _removeFriend() async {
+    IFriendService friendService =
+        widget.context.site.getService('/gbera/friends');
+    await friendService.removeFriendByOfficial(widget.model.person);
+    _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isExists) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          _removeFriend();
+        },
+        child: Container(
+          width: 70,
+          height: 30,
+          alignment: Alignment.center,
+          child: Text(
+            '不再添加',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.blueGrey,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 30,
+      width: 70,
+      child: RaisedButton(
+        onPressed: () {
+          _addFriend();
+        },
+        color: Colors.green,
+        child: Text(
+          '添加',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
 }

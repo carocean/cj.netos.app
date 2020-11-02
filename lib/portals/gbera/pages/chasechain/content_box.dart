@@ -48,10 +48,13 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
       int pos = category.lastIndexOf('.');
       category = category.substring(pos + 1);
       var receptor = await receptorRemote.getReceptor(category, box.pointer.id);
-      var locationJson=receptor.location;
+      if (receptor == null) {
+        return;
+      }
+      var locationJson = receptor.location;
       LatLng location;
-      if(!StringUtil.isEmpty(locationJson)) {
-        location=LatLng.fromJson(jsonDecode(locationJson));
+      if (!StringUtil.isEmpty(locationJson)) {
+        location = LatLng.fromJson(jsonDecode(locationJson));
       }
       _boxPointerRealObject = BoxPointerRealObject(
         type: 'receptor',

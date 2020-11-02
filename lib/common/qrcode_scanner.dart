@@ -19,10 +19,10 @@ class QrcodeScanner {
     actions.clear();
   }
 
-  Future<void> scan(BuildContext buildContext, PageContext pageContext) async {
+  Future<String> scan(BuildContext buildContext, PageContext pageContext) async {
     String cameraScanResult = await scanner.scan();
     if (StringUtil.isEmpty(cameraScanResult)) {
-      return;
+      return 'no';
     }
     String itis;
     String data;
@@ -37,10 +37,10 @@ class QrcodeScanner {
     QrcodeAction action = actions[itis];
     if (action == null) {
       print('未处理的二维码扫描策略:$itis');
-      return;
+      return 'no';
     }
     QrcodeInfo info = await action.parse(itis, data);
-    showDialog(
+    var v = await showDialog(
       context: buildContext,
       barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
@@ -86,19 +86,19 @@ class QrcodeScanner {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         );
       },
-    ).then((v) {
-      var selected = v[0];
-      QrcodeAction action = v[1];
-      switch (selected) {
-        case 'yes':
-          if (action.doit != null) {
-            action.doit(info);
-          }
-          break;
-        case 'no':
-          break;
-      }
-    });
+    );
+    var selected = v[0];
+    QrcodeAction qraction = v[1];
+    switch (selected) {
+      case 'yes':
+        if (qraction.doit != null) {
+         await qraction.doit(info);
+        }
+        break;
+      case 'no':
+        break;
+    }
+    return selected;
   }
 }
 
@@ -113,8 +113,10 @@ class QrcodeInfo {
   String title;
   String itis;
   Widget tips;
-  bool isHidenYesButton ;
-  bool isHidenNoButton ;
+  bool isHidenYesButton;
+
+  bool isHidenNoButton;
+
   Map<String, dynamic> props;
 
   QrcodeInfo(
@@ -122,6 +124,6 @@ class QrcodeInfo {
       this.title,
       this.tips,
       this.props,
-      this.isHidenNoButton=false,
-      this.isHidenYesButton=false});
+      this.isHidenNoButton = false,
+      this.isHidenYesButton = false});
 }

@@ -323,7 +323,7 @@ class ChannelPin {
   'channel',
   'sandbox',
 ], indices: [
-  Index(value: ['channel','person', 'atime'])
+  Index(value: ['channel', 'person', 'atime'])
 ])
 class ChannelInputPerson {
   final String id;
@@ -348,7 +348,7 @@ class ChannelInputPerson {
   'channel',
   'sandbox',
 ], indices: [
-  Index(value: ['channel','person', 'atime'])
+  Index(value: ['channel', 'person', 'atime'])
 ])
 class ChannelOutputPerson {
   final String id;
@@ -357,7 +357,8 @@ class ChannelOutputPerson {
   final int atime;
   final String sandbox;
 
-  ChannelOutputPerson(this.id, this.channel, this.person,this.atime, this.sandbox);
+  ChannelOutputPerson(
+      this.id, this.channel, this.person, this.atime, this.sandbox);
 }
 
 enum PinPersonsSettingsStrategy {
@@ -370,7 +371,7 @@ class Friend {
   String official;
   String source;
   String uid;
-  String accountName;
+  String accountCode;
   String appid;
   String avatar;
   String rights;
@@ -383,7 +384,7 @@ class Friend {
       this.official,
       this.source,
       this.uid,
-      this.accountName,
+      this.accountCode,
       this.appid,
       this.avatar,
       this.rights,
@@ -396,7 +397,7 @@ class Friend {
     this.official = person.official;
     this.source = null;
     this.uid = person.uid;
-    this.accountName = person.accountCode;
+    this.accountCode = person.accountCode;
     this.appid = person.appid;
     this.avatar = person.avatar;
     this.rights = person.rights;
@@ -404,6 +405,21 @@ class Friend {
     this.signature = person.signature;
     this.pyname = person.pyname;
     this.sandbox = person.sandbox;
+  }
+
+  toPerson() {
+    return Person(
+      official,
+      uid,
+      accountCode,
+      appid,
+      avatar,
+      rights,
+      nickName,
+      signature,
+      pyname,
+      sandbox,
+    );
   }
 }
 
@@ -537,7 +553,10 @@ class Principal implements IPrincipal {
       this.device);
 }
 
-@Entity(primaryKeys: ['id', 'sandbox'], indices: [
+@Entity(primaryKeys: [
+  'id',
+  'sandbox'
+], indices: [
   Index(value: ['category', 'creator'])
 ])
 class GeoReceptor {

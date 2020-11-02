@@ -85,10 +85,12 @@ class _CardcasesPageState extends State<CardcasesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Text('名片夹'),
         elevation: 0,
         titleSpacing: 0,
+        centerTitle: true,
       ),
       body: AzListView(
         data: _cardcases,

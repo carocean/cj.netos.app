@@ -42,7 +42,7 @@ class _FriendPageState extends State<FriendPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        centerTitle: false,
+        centerTitle: true,
         title: TextField(
           controller: _controller,
           onChanged: (v) {
@@ -259,7 +259,7 @@ class _FriendListState extends State<FriendList> {
                         ),
                       ],
                       child: CardItem(
-                        title: friend.nickName ?? friend.accountName,
+                        title: friend.nickName ?? friend.accountCode,
                         paddingLeft: 15,
                         paddingRight: 15,
                         paddingBottom: 10,
@@ -274,7 +274,7 @@ class _FriendListState extends State<FriendList> {
                           Person person = Person(
                             friend.official,
                             friend.uid,
-                            friend.accountName,
+                            friend.accountCode,
                             friend.appid,
                             friend.avatar,
                             friend.rights,

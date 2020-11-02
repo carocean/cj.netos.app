@@ -1172,7 +1172,7 @@ class ChatRoomModel {
       if (f.official == principal.person) {
         continue;
       }
-      name += '${f.nickName ?? f.accountName},';
+      name += '${f.nickName ?? f.accountCode},';
       if (i >= 6) {
         break;
       }

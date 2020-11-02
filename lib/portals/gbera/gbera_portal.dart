@@ -7,6 +7,8 @@ import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/contants/cardcases.dart';
+import 'package:netos_app/portals/gbera/contants/friend_list.dart';
+import 'package:netos_app/portals/gbera/contants/person_selector.dart';
 import 'package:netos_app/portals/gbera/contants/public_persons.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/trans_to.dart';
@@ -913,6 +915,24 @@ class GberaPortal {
           icon: null,
           url: '/contacts/person/public',
           buildPage: (PageContext pageContext) => PublicPersonsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '公众选择器',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/person/selector',
+          buildPage: (PageContext pageContext) => PersonsSelector(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '朋友',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/person/private',
+          buildPage: (PageContext pageContext) => FriendsPage(
             context: pageContext,
           ),
         ),

@@ -407,7 +407,7 @@ class _ProfileState extends State<Profile> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/portlet/chat/friends');
+                widget.context.forward('/contacts/person/private');
               },
               child: Row(
                 mainAxisSize: MainAxisSize.min,

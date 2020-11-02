@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/portals.dart';
 import 'package:netos_app/system/local/app_upgrade.dart';
+import 'package:netos_app/system/local/migrations/microgeo.dart';
 import 'package:netos_app/system/task_bar.dart';
 import 'package:open_file/open_file.dart';
 
@@ -153,10 +154,10 @@ void main() => platformRun(
                 /* database has been upgraded */
               },
             );
-
             final database = await $FloorAppDatabase
                 .databaseBuilder('app_database.db')
                 .addCallback(callback)
+                .addMigrations(migrationsMicrogeo)
                 .build();
             return <String, dynamic>{
               '@.db': database,

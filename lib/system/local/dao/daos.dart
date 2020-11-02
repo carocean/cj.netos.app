@@ -62,6 +62,11 @@ abstract class IPersonDAO {
       String nickName, String pyname, int limit, int offset);
 
   @Query(
+      'SELECT *  FROM Person where sandbox=:sandbox and (accountCode LIKE :accountCode OR nickName LIKE :nickName OR pyname LIKE :pyname) LIMIT :limit OFFSET  :offset')
+  Future<List<Person>> pagePersonLikeName0(String sandbox, String accountCode,
+      String nickName, String pyname, int limit, int offset);
+
+  @Query(
       'UPDATE Person SET rights = :rights WHERE sandbox=:sandbox and official=:official')
   Future<void> updateRights(String rights, String sandbox, String official) {}
 }
@@ -155,7 +160,7 @@ abstract class IInsiteMessageDAO {
 
   @Query(
       'delete FROM InsiteMessage where sandbox=:sandbox and upstreamChannel=:upstreamChannel')
-  Future<void> emptyChannel(String sandbox, upstreamChannel) {}
+  Future<void> emptyChannel(String sandbox, String upstreamChannel) {}
 }
 
 @dao
@@ -350,7 +355,7 @@ abstract class IChannelPinDAO {
   @Query(
       'UPDATE ChannelPin SET outPersonSelector = :selector WHERE channel = :channelcode and sandbox=:sandbox')
   Future<void> setOutputPersonSelector(
-      selector, String channelcode, String sandbox);
+      String selector, String channelcode, String sandbox);
 
   @Query(
       'UPDATE ChannelPin SET outGeoSelector = :isset WHERE channel = :channelcode and sandbox=:sandbox')
@@ -520,7 +525,7 @@ abstract class IChatRoomDAO {
   @Query(
       'UPDATE ChatRoom SET p2pBackground = :p2pBackground WHERE id = :room and sandbox=:sandbox')
   Future<void> updateRoomBackground(
-      p2pBackground, String room, String sandbox) {}
+      String p2pBackground, String room, String sandbox) {}
 
   @Query(
       'UPDATE ChatRoom SET isForegoundWhite = :isForegoundWhite WHERE id = :room and sandbox=:sandbox')
@@ -544,11 +549,11 @@ abstract class IRoomMemberDAO {
 
   @Query(
       'delete FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox')
-  Future<void> removeMember(String code, person, String sandbox) {}
+  Future<void> removeMember(String code, String person, String sandbox) {}
 
   @Query(
       'SELECT count(*) as value  FROM RoomMember WHERE room = :code and person=:person AND sandbox=:sandbox ')
-  Future<CountValue> countMember(String code, person, String sandbox) {}
+  Future<CountValue> countMember(String code, String person, String sandbox) {}
 
   @Query(
       'UPDATE RoomMember SET nickName = :nickName WHERE sandbox=:sandbox and room = :room and person=:member')
@@ -629,7 +634,7 @@ abstract class IPrincipalDAO {
 
   @Query(
       'UPDATE Principal SET lavatar=:localAvatar , ravatar=:remoteAvatar WHERE person=:person')
-  Future<void> updateAvatar(localAvatar, String remoteAvatar, String person) {}
+  Future<void> updateAvatar(String localAvatar, String remoteAvatar, String person) {}
 
   @Query('UPDATE Principal SET nickName=:nickName WHERE person=:person')
   Future<void> updateNickname(String nickName, String person) {}
@@ -652,7 +657,7 @@ abstract class IGeoReceptorDAO {
   Future<GeoReceptor> get(String id, String sandbox) {}
 
   @Query(
-      'SELECT *  FROM GeoReceptor WHERE sandbox=:sandbox ORDER BY category desc, ctime desc limit :limit, offset :offset')
+      'SELECT *  FROM GeoReceptor WHERE sandbox = :sandbox ORDER BY category desc, ctime desc limit :limit, offset :offset')
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
 
   @Query(
@@ -678,11 +683,11 @@ abstract class IGeoReceptorDAO {
 
   @Query(
       'UPDATE GeoReceptor SET backgroundMode=:mode , background=:file WHERE id=:id and sandbox=:sandbox')
-  Future<void> updateBackground(mode, String file, String id, String sandbox) {}
+  Future<void> updateBackground(String mode, String file, String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET foregroundMode=:mode WHERE id=:id and sandbox=:sandbox')
-  Future<void> updateForeground(mode, String id, String sandbox) {}
+  Future<void> updateForeground(String mode, String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET isAutoScrollMessage=:isAutoScrollMessage WHERE id=:receptor and sandbox=:sandbox')
@@ -734,7 +739,7 @@ abstract class IGeosphereMessageDAO {
 
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
-  Future<GeosphereMessageOL> getMessage(String receptor, id, String sandbox) {}
+  Future<GeosphereMessageOL> getMessage(String receptor, String id, String sandbox) {}
 
   @Query(
       "SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and state=:state and sandbox=:sandbox ORDER BY atime desc LIMIT 1")

@@ -6,10 +6,10 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
-
 class Desktop extends StatefulWidget {
   PageContext context;
 
@@ -56,6 +56,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   _registerQrcodeActions() {
     receivables.registerQrcodeAction(widget.context);
     payables.registerQrcodeAction(widget.context);
+    person.registerQrcodeAction(widget.context);
   }
 
   Future<void> _load() async {

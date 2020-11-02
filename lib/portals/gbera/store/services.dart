@@ -37,7 +37,8 @@ mixin IPersonService {
   Future<Person> getPersonByUID(String uid);
 
   Future<List<Person>> pagePersonLikeName(String query, int limit, int offset);
-
+  Future<List<Person>> pagePersonLikeName0(
+      String name, int limit, int offset);
   Future<void> removePerson(String person) {}
 
   Future<void> updateRights(String official, param1) {}

@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -154,7 +154,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountName` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -711,7 +711,7 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
 
   @override
   Future<GeosphereMessageOL> getMessage(
-      String receptor, dynamic id, String sandbox) async {
+      String receptor, String id, String sandbox) async {
     return _queryAdapter.query(
         'SELECT * FROM GeosphereMessageOL WHERE receptor=? and id=? and sandbox=? LIMIT 1',
         arguments: <dynamic>[receptor, id, sandbox],
@@ -955,7 +955,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   @override
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM GeoReceptor WHERE sandbox=? ORDER BY category desc, ctime desc limit ? offset ?',
+        'SELECT * FROM GeoReceptor WHERE sandbox = ? ORDER BY category desc, ctime desc limit ? offset ?',
         arguments: <dynamic>[sandbox, limit, offset],
         mapper: _geoReceptorMapper);
   }
@@ -999,14 +999,14 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
 
   @override
   Future<void> updateBackground(
-      dynamic mode, String file, String id, String sandbox) async {
+      String mode, String file, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE GeoReceptor SET backgroundMode=? , background=? WHERE id=? and sandbox=?',
         arguments: <dynamic>[mode, file, id, sandbox]);
   }
 
   @override
-  Future<void> updateForeground(dynamic mode, String id, String sandbox) async {
+  Future<void> updateForeground(String mode, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE GeoReceptor SET foregroundMode=? WHERE id=? and sandbox=?',
         arguments: <dynamic>[mode, id, sandbox]);
@@ -1183,7 +1183,7 @@ class _$IPrincipalDAO extends IPrincipalDAO {
 
   @override
   Future<void> updateAvatar(
-      dynamic localAvatar, String remoteAvatar, String person) async {
+      String localAvatar, String remoteAvatar, String person) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE Principal SET lavatar=? , ravatar=? WHERE person=?',
         arguments: <dynamic>[localAvatar, remoteAvatar, person]);
@@ -1352,6 +1352,22 @@ class _$IPersonDAO extends IPersonDAO {
       String nickName, String pyname, int limit, int offset) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Person where sandbox=? and (accountCode LIKE ? OR nickName LIKE ? OR pyname LIKE ?) and official NOT IN (select official from Friend) LIMIT ? OFFSET ?',
+        arguments: <dynamic>[
+          sandbox,
+          accountCode,
+          nickName,
+          pyname,
+          limit,
+          offset
+        ],
+        mapper: _personMapper);
+  }
+
+  @override
+  Future<List<Person>> pagePersonLikeName0(String sandbox, String accountCode,
+      String nickName, String pyname, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Person where sandbox=? and (accountCode LIKE ? OR nickName LIKE ? OR pyname LIKE ?) LIMIT ? OFFSET ?',
         arguments: <dynamic>[
           sandbox,
           accountCode,
@@ -1757,7 +1773,7 @@ class _$IInsiteMessageDAO extends IInsiteMessageDAO {
   }
 
   @override
-  Future<void> emptyChannel(String sandbox, dynamic upstreamChannel) async {
+  Future<void> emptyChannel(String sandbox, String upstreamChannel) async {
     await _queryAdapter.queryNoReturn(
         'delete FROM InsiteMessage where sandbox=? and upstreamChannel=?',
         arguments: <dynamic>[sandbox, upstreamChannel]);
@@ -2240,7 +2256,7 @@ class _$IChannelPinDAO extends IChannelPinDAO {
 
   @override
   Future<void> setOutputPersonSelector(
-      dynamic selector, String channelcode, String sandbox) async {
+      String selector, String channelcode, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChannelPin SET outPersonSelector = ? WHERE channel = ? and sandbox=?',
         arguments: <dynamic>[selector, channelcode, sandbox]);
@@ -2474,7 +2490,7 @@ class _$IFriendDAO extends IFriendDAO {
                   'official': item.official,
                   'source': item.source,
                   'uid': item.uid,
-                  'accountName': item.accountName,
+                  'accountCode': item.accountCode,
                   'appid': item.appid,
                   'avatar': item.avatar,
                   'rights': item.rights,
@@ -2494,7 +2510,7 @@ class _$IFriendDAO extends IFriendDAO {
       row['official'] as String,
       row['source'] as String,
       row['uid'] as String,
-      row['accountName'] as String,
+      row['accountCode'] as String,
       row['appid'] as String,
       row['avatar'] as String,
       row['rights'] as String,
@@ -2673,7 +2689,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
 
   @override
   Future<void> updateRoomBackground(
-      dynamic p2pBackground, String room, String sandbox) async {
+      String p2pBackground, String room, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChatRoom SET p2pBackground = ? WHERE id = ? and sandbox=?',
         arguments: <dynamic>[p2pBackground, room, sandbox]);
@@ -2752,7 +2768,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   }
 
   @override
-  Future<void> removeMember(String code, dynamic person, String sandbox) async {
+  Future<void> removeMember(String code, String person, String sandbox) async {
     await _queryAdapter.queryNoReturn(
         'delete FROM RoomMember WHERE room = ? and person=? AND sandbox=?',
         arguments: <dynamic>[code, person, sandbox]);
@@ -2760,7 +2776,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
 
   @override
   Future<CountValue> countMember(
-      String code, dynamic person, String sandbox) async {
+      String code, String person, String sandbox) async {
     return _queryAdapter.query(
         'SELECT count(*) as value FROM RoomMember WHERE room = ? and person=? AND sandbox=?',
         arguments: <dynamic>[code, person, sandbox],
