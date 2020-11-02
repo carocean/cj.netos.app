@@ -366,12 +366,12 @@ class __PersonSuggestionsState extends State<_PersonSuggestions> {
       var distance = poi.distance;
       var avatar;
       if (StringUtil.isEmpty(creator.avatar)) {
-        avatar = Image.asset('name');
+        avatar = Image.asset('lib/portals/gbera/images/default_avatar.png');
       } else if (creator.avatar.startsWith('/')) {
         avatar = Image.file(File(creator.avatar));
       } else {
         avatar = FadeInImage.assetNetwork(
-            placeholder: 'null',
+            placeholder: 'lib/portals/gbera/images/default_watting.gif',
             image:
                 '${creator.avatar}?accessToken=${widget.context.principal.accessToken}');
       }
@@ -486,6 +486,7 @@ class _OperatorButtonBox extends StatefulWidget {
 
 class __OperatorButtonBoxState extends State<_OperatorButtonBox> {
   bool _isExists = false;
+  bool _isWorking = false;
 
   @override
   void initState() {
@@ -515,34 +516,85 @@ class __OperatorButtonBoxState extends State<_OperatorButtonBox> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _addPerson() async {
+    setState(() {
+      _isWorking = true;
+    });
+    var person = widget.person;
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    await personService.addPerson(person, isOnlyLocal: true);
+    _load();
+    if (mounted) {
+      setState(() {
+        _isWorking = false;
+      });
+    }
+  }
+
+  Future<void> _removePerson() async {
+    setState(() {
+      _isWorking = true;
+    });
+    var person = widget.person;
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    await personService.removePerson(
+      person.official,
+    );
+    _load();
+    if (mounted) {
+      setState(() {
+        _isWorking = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isExists) {
-      return SizedBox(
-        height: 20,
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: Text(
-            '不再关注',
-            style: TextStyle(
-              color: Colors.blueGrey,
-              decoration: TextDecoration.underline,
-              fontSize: 12,
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _isWorking
+            ? null
+            : () {
+                _removePerson();
+              },
+        child: SizedBox(
+          height: 20,
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: Text(
+              _isWorking ? '不再关注...' : '不再关注',
+              style: TextStyle(
+                color: Colors.blueGrey,
+                decoration: TextDecoration.underline,
+                fontSize: 12,
+              ),
             ),
           ),
         ),
       );
     }
-    return SizedBox(
-      height: 20,
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: Text(
-          '关注',
-          style: TextStyle(
-            color: Colors.blueGrey,
-            decoration: TextDecoration.underline,
-            fontSize: 12,
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isWorking
+          ? null
+          : () {
+              _addPerson();
+            },
+      child: SizedBox(
+        height: 20,
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            _isWorking ? '关注...' : '关注',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              decoration: TextDecoration.underline,
+              fontSize: 12,
+            ),
           ),
         ),
       ),
