@@ -254,6 +254,10 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         });
                       });
                       break;
+                    case '/netflow/manager/my_persons':
+                      widget.context.forward('/contacts/person/public',
+                          arguments: {'personViewer': 'chasechain'});
+                      break;
                   }
                 },
                 itemBuilder: (context) => <PopupMenuEntry<String>>[
@@ -283,7 +287,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       ],
                     ),
                   ),
-                  PopupMenuDivider(),
                   PopupMenuItem(
                     value: '/netflow/manager/scan_channel',
                     child: Row(
@@ -336,6 +339,31 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       ],
                     ),
                   ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: '/netflow/manager/my_persons',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            Icons.group,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '我的公众',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -360,26 +388,26 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          widget.context.forward('/netflow/manager/settings',
-                              arguments: {'title': '公众活动'});
+                          // widget.context.forward('/netflow/manager/settings',
+                          //     arguments: {'title': '公众活动'});
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Icon(
-                                widget.context
-                                    .findPage(
-                                        '/netflow/manager/channel_gateway')
-                                    ?.icon,
-                                size: 18,
-                                color: Colors.grey[600],
-                              ),
-                            ),
+                            // Padding(
+                            //   padding: EdgeInsets.only(
+                            //     right: 5,
+                            //   ),
+                            //   child: Icon(
+                            //     widget.context
+                            //         .findPage(
+                            //             '/netflow/manager/channel_gateway')
+                            //         ?.icon,
+                            //     size: 18,
+                            //     color: Colors.grey[600],
+                            //   ),
+                            // ),
                             Text(
                               '公众活动',
                               style: TextStyle(
@@ -1010,7 +1038,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (!StringUtil.isEmpty(absorbabler)) {
       absorberResultOR = await _getAbsorberByAbsorbabler(absorbabler);
       if (absorberResultOR != null) {
-        await _addRecipients(absorberResultOR.absorber.id,);
+        await _addRecipients(
+          absorberResultOR.absorber.id,
+        );
       }
     }
     var message = InsiteMessage(
@@ -1263,7 +1293,8 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecordPerson(widget.message.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(
+        widget.message.creator, sn);
   }
 
   Future<Person> _loadPerson() async {

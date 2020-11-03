@@ -64,6 +64,18 @@ class FriendService implements IFriendService, IServiceBuilder {
   }
 
   @override
+  Future<List<Friend>> pageFriendNotIn(
+      List<String> officials, int limit, int offset) async {
+    return await friendDAO.pageFriendNotIn(
+        principal.person, officials, limit, offset);
+  }
+
+  @override
+  Future<List<Friend>> listMembersIn(List<String> members) async {
+    return await friendDAO.listMembersIn(principal.person, members);
+  }
+
+  @override
   Future<List<Friend>> pageFriend(int limit, int offset) async {
     return await friendDAO.pageFriend(principal.person, limit, offset);
   }
@@ -175,11 +187,29 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   @override
   Future<Function> updateRoomForeground(
       ChatRoom chatRoom, bool isForegroundWhite,
-      {bool isOnlyLocal = false}) async{
-    await chatRoomDAO.updateRoomForeground(isForegroundWhite?'true':'false', chatRoom.id, principal.person);
+      {bool isOnlyLocal = false}) async {
+    await chatRoomDAO.updateRoomForeground(
+        isForegroundWhite ? 'true' : 'false', chatRoom.id, principal.person);
     if (!isOnlyLocal) {
       await chatRoomRemote.updateRoomForeground(chatRoom.id, isForegroundWhite);
     }
+  }
+
+  @override
+  Future<int> totalMembers(String id) async {
+    CountValue value = await roomMemberDAO.totalMembers(id, principal.person);
+    return value == null
+        ? 0
+        : value.value == null
+            ? 0
+            : value.value;
+  }
+
+  @override
+  Future<List<RoomMember>> pageMemberLike(
+      String query, String room, int limit, int offset) async {
+    return await roomMemberDAO.pageMemberLike(
+        principal.person, room, query, query, limit, offset);
   }
 
   @override
@@ -320,6 +350,9 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
     await messageDAO.emptyRoomMessages(room.id, principal.person);
+    if(room.creator!=principal.person) {
+      await chatRoomRemote.removeMember(room.id, principal.person);
+    }
     if (!isOnlySaveLocal) {
       await chatRoomRemote.removeChatRoom(room.id);
     }

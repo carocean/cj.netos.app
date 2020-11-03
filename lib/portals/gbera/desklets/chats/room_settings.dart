@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
@@ -32,12 +33,13 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   int _limit = 20, _offset = 0;
   ChatRoomNotice _newestNotice;
   bool _isForegroundWhite = false;
+  int _memberCount = 0;
 
   @override
   void initState() {
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
-    _isForegroundWhite=_chatRoom.isForegoundWhite=='true'?true:false;
+    _isForegroundWhite = _chatRoom.isForegoundWhite == 'true' ? true : false;
     _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadMembers().then((v) {
@@ -62,6 +64,12 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _memberModels.clear();
     _chatRoom = null;
     super.dispose();
+  }
+
+  Future<void> _totalMembers() async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    _memberCount = await chatRoomService.totalMembers(_chatRoom.id);
   }
 
   Future<void> _emptyMessages() async {
@@ -94,7 +102,14 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _showNickName = showNick;
   }
 
+  Future<void> _refresh() async {
+    _offset = 0;
+    _memberModels.clear();
+    await _loadMembers();
+  }
+
   Future<void> _loadMembers() async {
+    await _totalMembers();
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IPersonService personService =
@@ -105,10 +120,12 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       return;
     }
     _offset += members.length;
-    List<Person> persons = [];
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
-      persons.add(person);
+      if (_chatRoom.creator == person.official) {
+        _memberModels.insert(0, _MemberModel(person: person, member: member));
+        continue;
+      }
       _memberModels.add(_MemberModel(person: person, member: member));
     }
   }
@@ -116,15 +133,19 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   Future<void> _addMembers(members) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     for (var official in members) {
       if (await chatRoomService.existsMember(_chatRoom.id, official)) {
         continue;
       }
+      var person =
+          await personService.getPerson(official, isDownloadAvatar: false);
       await chatRoomService.addMember(
         RoomMember(
           _chatRoom.id,
           official,
-          null,
+          person?.nickName,
           'false',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
@@ -139,6 +160,14 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     await chatRoomService.removeMember(_chatRoom.id, member.official);
   }
 
+  Future<void> _removeMembers(list) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    for (var item in list) {
+      await chatRoomService.removeMember(_chatRoom.id, item);
+    }
+  }
+
   Future<void> _setBackground(path) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -149,7 +178,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   Future<void> _removeChatRoom() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(_chatRoom.id);
+    await chatRoomService.removeChatRoom(_chatRoom.id,isOnlySaveLocal: true);
   }
 
   Future<void> _loadNewestNotice() async {
@@ -289,10 +318,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                     title: '是否显示为昵称',
                     onItemTap: () {
                       _setShowNick(!_showNickName).then((v) async {
-                        _memberModels.clear();
-                        _offset = 0;
-                        await _loadMembers();
-                        setState(() {});
+                        _refresh().then((value) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
                       });
                     },
                     tail: SizedBox(
@@ -301,7 +331,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                         value: _showNickName,
                         onChanged: (showNickName) {
                           _setShowNick(showNickName).then((v) {
-                            setState(() {});
+                            _refresh().then((value) {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
                           });
                         },
                       ),
@@ -383,11 +417,17 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                               value: _isForegroundWhite,
                               onChanged: (v) {
                                 _isForegroundWhite = v;
-                                setState(() {});
+                                _setForebround().then((v) {
+                                  _chatRoom.isForegoundWhite=_isForegroundWhite?'true':'false';
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                });
                               }),
                           onItemTap: () {
                             _isForegroundWhite = !_isForegroundWhite;
                             _setForebround().then((v) {
+                              _chatRoom.isForegoundWhite=_isForegroundWhite?'true':'false';
                               if (mounted) {
                                 setState(() {});
                               }
@@ -594,65 +634,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   }
 
   Widget _getMemberWidgets() {
-    var plusMemberButton = Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            var result = await widget.context.forward('/portlet/chat/friends')
-                as List<String>;
-            if (result == null || result.isEmpty) {
-              return;
-            }
-            _addMembers(result).then((v) {
-              if (mounted) {
-                setState(() {});
-              }
-            });
-          },
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: 2,
-            ),
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: ClipRRect(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(4),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(4),
-                    ),
-                    border: Border.all(
-                      color: Colors.grey[300],
-                      width: 1,
-                      style: BorderStyle.solid,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        Text(
-          '',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
+    var plusMemberButton = _renderPlusMemberButton();
     if (_memberModels.isEmpty) {
       return plusMemberButton;
     }
@@ -662,14 +644,13 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       var member = model.member;
       bool isOwner = member.person == _chatRoom.creator;
       var title =
-          '${(member.isShowNick == 'true') ? member.nickName ?? person.nickName : person.nickName}';
+          '${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () async{
-            IPersonService personService=widget.context.site.getService('/gbera/persons');
-            var person=await personService.getPerson(_member.person);
-            widget.context.forward('/person/view',arguments: {'person':person});
+          onTap: () async {
+            widget.context
+                .forward('/person/view', arguments: {'person': person});
           },
           onLongPress: () {
             showDialog(
@@ -733,18 +714,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                         borderRadius: BorderRadius.all(
                           Radius.circular(4),
                         ),
-                        child: person.avatar.startsWith("/")
-                            ? Image.file(
-                                File(person.avatar),
-                                fit: BoxFit.cover,
-                              )
-                            : FadeInImage.assetNetwork(
-                                placeholder:
-                                    'lib/portals/gbera/images/default_avatar.png',
-                                image:
-                                    '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
-                                fit: BoxFit.cover,
-                              ),
+                        child: getAvatarWidget(person.avatar, widget.context),
                       ),
                     ),
                   ),
@@ -779,6 +749,10 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       );
     }
     items.add(plusMemberButton);
+    if (_isManager()) {
+      items.add(_renderRemoveMemberButton());
+    }
+    items.add(_renderViewMemberButton());
     return GridView(
       padding: EdgeInsets.all(0),
       shrinkWrap: true,
@@ -789,6 +763,199 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         mainAxisSpacing: 5,
       ),
       children: items,
+    );
+  }
+
+  bool _isManager() {
+    return _chatRoom.creator == widget.context.principal.person;
+  }
+
+  Widget _renderRemoveMemberButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            var result = await widget.context
+                .forward('/contacts/friend/removeMembers', arguments: {
+              'chatroom': _chatRoom,
+            }) as List<String>;
+            if (result == null || result.isEmpty) {
+              return;
+            }
+            await _removeMembers(result);
+            _offset = 0;
+            _memberModels.clear();
+            await _loadMembers();
+            if (mounted) setState(() {});
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: 2,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.remove,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _renderViewMemberButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            var refresh = () {
+              _refresh().then((value) {
+                if (mounted) setState(() {});
+              });
+            };
+            await widget.context.forward('/contacts/friend/viewMembers',
+                arguments: {'chatroom': _chatRoom, 'refresh': refresh});
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: 2,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey[500],
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '共$_memberCount个成员',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _renderPlusMemberButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            var result = await widget.context
+                .forward('/contacts/friend/addMembers', arguments: {
+              'chatroom': _chatRoom,
+            }) as List<String>;
+            if (result == null || result.isEmpty) {
+              return;
+            }
+            _addMembers(result).then((v) async {
+              await _refresh();
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: 2,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

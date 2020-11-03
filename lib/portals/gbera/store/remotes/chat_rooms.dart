@@ -236,6 +236,9 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'person': member,
       },
     );
+    if(map==null) {
+      return null;
+    }
     return RoomMember.formMap(map, principal.person);
   }
 

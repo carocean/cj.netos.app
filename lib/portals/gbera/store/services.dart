@@ -37,8 +37,9 @@ mixin IPersonService {
   Future<Person> getPersonByUID(String uid);
 
   Future<List<Person>> pagePersonLikeName(String query, int limit, int offset);
-  Future<List<Person>> pagePersonLikeName0(
-      String name, int limit, int offset);
+
+  Future<List<Person>> pagePersonLikeName0(String name, int limit, int offset);
+
   Future<void> removePerson(String person) {}
 
   Future<void> updateRights(String official, param1) {}
@@ -265,6 +266,11 @@ mixin IFriendService {
   Future<Friend> getFriendByOfficial(String official) {}
 
   Future<Friend> getFriend(String official, {bool isOnlyLocal = false}) {}
+
+  Future<List<Friend>> listMembersIn(List<String> members) {}
+
+  Future<List<Friend>> pageFriendNotIn(
+      List<String> officials, int limit, int offset) {}
 }
 mixin IChatRoomService {
   Future<void> addRoom(ChatRoom chatRoom, {bool isOnlySaveLocal = false}) {}
@@ -320,6 +326,11 @@ mixin IChatRoomService {
 
   Future<void> updateRoomForeground(ChatRoom chatRoom, bool isForegroundWhite,
       {bool isOnlyLocal = false}) {}
+
+  Future<int> totalMembers(String id) {}
+
+  Future<List<RoomMember>> pageMemberLike(
+      String query, String room, int limit, int offset) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

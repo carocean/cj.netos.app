@@ -554,15 +554,17 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.principal.person,
       ),
     );
-
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     bool hasCreator = false;
     for (var i = 0; i < members.length; i++) {
       var official = members[i];
+      var person = await personService.getPerson(official);
       await chatRoomService.addMember(
         RoomMember(
           roomCode,
           official,
-          null,
+          person?.nickName,
           'false',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
@@ -592,7 +594,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(room.id);
+    await chatRoomService.removeChatRoom(room.id, isOnlySaveLocal: true);
     return;
   }
 
@@ -629,7 +631,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                   recognizer: TapGestureRecognizer()
                     ..onTap = () async {
                       var result = await widget.context
-                          .forward('/portlet/chat/friends') as List<String>;
+                          .forward('/contacts/friend/selector') as List<String>;
                       if (result == null || result.isEmpty) {
                         return;
                       }
@@ -716,7 +718,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () async {
                   var result = await widget.context
-                      .forward('/portlet/chat/friends') as List<String>;
+                      .forward('/contacts/friend/selector') as List<String>;
                   if (result == null || result.isEmpty) {
                     return;
                   }
@@ -729,10 +731,16 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                     });
                   });
                 },
-                child: Icon(
-                  Icons.add_circle_outline,
-                  size: 14,
-                  color: Colors.grey[600],
+                child: SizedBox(
+                  width: 40,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Icon(
+                      Icons.add,
+                      size: 30,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -1016,14 +1024,18 @@ class __ChatroomItemState extends State<_ChatroomItem> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
-                          Text.rich(
-                            TextSpan(
-                              text: widget.model
-                                  .displayRoomTitle(widget.context.principal),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                text: widget.model
+                                    .displayRoomTitle(widget.context.principal),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                ),
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

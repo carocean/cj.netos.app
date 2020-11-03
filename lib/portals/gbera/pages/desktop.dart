@@ -167,15 +167,15 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             direction: Axis.horizontal,
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
-              Expanded(
-                flex: 1,
-                child: Text(
-                  '桌面',
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
-                ),
-              ),
+              // Expanded(
+              //   flex: 1,
+              //   child: Text(
+              //     '桌面',
+              //     style: TextStyle(
+              //       fontSize: 18,
+              //     ),
+              //   ),
+              // ),
               Expanded(
                 flex: 1,
                 child: Align(

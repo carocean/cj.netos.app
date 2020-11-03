@@ -2553,6 +2553,16 @@ class _$IFriendDAO extends IFriendDAO {
   }
 
   @override
+  Future<List<Friend>> pageFriendNotIn(
+      String sandbox, List<String> officials, int limit, int offset) async {
+    final valueList1 = officials.map((value) => "'$value'").join(', ');
+    return _queryAdapter.queryList(
+        'SELECT * FROM Friend where sandbox=? and official NOT IN ($valueList1) LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, limit, offset],
+        mapper: _friendMapper);
+  }
+
+  @override
   Future<List<Friend>> pageFriend(String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Friend where sandbox=? LIMIT ? OFFSET ?',
@@ -2572,6 +2582,16 @@ class _$IFriendDAO extends IFriendDAO {
     return _queryAdapter.query(
         'SELECT * FROM Friend where sandbox=? and official=? LIMIT 1 OFFSET 0',
         arguments: <dynamic>[sandbox, official],
+        mapper: _friendMapper);
+  }
+
+  @override
+  Future<List<Friend>> listMembersIn(
+      String sandbox, List<String> members) async {
+    final valueList1 = members.map((value) => "'$value'").join(', ');
+    return _queryAdapter.queryList(
+        'SELECT * FROM Friend where sandbox=? and official in ($valueList1)',
+        arguments: <dynamic>[sandbox],
         mapper: _friendMapper);
   }
 
@@ -2806,6 +2826,23 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE RoomMember SET isShowNick = ? WHERE room = ? and sandbox=?',
         arguments: <dynamic>[isShowNick, room, sandbox]);
+  }
+
+  @override
+  Future<CountValue> totalMembers(String room, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM RoomMember where room=? and sandbox=?',
+        arguments: <dynamic>[room, sandbox],
+        mapper: _countValueMapper);
+  }
+
+  @override
+  Future<List<RoomMember>> pageMemberLike(String sandbox, String room,
+      String person, String nickName, int limit, int offset) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM RoomMember where sandbox=? and room=? and (person LIKE ? or nickName LIKE ?) LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, room, person, nickName, limit, offset],
+        mapper: _roomMemberMapper);
   }
 
   @override

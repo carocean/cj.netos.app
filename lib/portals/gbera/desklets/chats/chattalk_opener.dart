@@ -49,14 +49,16 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       chatroom,
     );
 
+    IPersonService personService = context.site.getService('/gbera/persons');
     bool hasCreator = false;
     var roomMembers = <RoomMember>[];
     for (var i = 0; i < members.length; i++) {
       var official = members[i];
+      var person = await personService.getPerson(official);
       var rmember = RoomMember(
         roomCode,
         official,
-        null,
+        person?.nickName,
         'false',
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
@@ -72,7 +74,7 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       var rmember = RoomMember(
         roomCode,
         context.principal.person,
-        null,
+        context.principal.nickName,
         'false',
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,

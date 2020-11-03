@@ -224,20 +224,33 @@ String parseInt(int count, int fractionDigits) {
   }
   return '${(count / 1024.00 / 1024.00 / 1024.00).toStringAsFixed(fractionDigits)}g';
 }
-Map<String,String> parseUrlParams(String paramStr){
-  Map<String,String> map={};
-  List<String> list=paramStr.split('&');
-  for(var pv in list){
-    if(StringUtil.isEmpty(pv)) {
+
+Map<String, String> parseUrlParams(String paramStr) {
+  Map<String, String> map = {};
+  List<String> list = paramStr.split('&');
+  for (var pv in list) {
+    if (StringUtil.isEmpty(pv)) {
       continue;
     }
-    List<String> keyPair=pv.split('=');
-    String k=keyPair[0];
-    String v='';
-    if(keyPair.length>1) {
-      v=keyPair[1];
+    List<String> keyPair = pv.split('=');
+    String k = keyPair[0];
+    String v = '';
+    if (keyPair.length > 1) {
+      v = keyPair[1];
     }
-    map[k]=v;
+    map[k] = v;
   }
   return map;
+}
+
+Widget getAvatarWidget(String avatar, PageContext context) {
+  if (StringUtil.isEmpty(avatar)) {
+    return Image.asset('lib/portals/gbera/images/default_avatar.png');
+  }
+  if (avatar.startsWith('/')) {
+    return Image.file(File(avatar));
+  }
+  return FadeInImage.assetNetwork(
+      placeholder: 'lib/portals/gbera/images/default_watting.gif',
+      image: '$avatar?accessToken=${context.principal.accessToken}');
 }

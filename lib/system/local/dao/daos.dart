@@ -473,6 +473,11 @@ abstract class IFriendDAO {
       int offset) {}
 
   @Query(
+      'SELECT *  FROM Friend where sandbox=:sandbox and official  NOT IN (:officials) LIMIT :limit OFFSET  :offset')
+  Future<List<Friend>> pageFriendNotIn(
+      String sandbox, List<String> officials, int limit, int offset) {}
+
+  @Query(
       'SELECT *  FROM Friend where sandbox=:sandbox LIMIT :limit OFFSET  :offset')
   Future<List<Friend>> pageFriend(String sandbox, int limit, int offset) {}
 
@@ -482,6 +487,10 @@ abstract class IFriendDAO {
   @Query(
       'SELECT *  FROM Friend where sandbox=:sandbox and official=:official LIMIT 1 OFFSET  0')
   Future<Friend> getFriendByOfficial(String sandbox, String official) {}
+
+  @Query(
+      'SELECT *  FROM Friend where sandbox=:sandbox and official in (:members)')
+  Future<List<Friend>> listMembersIn(String sandbox, List<String> members) {}
 }
 
 @dao
@@ -567,6 +576,15 @@ abstract class IRoomMemberDAO {
   @Query(
       'UPDATE RoomMember SET isShowNick = :isShowNick WHERE room = :room and sandbox=:sandbox ')
   Future<void> switchNick(String isShowNick, String room, String sandbox) {}
+
+  @Query(
+      'SELECT count(*) as value  FROM RoomMember where room=:room and sandbox=:sandbox')
+  Future<CountValue> totalMembers(String room, String sandbox) {}
+
+  @Query(
+      'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room and (person LIKE :person or nickName LIKE :nickName) LIMIT :limit OFFSET :offset')
+  Future<List<RoomMember>> pageMemberLike(String sandbox, String room,
+      String person, String nickName, int limit, int offset) {}
 }
 
 @dao
@@ -634,7 +652,8 @@ abstract class IPrincipalDAO {
 
   @Query(
       'UPDATE Principal SET lavatar=:localAvatar , ravatar=:remoteAvatar WHERE person=:person')
-  Future<void> updateAvatar(String localAvatar, String remoteAvatar, String person) {}
+  Future<void> updateAvatar(
+      String localAvatar, String remoteAvatar, String person) {}
 
   @Query('UPDATE Principal SET nickName=:nickName WHERE person=:person')
   Future<void> updateNickname(String nickName, String person) {}
@@ -683,7 +702,8 @@ abstract class IGeoReceptorDAO {
 
   @Query(
       'UPDATE GeoReceptor SET backgroundMode=:mode , background=:file WHERE id=:id and sandbox=:sandbox')
-  Future<void> updateBackground(String mode, String file, String id, String sandbox) {}
+  Future<void> updateBackground(
+      String mode, String file, String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET foregroundMode=:mode WHERE id=:id and sandbox=:sandbox')
@@ -739,7 +759,8 @@ abstract class IGeosphereMessageDAO {
 
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
-  Future<GeosphereMessageOL> getMessage(String receptor, String id, String sandbox) {}
+  Future<GeosphereMessageOL> getMessage(
+      String receptor, String id, String sandbox) {}
 
   @Query(
       "SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and state=:state and sandbox=:sandbox ORDER BY atime desc LIMIT 1")

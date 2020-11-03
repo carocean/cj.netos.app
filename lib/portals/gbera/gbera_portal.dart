@@ -10,7 +10,11 @@ import 'package:netos_app/portals/gbera/contants/cardcases.dart';
 import 'package:netos_app/portals/gbera/contants/friend_list.dart';
 import 'package:netos_app/portals/gbera/contants/person_selector.dart';
 import 'package:netos_app/portals/gbera/contants/public_persons.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/around_friends.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/friends_selector.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/members_remove.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/show_selected.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/trans_to.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
@@ -234,6 +238,8 @@ import 'desklets/chats/add_friend.dart';
 import 'desklets/chats/chat_talk.dart';
 import 'desklets/chats/friend_page.dart';
 import 'desklets/chats/import_persons.dart';
+import 'desklets/chats/members_plus.dart';
+import 'desklets/chats/members_view.dart';
 import 'desklets/chats/room_settings.dart';
 import 'desklets/chats/settings_nickname.dart';
 import 'desklets/chats/settings_notice.dart';
@@ -924,6 +930,60 @@ class GberaPortal {
           icon: null,
           url: '/contacts/person/selector',
           buildPage: (PageContext pageContext) => PersonsSelector(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '好友选择器',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/friend/selector',
+          buildPage: (PageContext pageContext) => FriendsSelector(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '显示已选好友',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/friend/selected',
+          buildPage: (PageContext pageContext) => ShowFriendSelectedPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '附近的人建群',
+          subtitle: '',
+          icon: null,
+          url: '/chat/friend/around',
+          buildPage: (PageContext pageContext) => AroundFriendsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看成员',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/friend/viewMembers',
+          buildPage: (PageContext pageContext) => ChatMemberViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '移除成员',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/friend/removeMembers',
+          buildPage: (PageContext pageContext) => ChatMemberRemovePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '添加成员',
+          subtitle: '',
+          icon: null,
+          url: '/contacts/friend/addMembers',
+          buildPage: (PageContext pageContext) => ChatMemberPlusPage(
             context: pageContext,
           ),
         ),

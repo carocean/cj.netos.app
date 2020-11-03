@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.0.6
+version: 0.0.7
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -182,6 +182,7 @@ flutter:
     - lib/portals/gbera/images/default_watting.gif
     - lib/portals/nodepower/assets/wybank_config_template.yaml
     - lib/portals/gbera/images/ic_index_bar_bubble_gray.png
+    - lib/portals/gbera/images/zhoubian.png
   fonts:
     - family: geo_discovery
       fonts:
