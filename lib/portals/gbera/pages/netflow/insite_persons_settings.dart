@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -113,30 +114,31 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
               ),
             ),
           ),
-          Card(
+          Expanded(child: Container(
+            color: Colors.white,
             child: _persons.isEmpty
                 ? Container(
-                    constraints: BoxConstraints.tightForFinite(
-                      width: double.maxFinite,
-                    ),
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: Text(
-                      '无',
-                      style: TextStyle(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
+              constraints: BoxConstraints.tightForFinite(
+                width: double.maxFinite,
+              ),
+              height: 40,
+              alignment: Alignment.center,
+              child: Text(
+                '无',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            )
                 : _selected_insite_persons_strategy ==
-                        PinPersonsSettingsStrategy.only_select
-                    ? SwipeRefreshLayout(
-                        onSwipeDown: _onSwipeDown,
-                        onSwipeUp: _onSwipeUp,
-                        child: _listview(),
-                      )
-                    : _listview(),
-          ),
+                PinPersonsSettingsStrategy.only_select
+                ? SwipeRefreshLayout(
+              onSwipeDown: _onSwipeDown,
+              onSwipeUp: _onSwipeUp,
+              child: _listview(),
+            )
+                : _listview(),
+          ),),
         ],
       ),
     );
@@ -146,20 +148,22 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
     int index = 0;
     return ListView(
       shrinkWrap: true,
-      padding: EdgeInsets.only(
-        left: 10,
-        right: 10,
-      ),
       children: _persons.map((p) {
         if (index < _persons.length) {
           index++;
         }
-        return _SelectPerson(
-          person: p,
-          selected_insite_persons_strategy: _selected_insite_persons_strategy,
-          pageContext: widget.context,
-          channel: _channel,
-          isBottomPerson: index >= _persons.length,
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 15,
+            right: 15,
+          ),
+          child: _SelectPerson(
+            person: p,
+            selected_insite_persons_strategy: _selected_insite_persons_strategy,
+            pageContext: widget.context,
+            channel: _channel,
+            isBottomPerson: index >= _persons.length,
+          ),
         );
       }).toList(),
     );
@@ -205,11 +209,13 @@ class __SelectPersonState extends State<_SelectPerson> {
     return Column(
       children: <Widget>[
         CardItem(
-          leading: Image.file(
-            File(widget.person.avatar),
-            fit: BoxFit.fitWidth,
-            width: 30,
-            height: 30,
+          leading: SizedBox(
+            height: 40,
+            width: 40,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: getAvatarWidget(widget.person.avatar, widget.pageContext),
+            ),
           ),
           paddingBottom: 10,
           paddingTop: 10,
@@ -226,7 +232,7 @@ class __SelectPersonState extends State<_SelectPerson> {
               )
             : Divider(
                 height: 1,
-                indent: 40,
+                indent: 50,
               ),
       ],
     );

@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -36,7 +38,7 @@ class _ChannelPortalState extends State<ChannelPortal> {
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
-    _owner = widget.context.parameters['owner']; //管道动态的所有者
+    _owner = _channel.owner; //管道动态的所有者
     _refreshController = EasyRefreshController();
     () async {
       await _loadPerson();
@@ -209,11 +211,13 @@ class _ChannelPortalState extends State<ChannelPortal> {
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4.0),
-                        child: Image.file(
-                          File(_ownerPerson.avatar),
-                          height: 20,
+                        child: SizedBox(
                           width: 20,
-                          fit: BoxFit.cover,
+                          height: 20,
+                          child: getAvatarWidget(
+                            _ownerPerson.avatar,
+                            widget.context,
+                          ),
                         ),
                       ),
                     ),
@@ -267,6 +271,7 @@ class __ListRegionState extends State<_ListRegion> {
     if (widget.messages.isEmpty) {
       return Container(
         alignment: Alignment.center,
+        padding: EdgeInsets.only(top: 20,),
         child: Text(
           '他在该管道没有活动',
           style: TextStyle(
@@ -349,8 +354,9 @@ class __MessageCardState extends State<_MessageCard> {
       return null;
     }
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecordPerson(widget.message.creator, sn);
+        widget.context.site.getService('/remote/purchaser');
+    return await purchaserRemote.getPurchaseRecordPerson(
+        widget.message.creator, sn);
   }
 
   Future<Person> _findPerson(String person) async {
@@ -490,20 +496,9 @@ class __MessageCardState extends State<_MessageCard> {
                           height: 0,
                         );
                       }
-                      return DefaultTabController(
-                        length: snapshot.data.length,
-                        child: PageSelector(
-                          medias: snapshot.data,
-                          onMediaLongTap: (media, index) {
-                            widget.context.forward(
-                              '/images/viewer',
-                              arguments: {
-                                'medias': snapshot.data,
-                                'index': index,
-                              },
-                            );
-                          },
-                        ),
+                      return MediaWidget(
+                        snapshot.data,
+                        widget.context,
                       );
                     },
                   ),

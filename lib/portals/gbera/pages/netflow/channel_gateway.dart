@@ -175,16 +175,16 @@ class _ChannelGatewayState extends State<ChannelGateway> {
                           arguments: <String, Object>{'channel': _channel});
                     },
                   ),
-                  _CardItem(
-                    title: '地圈',
-                    tipsText: '是否充许本管道的信息推送到我的地圈',
-                    operator: _MySwitch(
-                      value: _isSetGeo,
-                      onTap: () {
-                        _setGeo();
-                      },
-                    ),
-                  ),
+                  // _CardItem(
+                  //   title: '地圈',
+                  //   tipsText: '是否充许本管道的信息推送到我的地圈',
+                  //   operator: _MySwitch(
+                  //     value: _isSetGeo,
+                  //     onTap: () {
+                  //       _setGeo();
+                  //     },
+                  //   ),
+                  // ),
 //                  _CardItem(
 //                    title: '微信朋友圈',
 //                    tipsText: '是否充许本管道的信息推送到我的微信朋友圈',

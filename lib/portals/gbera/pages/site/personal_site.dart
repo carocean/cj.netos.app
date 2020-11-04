@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -282,6 +283,7 @@ class _PersonalSiteState extends State<PersonalSite> {
         slivers: <Widget>[
           SliverToBoxAdapter(
             child: _Header(
+              context: widget.context,
               imgSrc: _person?.avatar,
               title: personName,
               uid: '${_person?.uid}',
@@ -592,14 +594,14 @@ class _Header extends StatefulWidget {
   String person;
   String address;
   String signText;
-
+  PageContext context;
   _Header(
       {this.imgSrc,
       this.uid,
       this.person,
       this.address,
       this.signText,
-      this.title});
+      this.title,this.context,});
 
   @override
   __HeaderState createState() => __HeaderState();
@@ -633,17 +635,14 @@ class __HeaderState extends State<_Header> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(6),
                   ),
-                  child: widget.imgSrc == null
-                      ? Container(
-                          width: 0,
-                          height: 0,
-                        )
-                      : Image.file(
-                          File(widget.imgSrc),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.fitWidth,
-                        ),
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: getAvatarWidget(
+                      widget.imgSrc,
+                      widget.context,
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -787,7 +786,8 @@ class _CardState extends State<_Card> {
     Person person = widget.context.parameters['person'];
     var inperson = await pinService.getInputPerson(person.official, channel);
     if (inperson.rights == 'deny') {
-      await pinService.updateInputPersonRights(person.official, channel, 'allow');
+      await pinService.updateInputPersonRights(
+          person.official, channel, 'allow');
     }
   }
 

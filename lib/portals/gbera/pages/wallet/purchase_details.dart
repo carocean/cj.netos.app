@@ -150,6 +150,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
     }
     return Scaffold(
       body: CustomScrollView(
+        physics: NeverScrollableScrollPhysics(),
         slivers: <Widget>[
           SliverAppBar(
             pinned: true,
@@ -223,7 +224,6 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
     return Container(
       color: Colors.white,
       child: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

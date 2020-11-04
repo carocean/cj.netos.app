@@ -1,16 +1,23 @@
 import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/medias_widget.dart';
+import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+
+import 'cat_widget.dart';
 
 class _ActivityInfo {
   String docid;
@@ -50,6 +57,7 @@ class _DocumentPathState extends State<DocumentPath> {
   int _limit = 20, _offset = 0;
   List<_ActivityInfo> _activities = [];
   EasyRefreshController _controller;
+  PurchaseOR _purchaseOR;
 
   @override
   void initState() {
@@ -57,6 +65,7 @@ class _DocumentPathState extends State<DocumentPath> {
     _person = widget.context.parameters['person'];
     _message = widget.context.parameters['message'];
     _channel = widget.context.parameters['channel'];
+    _purchaseOR = widget.context.parameters['purchase'];
     _loadActivities().then((v) {
       setState(() {});
     });
@@ -147,38 +156,100 @@ class _DocumentPathState extends State<DocumentPath> {
       );
     }
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: Text('流转'),
-      ),
-      body: CustomScrollView(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverToBoxAdapter(
-            child: _DocumentRegion(
-              context: widget.context,
+      body: NestedScrollView(
+        headerSliverBuilder: (ctx, s) {
+          return [
+            SliverAppBar(
+              elevation: 0,
+              title: Text('流转'),
+              pinned: true,
             ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20,
+            SliverToBoxAdapter(
+              child: _DocumentRegion(
+                context: widget.context,
+              ),
             ),
-          ),
-          SliverFillRemaining(
-            child: Container(
-              color: Colors.white,
-              child: EasyRefresh(
-                controller: _controller,
-                onLoad: _loadActivities,
-                child: ListView(
-                  shrinkWrap: true,
-                  children: items,
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 20,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  bottom: 10,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: (){
+                              widget.context.forward('/netflow/portal/channel',
+                                  arguments: {
+                                    'channel': _channel,
+                                    'purchase': _purchaseOR
+                                  }).then((v) {});
+                            },
+                            child: SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: getAvatarWidget(
+                                    _channel.leading, widget.context),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10,),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: (){
+                              widget.context.forward('/netflow/portal/channel',
+                                  arguments: {
+                                    'channel': _channel,
+                                    'purchase': _purchaseOR
+                                  }).then((v) {});
+                            },
+                            child: Text(
+                              '${_channel.name}',
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CatWidget(
+                      context: widget.context,
+                      channelId: _channel.id,
+                      size: 20,
+                      canTap: true,
+                    ),
+                  ],
                 ),
               ),
             ),
+          ];
+        },
+        body: Container(
+          color: Colors.white,
+          child: EasyRefresh(
+            controller: _controller,
+            onLoad: _loadActivities,
+            child: ListView(
+              shrinkWrap: true,
+              children: items,
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -211,33 +282,47 @@ class __ActivityCardState extends State<_ActivityCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 10,
-                  ),
-                  child: widget.activityInfo.activitor.avatar.startsWith('/')
-                      ? Image.file(
-                          File(widget.activityInfo.activitor.avatar),
-                          width: 30,
-                          height: 30,
-                        )
-                      : Image.network(
-                          '${widget.activityInfo.activitor.avatar}?accessToken=${widget.context.principal.accessToken}',
-                          width: 30,
-                          height: 30,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.forward('/person/view',
+                        arguments: {'person': widget.activityInfo.activitor});
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: getAvatarWidget(
+                          widget.activityInfo.activitor.avatar,
+                          widget.context,
                         ),
+                      ),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 5),
-                        child: Text(
-                          widget.activityInfo.activitor.nickName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black54,
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          widget.context.forward('/person/view', arguments: {
+                            'person': widget.activityInfo.activitor
+                          });
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 5),
+                          child: Text(
+                            widget.activityInfo.activitor.nickName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
@@ -253,8 +338,16 @@ class __ActivityCardState extends State<_ActivityCard> {
                                   ),
                                 )
                               : widget.activityInfo.action == 'send.like'
-                                  ? Icon(Icons.favorite_border,size: 20,color: Colors.red,)
-                                  : Icon(FontAwesomeIcons.planeArrival,size: 20,color: Colors.grey[500],),
+                                  ? Icon(
+                                      Icons.favorite_border,
+                                      size: 20,
+                                      color: Colors.red,
+                                    )
+                                  : Icon(
+                                      FontAwesomeIcons.planeArrival,
+                                      size: 20,
+                                      color: Colors.grey[500],
+                                    ),
                         ],
                       ),
                       Padding(
@@ -368,12 +461,14 @@ class __DocumentRegionState extends State<_DocumentRegion> {
   Person _creator;
   InsiteMessage _message;
   PurchaseOR _purchaseOR;
+  int _maxlines = 6;
+
   @override
   void initState() {
     _message = widget.context.parameters['message'];
-    ()async{
+    () async {
       await _loadCreator();
-      _purchaseOR=await _getPurchase();
+      _purchaseOR = await _getPurchase();
     }();
 
     super.initState();
@@ -384,15 +479,17 @@ class __DocumentRegionState extends State<_DocumentRegion> {
     _message = null;
     super.dispose();
   }
+
   Future<PurchaseOR> _getPurchase() async {
     var sn = _message.purchaseSn;
     if (StringUtil.isEmpty(sn)) {
       return null;
     }
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     return await purchaserRemote.getPurchaseRecordPerson(_message.creator, sn);
   }
+
   Future<void> _loadCreator() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -418,19 +515,27 @@ class __DocumentRegionState extends State<_DocumentRegion> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 10),
-            child: _creator.avatar.startsWith('/')
-                ? Image.file(
-                    File(_creator.avatar),
-                    width: 40,
-                    height: 40,
-                  )
-                : Image.network(
-                    '${_creator.avatar}?accessToken=${widget.context.principal.accessToken}',
-                    width: 40,
-                    height: 40,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward('/person/view', arguments: {
+                'person': _creator,
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: SizedBox(
+                  height: 60,
+                  width: 60,
+                  child: getAvatarWidget(
+                    _creator.avatar,
+                    widget.context,
                   ),
+                ),
+              ),
+            ),
           ),
           Expanded(
             child: Column(
@@ -438,62 +543,98 @@ class __DocumentRegionState extends State<_DocumentRegion> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 2,
-                  ),
-                  child: Text(
-                    '${_creator.nickName}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[500],
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.forward('/person/view', arguments: {
+                      'person': _creator,
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 2,
+                    ),
+                    child: Text(
+                      '${_creator.nickName}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
-                Text.rich(
-                  TextSpan(
-                    text: '${_message.digests ?? ''}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  maxLines: 6,
-                  overflow: TextOverflow.ellipsis,
+                SizedBox(
+                  height: 10,
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 2,
-                    top: 5,
-                  ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _maxlines = _maxlines == null ? 6 : null;
+                    if (mounted) setState(() {});
+                  },
                   child: Text.rich(
                     TextSpan(
-                      text: '',
+                      text: '${_message.digests ?? ''}',
                       style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
+                        fontSize: 14,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
                       ),
-                      children: [
-                        TextSpan(
-                          text: '${TimelineUtil.format(
-                            _message.ctime,
-                            locale: 'zh',
-                            dayFormat: DayFormat.Simple,
-                          )}',
-                          children: [
-                            TextSpan(text: '  '),
-                          ],
-                        ),
-//                        TextSpan(
-//                          text: '洇金:¥',
-//                          children: [
-//                            TextSpan(
-//                                text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
-//                          ],
-//                        )
-                      ],
                     ),
+                    maxLines: _maxlines,
+                    overflow: _maxlines == null ? null : TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: 5,
+                    bottom: 2,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${TimelineUtil.format(
+                          _message.ctime,
+                          locale: 'zh',
+                          dayFormat: DayFormat.Simple,
+                        )}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          if (_purchaseOR == null) {
+                            return;
+                          }
+                          IWyBankPurchaserRemote purchaserRemote = widget
+                              .context.site
+                              .getService('/remote/purchaser');
+                          WenyBank bank = await purchaserRemote
+                              .getWenyBank(_purchaseOR.bankid);
+                          widget.context.forward(
+                            '/wybank/purchase/details',
+                            arguments: {
+                              'purch': _purchaseOR,
+                              'bank': bank,
+                            },
+                          );
+                        },
+                        child: Text(
+                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: Colors.blueGrey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

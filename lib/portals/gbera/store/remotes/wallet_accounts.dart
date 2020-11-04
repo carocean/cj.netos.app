@@ -522,8 +522,8 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
         'offset': offset,
       },
     );
-    var cards=<PersonCardOR>[];
-    for(var obj in list) {
+    var cards = <PersonCardOR>[];
+    for (var obj in list) {
       cards.add(PersonCardOR.parse(obj));
     }
     return cards;
@@ -585,10 +585,14 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
     var bankInfo = await _getBankInfo(bank);
     var bulletinBoard = await getBulletinBoard(bank, DateTime.now());
     return new WenyBank(
-      price: priceAccount['price'],
-      profit: (profitAccount['amount'] as double).floor(),
-      stock: stockAccount['stock'],
-      freezen: (freezenAccount['amount'] as double).floor(),
+      price: priceAccount == null ? null : priceAccount['price'],
+      profit: profitAccount == null
+          ? null
+          : (profitAccount['amount'] as double).floor(),
+      stock: stockAccount == null ? null : stockAccount['stock'],
+      freezen: freezenAccount == null
+          ? null
+          : (freezenAccount['amount'] as double).floor(),
       board: bulletinBoard,
       bank: bank,
       info: bankInfo,

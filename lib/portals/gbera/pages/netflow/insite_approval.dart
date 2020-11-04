@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -13,6 +14,8 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+
+import 'cat_widget.dart';
 
 class InsiteApprovals extends StatefulWidget {
   PageContext context;
@@ -35,6 +38,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   bool _disabled__check_rejectAllMessages = false;
   bool _disabled__check_rejectChannelMessages = false;
   PurchaseOR _purchaseOR;
+
   @override
   void initState() {
     _message = widget.context.page.parameters['message'];
@@ -64,7 +68,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
           break;
       }
       _creator = await personService.getPerson(_message.creator);
-      _purchaseOR=await _getPurchase();
+      _purchaseOR = await _getPurchase();
       IChannelPinService pinService =
           widget.context.site.getService('/channel/pin');
       var iperson =
@@ -87,15 +91,17 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
     _person = null;
     super.dispose();
   }
+
   Future<PurchaseOR> _getPurchase() async {
     var sn = _message.purchaseSn;
     if (StringUtil.isEmpty(sn)) {
       return null;
     }
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     return await purchaserRemote.getPurchaseRecordPerson(_message.creator, sn);
   }
+
   Future<void> addPersonToLocal() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
@@ -287,387 +293,455 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
         child: Text('正在加载...'),
       );
     }
-    return Stack(
-      overflow: Overflow.visible,
-      fit: StackFit.expand,
-      children: <Widget>[
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              height: 40,
-            ),
-            Container(
-              constraints: BoxConstraints.tightForFinite(
-                width: double.maxFinite,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        overflow: Overflow.visible,
+        fit: StackFit.expand,
+        children: <Widget>[
+          Column(
+            children: [
+              Container(
+                color: Colors.transparent,
+                height: 45,
               ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                boxShadow: [
-                  BoxShadow(
-                    spreadRadius: 5,
-                    offset: Offset.zero,
-                    blurRadius: 3,
-                    color: Colors.grey[200],
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.only(
-                left: 40,
-                right: 40,
-              ),
-              padding: EdgeInsets.all(10),
-              child: GestureDetector(
-                onTap: () {
-                  widget.context
-                      .forward('/netflow/channel/document/path', arguments: {
-                    'person': _person,
-                    'channel': _channel,
-                    'message': _message,
-                  });
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(right: 10),
-                      child: _creator?.avatar.startsWith('/')
-                          ? Image.file(
-                              File(_creator?.avatar),
-                              width: 40,
-                              height: 40,
-                            )
-                          : Image.network(
-                              '${_creator?.avatar}?accessToken=${widget.context.principal.accessToken}',
-                              width: 40,
-                              height: 40,
-                            ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 2,
-                            ),
-                            child: Text(
-                              '${_creator?.nickName}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Text.rich(
-                            TextSpan(
-                              text: '${_message.digests ?? ''}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 2,
-                              top: 5,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                text: '',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: '${TimelineUtil.format(
-                                      _message.ctime,
-                                      locale: 'zh',
-                                      dayFormat: DayFormat.Simple,
-                                    )}',
-                                    children: [
-                                      TextSpan(text: '  '),
-                                    ],
-                                  ),
-                                  TextSpan(
-                                    text: '洇金:¥',
-                                    children: [
-                                      TextSpan(
-                                          text: ((_purchaseOR?.principalAmount??0.00)/100.00).toStringAsFixed(2)),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).backgroundColor,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Container(
+                        height: 40,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            _message.creator == widget.context.principal.person
-                ? Container(
-                    width: 0,
-                    height: 0,
-                  )
-                : Container(
-                    constraints: BoxConstraints.tightForFinite(
-                      width: double.maxFinite,
-                    ),
-                    margin: EdgeInsets.only(
-                      left: 40,
-                      right: 40,
-                    ),
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-//                    color: Colors.white,
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.only(
-                            left: 10,
-                            right: 10,
-                          ),
-                          child: Column(
+                      Container(
+                        constraints: BoxConstraints.tightForFinite(
+                          width: double.maxFinite,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 5,
+                              offset: Offset.zero,
+                              blurRadius: 3,
+                              color: Colors.grey[200],
+                            ),
+                          ],
+                        ),
+                        margin: EdgeInsets.only(
+                          left: 40,
+                          right: 40,
+                        ),
+                        padding: EdgeInsets.all(10),
+                        child: GestureDetector(
+                          onTap: () {
+                            widget.context.forward(
+                                '/netflow/channel/document/path',
+                                arguments: {
+                                  'person': _person,
+                                  'channel': _channel,
+                                  'message': _message,
+                                  'purchase': _purchaseOR,
+                                });
+                          },
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: _disabled__check_rejectChannelMessages
-                                    ? null
-                                    : () {
-                                        _disabled__check_rejectChannelMessages =
-                                            true;
-                                        setState(() {});
-                                        _rejectHisChannelMessage().then((v) {
-                                          _disabled__check_rejectChannelMessages =
-                                              false;
-                                          setState(() {});
-                                        });
-                                      },
-                                child: CardItem(
-                                  paddingTop: 10,
-                                  paddingBottom: 10,
-                                  title:
-                                      '${_disabled__check_rejectChannelMessages ? '处理中...' : '拒收这个管道消息'}',
-                                  titleColor: Colors.black87,
-                                  titleSize: 12,
-                                  tail: _check_receive_to_channel
-                                      ? Icon(
-                                          Icons.remove,
-                                          color: Colors.grey[400],
-                                          size: 12,
-                                        )
-                                      : Icon(
-                                          Icons.check,
-                                          color: Colors.red,
-                                          size: 14,
-                                        ),
+                              Padding(
+                                padding: EdgeInsets.only(right: 10),
+                                child: SizedBox(
+                                  height: 40,
+                                  width: 40,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: getAvatarWidget(
+                                        _creator?.avatar, widget.context),
+                                  ),
                                 ),
                               ),
-                              Divider(
-                                height: 1,
-                              ),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: _disabled__check_rejectAllMessages
-                                    ? null
-                                    : () {
-                                        _disabled__check_rejectAllMessages =
-                                            true;
-                                        setState(() {});
-                                        _rejectHisAllMessage().then((v) {
-                                          _disabled__check_rejectAllMessages =
-                                              false;
-                                          setState(() {});
-                                        });
-                                      },
-                                child: CardItem(
-                                  paddingTop: 10,
-                                  paddingBottom: 10,
-                                  title:
-                                      '${_disabled__check_rejectAllMessages ? '处理中...' : '拒收他的所有消息'}',
-                                  titleColor: Colors.black87,
-                                  titleSize: 12,
-                                  tail: !_check_rejectAllMessages
-                                      ? Icon(
-                                          Icons.remove,
-                                          color: Colors.grey[400],
-                                          size: 12,
-                                        )
-                                      : Icon(
-                                          Icons.check,
-                                          color: Colors.red,
-                                          size: 14,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: 2,
+                                      ),
+                                      child: Text(
+                                        '${_creator?.nickName}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                ),
-                              ),
-                              Divider(
-                                height: 1,
-                              ),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: _disabled__check_receive_to_channel
-                                    ? null
-                                    : () {
-                                        _disabled__check_receive_to_channel =
-                                            true;
-                                        setState(() {});
-                                        _addOrRemoveChannel().then((v) {
-                                          _disabled__check_receive_to_channel =
-                                              true;
-                                          setState(() {});
-                                          widget.context.backward(
-                                              result: {'refresh': true});
-                                        });
-                                      },
-                                child: CardItem(
-                                  paddingTop: 10,
-                                  paddingBottom: 10,
-                                  title:
-                                      '${_disabled__check_receive_to_channel ? '处理中...' : '将消息收取到管道'}',
-                                  tipsText: '您可获得: ¥2.21',
-                                  tipsSize: 10,
-                                  titleColor: Colors.black87,
-                                  titleSize: 12,
-                                  tail: !_check_channel_exists ||
-                                          !_check_receive_to_channel
-                                      ? Icon(
-                                          Icons.remove,
-                                          color: Colors.grey[400],
-                                          size: 12,
-                                        )
-                                      : Icon(
-                                          Icons.check,
-                                          color: Colors.red,
-                                          size: 14,
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        text: '${_message.digests ?? ''}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[500],
                                         ),
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: 2,
+                                        top: 5,
+                                      ),
+                                      child: Text.rich(
+                                        TextSpan(
+                                          text: '',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: '${TimelineUtil.format(
+                                                _message.ctime,
+                                                locale: 'zh',
+                                                dayFormat: DayFormat.Simple,
+                                              )}',
+                                              children: [
+                                                TextSpan(text: '  '),
+                                              ],
+                                            ),
+                                            TextSpan(
+                                              text: '¥',
+                                              children: [
+                                                TextSpan(
+                                                    text: ((_purchaseOR
+                                                                    ?.principalAmount ??
+                                                                0.00) /
+                                                            100.00)
+                                                        .toStringAsFixed(2)),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-            Container(
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    spreadRadius: 5,
-                    offset: Offset.zero,
-                    blurRadius: 3,
-                    color: Colors.grey[200],
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.only(
-                top: 10,
-              ),
-              constraints: BoxConstraints.tightForFinite(
-                width: double.maxFinite,
-              ),
-              child: FlatButton(
-                onPressed: () {
-                  widget.context.backward(result: {'action': 'cancel'});
-                },
-                child: Text(
-                  '取消',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        Positioned(
-          top: -40,
-          left: 20,
-          child: Row(
-            children: <Widget>[
-              GestureDetector(
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 8,
-                      color: Colors.white,
-                    ),
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: _channel?.leading == null
-                          ? AssetImage(
-                              'lib/portals/gbera/images/netflow.png',
+                      ),
+                      _message.creator == widget.context.principal.person
+                          ? Container(
+                              width: 0,
+                              height: 0,
                             )
-                          : _channel?.leading.startsWith('/')
-                              ? FileImage(
-                                  File(
-                                    _channel?.leading,
+                          : Container(
+                              constraints: BoxConstraints.tightForFinite(
+                                width: double.maxFinite,
+                              ),
+                              margin: EdgeInsets.only(
+                                left: 40,
+                                right: 40,
+                              ),
+                              padding: EdgeInsets.all(10),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+//                    color: Colors.white,
+                                    alignment: Alignment.center,
+                                    padding: EdgeInsets.only(
+                                      left: 10,
+                                      right: 10,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap:
+                                              _disabled__check_rejectChannelMessages
+                                                  ? null
+                                                  : () {
+                                                      _disabled__check_rejectChannelMessages =
+                                                          true;
+                                                      setState(() {});
+                                                      _rejectHisChannelMessage()
+                                                          .then((v) {
+                                                        _disabled__check_rejectChannelMessages =
+                                                            false;
+                                                        setState(() {});
+                                                      });
+                                                    },
+                                          child: CardItem(
+                                            paddingTop: 10,
+                                            paddingBottom: 10,
+                                            title:
+                                                '${_disabled__check_rejectChannelMessages ? '处理中...' : '拒收这个管道消息'}',
+                                            titleColor: Colors.black87,
+                                            titleSize: 12,
+                                            tail: _check_receive_to_channel
+                                                ? Icon(
+                                                    Icons.remove,
+                                                    color: Colors.grey[400],
+                                                    size: 12,
+                                                  )
+                                                : Icon(
+                                                    Icons.check,
+                                                    color: Colors.red,
+                                                    size: 14,
+                                                  ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          height: 1,
+                                        ),
+                                        GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap:
+                                              _disabled__check_rejectAllMessages
+                                                  ? null
+                                                  : () {
+                                                      _disabled__check_rejectAllMessages =
+                                                          true;
+                                                      setState(() {});
+                                                      _rejectHisAllMessage()
+                                                          .then((v) {
+                                                        _disabled__check_rejectAllMessages =
+                                                            false;
+                                                        setState(() {});
+                                                      });
+                                                    },
+                                          child: CardItem(
+                                            paddingTop: 10,
+                                            paddingBottom: 10,
+                                            title:
+                                                '${_disabled__check_rejectAllMessages ? '处理中...' : '拒收他的所有消息'}',
+                                            titleColor: Colors.black87,
+                                            titleSize: 12,
+                                            tail: !_check_rejectAllMessages
+                                                ? Icon(
+                                                    Icons.remove,
+                                                    color: Colors.grey[400],
+                                                    size: 12,
+                                                  )
+                                                : Icon(
+                                                    Icons.check,
+                                                    color: Colors.red,
+                                                    size: 14,
+                                                  ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          height: 1,
+                                        ),
+                                        GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap:
+                                              _disabled__check_receive_to_channel
+                                                  ? null
+                                                  : () {
+                                                      _disabled__check_receive_to_channel =
+                                                          true;
+                                                      setState(() {});
+                                                      _addOrRemoveChannel()
+                                                          .then((v) {
+                                                        _disabled__check_receive_to_channel =
+                                                            true;
+                                                        setState(() {});
+                                                        widget.context.backward(
+                                                            result: {
+                                                              'refresh': true
+                                                            });
+                                                      });
+                                                    },
+                                          child: CardItem(
+                                            paddingTop: 10,
+                                            paddingBottom: 10,
+                                            title:
+                                                '${_disabled__check_receive_to_channel ? '处理中...' : '将消息收取到管道'}',
+                                            tipsSize: 10,
+                                            titleColor: Colors.black87,
+                                            titleSize: 12,
+                                            tail: Row(
+                                              children: [
+                                                CatWidget(
+                                                  context: widget.context,
+                                                  channelId: _channel.id,
+                                                  size: 14,
+                                                  canTap: false,
+                                                  tipsWidget: Text(
+                                                    '可加猫',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ),
+                                                !_check_channel_exists ||
+                                                        !_check_receive_to_channel
+                                                    ? Icon(
+                                                        Icons.remove,
+                                                        color: Colors.grey[400],
+                                                        size: 12,
+                                                      )
+                                                    : Icon(
+                                                        Icons.check,
+                                                        color: Colors.red,
+                                                        size: 14,
+                                                      ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                )
-                              : NetworkImage(
-                                  '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
-                                ),
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 5,
-                        offset: Offset.zero,
-                        spreadRadius: 3,
-                        color: Colors.grey[300],
+                                ],
+                              ),
+                            ),
+                      Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 5,
+                              offset: Offset.zero,
+                              blurRadius: 3,
+                              color: Colors.grey[200],
+                            ),
+                          ],
+                        ),
+                        margin: EdgeInsets.only(
+                          top: 10,
+                        ),
+                        constraints: BoxConstraints.tightForFinite(
+                          width: double.maxFinite,
+                        ),
+                        child: FlatButton(
+                          onPressed: () {
+                            widget.context
+                                .backward(result: {'action': 'cancel'});
+                          },
+                          child: Text(
+                            '取消',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                onTap: () {
-                  print('xxxx');
-                  widget.context.backward();
-//                  widget.context.forward('/channel/viewer');
-                  widget.context.forward('/netflow/portal/channel',
-                      arguments: {'channel': _channel}).then((v) {});
-                },
-              ),
-              Container(
-                padding: EdgeInsets.only(
-                  left: 2,
-                  right: 10,
-                ),
-                height: 55,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      '${_channel?.name}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
-        ),
-      ],
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.only(
+                left: 15,
+                right: 15,
+              ),
+              child: Row(
+                children: <Widget>[
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 8,
+                          color: Colors.white,
+                        ),
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: _channel?.leading == null
+                              ? AssetImage(
+                                  'lib/portals/gbera/images/netflow.png',
+                                )
+                              : _channel?.leading.startsWith('/')
+                                  ? FileImage(
+                                      File(
+                                        _channel?.leading,
+                                      ),
+                                    )
+                                  : CachedNetworkImageProvider(
+                                      '${_channel?.leading}?accessToken=${widget.context.principal.accessToken}',
+                                    ),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 5,
+                            offset: Offset.zero,
+                            spreadRadius: 3,
+                            color: Colors.grey[300],
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      widget.context.backward();
+                      widget.context.forward('/netflow/portal/channel',
+                          arguments: {
+                            'channel': _channel,
+                            'purchase': _purchaseOR
+                          }).then((v) {});
+                    },
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 20,
+                    ),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        widget.context.backward();
+                        widget.context.forward('/netflow/portal/channel',
+                            arguments: {
+                              'channel': _channel,
+                              'purchase': _purchaseOR
+                            }).then((v) {});
+                      },
+                      child: Text(
+                        '${_channel?.name}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 20,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 4,
+                              color: Colors.grey,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

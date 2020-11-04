@@ -309,11 +309,15 @@ class _ChannelPageState extends State<ChannelPage> {
                         color: Colors.grey[500],
                         onPressed: () async {
                           var image = await ImagePicker().getImage(
-                              source: ImageSource.gallery,maxHeight: Adapt.screenH(),imageQuality: 80,);
+                            source: ImageSource.gallery,
+                            maxHeight: Adapt.screenH(),
+                            imageQuality: 80,
+                          );
                           widget.context.backward(result: <String, dynamic>{
                             'type': 'gallery',
                             'mediaFile': MediaFile(
-                                type: MediaFileType.image, src: File(image.path)),
+                                type: MediaFileType.image,
+                                src: File(image.path)),
                           });
                         },
                       ),
@@ -622,7 +626,8 @@ class __MessageCardState extends State<_MessageCard> {
     }
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    return await purchaserRemote.getPurchaseRecordPerson(widget.message.creator, sn);
+    return await purchaserRemote.getPurchaseRecordPerson(
+        widget.message.creator, sn);
   }
 
   Future<Person> _getPerson() async {
@@ -686,16 +691,12 @@ class __MessageCardState extends State<_MessageCard> {
               },
               child: Padding(
                 padding: EdgeInsets.only(top: 5, right: 5),
-                child: ClipOval(
-                  child: Image(
-                    image: FileImage(
-                      File(
-                        _person?.avatar,
-                      ),
-                    ),
-                    height: 35,
-                    width: 35,
-                    fit: BoxFit.fill,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: getAvatarWidget(_person?.avatar, widget.context),
                   ),
                 ),
               ),

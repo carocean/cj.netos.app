@@ -336,18 +336,7 @@ class _ChatTalkState extends State<ChatTalk> {
     return Scaffold(
       body: Container(
         constraints: BoxConstraints.expand(),
-        decoration: StringUtil.isEmpty(_chatRoom.p2pBackground)
-            ? null
-            : BoxDecoration(
-                image: DecorationImage(
-                  image: FileImage(
-                    File(
-                      _chatRoom.p2pBackground,
-                    ),
-                  ),
-                  fit: BoxFit.fill,
-                ),
-              ),
+        decoration: _renderBackground(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -515,6 +504,32 @@ class _ChatTalkState extends State<ChatTalk> {
       );
     }
     return widgets;
+  }
+
+  _renderBackground() {
+    if (StringUtil.isEmpty(_chatRoom.p2pBackground)) {
+      return null;
+    }
+    if (_chatRoom.p2pBackground.startsWith('/')) {
+      return BoxDecoration(
+        image: DecorationImage(
+          image: FileImage(
+            File(
+              _chatRoom.p2pBackground,
+            ),
+          ),
+          fit: BoxFit.fill,
+        ),
+      );
+    }
+    return BoxDecoration(
+      image: DecorationImage(
+        image: NetworkImage(
+          _chatRoom.p2pBackground,
+        ),
+        fit: BoxFit.fill,
+      ),
+    );
   }
 }
 
@@ -1451,12 +1466,13 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       case 'transTo':
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
-        var record=P2PRecordOR.parse(obj);
+        var record = P2PRecordOR.parse(obj);
         //
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: (){
-            widget.context.forward('/wallet/p2p/details',arguments: {'p2p':record});
+          onTap: () {
+            widget.context
+                .forward('/wallet/p2p/details', arguments: {'p2p': record});
           },
           child: Container(
             padding: EdgeInsets.only(
@@ -1747,8 +1763,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           ),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: (){
-              widget.context.forward('/wallet/p2p/details',arguments: {'p2p':record});
+            onTap: () {
+              widget.context
+                  .forward('/wallet/p2p/details', arguments: {'p2p': record});
             },
             child: Container(
               padding: EdgeInsets.all(10),

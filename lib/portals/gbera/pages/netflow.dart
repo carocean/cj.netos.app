@@ -32,6 +32,7 @@ import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
+import 'netflow/cat_widget.dart';
 
 class Netflow extends StatefulWidget {
   PageContext context;
@@ -313,32 +314,32 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       ],
                     ),
                   ),
-                  PopupMenuItem(
-                    value: '/netflow/manager/search_channel',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context
-                                .findPage('/netflow/manager/search_channel')
-                                ?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '搜索以连接',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // PopupMenuItem(
+                  //   value: '/netflow/manager/search_channel',
+                  //   child: Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                  //     children: <Widget>[
+                  //       Padding(
+                  //         padding: EdgeInsets.only(
+                  //           right: 10,
+                  //         ),
+                  //         child: Icon(
+                  //           widget.context
+                  //               .findPage('/netflow/manager/search_channel')
+                  //               ?.icon,
+                  //           color: Colors.grey[500],
+                  //           size: 15,
+                  //         ),
+                  //       ),
+                  //       Text(
+                  //         '搜索以连接',
+                  //         style: TextStyle(
+                  //           fontSize: 14,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   PopupMenuDivider(),
                   PopupMenuItem(
                     value: '/netflow/manager/my_persons',
@@ -1322,6 +1323,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         showModalBottomSheet(
+            backgroundColor: Colors.transparent,
             context: context,
             builder: (context) {
               return widget.context
@@ -1367,56 +1369,67 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
               left: 10,
               top: 6,
             ),
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: '${atime ?? ''}'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text.rich(
                   TextSpan(
-                    text: '  ¥',
                     children: [
+                      TextSpan(text: '${atime ?? ''}'),
                       TextSpan(
-                        text: (((_purchaseOR?.principalAmount ?? 0.00) /
-                                    100.00) ??
+                        text: '  ¥',
+                        children: [
+                          TextSpan(
+                            text: (((_purchaseOR?.principalAmount ?? 0.00) /
+                                100.00) ??
                                 0)
-                            .toStringAsFixed(2),
-                        style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontWeight: FontWeight.w500,
-                        ),
+                                .toStringAsFixed(2),
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  TextSpan(
-                    text: '  来自:',
-                  ),
-                  TextSpan(
-                    text: '${_person != null ? _person.nickName : ''}',
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(
-                    text: '',
-                    children: [
                       TextSpan(
-                        text: '  ${_channel == null ? '' : _channel.name}',
-                        style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        text: '  ',
                       ),
-                    ],
-                  ),
+                      // TextSpan(
+                      //   text: '${_person != null ? _person.nickName : ''}',
+                      //   style: TextStyle(
+                      //     color: Colors.grey[500],
+                      //   ),
+                      // ),
+                      TextSpan(
+                        text: '',
+                        children: [
+                          TextSpan(
+                            text: '  ${_channel == null ? '' : _channel.name}',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
 //                v.picCount > 0
 //                    ? TextSpan(text: '  图片${v.picCount}个')
 //                    : TextSpan(text: ''),
-                ],
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 10,
+                    ],
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 10,
+                    ),
+                  ),
                 ),
-              ),
+                SizedBox(width: 5,),
+                _channel==null?SizedBox(height: 0,width: 0,):
+                CatWidget(
+                  context: widget.context,
+                  channelId: _channel.id,
+                  size: 11,
+                  canTap: false,
+                ),
+              ],
             ),
           ),
           widget.notBottom
