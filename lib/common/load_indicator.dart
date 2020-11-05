@@ -3,11 +3,15 @@ import 'package:flutter/widgets.dart';
 
 class LoadIndicator extends StatefulWidget {
   Widget child;
+  bool isInitLoad;
+  ScrollController scrollController;
   Future<void> Function() load;
 
   LoadIndicator({
     this.child,
     this.load,
+    this.isInitLoad,
+    this.scrollController,
   });
 
   @override
@@ -24,7 +28,10 @@ class _LoadIndicatorState extends State<LoadIndicator> {
   void initState() {
     _child = widget.child;
     _load = widget.load;
-    _controller = ScrollController();
+    _controller=widget.scrollController;
+    if(_controller==null) {
+      _controller = ScrollController();
+    }
     _controller.addListener(() {
       if (_showMore) {
         return;
@@ -53,6 +60,15 @@ class _LoadIndicatorState extends State<LoadIndicator> {
         });
       }
     });
+    if (widget.isInitLoad != null && widget.isInitLoad && widget.load != null) {
+      _load().then((value) {
+        if (mounted) {
+          setState(() {
+            _showMore = false;
+          });
+        }
+      });
+    }
     super.initState();
   }
 

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -10,6 +11,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:video_player/video_player.dart';
 
+import 'medias_widget.dart';
 import 'my_photo_view_gallery.dart';
 
 class MediaWatcher extends StatefulWidget {
@@ -122,7 +124,9 @@ class _MediaWatcherState extends State<MediaWatcher> {
     var item = media.src;
     switch (media.type) {
       case 'image':
-        var src=item.indexOf('?')>0?item:'$item?accessToken=${widget.pageContext.principal.accessToken}';
+        var src = item.indexOf('?') > 0
+            ? item
+            : '$item?accessToken=${widget.pageContext.principal.accessToken}';
         return MyPhotoViewGalleryPageOptions(
           imageProvider: item.startsWith('/')
               ? FileImage(File(item))
@@ -138,10 +142,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
           minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
           maxScale: PhotoViewComputedScale.covered * 1.1,
           heroAttributes: PhotoViewHeroAttributes(tag: item),
-          child: _VideoWatcher(
-            autoPlay: true,
-            src: File(item),
-          ),
+          child: _renderVideo(widget.pageContext,item),
         );
       case 'audio':
         return MyPhotoViewGalleryPageOptions.customChild(
@@ -165,6 +166,35 @@ class _MediaWatcherState extends State<MediaWatcher> {
             ),
           ),
         );
+    }
+  }
+
+  Widget _renderVideo(PageContext pageContext,src) {
+    if (src.startsWith('/')) {
+      return _VideoWatcher(
+        autoPlay: true,
+        src: File(src),
+      );
+    } else {
+      return FutureBuilder<String>(
+        future: checkUrlAndDownload(pageContext, src),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          var srcLocal = snapshot.data;
+          return _VideoWatcher(
+            autoPlay: true,
+            src: File(srcLocal),
+          );
+        },
+      );
     }
   }
 }

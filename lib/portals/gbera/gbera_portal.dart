@@ -127,6 +127,9 @@ import 'package:netos_app/portals/gbera/pages/netflow/insite_persons.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_persons_settings.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_settings.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/portal/channel_router_path.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_channel.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_person.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/scan_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_channel.dart';
@@ -1049,6 +1052,36 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/netflow/channel/site/output',
           buildPage: (PageContext pageContext) => SiteChannelBinder(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '网流用户门户',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/portal/person',
+          buildPage: (PageContext pageContext) => NetflowPersonPortal(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '网流管道门户',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/portal/channel',
+          buildPage: (PageContext pageContext) => NetflowChannelPortal(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '管道路由路径切换',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/router',
+          buildPage: (PageContext pageContext) => ChannelRouter(
             context: pageContext,
           ),
         ),

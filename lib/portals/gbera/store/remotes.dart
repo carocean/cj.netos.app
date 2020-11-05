@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:uuid/uuid.dart';
 
 class ChannelMessageOR {
   String id;
@@ -20,6 +25,25 @@ class ChannelMessageOR {
     this.ctime,
     this.purchaseSn,
   });
+
+  ChannelMessageOR.parse(obj){
+    this.id=obj['id'];
+    this.channel=obj['channel'];
+    this.creator=obj['creator'];
+    this.content=obj['content'];
+    this.location=obj['location'] == null ? null : LatLng.fromJson(obj['location']);
+    this.ctime=obj['ctime'];
+    this.purchaseSn=obj['purchaseSn'];
+  }
+
+  InsiteMessage toInsiteMessage(upstreamPerson,sandbox) {
+    var str;
+    if(location!=null) {
+      str=jsonEncode(location.toJson());
+    }
+    return InsiteMessage('${MD5Util.MD5(Uuid().v1())}', id, upstreamPerson, channel, null, null, creator, ctime, null, content, purchaseSn, str, null, sandbox);
+  }
+
 }
 
 class ChannelMediaOR {
@@ -42,6 +66,16 @@ class ChannelMediaOR {
     this.channel,
     this.ctime,
   });
+  MediaSrc toMediaSrc() {
+    return MediaSrc(
+        sourceType: 'channel',
+        msgid: docid,
+        text: text,
+        type: type,
+        id: id,
+        leading: leading,
+        src: src);
+  }
 }
 
 mixin IChannelRemote {
@@ -133,6 +167,9 @@ mixin IChannelRemote {
 
   Future<List<ChannelOutputPerson>> getAllOutputPerson(
       String channel, int atime) {}
+
+  Future<List<ChannelMessageOR>> pageDocument(String official, String id, int limit, int offset) {}
+
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}

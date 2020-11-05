@@ -191,11 +191,10 @@ class _DocumentPathState extends State<DocumentPath> {
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: (){
-                              widget.context.forward('/netflow/portal/channel',
-                                  arguments: {
-                                    'channel': _channel,
-                                    'purchase': _purchaseOR
-                                  }).then((v) {});
+                              widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                                'channel': _channel.id,
+                                'origin':_person.official,
+                              });
                             },
                             child: SizedBox(
                               width: 40,
@@ -211,11 +210,10 @@ class _DocumentPathState extends State<DocumentPath> {
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: (){
-                              widget.context.forward('/netflow/portal/channel',
-                                  arguments: {
-                                    'channel': _channel,
-                                    'purchase': _purchaseOR
-                                  }).then((v) {});
+                              widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                                'channel': _channel.id,
+                                'origin':_person.official,
+                              });
                             },
                             child: Text(
                               '${_channel.name}',
@@ -285,8 +283,10 @@ class __ActivityCardState extends State<_ActivityCard> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    widget.context.forward('/person/view',
-                        arguments: {'person': widget.activityInfo.activitor});
+                    widget.context.forward("/netflow/channel/portal/person",
+                        arguments: {
+                          'person': widget.activityInfo.activitor,
+                        });
                   },
                   child: Padding(
                     padding: EdgeInsets.only(
@@ -312,9 +312,10 @@ class __ActivityCardState extends State<_ActivityCard> {
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          widget.context.forward('/person/view', arguments: {
-                            'person': widget.activityInfo.activitor
-                          });
+                          widget.context.forward("/netflow/channel/portal/person",
+                              arguments: {
+                                'person': widget.activityInfo.activitor,
+                              });
                         },
                         child: Padding(
                           padding: EdgeInsets.only(bottom: 5),
@@ -518,9 +519,10 @@ class __DocumentRegionState extends State<_DocumentRegion> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              widget.context.forward('/person/view', arguments: {
-                'person': _creator,
-              });
+              widget.context.forward("/netflow/channel/portal/person",
+                  arguments: {
+                    'person': _creator,
+                  });
             },
             child: Padding(
               padding: EdgeInsets.only(right: 10),
@@ -546,9 +548,10 @@ class __DocumentRegionState extends State<_DocumentRegion> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    widget.context.forward('/person/view', arguments: {
-                      'person': _creator,
-                    });
+                    widget.context.forward("/netflow/channel/portal/person",
+                        arguments: {
+                          'person': _creator,
+                        });
                   },
                   child: Padding(
                     padding: EdgeInsets.only(

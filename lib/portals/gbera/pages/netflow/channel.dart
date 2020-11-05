@@ -685,8 +685,10 @@ class __MessageCardState extends State<_MessageCard> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward("/site/personal", arguments: {
-                  'person': _person,
+
+                widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                  'channel': widget.channel.id,
+                  'origin':_person.official,
                 });
               },
               child: Padding(
@@ -712,8 +714,9 @@ class __MessageCardState extends State<_MessageCard> {
                     children: <Widget>[
                       GestureDetector(
                         onTap: () {
-                          widget.context.forward("/site/personal", arguments: {
-                            'person': _person,
+                          widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                            'channel': widget.channel.id,
+                            'origin':_person.official,
                           });
                         },
                         behavior: HitTestBehavior.opaque,
@@ -1471,11 +1474,10 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-                    var person = await personService.getPerson(comment.person);
-                    widget.context.forward("/site/personal",
-                        arguments: {'person': person});
+                    widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                      'channel': widget.message.onChannel,
+                      'origin':comment.person,
+                    });
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -1582,13 +1584,10 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.person);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+                                      widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                                        'channel': widget.message.onChannel,
+                                        'origin':like.person,
+                                      });
                                     },
                                   children: [
                                     TextSpan(

@@ -127,7 +127,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
 
   @override
   Future<List<ChannelInputPerson>> getAllInputPerson(
-       String channel, int atime) async {
+      String channel, int atime) async {
     List list = await remotePorts
         .portGET(_linkNetflowPortsUrl, 'listAllInputPerson', parameters: {
       'channel': channel,
@@ -628,6 +628,26 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       channel: obj['channel'],
       content: obj['content'],
     );
+  }
+
+  @override
+  Future<List<ChannelMessageOR>> pageDocument(
+      String creator, String channel, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      _channelPortsUrl,
+      'pageDocument',
+      parameters: {
+        'creator': creator,
+        'channel': channel,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var docs=<ChannelMessageOR>[];
+    for(var obj in list) {
+      docs.add(ChannelMessageOR.parse(obj));
+    }
+    return docs;
   }
 
   @override

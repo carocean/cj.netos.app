@@ -121,17 +121,27 @@ class _ChannelGatewayState extends State<ChannelGateway> {
 //                      widget.context.forward('/site/marchant');
 //                    },
 //                  ),
+//                   _CardItem(
+//                     title: '管道动态',
+//                     onItemTap: () {
+//                       widget.context.forward(
+//                         '/netflow/portal/channel',
+//                         arguments: {
+//                           'channel': _channel,
+//                           'owner':widget.context.principal.person,
+//                         },
+//                       ).then((v) {
+//                         setState(() {});
+//                       });
+//                     },
+//                   ),
                   _CardItem(
-                    title: '管道动态',
+                    title: '我是微官',
+                    tipsText: '',
                     onItemTap: () {
-                      widget.context.forward(
-                        '/netflow/portal/channel',
-                        arguments: {
-                          'channel': _channel,
-                          'owner':widget.context.principal.person,
-                        },
-                      ).then((v) {
-                        setState(() {});
+                      widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                        'channel': _channel.id,
+                        'origin':widget.context.principal.person,
                       });
                     },
                   ),
@@ -163,6 +173,7 @@ class _ChannelGatewayState extends State<ChannelGateway> {
                 height: 10,
               ),
             ),
+
             SliverToBoxAdapter(
               child: _Card(
                 title: '管道出口',

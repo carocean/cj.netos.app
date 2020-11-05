@@ -243,9 +243,9 @@ Map<String, String> parseUrlParams(String paramStr) {
   return map;
 }
 
-Widget getAvatarWidget(String avatar, PageContext context) {
+Widget getAvatarWidget(String avatar, PageContext context,[defaultAssetAvatar='lib/portals/gbera/images/default_avatar.png']) {
   if (StringUtil.isEmpty(avatar)) {
-    return Image.asset('lib/portals/gbera/images/default_avatar.png');
+    return Image.asset(defaultAssetAvatar??'lib/portals/gbera/images/default_avatar.png');
   }
   if (avatar.startsWith('/')) {
     return Image.file(File(avatar));
@@ -253,4 +253,22 @@ Widget getAvatarWidget(String avatar, PageContext context) {
   return FadeInImage.assetNetwork(
       placeholder: 'lib/portals/gbera/images/default_watting.gif',
       image: '$avatar?accessToken=${context.principal.accessToken}');
+}
+
+Future<String> checkUrlAndDownload(PageContext pageContext, String src) async {
+  var home = await getExternalStorageDirectory();
+  var dir = '${home.path}/videos';
+  var dirFile = Directory(dir);
+  if (!dirFile.existsSync()) {
+    dirFile.createSync();
+  }
+  var localFile = '$dir/${MD5Util.MD5(src)}.${fileExt(src)}';
+  var file = File(localFile);
+  if (file.existsSync()) {
+    return file.path;
+  }
+  await pageContext.ports.download('${src}?accessToken=${pageContext.principal.accessToken}', localFile, onReceiveProgress: (i, j) {
+    print('---downloadVideo--$i  $j');
+  });
+  return localFile;
 }

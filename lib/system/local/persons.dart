@@ -180,32 +180,21 @@ class PersonService implements IPersonService, IServiceBuilder {
   @override
   Future<List<Person>> pagePersonWith(
       List<String> personList, int persons_limit, int persons_offset) async {
-    syn_lock.Lock lock = syn_lock.Lock();
-    return await lock.synchronized(() async {
-      List<String> officials = [];
-      for (String p in personList) {
-        Person person = await lock.synchronized(() async {
-          return await personDAO.getPerson(p, principal?.person);
-        });
-        if (person == null) {
-          person = await lock.synchronized(() async {
-            return await fetchPerson(p, isDownloadAvatar: true);
-          });
-          if (person != null) {
-            await lock.synchronized(() async {
-              await personDAO.addPerson(person);
-            });
-            officials.add(person.official);
-          }
-          continue;
+    List<String> officials = [];
+    for (String p in personList) {
+      Person person = await personDAO.getPerson(p, principal?.person);
+      if (person == null) {
+        person = await fetchPerson(p, isDownloadAvatar: true);
+        if (person != null) {
+          await personDAO.addPerson(person);
+          officials.add(person.official);
         }
-        officials.add(person.official);
+        continue;
       }
-      return await lock.synchronized(() async {
-        return await personDAO.pagePersonWith(
-            principal?.person, officials, persons_limit, persons_offset);
-      });
-    });
+      officials.add(person.official);
+    }
+    return await personDAO.pagePersonWith(
+        principal?.person, officials, persons_limit, persons_offset);
   }
 
   @override

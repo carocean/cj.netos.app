@@ -3,18 +3,21 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:nineold/loader/image_with_loader.dart';
 import 'package:nineold/loader/image_with_local.dart';
 import 'package:nineold/watcher/gallery_watcher.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:uuid/uuid.dart';
 
 import 'media_watcher.dart';
+import 'util.dart';
 
 class MediaWidget extends StatelessWidget {
   const MediaWidget(
@@ -63,7 +66,7 @@ class MediaWidget extends StatelessWidget {
         maxHeight: 296,
         maxWidth: 296,
       ),
-      child: _aspectRatioImage(context, index: 0, aspectRatio: 16/9),
+      child: _aspectRatioImage(context, index: 0, aspectRatio: 16 / 9),
     );
   }
 
@@ -392,6 +395,7 @@ class MediaWidget extends StatelessWidget {
                 child: _MediaWithLoader(
                   src: medias[index],
                   accessToken: pageContext.principal.accessToken,
+                  pageContext: pageContext,
                 ))),
         onTap: () {
           _openGalleryWatcher(context, index);
@@ -424,8 +428,10 @@ class _MediaWithLoader extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.loaderSize = 48.0,
     this.accessToken,
+    this.pageContext,
   });
 
+  final PageContext pageContext;
   final MediaSrc src;
   final String accessToken;
   final BoxFit fit;
@@ -447,7 +453,7 @@ class _MediaWithLoader extends StatelessWidget {
             ),
           ),
         ),
-        _getMediaRender(src, accessToken),
+        _getMediaRender(src, accessToken, pageContext),
       ],
     );
   }
@@ -461,7 +467,8 @@ CircularProgressIndicator _buildCircularProgressIndicator() {
   );
 }
 
-Widget _getMediaRender(MediaSrc media, String accessToken) {
+Widget _getMediaRender(
+    MediaSrc media, String accessToken, PageContext pageContext) {
   var mediaRender;
   var src = media?.src;
   switch (media.type) {
@@ -478,9 +485,30 @@ Widget _getMediaRender(MediaSrc media, String accessToken) {
             );
       break;
     case 'video':
-      mediaRender = VideoView(
-        src: File(src),
-      );
+      if (src.startsWith('/')) {
+        mediaRender = VideoView(
+          src: File(src),
+        );
+      } else {
+        mediaRender = FutureBuilder<String>(
+          future: checkUrlAndDownload(pageContext, src),
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            var srcLocal = snapshot.data;
+            return VideoView(
+              src: File(srcLocal),
+            );
+          },
+        );
+      }
       break;
     case 'audio':
       mediaRender = MyAudioWidget(

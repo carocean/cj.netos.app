@@ -7,6 +7,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -42,7 +43,7 @@ class _InsitePersonsState extends State<InsitePersons> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.context.page.title),
+        title: Text('上游网关'),
         automaticallyImplyLeading: true,
         centerTitle: false,
         elevation: 0.0,
@@ -159,13 +160,6 @@ class _Refresher {
   }
 }
 
-class _InputPersonInfo {
-  Person person;
-  String rights;
-
-  _InputPersonInfo({this.person, this.rights});
-}
-
 class _PersonListRegion extends StatefulWidget {
   PageContext context;
   _Refresher refresher;
@@ -186,7 +180,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
 
   int _limit = 20;
   int _offset = 0;
-  List<_InputPersonInfo> _persons = [];
+  List<Person> _persons = [];
   String _directionTips;
 
   @override
@@ -225,7 +219,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     setState(() {});
   }
 
-  Future<List<_InputPersonInfo>> _loadPersons() async {
+  Future<List<Person>> _loadPersons() async {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
     IChannelService channelService =
@@ -257,7 +251,8 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     }
     for (var p in personObjs) {
       var inperson = await pinService.getInputPerson(p.official, _channel.id);
-      _persons.add(_InputPersonInfo(person: p, rights: inperson?.rights));
+      p.rights=inperson?.rights;
+      _persons.add(p);
     }
     return _persons;
   }
@@ -280,7 +275,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
             .removeInputPerson(person.official, _channel.id)
             .whenComplete(() {
           for (var i = 0; i < _persons.length; i++) {
-            if (person.official == _persons[i].person.official) {
+            if (person.official == _persons[i].official) {
               _persons.removeAt(i);
               break;
             }
@@ -302,7 +297,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
         )
             .whenComplete(() {
           for (var i = 0; i < _persons.length; i++) {
-            if (person.official == _persons[i].person.official) {
+            if (person.official == _persons[i].official) {
               _persons.removeAt(i);
               break;
             }
@@ -366,7 +361,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                 foregroundColor: Colors.grey[500],
                 icon: Icons.delete,
                 onTap: () {
-                  _removeFromPersonList(p.person);
+                  _removeFromPersonList(p);
                 },
               ),
             ];
@@ -378,7 +373,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                   foregroundColor: Colors.grey[500],
                   icon: Icons.clear,
                   onTap: () {
-                    _allowInsite(p.person.official, _channel.id).then((v) {
+                    _allowInsite(p.official, _channel.id).then((v) {
                       p.rights = 'allow';
                       setState(() {});
                     });
@@ -400,18 +395,14 @@ class __PersonListRegionState extends State<_PersonListRegion> {
                       actionPane: SlidableDrawerActionPane(),
                       secondaryActions: actions,
                       child: CardItem(
-                        title: '${p.person.nickName ?? p.person.accountCode}',
-                        leading: Image.file(
-                          File(p.person.avatar),
-                          width: 40,
-                          height: 40,
-                        ),
+                        title: '${p.nickName ?? p.accountCode}',
+                        leading: SizedBox(width: 40,height: 40,child: getAvatarWidget(p.avatar, widget.context),),
                         tipsText: forbidden ? '已拒绝接收他的消息，左滑取消' : '',
                         onItemTap: () {
                           widget.context.forward(
                               '/netflow/channel/pin/see_persons',
                               arguments: {
-                                'person': p.person,
+                                'person': p,
                                 'pinType': 'upstream',
                                 'channel': _channel,
                                 'direction_tips': _directionTips,
