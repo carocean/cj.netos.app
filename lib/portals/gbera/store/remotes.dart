@@ -170,6 +170,9 @@ mixin IChannelRemote {
 
   Future<List<ChannelMessageOR>> pageDocument(String official, String id, int limit, int offset) {}
 
+  Future<void>addOutputPersonBy(String channelCreator, String person, String channel) {}
+
+
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}

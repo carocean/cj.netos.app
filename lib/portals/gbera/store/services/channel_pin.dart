@@ -15,7 +15,7 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   IChannelRemote channelRemote;
 
   UserPrincipal get principal => site.getService('@.principal');
-
+  IPersonService personService;
   @override
   builder(IServiceProvider site) {
     this.site = site;
@@ -24,6 +24,7 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
     inputPersonDAO = db.channelInputPersonDAO;
     outputPersonDAO = db.channelOutputPersonDAO;
     channelRemote = site.getService('/remote/channels');
+    personService=site.getService('/gbera/persons');
   }
 
   @override
@@ -74,9 +75,21 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   @override
   Future<Function> addOutputPerson(ChannelOutputPerson person) async {
     await this.outputPersonDAO.addOutputPerson(person);
+    var obj=await personService.getPerson(person.person);
+    if(obj!=null) {
+      await personService.remote.addPerson(obj);
+    }
     await channelRemote.addOutputPerson(person.person, person.channel);
   }
-
+  @override
+  Future<Function> addOutputPersonBy(String channelCreator,ChannelOutputPerson person) async {
+    await this.outputPersonDAO.addOutputPerson(person);
+    var obj=await personService.getPerson(person.person);
+    if(obj!=null) {
+      await personService.remote.addPerson(obj);
+    }
+    await channelRemote.addOutputPersonBy(channelCreator, person.person, person.channel);
+  }
   @override
   Future<List<ChannelInputPerson>> pageInputPerson(
       String channelid, int limit, int offset) async {
@@ -96,6 +109,10 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   @override
   Future<Function> addInputPerson(ChannelInputPerson person) async {
     await this.inputPersonDAO.addInputPerson(person);
+    var obj=await personService.getPerson(person.person);
+    if(obj!=null) {
+      await personService.remote.addPerson(obj);
+    }
     await channelRemote.addInputPerson(person.person, person.channel);
   }
 
@@ -103,6 +120,13 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   Future<Function> updateInputPersonRights(
       String official, String channel, String rights) async {
     await inputPersonDAO.updateInputPersonRights(
+        rights, official, channel, principal.person);
+  }
+
+  @override
+  Future<Function> updateOutputPersonRights(
+      official, String channel, String rights) async{
+    await outputPersonDAO.updateOutputPersonRights(
         rights, official, channel, principal.person);
   }
 
@@ -128,6 +152,11 @@ class ChannelPinService implements IChannelPinService, IServiceBuilder {
   @override
   Future<ChannelOutputPerson> getLastOutputPerson(String channel) async{
     return await outputPersonDAO.getLastOutputPerson(channel,principal.person);
+  }
+
+  @override
+  Future<ChannelOutputPerson> getOutputPerson(String official, String channel)async {
+    return await outputPersonDAO.getOutputPerson(official, channel, principal.person);
   }
 
   @override

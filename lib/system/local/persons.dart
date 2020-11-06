@@ -26,6 +26,8 @@ class PersonService implements IPersonService, IServiceBuilder {
   IPersonRemote personRemote;
   IPersonCache personCache;
 
+  IPersonRemote get remote => personRemote;
+
   @override
   builder(IServiceProvider site) {
     this.site = site;
@@ -160,13 +162,14 @@ class PersonService implements IPersonService, IServiceBuilder {
         .personDAO
         .pagePersonLikeName(principal?.person, name, name, name, limit, offset);
   }
+
   @override
   Future<List<Person>> pagePersonLikeName0(
       String name, int limit, int offset) async {
-    return await this
-        .personDAO
-        .pagePersonLikeName0(principal?.person, name, name, name, limit, offset);
+    return await this.personDAO.pagePersonLikeName0(
+        principal?.person, name, name, name, limit, offset);
   }
+
   @override
   Future<List<Person>> pagePerson(int limit, int offset) async {
     return await this.personDAO.pagePerson(principal?.person, limit, offset);

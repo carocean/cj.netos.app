@@ -82,6 +82,7 @@ class _DefaultChannelOpener implements IChannelOpener {
         MD5Util.MD5(Uuid().v1()),
         channel,
         owner,
+        'alllow',
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       ));

@@ -63,7 +63,14 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       );
-      await chatRoomService.addMember(rmember);
+      try {
+        var exists=await  chatRoomService.existsMember(roomCode, official);
+       if(!exists){
+         await chatRoomService.addMember(rmember);
+       }
+      }catch(e){
+        print('创建聊天室：添加成员时报错。$e');
+      }
       roomMembers.add(rmember);
       if (official == context.principal.person) {
         hasCreator = true;

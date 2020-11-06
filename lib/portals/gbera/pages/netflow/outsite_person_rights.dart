@@ -3,39 +3,38 @@ import 'dart:io';
 import 'package:azlistview/azlistview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
-import 'package:netos_app/common/swipe_refresh.dart';
-import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/contants/person_models.dart';
-import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
-import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
-import 'package:uuid/uuid.dart';
+import 'package:netos_app/system/local/entities.dart';
 
-class InsitePersonsSettings extends StatefulWidget {
+class OutsitePersonsRightsPage extends StatefulWidget {
   PageContext context;
 
-  InsitePersonsSettings({this.context});
+  OutsitePersonsRightsPage({this.context});
 
   @override
-  _InsitePersonsSettingsState createState() => _InsitePersonsSettingsState();
+  _OutsitePersonsRightsPageState createState() => _OutsitePersonsRightsPageState();
 }
 
-class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
-  PinPersonsSettingsStrategy _selected_insite_persons_strategy;
+class _OutsitePersonsRightsPageState extends State<OutsitePersonsRightsPage> {
+  PinPersonsSettingsStrategy _selected_outsite_persons_strategy;
   Channel _channel;
-  IChannelPinService _pinService;
   int _limit = 20;
   int _offset = 0;
   List<ContactInfo> _contactList = [];
-
+  String _originPerson;
   @override
   void initState() {
-    _selected_insite_persons_strategy = PinPersonsSettingsStrategy.all_except;
+    _selected_outsite_persons_strategy = PinPersonsSettingsStrategy.only_select;
     _channel = widget.context.parameters['channel'];
-    _pinService = widget.context.site.getService('/channel/pin');
+    _originPerson = widget.context.parameters['person'];
+    if (StringUtil.isEmpty(_originPerson)) {
+      _originPerson = _channel.owner;
+    }
     _load();
     super.initState();
   }
@@ -46,24 +45,26 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
   }
 
   _load() async {
-    _selected_insite_persons_strategy =
-        await _pinService.getInputPersonSelector(_channel.id);
-    if (_selected_insite_persons_strategy !=
+    IChannelPinService pinService =
+    widget.context.site.getService('/channel/pin');
+    _selected_outsite_persons_strategy =
+    await pinService.getOutputPersonSelector(_channel.id);
+    if (_selected_outsite_persons_strategy !=
         PinPersonsSettingsStrategy.only_select) {
-      print('进站网关仅支持选定的公众');
+      print('出站网关仅支持选定的公众');
       return;
     }
     IChannelRemote channelRemote =
-        widget.context.site.getService('/remote/channels');
+    widget.context.site.getService('/remote/channels');
 
-    var offical = widget.context.principal.person;
-    var persons = await channelRemote.pageInputPersonOf(
-        _channel.id, offical, _limit, _offset);
+    var persons = await channelRemote.pageOutputPersonOf(
+        _channel.id, _originPerson, _limit, _offset);
 
+    // var offical = widget.context.principal.person;
     persons.forEach((v) {
-      if (offical == v.official) {
-        return true;
-      }
+      // if (offical == v.official) {
+      //   return true;
+      // }
       _contactList.add(ContactInfo.fromJson(v));
     });
     _handleList(_contactList);
@@ -99,9 +100,9 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
 
   Future<bool> _isAllowPerson(official) async {
     IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
+    widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
-    if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
+    if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
       return false;
     }
     return true;
@@ -109,14 +110,14 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
 
   Future<bool> _isAllowPersonRights(official) async {
     IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
+    widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
-    if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
+    if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
       return false;
     }
     IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    var o = await pinService.getInputPerson(person.official, _channel.id);
+    widget.context.site.getService('/channel/pin');
+    var o = await pinService.getOutputPerson(person.official, _channel.id);
     if (o == null) {
       return false;
     }
@@ -125,8 +126,8 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
 
   Future<bool> _isAllowPersonInChannel(official) async {
     IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    var o = await pinService.getInputPerson(official, _channel.id);
+    widget.context.site.getService('/channel/pin');
+    var o = await pinService.getOutputPerson(official, _channel.id);
     if (o == null) {
       return false;
     }
@@ -135,8 +136,8 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
 
   Future<void> _deny(official) async {
     IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    await pinService.updateInputPersonRights(official, _channel.id, 'deny');
+    widget.context.site.getService('/channel/pin');
+    await pinService.updateOutputPersonRights(official, _channel.id, 'deny');
     if (mounted) {
       setState(() {});
     }
@@ -144,26 +145,21 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
 
   Future<void> _allow(official) async {
     IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    await pinService.updateInputPersonRights(official, _channel.id, 'allow');
+    widget.context.site.getService('/channel/pin');
+    await pinService.updateOutputPersonRights(official, _channel.id, 'allow');
     if (mounted) {
       setState(() {});
     }
   }
-
   Future<void> _remove(official) async {
     IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    await pinService.removeInputPerson(
-      official,
-      _channel.id,
-    );
-    _contactList.removeWhere((element) => element.person == official);
+    widget.context.site.getService('/channel/pin');
+    await pinService.removeOutputPerson(official, _channel.id, );
+    _contactList.removeWhere((element) => element.person==official);
     if (mounted) {
       setState(() {});
     }
   }
-
   @override
   Widget build(BuildContext context) {
     var body;
@@ -174,7 +170,7 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '没有好友',
+              '没有公众',
               style: TextStyle(
                 color: Colors.grey,
               ),
@@ -209,7 +205,7 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
           ignoreDragCancel: true,
           downTextStyle: TextStyle(fontSize: 12, color: Colors.white),
           downItemDecoration:
-              BoxDecoration(shape: BoxShape.circle, color: Colors.green),
+          BoxDecoration(shape: BoxShape.circle, color: Colors.green),
           indexHintWidth: 120 / 2,
           indexHintHeight: 100 / 2,
           indexHintDecoration: BoxDecoration(
@@ -260,12 +256,12 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
   }
 
   Widget _getContactListItem(
-    BuildContext context,
-    ContactInfo model, {
-    double susHeight = 40,
-    Color defHeaderBgColor,
-    PageContext pageContext,
-  }) {
+      BuildContext context,
+      ContactInfo model, {
+        double susHeight = 40,
+        Color defHeaderBgColor,
+        PageContext pageContext,
+      }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -294,11 +290,11 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
   }
 
   Widget _getContactItem(
-    BuildContext context,
-    ContactInfo model, {
-    Color defHeaderBgColor,
-    PageContext pageContext,
-  }) {
+      BuildContext context,
+      ContactInfo model, {
+        Color defHeaderBgColor,
+        PageContext pageContext,
+      }) {
     DecorationImage image;
     if (!StringUtil.isEmpty(model.avatar)) {
       var avatar = model.avatar;
@@ -322,11 +318,11 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                pageContext
-                    .forward("/netflow/channel/portal/person", arguments: {
+              onTap: (){
+                pageContext.forward("/netflow/channel/portal/person", arguments: {
                   'person': model.attach,
                 });
+
               },
               child: Container(
                 width: 36,
@@ -367,10 +363,11 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
         Expanded(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
+            onTap: (){
               pageContext.forward("/netflow/channel/portal/person", arguments: {
                 'person': model.attach,
               });
+
             },
             child: Text(
               model.nickName,
@@ -485,7 +482,7 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
             ),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
+              onTap: (){
                 _remove(model.person);
               },
               child: Padding(

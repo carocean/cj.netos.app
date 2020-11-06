@@ -400,6 +400,7 @@ class __MessageListState extends State<_MessageList> {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       child: Column(
         children: [
@@ -414,15 +415,24 @@ class __MessageListState extends State<_MessageList> {
                   width: 50,
                   child: Column(
                     children: [
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child:
-                              getAvatarWidget(_person.avatar, widget.context),
-                        ),
-                      ),
+                     GestureDetector(
+                       behavior: HitTestBehavior.opaque,
+                       onTap: (){
+                         widget.context.forward("/netflow/channel/portal/person",
+                             arguments: {
+                               'person': _person,
+                             });
+                       },
+                       child:  SizedBox(
+                         width: 40,
+                         height: 40,
+                         child: ClipRRect(
+                           borderRadius: BorderRadius.circular(20),
+                           child:
+                           getAvatarWidget(_person.avatar, widget.context),
+                         ),
+                       ),
+                     ),
                       SizedBox(
                         height: 2,
                       ),
@@ -1325,13 +1335,11 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.person);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+                                      widget.context
+                                          .forward("/netflow/channel/portal/channel", arguments: {
+                                        'channel': widget.message.channel,
+                                        'origin': like.person,
+                                      });
                                     },
                                   children: [
                                     TextSpan(

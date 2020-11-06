@@ -9,7 +9,6 @@ mixin IPersonRemote {
   Future<void> addPerson(Person person) {}
 
   Future<void> removePerson(String person) {}
-
 }
 
 class PersonRemote implements IPersonRemote, IServiceBuilder {
@@ -29,12 +28,17 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
 
   @override
   Future<void> addPerson(Person person) async {
-    var response = await remotePorts.upload(
-      '/app',
-      <String>[
-        person.avatar,
-      ],
-    );
+    var avatar = person.avatar;
+    if (!StringUtil.isEmpty(avatar) && avatar.startsWith('/')) {
+      var response = await remotePorts.upload(
+        '/app',
+        <String>[
+          person.avatar,
+        ],
+      );
+      avatar = response[person.avatar];
+    }
+
     var obj = {
       'official': person.official,
       'uid': '${person.uid}',
@@ -43,7 +47,7 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
       'nickName': person.nickName,
       'pyname': person.pyname,
       'signature': person.signature,
-      'avatar': response[person.avatar],
+      'avatar': avatar,
     };
 //    await remotePorts.portPOST(
 //      _networkPortsUrl,
@@ -68,7 +72,8 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
 //        'person': person,
 //      },
 //    );
-  remotePorts.portTask.addPortGETTask( _networkPortsUrl,
+    remotePorts.portTask.addPortGETTask(
+      _networkPortsUrl,
       'removePerson',
       parameters: {
         'person': person,
@@ -76,5 +81,4 @@ class PersonRemote implements IPersonRemote, IServiceBuilder {
     );
     return null;
   }
-
 }

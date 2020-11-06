@@ -162,6 +162,7 @@ class _ChannelPageState extends State<ChannelPage> {
         operson['id'],
         operson['channel'],
         operson['person'],
+        operson['rights'],
         operson['atime'],
         context.principal.person,
       );

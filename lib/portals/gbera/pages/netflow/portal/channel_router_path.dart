@@ -435,7 +435,7 @@ class __UpstreamPersonsState extends State<_UpstreamPersons> {
             behavior: HitTestBehavior.opaque,
             onTap: (){
               widget.context.forward('/netflow/channel/insite/persons',
-                  arguments: <String, Object>{'channel': _channel});
+                  arguments: <String, Object>{'channel': _channel,'person':_person.official});
             },
             child: Padding(
               padding: EdgeInsets.all(5),
@@ -633,7 +633,7 @@ class __DownstreamPersonsState extends State<_DownstreamPersons> {
             behavior: HitTestBehavior.opaque,
             onTap: (){
               widget.context.forward('/netflow/channel/outsite/persons',
-                  arguments: <String, Object>{'channel': _channel});
+                  arguments: <String, Object>{'channel': _channel,'person':_person.official});
             },
             child: Padding(
               padding: EdgeInsets.all(5),

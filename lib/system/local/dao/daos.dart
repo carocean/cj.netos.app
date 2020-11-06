@@ -407,6 +407,10 @@ abstract class IChannelOutputPersonDAO {
       'select * FROM ChannelOutputPerson WHERE channel = :channel and sandbox=:sandbox ORDER BY atime desc LIMIT 1 OFFSET 0')
   Future<ChannelOutputPerson> getLastOutputPerson(
       String channel, String person) {}
+  @Query(
+      'UPDATE ChannelOutputPerson SET rights = :rights WHERE person=:person AND channel = :channelcode and sandbox=:sandbox')
+  Future<void>  updateOutputPersonRights(String rights, official, String channel, String person) {}
+
 }
 
 @dao

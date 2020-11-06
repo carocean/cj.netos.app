@@ -6,8 +6,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/load_indicator.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -24,10 +27,24 @@ class OutsitePersons extends StatefulWidget {
 class _OutsitePersonsState extends State<OutsitePersons> {
   Channel _channel;
   _Refresher __refresher = _Refresher();
+  String _originPerson;
+  Person _current;
 
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
+    _originPerson = widget.context.parameters['person'];
+    if (StringUtil.isEmpty(_originPerson)) {
+      _originPerson = _channel.owner;
+    }
+    () async {
+      IPersonService personService =
+          widget.context.site.getService('/gbera/persons');
+      _current = await personService.getPerson(_originPerson);
+      if (mounted) {
+        setState(() {});
+      }
+    }();
     super.initState();
   }
 
@@ -42,16 +59,15 @@ class _OutsitePersonsState extends State<OutsitePersons> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.context.page.title),
+        title: Text('下游网关'),
         automaticallyImplyLeading: true,
-        centerTitle: false,
+        centerTitle: true,
         elevation: 0.0,
         titleSpacing: 0,
-        actions: <Widget>[
-          _getPopupMenu(),
-        ],
       ),
       body: CustomScrollView(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         slivers: <Widget>[
           SliverToBoxAdapter(
             child: Container(
@@ -79,7 +95,7 @@ class _OutsitePersonsState extends State<OutsitePersons> {
                         color: Colors.grey[500],
                       ),
                       children: [
-                        TextSpan(text: '${widget.context.principal.nickName}'),
+                        TextSpan(text: '${_current?.nickName ?? ''}'),
                       ],
                     ),
                   ),
@@ -95,54 +111,6 @@ class _OutsitePersonsState extends State<OutsitePersons> {
           ),
         ],
       ),
-    );
-  }
-
-  _getPopupMenu() {
-    return PopupMenuButton<String>(
-      offset: Offset(
-        0,
-        50,
-      ),
-      onSelected: (value) async {
-        if (value == null) return;
-        switch (value) {
-          case '/netflow/channel/outsite/persons_settings':
-            widget.context.forward('/netflow/channel/outsite/persons_settings',
-                arguments: {
-                  'channel': _channel,
-                }).then((obj) {
-              __refresher.fireRefresh();
-            });
-            break;
-        }
-      },
-      itemBuilder: (context) => <PopupMenuEntry<String>>[
-        PopupMenuItem(
-          value: '/netflow/channel/outsite/persons_settings',
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(
-                  right: 10,
-                ),
-                child: Icon(
-                  Icons.settings,
-                  color: Colors.grey[500],
-                  size: 15,
-                ),
-              ),
-              Text(
-                '出口权限',
-                style: TextStyle(
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
@@ -172,221 +140,441 @@ class _PersonListRegion extends StatefulWidget {
 
 class __PersonListRegionState extends State<_PersonListRegion> {
   Channel _channel;
-  EasyRefreshController _controller;
-  PinPersonsSettingsStrategy _strategy;
   int _limit = 20;
   int _offset = 0;
   List<Person> _persons = [];
-  String _directionTips;
+  bool _isAddingPersons = false;
+  String _originPerson;
 
   @override
   void initState() {
     this._offset = 0;
-    _controller = EasyRefreshController();
     _channel = widget.context.parameters['channel'];
+    _originPerson = widget.context.parameters['person'];
+    if (StringUtil.isEmpty(_originPerson)) {
+      _originPerson = _channel.owner;
+    }
     _loadPersons().then((list) {
       setState(() {});
     });
-    _directionTips = '${widget.context.principal.nickName}';
-    widget.refresher.callback = () {
-      resetPersons();
-      _loadPersons().then((v) {
-        setState(() {});
-      });
-    };
     super.initState();
   }
 
   @override
   void dispose() {
     this._channel = null;
-    _controller.dispose();
     this._offset = 0;
     _persons.clear();
     super.dispose();
   }
 
-  resetPersons() {
+  _refresh() {
     _persons.clear();
     _offset = 0;
+    _loadPersons().then((list) {
+      setState(() {});
+    });
   }
 
-  Future<void> _onSwipeUp() async {
-    await _loadPersons();
-  }
-
-  Future<List<Person>> _loadPersons() async {
+  Future<void> _loadPersons() async {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
+    // IChannelService channelService =
+    //     widget.context.site.getService('/netflow/channels');
+    IChannelRemote channelRemote =
+        widget.context.site.getService('/remote/channels');
+    // IPersonService personService =
+    //     widget.context.site.getService('/gbera/persons');
     PinPersonsSettingsStrategy strategy =
         await pinService.getOutputPersonSelector(_channel.id);
-    this._strategy = strategy;
-    List<Person> personObjs;
-    switch (strategy) {
-      case PinPersonsSettingsStrategy.only_select:
-        var out_persons = await pinService.pageOutputPerson(_channel.id,_limit,_offset);
-        var persons = <String>[];
-        for (var op in out_persons) {
-          persons.add(op.person);
-        }
-        personObjs = await personService.listPersonWith(persons);
-        break;
-      case PinPersonsSettingsStrategy.all_except:
-        var out_persons = await pinService.listOutputPerson(_channel.id);
-        var persons = <String>[];
-        for (var op in out_persons) {
-          persons.add(op.person);
-        }
-        personObjs =
-            await personService.pagePersonWithout(persons, _limit, _offset);
-        break;
+    if (strategy != PinPersonsSettingsStrategy.only_select) {
+      print('不支持的输出公众选择策略:$strategy');
+      return;
     }
-    if (personObjs.isEmpty) {
-      _controller.finishLoad(success: true,noMore: true);
-    }else{
-      _offset += personObjs.length;
+    var persons = await channelRemote.pageOutputPersonOf(
+        _channel.id, _originPerson, _limit, _offset);
+    if (persons.isEmpty) {
+      return;
     }
-    for (var p in personObjs) {
-      _persons.add(p);
-    }
-    return _persons;
+    _offset += persons.length;
+    _persons.addAll(persons);
   }
 
-  _removeFromPersonList(Person person) async {
+  Future<bool> _isAllowPerson(official) async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var person = await personService.getPerson(official);
+    if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
+      return false;
+    }
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
-    switch (_strategy) {
-      case PinPersonsSettingsStrategy.only_select:
-        pinService
-            .removeOutputPerson(person.official, _channel.id)
-            .whenComplete(() {
-          _persons.remove(person);
-          if(mounted) {
-            setState(() {});
-          }
-        });
-        break;
-      case PinPersonsSettingsStrategy.all_except:
-        pinService
-            .addOutputPerson(
+    var o = await pinService.getOutputPerson(person.official, _channel.id);
+    if (o == null) {
+      return false;
+    }
+    return (StringUtil.isEmpty(o.rights) || o.rights == 'allow') ? true : false;
+  }
+
+  Future<void> _addOutputPersons(List<String> list) async {
+    setState(() {
+      _isAddingPersons = true;
+    });
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    for (var official in list) {
+      await pinService.addOutputPersonBy(
+          _originPerson,
           ChannelOutputPerson(
-            '${Uuid().v1()}',
+            '${MD5Util.MD5(Uuid().v1())}',
             _channel.id,
-            person.official,
+            official,
+            'allow',
             DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
-          ),
-        )
-            .whenComplete(() {
-          _persons.remove(person);
-          if(mounted) {
-            setState(() {});
-          }
-        });
-        break;
+          ));
     }
+    if (mounted) {
+      setState(() {
+        _isAddingPersons = false;
+      });
+    }
+    _refresh();
+  }
+
+  Future<void> _removePersons(list) async {
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+
+    for (var official in list) {
+      await pinService.removeOutputPerson(official, _channel.id);
+    }
+    _refresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_persons.isEmpty) {
-      return Container(
-        constraints: BoxConstraints.tightForFinite(
-          width: double.maxFinite,
-        ),
-        height: 40,
-        color: Colors.white,
-        alignment: Alignment.center,
-        child: Text.rich(
-          TextSpan(
-            text: '无，请通过',
-            style: TextStyle(
-              color: Colors.grey,
-            ),
+    var items = <Widget>[];
+    for (var person in _persons) {
+      items.add(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            widget.context
+                .forward("/netflow/channel/portal/person", arguments: {
+              'person': person,
+            });
+          },
+          child: Stack(
             children: [
-              TextSpan(
-                text: '【出口权限】',
-                style: TextStyle(
-                  color: Colors.blueGrey,
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: SizedBox(
+                  width: 50,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: getAvatarWidget(person.avatar, widget.context),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                '${person.nickName}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    widget.context.forward(
-                        '/netflow/channel/outsite/persons_settings',
-                        arguments: {
-                          'channel': _channel,
-                        }).then((obj) {
-                      widget.refresher.fireRefresh();
-                    });
-                  },
               ),
-              TextSpan(text: '设置公众。'),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: (!StringUtil.isEmpty(_originPerson) &&
+                        _originPerson != widget.context.principal.person)
+                    ? SizedBox(
+                        width: 0,
+                        height: 0,
+                      )
+                    : FutureBuilder<bool>(
+                        future: _isAllowPerson(person.official),
+                        builder: (ctx, snapshot) {
+                          if (snapshot.connectionState !=
+                                  ConnectionState.done ||
+                              snapshot.data) {
+                            return SizedBox(
+                              width: 0,
+                              height: 0,
+                            );
+                          }
+                          return Icon(
+                            Icons.security,
+                            size: 14,
+                            color: Colors.red,
+                          );
+                        },
+                      ),
+              ),
             ],
           ),
         ),
       );
     }
-    return EasyRefresh.custom(
-      controller: _controller,
-      onLoad: _onSwipeUp,
-      shrinkWrap: true,
-      slivers: _persons.map((p) {
-        return SliverToBoxAdapter(
-          child: Column(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
+    if (widget.context.principal.person == _originPerson) {
+      items.add(
+        _renderSecurityOutputPersonButton(),
+      );
+      items.add(
+        _renderRemoveOutputPersonButton(),
+      );
+    }
+    items.add(
+      _renderAddOutputPersonButton(),
+    );
+    if (_isAddingPersons) {
+      items.add(
+        Padding(
+          padding: EdgeInsets.only(
+            top: 20,
+            bottom: 20,
+          ),
+          child: Center(
+            child: Text(
+              '正在处理，请稍候...',
+              style: TextStyle(
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        top: 10,
+      ),
+      constraints: BoxConstraints.expand(),
+      alignment: Alignment.topLeft,
+      child: LoadIndicator(
+        child: Wrap(
+          children: items,
+        ),
+        load: () async {
+          await _loadPersons();
+        },
+      ),
+    );
+  }
+
+  Widget _renderRemoveOutputPersonButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            widget.context.forward('/netflow/channel/outsite/persons_removes',
+                arguments: {
+                  'channel': _channel,
+                  'person': _originPerson,
+                }).then((list) {
+              if (list == null) {
+                return;
+              }
+              _removePersons(list);
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10,
+              top: 10,
+              right: 10,
+              bottom: 5,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
                 ),
-                color: Colors.white,
-                child: Slidable(
-                  actionPane: SlidableDrawerActionPane(),
-                  secondaryActions: <Widget>[
-                    IconSlideAction(
-                      caption: '排除',
-                      foregroundColor: Colors.grey[500],
-                      icon: Icons.delete,
-                      onTap: () {
-                        _removeFromPersonList(p);
-                      },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
                     ),
-                  ],
-                  child: CardItem(
-                    title: '${p.nickName ?? p.accountCode}',
-                    leading: Image.file(
-                      File(p.avatar),
-                      width: 40,
-                      height: 40,
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
                     ),
-                    onItemTap: () {
-                      widget.context.forward('/netflow/channel/pin/see_persons',
-                          arguments: {
-                            'person': p,
-                            'pinType': 'downstream',
-                            'channel': _channel,
-                            'direction_tips': _directionTips,
-                          }).then((obj) {
-//                        if (resetPersons != null) {
-//                          resetPersons();
-//                        }
-                        setState(() {});
-                      });
-                    },
+                  ),
+                  child: Icon(
+                    Icons.remove,
+                    color: Colors.grey[500],
                   ),
                 ),
               ),
-              Container(
-                height: 10,
-              ),
-            ],
+            ),
           ),
-        );
-      }).toList(),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _renderSecurityOutputPersonButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            widget.context
+                .forward('/netflow/channel/outsite/persons_rights', arguments: {
+              'channel': _channel,
+              'person': _originPerson,
+            }).then((value) {
+              _refresh();
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10,
+              top: 10,
+              right: 10,
+              bottom: 5,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.security,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _renderAddOutputPersonButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            widget.context
+                .forward('/netflow/channel/outsite/persons_adds', arguments: {
+              'channel': _channel,
+              'person': _originPerson,
+            }).then((v) {
+              if (v == null) {
+                return;
+              }
+              var list = v as List<String>;
+              _addOutputPersons(list);
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10,
+              top: 10,
+              right: 10,
+              bottom: 5,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

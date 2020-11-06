@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 
@@ -108,6 +109,7 @@ class _NetflowPersonPortalState extends State<NetflowPersonPortal> {
                                   );
                                 },
                               ),
+                              _person.official==widget.context.principal.person?SizedBox(width: 0,height: 0,):
                               CupertinoActionSheetAction(
                                 child: Text(
                                   '发消息',
@@ -143,9 +145,12 @@ class _NetflowPersonPortalState extends State<NetflowPersonPortal> {
                         }).then((action) {
                       switch (action) {
                         case 'go_message':
+                          messageSender
+                              .open(widget.context, members: <String>[_person.official]);
                           break;
                         case 'go_more':
-                          widget.context.forward('/site/personal/profile');
+                          widget.context.forward('/profile/view',
+                              arguments: {'person': _person.official});
                           break;
                         case 'go_rights':
                           widget.context.forward('/site/personal/rights',

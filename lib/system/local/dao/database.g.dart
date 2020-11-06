@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 3,
+      version: 4,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -152,7 +152,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChannelInputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `rights` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `ChannelOutputPerson` (`id` TEXT, `channel` TEXT, `person` TEXT, `rights` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `channel`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
@@ -2403,6 +2403,7 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
                   'id': item.id,
                   'channel': item.channel,
                   'person': item.person,
+                  'rights': item.rights,
                   'atime': item.atime,
                   'sandbox': item.sandbox
                 });
@@ -2418,6 +2419,7 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
           row['id'] as String,
           row['channel'] as String,
           row['person'] as String,
+          row['rights'] as String,
           row['atime'] as int,
           row['sandbox'] as String);
 
@@ -2473,6 +2475,14 @@ class _$IChannelOutputPersonDAO extends IChannelOutputPersonDAO {
         'select * FROM ChannelOutputPerson WHERE channel = ? and sandbox=? ORDER BY atime desc LIMIT 1 OFFSET 0',
         arguments: <dynamic>[channel, person],
         mapper: _channelOutputPersonMapper);
+  }
+
+  @override
+  Future<void> updateOutputPersonRights(
+      String rights, dynamic official, String channel, String person) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChannelOutputPerson SET rights = ? WHERE person=? AND channel = ? and sandbox=?',
+        arguments: <dynamic>[rights, official, channel, person]);
   }
 
   @override

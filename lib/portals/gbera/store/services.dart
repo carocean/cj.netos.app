@@ -1,11 +1,13 @@
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/system/remote/persons.dart';
 
 import '../../../system/local/entities.dart';
 import 'gbera_entities.dart';
 
 mixin IPersonService {
+  IPersonRemote get remote;
   Future<void> empty();
 
   Future<bool> existsPerson(official);
@@ -222,7 +224,7 @@ mixin IChannelPinService {
       String channelcode, int limit, int offset);
 
   Future<void> addOutputPerson(ChannelOutputPerson person);
-
+  Future<Function> addOutputPersonBy(String channelCreator,ChannelOutputPerson person);
   Future<void> removeOutputPerson(String person, String channelcode);
 
   Future<List<ChannelOutputPerson>> pageOutputPerson(
@@ -250,6 +252,12 @@ mixin IChannelPinService {
       String official, String channel, String rights) {}
 
   Future<ChannelOutputPerson> getLastOutputPerson(String channel) {}
+
+  Future<ChannelOutputPerson> getOutputPerson(String official, String channel) {}
+
+  Future<void>  updateOutputPersonRights(official, String channel, String s) {}
+
+
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}

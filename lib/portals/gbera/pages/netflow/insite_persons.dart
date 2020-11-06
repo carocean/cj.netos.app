@@ -28,10 +28,23 @@ class InsitePersons extends StatefulWidget {
 class _InsitePersonsState extends State<InsitePersons> {
   Channel _channel;
   _Refresher __refresher = _Refresher();
-
+  String _originPerson;
+  Person _current;
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
+    _originPerson = widget.context.parameters['person'];
+    if (StringUtil.isEmpty(_originPerson)) {
+      _originPerson = _channel.owner;
+    }
+        () async {
+      IPersonService personService =
+      widget.context.site.getService('/gbera/persons');
+      _current = await personService.getPerson(_originPerson);
+      if (mounted) {
+        setState(() {});
+      }
+    }();
     super.initState();
   }
 
@@ -83,7 +96,7 @@ class _InsitePersonsState extends State<InsitePersons> {
                         color: Colors.grey[500],
                       ),
                       children: [
-                        TextSpan(text: '${widget.context.principal.nickName}'),
+                        TextSpan(text: '${_current?.nickName ?? ''}'),
                       ],
                     ),
                   ),
@@ -129,8 +142,8 @@ class _PersonListRegion extends StatefulWidget {
 class __PersonListRegionState extends State<_PersonListRegion> {
   Channel _channel;
   EasyRefreshController _controller;
-
-  int _limit = 20;
+  String _originPerson;
+  int _limit = 100;
   int _offset = 0;
   List<Person> _persons = [];
 
@@ -139,6 +152,10 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _controller = EasyRefreshController();
     this._offset = 0;
     _channel = widget.context.parameters['channel'];
+    _originPerson = widget.context.parameters['person'];
+    if (StringUtil.isEmpty(_originPerson)) {
+      _originPerson = _channel.owner;
+    }
     _loadPersons().then((persons) {
       setState(() {});
     });
@@ -168,7 +185,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     IChannelRemote channelRemote =
         widget.context.site.getService('/remote/channels');
     var persons = await channelRemote.pageInputPersonOf(
-        _channel.id, widget.context.principal.person, _limit, _offset);
+        _channel.id, _originPerson, _limit, _offset);
     if (persons.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
       if (mounted) {
@@ -291,7 +308,13 @@ class __PersonListRegionState extends State<_PersonListRegion> {
               Positioned(
                 right: 0,
                 top: 0,
-                child: FutureBuilder<bool>(
+                child: (!StringUtil.isEmpty(_originPerson) &&
+                    _originPerson != widget.context.principal.person)
+                    ? SizedBox(
+                  width: 0,
+                  height: 0,
+                )
+                    :FutureBuilder<bool>(
                   future: _isAllowPerson(person.official),
                   builder: (ctx, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done ||
@@ -314,7 +337,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
         ),
       );
     }
-    if(widget.context.principal.person==_channel.owner) {
+    if (widget.context.principal.person == _originPerson) {
       items.add(
         _renderSecurityMemberButton(),
       );

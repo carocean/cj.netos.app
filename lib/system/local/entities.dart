@@ -356,11 +356,12 @@ class ChannelOutputPerson {
   final String id;
   final String channel;
   final String person;
+  final String rights;
   final int atime;
   final String sandbox;
 
   ChannelOutputPerson(
-      this.id, this.channel, this.person, this.atime, this.sandbox);
+      this.id, this.channel, this.person,this.rights, this.atime, this.sandbox);
 }
 
 enum PinPersonsSettingsStrategy {

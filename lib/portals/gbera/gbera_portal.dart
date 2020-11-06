@@ -125,8 +125,10 @@ import 'package:netos_app/portals/gbera/pages/netflow/insite_approval.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_messages.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_persons.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/insite_persons_settings.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/outsite_person_rights.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons.dart';
-import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_settings.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons.removes.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_add.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/channel_router_path.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_person.dart';
@@ -137,6 +139,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/see_channelpin_persons.dar
 import 'package:netos_app/portals/gbera/pages/netflow/service_menu.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/settings_main.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/settings_persons.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/show_selected.dart';
 import 'package:netos_app/portals/gbera/pages/profile.dart';
 import 'package:netos_app/portals/gbera/pages/profile/edit_nickname.dart';
 import 'package:netos_app/portals/gbera/pages/profile/edit_realname.dart';
@@ -1185,13 +1188,44 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
+
         LogicPage(
-          title: '出口公众权限设置',
+          title: '已选公众',
           subtitle: '',
           desc: '',
           icon: Icons.art_track,
-          url: '/netflow/channel/outsite/persons_settings',
-          buildPage: (PageContext pageContext) => OutsitePersonsSettings(
+          url: '/netflow/channel/outsite/persons_select',
+          buildPage: (PageContext pageContext) => ShowPersonelectedPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '添加输出公众',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/outsite/persons_adds',
+          buildPage: (PageContext pageContext) => OutsitePersonsAddsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '移除输出公众',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/outsite/persons_removes',
+          buildPage: (PageContext pageContext) => OutsitePersonsRemovesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '公众输出权限',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/outsite/persons_rights',
+          buildPage: (PageContext pageContext) => OutsitePersonsRightsPage(
             context: pageContext,
           ),
         ),
