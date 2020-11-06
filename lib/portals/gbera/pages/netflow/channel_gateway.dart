@@ -243,18 +243,18 @@ class _ChannelGatewayState extends State<ChannelGateway> {
           });
         },
       ),
-      _CardItem(
-        title: '二维码',
-        tipsIconData: FontAwesomeIcons.qrcode,
-        onItemTap: () {
-          widget.context.forward(
-            '/netflow/channel/qrcode',
-            arguments: {
-              'channel': _channel,
-            },
-          );
-        },
-      ),
+      // _CardItem(
+      //   title: '二维码',
+      //   tipsIconData: FontAwesomeIcons.qrcode,
+      //   onItemTap: () {
+      //     widget.context.forward(
+      //       '/netflow/channel/qrcode',
+      //       arguments: {
+      //         'channel': _channel,
+      //       },
+      //     );
+      //   },
+      // ),
 //                  _CardItem(
 //                    title: '微站',
 //                    tipsText: '百味湘菜馆',
@@ -283,7 +283,7 @@ class _ChannelGatewayState extends State<ChannelGateway> {
         _upstreamPerson != null) {
       items.add(
         _CardItem(
-          title: '本管道创建自',
+          title: '创建自',
           tipsText: '',
           operator: Column(
             children: [
