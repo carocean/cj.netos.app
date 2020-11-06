@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -261,12 +262,7 @@ class __SelectPersonState extends State<_SelectPerson> {
     return Column(
       children: <Widget>[
         CardItem(
-          leading: Image.file(
-            File(widget.person.avatar),
-            fit: BoxFit.fitWidth,
-            width: 30,
-            height: 30,
-          ),
+          leading:SizedBox(width: 30,height: 30,child: getAvatarWidget(widget.person.avatar, widget.pageContext),),
           paddingBottom: 10,
           paddingTop: 10,
           title: '${widget.person.nickName ?? widget.person.accountCode}',

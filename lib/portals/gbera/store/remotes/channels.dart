@@ -32,6 +32,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   Future<Function> createChannel(String channel,
       {@required String title,
       @required String leading,
+        @required String upstreamPerson,
       @required String outPersonSelector,
       @required bool outGeoSelector}) async {
     await remotePorts
@@ -39,6 +40,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       'channel': channel,
       'title': title,
       'leading': leading,
+      'upstreamPerson':upstreamPerson,
       'outPersonSelector': outPersonSelector,
       'outGeoSelector': '$outGeoSelector',
     });
@@ -58,6 +60,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       map['channel'],
       map['title'],
       map['creator'],
+      map['upstreamPerson'],
       map['leading'],
       map['site'],
       map['ctime'],
@@ -187,6 +190,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         map['channel'],
         map['title'],
         map['creator'],
+        map['upstreamPerson'],
         map['leading'],
         map['site'],
         map['ctime'],
@@ -210,6 +214,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         channelid,
         obj['title'],
         obj['owner'],
+        obj['upstreamPerson'],
         obj['leading'],
         obj['site'],
         obj['ctime'],

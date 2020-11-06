@@ -330,6 +330,15 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<Function> addMemberToOwner(String chatroomOwner, RoomMember roomMember,
+      {bool isOnlySaveLocal = false}) async{
+    await roomMemberDAO.addMember(roomMember);
+    if (!isOnlySaveLocal) {
+      await chatRoomRemote.addMemberToOwner(chatroomOwner,roomMember);
+    }
+  }
+
+  @override
   Future<List<ChatRoom>> listChatRoom() async {
     return await chatRoomDAO.listChatRoom(principal.person);
   }

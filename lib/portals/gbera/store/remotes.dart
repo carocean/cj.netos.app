@@ -83,7 +83,7 @@ mixin IChannelRemote {
     String channel, {
     @required String title,
     @required String leading,
-
+        @required String upstreamPerson,
     ///only_select, all_excep
     @required String outPersonSelector,
     @required bool outGeoSelector,
@@ -178,6 +178,7 @@ mixin IChatRoomRemote {
 
   Future<void> addMember(RoomMember roomMember) {}
 
+  Future<void> addMemberToOwner(String chatroomOwner, RoomMember roomMember) {}
   Future<void> removeChatRoom(String code) {}
 
   Future<void> pushMessage(String creator, ChatMessage message) {}
@@ -216,4 +217,6 @@ mixin IChatRoomRemote {
   Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
 
   Future<void> updateRoomForeground(String id, bool isForegroundWhite) {}
+
+
 }

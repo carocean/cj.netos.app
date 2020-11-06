@@ -553,6 +553,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       title: ch.name,
                       owner: ch.owner,
                       leading: ch.leading,
+                      upstreamPerson: ch.upstreamPerson,
                       events: _streamController.stream.asBroadcastStream(),
                       openChannel: () {
                         widget.context.forward(
@@ -1382,8 +1383,8 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                         children: [
                           TextSpan(
                             text: (((_purchaseOR?.principalAmount ?? 0.00) /
-                                100.00) ??
-                                0)
+                                        100.00) ??
+                                    0)
                                 .toStringAsFixed(2),
                             style: TextStyle(
                               color: Colors.grey[500],
@@ -1421,14 +1422,20 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                     ),
                   ),
                 ),
-                SizedBox(width: 5,),
-                _channel==null?SizedBox(height: 0,width: 0,):
-                CatWidget(
-                  context: widget.context,
-                  channelId: _channel.id,
-                  size: 11,
-                  canTap: false,
+                SizedBox(
+                  width: 5,
                 ),
+                _channel == null
+                    ? SizedBox(
+                        height: 0,
+                        width: 0,
+                      )
+                    : CatWidget(
+                        context: widget.context,
+                        channelId: _channel.id,
+                        size: 11,
+                        canTap: false,
+                      ),
               ],
             ),
           ),
@@ -1457,6 +1464,7 @@ class ChannelsRefresher extends Notification {}
 class _ChannelItem extends StatefulWidget {
   PageContext context;
   String channelid;
+  String upstreamPerson;
   String leading;
   String title;
   String owner;
@@ -1475,6 +1483,7 @@ class _ChannelItem extends StatefulWidget {
     this.isSystemChannel,
     this.refreshChannels,
     this.events,
+    this.upstreamPerson,
   });
 
   @override
@@ -1783,6 +1792,29 @@ class __ChannelItemState extends State<_ChannelItem> {
                             borderRadius: BorderRadius.circular(6.0),
                             child: imgSrc,
                           ),
+                        ),
+                        Positioned(
+                          top: -6,
+                          left: -5,
+                          child: (!StringUtil.isEmpty(widget.upstreamPerson) &&
+                                  widget.upstreamPerson != widget.owner)
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  height: 16,
+                                  width: 16,
+                                  child: Icon(
+                                    Icons.connect_without_contact_sharp,
+                                    size: 12,
+                                    color: Colors.green,
+                                  ),
+                                )
+                              : SizedBox(
+                                  width: 0,
+                                  height: 0,
+                                ),
                         ),
                         Positioned(
                           top: -10,

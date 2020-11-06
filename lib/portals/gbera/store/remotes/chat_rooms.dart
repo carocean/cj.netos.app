@@ -41,6 +41,21 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> addMemberToOwner(
+      String chatroomOwner, RoomMember roomMember) async{
+    await remotePorts.portGET(
+      chatPortsUrl,
+      'addMemberToOwner',
+      parameters: {
+        'roomOwner':chatroomOwner,
+        'room': roomMember.room,
+        'person': roomMember.person,
+        'actor': 'user',
+      },
+    );
+  }
+
+  @override
   Future<void> createRoom(ChatRoom chatRoom) async {
     await remotePorts.portGET(
       chatPortsUrl,

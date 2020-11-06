@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -136,7 +136,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `upstreamPerson` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `absorber` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -1534,6 +1534,7 @@ class _$IChannelDAO extends IChannelDAO {
                   'id': item.id,
                   'name': item.name,
                   'owner': item.owner,
+                  'upstreamPerson': item.upstreamPerson,
                   'leading': item.leading,
                   'site': item.site,
                   'ctime': item.ctime,
@@ -1550,6 +1551,7 @@ class _$IChannelDAO extends IChannelDAO {
       row['id'] as String,
       row['name'] as String,
       row['owner'] as String,
+      row['upstreamPerson'] as String,
       row['leading'] as String,
       row['site'] as String,
       row['ctime'] as int,

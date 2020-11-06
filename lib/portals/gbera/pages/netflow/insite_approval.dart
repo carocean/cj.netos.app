@@ -234,7 +234,9 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
               '${_channel.leading}?accessToken=${widget.context.principal.accessToken}');
     }
     await channelService.addChannel(_channel,
-        localLeading: localLeadingFile, remoteLeading: remoteLeadingUrl);
+        upstreamPerson: _person.official,
+        localLeading: localLeadingFile,
+        remoteLeading: remoteLeadingUrl);
 
     if (!await pinService.existsInputPerson(_person.official, _channel.id)) {
       await pinService.addInputPerson(ChannelInputPerson(

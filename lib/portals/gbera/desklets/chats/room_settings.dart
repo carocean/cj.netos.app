@@ -141,16 +141,30 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       }
       var person =
           await personService.getPerson(official, isDownloadAvatar: false);
-      await chatRoomService.addMember(
-        RoomMember(
-          _chatRoom.id,
-          official,
-          person?.nickName,
-          'false',
-          DateTime.now().millisecondsSinceEpoch,
-          widget.context.principal.person,
-        ),
-      );
+      if (_chatRoom.creator == widget.context.principal.person) {
+        await chatRoomService.addMember(
+          RoomMember(
+            _chatRoom.id,
+            official,
+            person?.nickName,
+            'false',
+            DateTime.now().millisecondsSinceEpoch,
+            widget.context.principal.person,
+          ),
+        );
+      } else {
+        await chatRoomService.addMemberToOwner(
+          _chatRoom.creator,
+          RoomMember(
+            _chatRoom.id,
+            official,
+            person?.nickName,
+            'false',
+            DateTime.now().millisecondsSinceEpoch,
+            widget.context.principal.person,
+          ),
+        );
+      }
     }
   }
 
@@ -178,7 +192,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   Future<void> _removeChatRoom() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(_chatRoom.id,isOnlySaveLocal: true);
+    await chatRoomService.removeChatRoom(_chatRoom.id, isOnlySaveLocal: true);
   }
 
   Future<void> _loadNewestNotice() async {
@@ -418,7 +432,8 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                               onChanged: (v) {
                                 _isForegroundWhite = v;
                                 _setForebround().then((v) {
-                                  _chatRoom.isForegoundWhite=_isForegroundWhite?'true':'false';
+                                  _chatRoom.isForegoundWhite =
+                                      _isForegroundWhite ? 'true' : 'false';
                                   if (mounted) {
                                     setState(() {});
                                   }
@@ -427,7 +442,8 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                           onItemTap: () {
                             _isForegroundWhite = !_isForegroundWhite;
                             _setForebround().then((v) {
-                              _chatRoom.isForegoundWhite=_isForegroundWhite?'true':'false';
+                              _chatRoom.isForegoundWhite =
+                                  _isForegroundWhite ? 'true' : 'false';
                               if (mounted) {
                                 setState(() {});
                               }

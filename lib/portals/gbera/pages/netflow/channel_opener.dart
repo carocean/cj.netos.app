@@ -103,7 +103,7 @@ class _DefaultChannelOpener implements IChannelOpener {
           avatarUrl:
               '${ch.leading}?accessToken=${context.principal.accessToken}');
     }
-    await channelService.addChannel(ch,
+    await channelService.addChannel(ch,upstreamPerson: owner,
         localLeading: localLeadingFile, remoteLeading: remoteLeadingUrl);
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 
@@ -17,6 +18,7 @@ class ChannelGateway extends StatefulWidget {
 class _ChannelGatewayState extends State<ChannelGateway> {
   Channel _channel;
   bool _isSetGeo = false;
+  Person _upstreamPerson;
 
   @override
   void initState() {
@@ -36,6 +38,11 @@ class _ChannelGatewayState extends State<ChannelGateway> {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
     this._isSetGeo = await pinService.getOutputGeoSelector(_channel.id);
+    if (!StringUtil.isEmpty(_channel.upstreamPerson)) {
+      IPersonService personService =
+          widget.context.site.getService('/gbera/persons');
+      _upstreamPerson = await personService.getPerson(_channel.upstreamPerson);
+    }
     setState(() {});
   }
 
@@ -85,35 +92,169 @@ class _ChannelGatewayState extends State<ChannelGateway> {
           shrinkWrap: true,
           slivers: <Widget>[
             SliverToBoxAdapter(
+              child: _rendChannelMainCardItems(),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                height: 10,
+              ),
+            ),
+            SliverToBoxAdapter(
               child: _Card(
                 title: '',
                 items: [
                   _CardItem(
-                    title: '名称',
-                    tipsText: '${_channel?.name}',
+                    leading: Icon(
+                      Icons.security,
+                      size: 30,
+                      color: Colors.grey[800],
+                    ),
+                    title: '上游网关',
+                    tipsText: '如果不愿接收某人的信息',
                     onItemTap: () {
-                      widget.context.forward(
-                        '/netflow/channel/rename',
-                        arguments: {
-                          'channel': _channel,
-                        },
-                      ).then((v) {
-                        _reloadChannel();
-                      });
+                      widget.context.forward('/netflow/channel/insite/persons',
+                          arguments: <String, Object>{'channel': _channel});
                     },
                   ),
                   _CardItem(
-                    title: '二维码',
-                    tipsIconData: FontAwesomeIcons.qrcode,
+                    leading: Icon(
+                      FontAwesomeIcons.piedPiperHat,
+                      size: 30,
+                      color: Colors.grey[800],
+                    ),
+                    title: '下游网关',
+                    tipsText: '如果想给更多人推消息',
                     onItemTap: () {
-                      widget.context.forward(
-                        '/netflow/channel/qrcode',
-                        arguments: {
-                          'channel': _channel,
-                        },
-                      );
+                      widget.context.forward('/netflow/channel/outsite/persons',
+                          arguments: <String, Object>{'channel': _channel});
                     },
                   ),
+                ],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                height: 10,
+              ),
+            ),
+/*
+            SliverToBoxAdapter(
+              child: _Card(
+                title: '管道出口',
+                items: [
+                  _CardItem(
+                    title: '公众',
+                    tipsText: '如果不愿让某人接收信息可将他移除',
+                    onItemTap: () {
+                      widget.context.forward('/netflow/channel/outsite/persons',
+                          arguments: <String, Object>{'channel': _channel});
+                    },
+                  ),
+                  _CardItem(
+                    title: '地圈',
+                    tipsText: '是否充许本管道的信息推送到我的地圈',
+                    operator: _MySwitch(
+                      value: _isSetGeo,
+                      onTap: () {
+                        _setGeo();
+                      },
+                    ),
+                  ),
+                 _CardItem(
+                   title: '微信朋友圈',
+                   tipsText: '是否充许本管道的信息推送到我的微信朋友圈',
+                   operator: _MySwitch(),
+                   onItemTap: () {},
+                 ),
+                 _CardItem(
+                   title: '微信用户',
+                   tipsText: '是否充许本管道的信息推送到我的微信用户',
+                   operator: _MySwitch(),
+                   onItemTap: () {},
+                 ),
+                ],
+              ),
+            ),
+
+           SliverToBoxAdapter(
+             child: Container(
+               height: 10,
+             ),
+           ),
+           SliverToBoxAdapter(
+             child: _Card(
+               title: '',
+               items: [
+                 _CardItem(
+                   title: '权限',
+                   tipsText: '管道动态、出入口公众等',
+                   onItemTap: () {},
+                 ),
+               ],
+             ),
+           ),
+
+            SliverToBoxAdapter(
+              child: Container(
+                height: 10,
+              ),
+            ),
+           SliverToBoxAdapter(
+             child: _Card(
+               title: '',
+               items: [
+                 _CardItem(
+                   title: '推广',
+                   tipsText: '让别人帮您推广本管道，请充钱',
+                   onItemTap: () {
+                     widget.context.forward('/netflow/channel/popularize');
+                   },
+                 ),
+                 _CardItem(
+                   title: '转让',
+                   tipsText: '受让方除得到本管道且连同所属微站',
+                   onItemTap: () {
+                     widget.context.forward('/netflow/channel/popularize');
+                   },
+                 ),
+               ],
+             ),
+           ),
+ */
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rendChannelMainCardItems() {
+    var items = <_CardItem>[
+      _CardItem(
+        title: '名称',
+        tipsText: '${_channel?.name}',
+        onItemTap: () {
+          widget.context.forward(
+            '/netflow/channel/rename',
+            arguments: {
+              'channel': _channel,
+            },
+          ).then((v) {
+            _reloadChannel();
+          });
+        },
+      ),
+      _CardItem(
+        title: '二维码',
+        tipsIconData: FontAwesomeIcons.qrcode,
+        onItemTap: () {
+          widget.context.forward(
+            '/netflow/channel/qrcode',
+            arguments: {
+              'channel': _channel,
+            },
+          );
+        },
+      ),
 //                  _CardItem(
 //                    title: '微站',
 //                    tipsText: '百味湘菜馆',
@@ -135,128 +276,73 @@ class _ChannelGatewayState extends State<ChannelGateway> {
 //                       });
 //                     },
 //                   ),
-                  _CardItem(
-                    title: '我是微官',
-                    tipsText: '',
-                    onItemTap: () {
-                      widget.context.forward("/netflow/channel/portal/channel", arguments: {
-                        'channel': _channel.id,
-                        'origin':widget.context.principal.person,
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                height: 10,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: _Card(
-                title: '管道进口',
-                items: [
-                  _CardItem(
-                    title: '公众',
-                    tipsText: '如果不愿接收某人的信息可将他移除',
-                    onItemTap: () {
-                      widget.context.forward('/netflow/channel/insite/persons',
-                          arguments: <String, Object>{'channel': _channel});
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                height: 10,
-              ),
-            ),
+    ];
 
-            SliverToBoxAdapter(
-              child: _Card(
-                title: '管道出口',
-                items: [
-                  _CardItem(
-                    title: '公众',
-                    tipsText: '如果不愿让某人接收信息可将他移除',
-                    onItemTap: () {
-                      widget.context.forward('/netflow/channel/outsite/persons',
-                          arguments: <String, Object>{'channel': _channel});
-                    },
-                  ),
-                  // _CardItem(
-                  //   title: '地圈',
-                  //   tipsText: '是否充许本管道的信息推送到我的地圈',
-                  //   operator: _MySwitch(
-                  //     value: _isSetGeo,
-                  //     onTap: () {
-                  //       _setGeo();
-                  //     },
-                  //   ),
-                  // ),
-//                  _CardItem(
-//                    title: '微信朋友圈',
-//                    tipsText: '是否充许本管道的信息推送到我的微信朋友圈',
-//                    operator: _MySwitch(),
-//                    onItemTap: () {},
-//                  ),
-//                  _CardItem(
-//                    title: '微信用户',
-//                    tipsText: '是否充许本管道的信息推送到我的微信用户',
-//                    operator: _MySwitch(),
-//                    onItemTap: () {},
-//                  ),
-                ],
+    if (!StringUtil.isEmpty(_channel.upstreamPerson) &&
+        _channel.upstreamPerson != _channel.owner &&
+        _upstreamPerson != null) {
+      items.add(
+        _CardItem(
+          title: '本管道创建自',
+          tipsText: '',
+          operator: Column(
+            children: [
+              SizedBox(
+                width: 25,
+                height: 25,
+                child: getAvatarWidget(
+                  _upstreamPerson.avatar,
+                  widget.context,
+                  Colors.grey[800],
+                ),
               ),
-            ),
-//            SliverToBoxAdapter(
-//              child: Container(
-//                height: 10,
-//              ),
-//            ),
-//            SliverToBoxAdapter(
-//              child: _Card(
-//                title: '',
-//                items: [
-//                  _CardItem(
-//                    title: '权限',
-//                    tipsText: '管道动态、出入口公众等',
-//                    onItemTap: () {},
-//                  ),
-//                ],
-//              ),
-//            ),
-            SliverToBoxAdapter(
-              child: Container(
-                height: 10,
+              SizedBox(
+                height: 2,
               ),
-            ),
-//            SliverToBoxAdapter(
-//              child: _Card(
-//                title: '',
-//                items: [
-//                  _CardItem(
-//                    title: '推广',
-//                    tipsText: '让别人帮您推广本管道，请充钱',
-//                    onItemTap: () {
-//                      widget.context.forward('/netflow/channel/popularize');
-//                    },
-//                  ),
-//                  _CardItem(
-//                    title: '转让',
-//                    tipsText: '受让方除得到本管道且连同所属微站',
-//                    onItemTap: () {
-//                      widget.context.forward('/netflow/channel/popularize');
-//                    },
-//                  ),
-//                ],
-//              ),
-//            ),
-          ],
+              Text(
+                '${_upstreamPerson.nickName}',
+                style: TextStyle(
+                  fontSize: 10,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          onItemTap: () {
+            widget.context
+                .forward("/netflow/channel/portal/person", arguments: {
+              'person': _upstreamPerson,
+            });
+          },
         ),
+      );
+    }
+    items.add(
+      _CardItem(
+        leading: SizedBox(
+          width: 30,
+          height: 30,
+          child: getAvatarWidget(
+            _channel.leading,
+            widget.context,
+            'lib/portals/gbera/images/netflow.png',
+            Colors.grey[800],
+          ),
+        ),
+        title: '我的微管儿',
+        tipsText: '',
+        onItemTap: () {
+          widget.context.forward("/netflow/channel/portal/channel", arguments: {
+            'channel': _channel.id,
+            'origin': widget.context.principal.person,
+          });
+        },
       ),
+    );
+    return _Card(
+      title: '',
+      items: items,
     );
   }
 }
@@ -292,6 +378,7 @@ class __MySwitchState extends State<_MySwitch> {
 }
 
 class _CardItem extends StatefulWidget {
+  Widget leading;
   String title;
   IconData tipsIconData;
   String tipsText;
@@ -300,6 +387,7 @@ class _CardItem extends StatefulWidget {
   List<String> images;
 
   _CardItem({
+    this.leading,
     this.title,
     this.tipsText = '',
     this.tipsIconData,
@@ -326,6 +414,17 @@ class _CardItem extends StatefulWidget {
 class _CardItemState extends State<_CardItem> {
   @override
   Widget build(BuildContext context) {
+    var leadings = <Widget>[];
+    if (widget.leading != null) {
+      leadings.add(
+        Padding(
+          padding: EdgeInsets.only(
+            right: 10,
+          ),
+          child: widget.leading,
+        ),
+      );
+    }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: this.widget.onItemTap,
@@ -339,6 +438,7 @@ class _CardItemState extends State<_CardItem> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            ...leadings,
             Padding(
               padding: EdgeInsets.only(
                 right: 10,

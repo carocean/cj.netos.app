@@ -79,6 +79,7 @@ class _CreateChannelState extends State<CreateChannel> {
                 user.person,
                 null,
                 null,
+                null,
                 DateTime.now().millisecondsSinceEpoch,
                 widget.context.principal.person,
               );

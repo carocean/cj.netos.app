@@ -66,7 +66,7 @@ mixin IChannelService {
   Future<bool> existsChannel(channelid);
 
   Future<void> addChannel(Channel channel,
-      {String localLeading, String remoteLeading, bool isOnlyLocal = false});
+      {String upstreamPerson,String localLeading, String remoteLeading, bool isOnlyLocal = false});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
@@ -278,6 +278,8 @@ mixin IChatRoomService {
   Future<void> addMember(RoomMember roomMember,
       {bool isOnlySaveLocal = false}) {}
 
+  Future<void>addMemberToOwner(String chatroomOwner, RoomMember roomMember,{bool isOnlySaveLocal = false}) {}
+
   Future<List<ChatRoom>> listChatRoom() {}
 
   Future<List<RoomMember>> topMember10(String code) {}
@@ -331,6 +333,8 @@ mixin IChatRoomService {
 
   Future<List<RoomMember>> pageMemberLike(
       String query, String room, int limit, int offset) {}
+
+
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

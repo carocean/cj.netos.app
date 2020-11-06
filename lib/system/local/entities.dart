@@ -73,12 +73,13 @@ class Channel {
   String id;
   String name;
   String owner;
+  String upstreamPerson;
   String leading;
   String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
   String sandbox;
 
-  Channel(this.id, this.name, this.owner, this.leading, this.site, this.ctime,
+  Channel(this.id, this.name, this.owner,this.upstreamPerson, this.leading, this.site, this.ctime,
       this.sandbox);
 
   toMap() {
@@ -87,6 +88,7 @@ class Channel {
       'name': name,
       'owner': owner,
       'leading': leading,
+      'upstreamPerson':upstreamPerson,
       'site': site,
       'ctime': ctime,
       'sandbox': sandbox,

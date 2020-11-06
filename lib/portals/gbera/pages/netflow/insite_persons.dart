@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/load_indicator.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
@@ -45,12 +48,10 @@ class _InsitePersonsState extends State<InsitePersons> {
       appBar: AppBar(
         title: Text('上游网关'),
         automaticallyImplyLeading: true,
-        centerTitle: false,
+        centerTitle: true,
         elevation: 0.0,
         titleSpacing: 0,
-        actions: <Widget>[
-          _getPopupMenu(),
-        ],
+        actions: <Widget>[],
       ),
       body: CustomScrollView(
         shrinkWrap: true,
@@ -100,54 +101,6 @@ class _InsitePersonsState extends State<InsitePersons> {
       ),
     );
   }
-
-  _getPopupMenu() {
-    return PopupMenuButton<String>(
-      offset: Offset(
-        0,
-        50,
-      ),
-      onSelected: (value) async {
-        if (value == null) return;
-        switch (value) {
-          case '/netflow/channel/insite/persons_settings':
-            widget.context.forward('/netflow/channel/insite/persons_settings',
-                arguments: {
-                  'channel': _channel,
-                }).then((obj) {
-              __refresher.fireRefresh();
-            });
-            break;
-        }
-      },
-      itemBuilder: (context) => <PopupMenuEntry<String>>[
-        PopupMenuItem(
-          value: '/netflow/channel/insite/persons_settings',
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(
-                  right: 10,
-                ),
-                child: Icon(
-                  Icons.settings,
-                  color: Colors.grey[500],
-                  size: 15,
-                ),
-              ),
-              Text(
-                '进口权限',
-                style: TextStyle(
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _Refresher {
@@ -176,12 +129,10 @@ class _PersonListRegion extends StatefulWidget {
 class __PersonListRegionState extends State<_PersonListRegion> {
   Channel _channel;
   EasyRefreshController _controller;
-  PinPersonsSettingsStrategy _strategy;
 
   int _limit = 20;
   int _offset = 0;
   List<Person> _persons = [];
-  String _directionTips;
 
   @override
   void initState() {
@@ -191,244 +142,260 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     _loadPersons().then((persons) {
       setState(() {});
     });
-    _directionTips = '${widget.context.principal.nickName}';
-    widget.refresher.callback = () async {
-      resetPersons();
-      await _loadPersons();
-      setState(() {});
-    };
     super.initState();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
-    this._channel = null;
-    this._offset = 0;
-    _persons.clear();
     super.dispose();
   }
 
-  resetPersons() {
+  _refresh() {
     _persons.clear();
     _offset = 0;
+    _loadPersons();
   }
 
-  Future<void> _onSwipeUp() async {
-    await _loadPersons();
-    setState(() {});
-  }
-
-  Future<List<Person>> _loadPersons() async {
+  Future<void> _loadPersons() async {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
     PinPersonsSettingsStrategy strategy =
         await pinService.getInputPersonSelector(_channel.id);
-    this._strategy = strategy;
-    List<Person> personObjs;
-    switch (strategy) {
-      case PinPersonsSettingsStrategy.only_select:
-        var in_persons =
-            await pinService.pageInputPerson(_channel.id, _limit, _offset);
-        var persons = <String>[];
-        for (var op in in_persons) {
-          persons.add(op.person);
-        }
-        personObjs =
-            await personService.pagePersonWith(persons, _limit, _offset);
-        break;
-      case PinPersonsSettingsStrategy.all_except:
-        throw FlutterError('不支持PinPersonsSettingsStrategy.all_except');
+    if (strategy != PinPersonsSettingsStrategy.only_select) {
+      throw FlutterError('不支持PinPersonsSettingsStrategy.all_except');
     }
-    if (!personObjs.isEmpty) {
-      _offset += personObjs.length;
-    } else {
+    IChannelRemote channelRemote =
+        widget.context.site.getService('/remote/channels');
+    var persons = await channelRemote.pageInputPersonOf(
+        _channel.id, widget.context.principal.person, _limit, _offset);
+    if (persons.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
     }
-    for (var p in personObjs) {
-      var inperson = await pinService.getInputPerson(p.official, _channel.id);
-      p.rights=inperson?.rights;
+    _offset += persons.length;
+    for (var p in persons) {
+      if (p.official == widget.context.principal.person) {
+        await channelRemote.removeInputPerson(p.official, _channel.id);
+        await pinService.removeInputPerson(p.official, _channel.id);
+        continue;
+      }
       _persons.add(p);
-    }
-    return _persons;
-  }
-
-  Future<void> _allowInsite(person, channel) async {
-    IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    var inperson = await pinService.getInputPerson(person, channel);
-    if (inperson.rights == 'deny') {
-      await pinService.updateInputPersonRights(person, channel, 'allow');
-    }
-  }
-
-  Future<void> _removeFromPersonList(Person person) async {
-    IChannelPinService pinService =
-        widget.context.site.getService('/channel/pin');
-    switch (_strategy) {
-      case PinPersonsSettingsStrategy.only_select:
-        pinService
-            .removeInputPerson(person.official, _channel.id)
-            .whenComplete(() {
-          for (var i = 0; i < _persons.length; i++) {
-            if (person.official == _persons[i].official) {
-              _persons.removeAt(i);
-              break;
-            }
-          }
-          setState(() {});
-        });
-        break;
-      case PinPersonsSettingsStrategy.all_except:
-        pinService
-            .addInputPerson(
+      var exists = await pinService.existsInputPerson(p.official, _channel.id);
+      if (!exists) {
+        var rights = (p.rights == 'denyUpstream' || p.rights == 'denyBoth')
+            ? 'deny'
+            : 'allow';
+        await pinService.addInputPerson(
           ChannelInputPerson(
-            '${Uuid().v1()}',
+            p.uid,
             _channel.id,
-            person.official,
-            'allow',
+            p.official,
+            rights,
             DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
           ),
-        )
-            .whenComplete(() {
-          for (var i = 0; i < _persons.length; i++) {
-            if (person.official == _persons[i].official) {
-              _persons.removeAt(i);
-              break;
-            }
-          }
-
-          setState(() {});
-        });
-        break;
+        );
+      }
     }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<bool> _isAllowPerson(official) async {
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var person = await personService.getPerson(official);
+    if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
+      return false;
+    }
+    IChannelPinService pinService =
+        widget.context.site.getService('/channel/pin');
+    var o = await pinService.getInputPerson(person.official, _channel.id);
+    if (o == null) {
+      return false;
+    }
+    return (StringUtil.isEmpty(o.rights) || o.rights == 'allow') ? true : false;
   }
 
   @override
   Widget build(BuildContext context) {
     if (_persons.isEmpty) {
-      return Container(
-        constraints: BoxConstraints.tightForFinite(
-          width: double.maxFinite,
-        ),
-        height: 40,
-        color: Colors.white,
-        alignment: Alignment.center,
-        child: Text.rich(
-          TextSpan(
-            text: '无，请通过',
+      return Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Center(
+          child: Text(
+            '没有公众',
             style: TextStyle(
               color: Colors.grey,
             ),
+          ),
+        ),
+      );
+    }
+    var items = <Widget>[];
+    for (var person in _persons) {
+      items.add(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            widget.context
+                .forward("/netflow/channel/portal/person", arguments: {
+              'person': person,
+            });
+          },
+          child: Stack(
             children: [
-              TextSpan(
-                text: '【进口权限】',
-                style: TextStyle(
-                  color: Colors.blueGrey,
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: SizedBox(
+                  width: 50,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: getAvatarWidget(person.avatar, widget.context),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                '${person.nickName}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    widget.context.forward(
-                        '/netflow/channel/insite/persons_settings',
-                        arguments: {
-                          'channel': _channel,
-                        }).then((obj) {
-                      widget.refresher.fireRefresh();
-                    });
-                  },
               ),
-              TextSpan(text: '设置公众。'),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: FutureBuilder<bool>(
+                  future: _isAllowPerson(person.official),
+                  builder: (ctx, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done ||
+                        snapshot.data) {
+                      return SizedBox(
+                        width: 0,
+                        height: 0,
+                      );
+                    }
+                    return Icon(
+                      Icons.security,
+                      size: 14,
+                      color: Colors.red,
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
       );
     }
-    switch (_strategy) {
-      case PinPersonsSettingsStrategy.only_select:
-        return EasyRefresh.custom(
-          controller: _controller,
-          onLoad: _onSwipeUp,
-          shrinkWrap: true,
-          slivers: _persons.map((p) {
-            var actions = <Widget>[
-              IconSlideAction(
-                caption: '删除',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.delete,
-                onTap: () {
-                  _removeFromPersonList(p);
-                },
-              ),
-            ];
-            bool forbidden = false;
-            if (p.rights == 'deny') {
-              actions.add(
-                IconSlideAction(
-                  caption: '不在拒绝',
-                  foregroundColor: Colors.grey[500],
-                  icon: Icons.clear,
-                  onTap: () {
-                    _allowInsite(p.official, _channel.id).then((v) {
-                      p.rights = 'allow';
-                      setState(() {});
-                    });
-                  },
-                ),
-              );
-              forbidden = true;
-            }
-            return SliverToBoxAdapter(
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.only(
-                      left: 10,
-                      right: 10,
-                    ),
-                    color: Colors.white,
-                    child: Slidable(
-                      actionPane: SlidableDrawerActionPane(),
-                      secondaryActions: actions,
-                      child: CardItem(
-                        title: '${p.nickName ?? p.accountCode}',
-                        leading: SizedBox(width: 40,height: 40,child: getAvatarWidget(p.avatar, widget.context),),
-                        tipsText: forbidden ? '已拒绝接收他的消息，左滑取消' : '',
-                        onItemTap: () {
-                          widget.context.forward(
-                              '/netflow/channel/pin/see_persons',
-                              arguments: {
-                                'person': p,
-                                'pinType': 'upstream',
-                                'channel': _channel,
-                                'direction_tips': _directionTips,
-                              }).then((obj) {
-//                            if (resetPersons != null) {
-//                              resetPersons();
-//                            }
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: 10,
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        );
-      case PinPersonsSettingsStrategy.all_except:
-      default:
-        return Container(
-          width: 0,
-          height: 0,
-        );
+    if(widget.context.principal.person==_channel.owner) {
+      items.add(
+        _renderSecurityMemberButton(),
+      );
     }
+
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        top: 10,
+      ),
+      constraints: BoxConstraints.expand(),
+      alignment: Alignment.topLeft,
+      child: LoadIndicator(
+        child: Wrap(
+          children: items,
+        ),
+        load: () async {
+          await _loadPersons();
+        },
+      ),
+    );
+  }
+
+  Widget _renderSecurityMemberButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            widget.context.forward('/netflow/channel/insite/persons_settings',
+                arguments: {
+                  'channel': _channel,
+                }).then((obj) {
+              _refresh();
+            });
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10,
+              top: 10,
+              right: 10,
+              bottom: 5,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4),
+                    ),
+                    border: Border.all(
+                      color: Colors.grey[300],
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.security,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          '',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
   }
 }

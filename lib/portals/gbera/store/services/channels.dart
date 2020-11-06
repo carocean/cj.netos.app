@@ -56,7 +56,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
     var _GEO_CHANNEL_ID = _SYSTEM_CHANNELS['geo_channel'];
     if (await channelDAO.getChannel(user?.person, _GEO_CHANNEL_ID) == null) {
       var channel = Channel(_GEO_CHANNEL_ID, '地推', user.person, null, null,
-          DateTime.now().millisecondsSinceEpoch, user?.person);
+          null, DateTime.now().millisecondsSinceEpoch, user?.person);
       await channelDAO.addChannel(channel);
       await pinService.initChannelPin(_GEO_CHANNEL_ID);
       await pinService.setOutputGeoSelector(_GEO_CHANNEL_ID, true);
@@ -102,23 +102,31 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<void> addChannel(Channel channel,{String localLeading,String remoteLeading,bool isOnlyLocal=false}) async {
+  Future<void> addChannel(Channel channel,
+      {String upstreamPerson,
+      String localLeading,
+      String remoteLeading,
+      bool isOnlyLocal = false}) async {
     if (StringUtil.isEmpty(channel.id)) {
       channel.id = MD5Util.MD5('${Uuid().v1()}');
     }
-    if(!StringUtil.isEmpty(localLeading)) {
-      channel.leading=localLeading;
+    if (!StringUtil.isEmpty(localLeading)) {
+      channel.leading = localLeading;
+    }
+    if (!StringUtil.isEmpty(upstreamPerson)) {
+      channel.owner = principal.person; //如果上游用户不为空则说明是连接而创建的下游管道，则将所有者更改为自己
     }
     await this.channelDAO.addChannel(channel);
     await pinService.initChannelPin(channel.id);
-    if(!StringUtil.isEmpty(remoteLeading)) {
-      channel.leading=remoteLeading;
+    if (!StringUtil.isEmpty(remoteLeading)) {
+      channel.leading = remoteLeading;
     }
-    if(!isOnlyLocal) {
+    if (!isOnlyLocal) {
       await channelRemote.createChannel(
         channel.id,
         title: channel.name,
         leading: channel.leading,
+        upstreamPerson: upstreamPerson,
         outPersonSelector: 'only_select',
         outGeoSelector: false,
       );
@@ -147,7 +155,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<Channel> getlastChannel() async{
+  Future<Channel> getlastChannel() async {
     return await this.channelDAO.getlastChannel(principal?.person);
   }
 
@@ -174,14 +182,19 @@ class ChannelService implements IChannelService, IServiceBuilder {
   }
 
   @override
-  Future<List<Person>> pageOutputPersonOf( String channel, String person, int limit, int offset)async {
-    return  await this.channelRemote.pageOutputPersonOf(channel, person,limit,offset);
+  Future<List<Person>> pageOutputPersonOf(
+      String channel, String person, int limit, int offset) async {
+    return await this
+        .channelRemote
+        .pageOutputPersonOf(channel, person, limit, offset);
   }
 
   @override
   Future<List<Person>> pageInputPersonOf(
-      String channel, String person, int limit, int offset) async{
-    return  await this.channelRemote.pageInputPersonOf(channel, person,limit,offset);
+      String channel, String person, int limit, int offset) async {
+    return await this
+        .channelRemote
+        .pageInputPersonOf(channel, person, limit, offset);
   }
 
   @override

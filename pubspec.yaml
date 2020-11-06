@@ -214,3 +214,6 @@ flutter:
     - family: absorber
       fonts:
         - asset: lib/portals/gbera/fonts/absorber.ttf
+    - family: user_security
+      fonts:
+        - asset: lib/portals/gbera/fonts/user_security.ttf

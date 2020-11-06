@@ -243,16 +243,16 @@ Map<String, String> parseUrlParams(String paramStr) {
   return map;
 }
 
-Widget getAvatarWidget(String avatar, PageContext context,[defaultAssetAvatar='lib/portals/gbera/images/default_avatar.png']) {
+Widget getAvatarWidget(String avatar, PageContext context,[defaultAssetAvatar='lib/portals/gbera/images/default_avatar.png',Color color]) {
   if (StringUtil.isEmpty(avatar)) {
-    return Image.asset(defaultAssetAvatar??'lib/portals/gbera/images/default_avatar.png');
+    return Image.asset(defaultAssetAvatar??'lib/portals/gbera/images/default_avatar.png',color: color,);
   }
   if (avatar.startsWith('/')) {
     return Image.file(File(avatar));
   }
   return FadeInImage.assetNetwork(
       placeholder: 'lib/portals/gbera/images/default_watting.gif',
-      image: '$avatar?accessToken=${context.principal.accessToken}');
+      image: '$avatar?accessToken=${context.principal.accessToken}',);
 }
 
 Future<String> checkUrlAndDownload(PageContext pageContext, String src) async {
