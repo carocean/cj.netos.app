@@ -314,6 +314,10 @@ class _ChannelPageState extends State<ChannelPage> {
                             maxHeight: Adapt.screenH(),
                             imageQuality: 80,
                           );
+                          if(image==null) {
+                            widget.context.backward();
+                            return;
+                          }
                           widget.context.backward(result: <String, dynamic>{
                             'type': 'gallery',
                             'mediaFile': MediaFile(

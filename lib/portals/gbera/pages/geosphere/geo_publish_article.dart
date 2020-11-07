@@ -187,6 +187,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Text(
           widget.context.page?.title,

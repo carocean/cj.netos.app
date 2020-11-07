@@ -35,6 +35,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Text(
           '购买该服务',
@@ -46,7 +47,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
             icon: Icon(
               Icons.check,
             ),
-            onPressed: () {
+            color:(_purchaseInfo.myWallet.change < _amount)?null:  Colors.green,
+            onPressed:(_purchaseInfo.myWallet.change < _amount)?null: () {
               widget.context.backward(result: _amount);
             },
           ),
@@ -122,7 +124,8 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                   Row(
                     children: [
                       FadeInImage.assetNetwork(
-                        placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                        placeholder:
+                            'lib/portals/gbera/images/default_watting.gif',
                         image:
                             '${_purchaseInfo.bankInfo.icon}?accessToken=${widget.context.principal.accessToken}',
                         width: 40,
@@ -170,6 +173,28 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                   SizedBox(
                     height: 30,
                   ),
+                  Row(
+                    children: [
+                      Text(
+                        '钱包零钱:',
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        '¥${_purchaseInfo.myWallet.changeYan}元',
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -191,35 +216,39 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                           ),
                         ),
                       ),
-                      SliderTheme(
-                        data: theme.sliderTheme.copyWith(
-                          activeTrackColor: Colors.greenAccent,
-                          inactiveTrackColor:
-                              theme.colorScheme.onSurface.withOpacity(0.5),
-                          activeTickMarkColor:
-                              theme.colorScheme.onSurface.withOpacity(0.7),
-                          inactiveTickMarkColor:
-                              theme.colorScheme.surface.withOpacity(0.7),
-                          overlayColor:
-                              theme.colorScheme.onSurface.withOpacity(0.12),
-                          thumbColor: Colors.redAccent,
-                          valueIndicatorColor: Colors.deepPurpleAccent,
-                          thumbShape: _CustomThumbShape(),
-                          valueIndicatorShape: _CustomValueIndicatorShape(),
-                          valueIndicatorTextStyle: theme.accentTextTheme.body2
-                              .copyWith(color: theme.colorScheme.onSurface),
-                        ),
-                        child: Slider(
-                          label: '${(_amount / 100.00).toStringAsFixed(2)}',
-                          value: _amount / 100.00,
-                          min: 1.0,
-                          max: 20.00,
-                          divisions: 19,
-                          onChanged: (v) {
-                            setState(() {
-                              _amount = (v * 100).floor();
-                            });
-                          },
+                      Container(
+                        constraints: BoxConstraints.tightForFinite(
+                            width: double.maxFinite),
+                        child: SliderTheme(
+                          data: theme.sliderTheme.copyWith(
+                            activeTrackColor: Colors.greenAccent,
+                            inactiveTrackColor:
+                                theme.colorScheme.onSurface.withOpacity(0.5),
+                            activeTickMarkColor:
+                                theme.colorScheme.onSurface.withOpacity(0.7),
+                            inactiveTickMarkColor:
+                                theme.colorScheme.surface.withOpacity(0.7),
+                            overlayColor:
+                                theme.colorScheme.onSurface.withOpacity(0.12),
+                            thumbColor: Colors.redAccent,
+                            valueIndicatorColor: Colors.deepPurpleAccent,
+                            thumbShape: _CustomThumbShape(),
+                            valueIndicatorShape: _CustomValueIndicatorShape(),
+                            valueIndicatorTextStyle: theme.accentTextTheme.body2
+                                .copyWith(color: theme.colorScheme.onSurface),
+                          ),
+                          child: Slider(
+                            label: '${(_amount / 100.00).toStringAsFixed(2)}',
+                            value: _amount / 100.00,
+                            min: 1.0,
+                            max: 20.00,
+                            divisions: 19,
+                            onChanged: (v) {
+                              setState(() {
+                                _amount = (v * 100).floor();
+                              });
+                            },
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -277,6 +306,9 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                       ),
                     ],
                   ),
+                  Expanded(child: Column(
+                    children:_rendTips(),
+                  ),),
                 ],
               ),
             ),
@@ -352,6 +384,27 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
         ],
       ),
     );
+  }
+
+  List<Widget> _rendTips() {
+    var items = <Widget>[];
+    if (_purchaseInfo.myWallet.change < _amount) {
+      items.add(SizedBox(height: 20,),);
+      items.add(
+        Expanded(child: Align(
+          alignment: Alignment.center,
+          child:  Text(
+            '申购金超出余额！',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.red,
+            ),
+          ),
+        ),),
+      );
+    }
+
+    return items;
   }
 }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,6 +44,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   String _label = '';
   PurchaseInfo _purchaseInfo;
   bool _canPublish = false;
+  bool _isEnoughMoney = true;
+  StreamController _rechargeController;
+  StreamSubscription _rechargeHandler;
 
   @override
   void initState() {
@@ -56,6 +60,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
   @override
   void dispose() {
+    _rechargeHandler?.cancel();
+    _rechargeController?.close();
     _contentController.dispose();
     super.dispose();
   }
@@ -64,9 +70,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     var result = await AmapLocation.fetchLocation();
     _districtCode = await result.adCode;
     _districtTitle = await result.district;
-    IWyBankPurchaserRemote purchaserRemote =
-        widget.context.site.getService('/remote/purchaser');
-    var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
+    var purchaseInfo = await _getPurchaseInfo();
     if (purchaseInfo.bankInfo == null) {
       _isLoaded = true;
       if (mounted) {
@@ -76,7 +80,10 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     }
     _purchaseInfo = purchaseInfo;
     if (purchaseInfo.myWallet.change < _purchse_amount) {
-      _label = '余额不足，请到钱包中充值';
+      _isEnoughMoney = false;
+      var balance='¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+      var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+      _label = '余额:$balance，至少:$least，请到钱包中充值';
       _isLoaded = true;
       if (mounted) {
         setState(() {});
@@ -90,10 +97,75 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       setState(() {});
     }
   }
+
+  Future<PurchaseInfo> _getPurchaseInfo() async {
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
+    return purchaseInfo;
+  }
+
+  Future<void> _buywy() async {
+    if (!_isEnoughMoney) {
+      _rechargeController = StreamController();
+      _rechargeHandler = _rechargeController.stream.listen((event) async {
+        // print('---充值返回---$event');
+        var purchaseInfo = await _getPurchaseInfo();
+        if (purchaseInfo.bankInfo == null) {
+          return;
+        }
+        if (purchaseInfo.myWallet.change >= _purchse_amount) {
+          _isEnoughMoney = true;
+          _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+          if (mounted) {
+            setState(() {});
+          }
+          return ;
+        }
+        var balance='¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+        var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+        _label = '余额:$balance，至少:$least，请到钱包中充值';
+      });
+      widget.context.forward('/wallet/change/deposit',
+          arguments: {'changeController': _rechargeController});
+      return;
+    }
+    widget.context.forward('/channel/article/buywy', arguments: {
+      'purchaseInfo': _purchaseInfo,
+      'purchaseAmount': _purchse_amount
+    }).then((value) async {
+      if (value == null) {
+        return;
+      }
+
+      var purchaseInfo = await _getPurchaseInfo();
+      if (purchaseInfo.bankInfo == null) {
+        return;
+      }
+      if (purchaseInfo.myWallet.change < value) {
+        _isEnoughMoney = false;
+        var v = value as int;
+        var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
+        _label =
+            '欲购金额:$labelV元 大于 现有余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
+        if (mounted) {
+          setState(() {});
+        }
+        return;
+      }
+      _purchse_amount = value;
+      _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
   Future<AbsorberResultOR> _getAbsorberByAbsorbabler(String absorbabler) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
   }
+
   _publish() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
@@ -116,9 +188,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
     String absorbabler = '${_channel.owner}/${_channel.id}';
     AbsorberResultOR absorberResultOR;
-    if(!StringUtil.isEmpty(absorbabler)) {
-      absorberResultOR=
-      await _getAbsorberByAbsorbabler(absorbabler);
+    if (!StringUtil.isEmpty(absorbabler)) {
+      absorberResultOR = await _getAbsorberByAbsorbabler(absorbabler);
     }
 
     await channelMessageService.addMessage(
@@ -177,7 +248,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'creator': user.person,
       'content': content,
       'Location': null,
-      'purchaseSn':purchaseOR.sn,
+      'purchaseSn': purchaseOR.sn,
     };
     var portsUrl =
         widget.context.site.getService('@.prop.ports.document.network.channel');
@@ -202,6 +273,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Text(
           widget.context.page?.title,
@@ -277,20 +349,27 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
               ),
             ),
             !_isVideoCompressing
-                ? SliverToBoxAdapter(child: SizedBox(
-              height: 0,
-              width: 0,
-            ),)
-                : SliverToBoxAdapter(child: Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.only(bottom: 10,top: 10,),
-              child: Text(
-                '正在压缩视频，请稍候...',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-            ),),
+                ? SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 0,
+                      width: 0,
+                    ),
+                  )
+                : SliverToBoxAdapter(
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                      ),
+                      child: Text(
+                        '正在压缩视频，请稍候...',
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
             SliverFillRemaining(
               child: Container(
                 color: Colors.white,
@@ -322,7 +401,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: File(image.path), type: MediaFileType.image));
+                                  src: File(image.path),
+                                  type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -389,7 +469,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                 });
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: info.file,type: MediaFileType.video));
+                                  src: info.file, type: MediaFileType.video));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -437,7 +517,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                 return;
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: File(image.path), type: MediaFileType.image));
+                                  src: File(image.path),
+                                  type: MediaFileType.image));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
@@ -578,18 +659,20 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  Flexible(
-                                    fit: FlexFit.loose,
+                                  Expanded(
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        Flexible(
-                                          fit: FlexFit.loose,
-                                          child: Text(
-                                            '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12,
+                                        SizedBox(width: 10,),
+                                        Expanded(
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                              '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 12,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -616,21 +699,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                       onTap: StringUtil.isEmpty(_districtCode)
                           ? null
                           : () async {
-                              widget.context.forward('/channel/article/buywy',
-                                  arguments: {
-                                    'purchaseInfo': _purchaseInfo,
-                                    'purchaseAmount': _purchse_amount
-                                  }).then((value) {
-                                if (value == null) {
-                                  return;
-                                }
-                                _purchse_amount = value;
-                                _label =
-                                    '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
-                                if (mounted) {
-                                  setState(() {});
-                                }
-                              });
+                              _buywy();
                             },
                     ),
                     Divider(
@@ -705,7 +774,7 @@ class _MediaShowerState extends State<_MediaShower> {
               break;
             case MediaFileType.video:
               mediaRegion = AspectRatio(
-                aspectRatio: 16/9,
+                aspectRatio: 16 / 9,
                 child: VideoView(
                   src: mediaFile.src,
                 ),
