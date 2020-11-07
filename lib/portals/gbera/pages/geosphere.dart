@@ -737,9 +737,13 @@ class _GeosphereState extends State<Geosphere>
                         });
                       });
                       break;
-                    case '/netflow/manager/scan_receptor':
-                      break;
-                    case '/netflow/manager/search_receptor':
+                    // case '/netflow/manager/scan_receptor':
+                    //   break;
+                    // case '/netflow/manager/search_receptor':
+                    //   break;
+                    case '/netflow/manager/my_persons':
+                      widget.context.forward('/contacts/person/public',
+                          arguments: {'personViewer': 'chasechain'});
                       break;
                   }
                 },
@@ -770,6 +774,32 @@ class _GeosphereState extends State<Geosphere>
                       ],
                     ),
                   ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: '/netflow/manager/my_persons',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            Icons.group,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '我的公众',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  /*
                   PopupMenuDivider(),
                   PopupMenuItem(
                     value: '/netflow/manager/scan_receptor',
@@ -823,6 +853,8 @@ class _GeosphereState extends State<Geosphere>
                       ],
                     ),
                   ),
+
+                   */
                 ],
               ),
             ],
