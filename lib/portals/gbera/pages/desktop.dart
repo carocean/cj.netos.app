@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
+
 class Desktop extends StatefulWidget {
   PageContext context;
 
@@ -254,6 +255,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                   await qrcodeScanner.scan(context, widget.context);
                 },
               ),
+              /*
               IconButton(
                 // Use the FontAwesomeIcons class for the IconData
                 icon: new Icon(
@@ -275,6 +277,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                   });
                 },
               ),
+               */
             ],
           ),
         ),
