@@ -118,7 +118,7 @@ class _AbsorberRecipientsSelectorState
               height: 10,
             ),
             Text(
-              '没有好友',
+              '没有其他可选公众',
               style: TextStyle(
                 color: Colors.grey,
               ),

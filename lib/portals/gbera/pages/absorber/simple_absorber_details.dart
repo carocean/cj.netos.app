@@ -13,10 +13,13 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+
+import 'invest_popup.dart';
 
 class SimpleAbsorberDetailsPage extends StatefulWidget {
   PageContext context;
@@ -211,7 +214,8 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                           widget.context.forward(
                                               '/absorber/details/recipients_selector',
                                               arguments: {
-                                                'absorberId': _absorberResultOR.absorber.id,
+                                                'absorberId': _absorberResultOR
+                                                    .absorber.id,
                                               }).then((value) {
                                             if (value == null) {
                                               return;
@@ -257,7 +261,7 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                     showDialog(
                                       context: context,
                                       builder: (ctx) {
-                                        return _InvestPopupWidget(
+                                        return InvestPopupWidget(
                                           context: widget.context,
                                           absorberResultOR: _absorberResultOR,
                                           bulletin: _bulletin,
@@ -987,174 +991,6 @@ class _RecipientsCardState extends State<_RecipientsCard> {
   }
 }
 
-class _InvestPopupWidget extends StatefulWidget {
-  PageContext context;
-  AbsorberResultOR absorberResultOR;
-  DomainBulletin bulletin;
-
-  _InvestPopupWidget({this.context, this.absorberResultOR, this.bulletin});
-
-  @override
-  __InvestPopupWidgetState createState() => __InvestPopupWidgetState();
-}
-
-class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
-  int _amount = 100;
-
-  Future<void> _investAbsorber() async {
-    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    Person creator = await _getPerson(
-        widget.context.site, widget.absorberResultOR.absorber.creator);
-    await robotRemote.investAbsorber(
-      _amount,
-      1,
-      <String, dynamic>{
-        "payeeCode": "${widget.absorberResultOR.absorber.id}",
-        "payeeName": "${widget.absorberResultOR.absorber.title}",
-        "payeeType": "absorber",
-        "orderno": "${MD5Util.MD5(Uuid().v1())}",
-        "orderTitle":
-            "${widget.context.principal.nickName}喂了${creator?.nickName}的喵",
-        "serviceid": "netflow",
-        "serviceName": "网流",
-        "note": "谢谢"
-      },
-      '谢谢',
-    );
-    widget.context.backward(result: {'succeed': true});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    var rows = <Widget>[];
-    if (widget.absorberResultOR.bucket.price >=
-        widget.bulletin.bucket.waaPrice) {
-      rows.add(
-        Image.asset(
-          'lib/portals/gbera/images/cat-red.gif',
-          fit: BoxFit.fill,
-          height: 50,
-          width: 50,
-        ),
-      );
-      rows.add(
-        SizedBox(
-          width: 10,
-        ),
-      );
-      rows.add(
-        Expanded(
-          child: Text(
-            '喂喂我吧，虽然我不是很饿',
-            style: TextStyle(
-              fontSize: 12,
-            ),
-          ),
-        ),
-      );
-    } else {
-      rows.add(
-        Image.asset(
-          'lib/portals/gbera/images/cat-green.gif',
-          fit: BoxFit.fill,
-          height: 50,
-          width: 50,
-        ),
-      );
-      rows.add(
-        SizedBox(
-          width: 10,
-        ),
-      );
-      rows.add(
-        Expanded(
-          child: Text(
-            '喂喂我吧，我饿了',
-            style: TextStyle(
-              fontSize: 12,
-            ),
-          ),
-        ),
-      );
-    }
-    return SimpleDialog(
-      title: Row(
-        children: rows,
-      ),
-      elevation: 0,
-      children: <Widget>[
-        Center(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: 20,
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '¥${(_amount / 100.00).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[400],
-                  ),
-                ),
-                SliderTheme(
-                  data: theme.sliderTheme.copyWith(
-                    activeTrackColor: Colors.greenAccent,
-                    inactiveTrackColor:
-                        theme.colorScheme.onSurface.withOpacity(0.5),
-                    activeTickMarkColor:
-                        theme.colorScheme.onSurface.withOpacity(0.7),
-                    inactiveTickMarkColor:
-                        theme.colorScheme.surface.withOpacity(0.7),
-                    overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
-                    thumbColor: Colors.redAccent,
-                    valueIndicatorColor: Colors.deepPurpleAccent,
-                    thumbShape: _CustomThumbShape(),
-                    valueIndicatorShape: _CustomValueIndicatorShape(),
-                    valueIndicatorTextStyle: theme.accentTextTheme.body2
-                        .copyWith(color: theme.colorScheme.onSurface),
-                  ),
-                  child: Slider(
-                    label: '¥${(_amount / 100.00).toStringAsFixed(2)}',
-                    value: _amount * 1.0,
-                    min: 100.0,
-                    max: 50000.0,
-                    divisions: ((50000 - 100) / 100).floor(),
-                    onChanged: (v) {
-                      setState(() {
-                        _amount = v.floor();
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        Center(
-          child: FlatButton(
-            child: Text('确认'),
-            disabledTextColor: Colors.grey[300],
-            disabledColor: Colors.grey[200],
-            color: Colors.green,
-            textColor: Colors.white,
-            onPressed: () {
-              _investAbsorber();
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _DashBoard extends StatefulWidget {
   AbsorberResultOR absorberResultOR;
   Stream stream;
@@ -1286,126 +1122,6 @@ class __DashBoardState extends State<_DashBoard> {
       child: content,
     );
   }
-}
-
-class _CustomThumbShape extends SliderComponentShape {
-  static const double _thumbSize = 4.0;
-  static const double _disabledThumbSize = 3.0;
-
-  @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
-    return isEnabled
-        ? const Size.fromRadius(_thumbSize)
-        : const Size.fromRadius(_disabledThumbSize);
-  }
-
-  static final Animatable<double> sizeTween = Tween<double>(
-    begin: _disabledThumbSize,
-    end: _thumbSize,
-  );
-
-  @override
-  void paint(PaintingContext context, Offset thumbCenter,
-      {Animation<double> activationAnimation,
-      Animation<double> enableAnimation,
-      bool isDiscrete,
-      TextPainter labelPainter,
-      RenderBox parentBox,
-      SliderThemeData sliderTheme,
-      TextDirection textDirection,
-      double value,
-      double textScaleFactor,
-      Size sizeWithOverflow}) {
-    final Canvas canvas = context.canvas;
-    final ColorTween colorTween = ColorTween(
-      begin: sliderTheme.disabledThumbColor,
-      end: sliderTheme.thumbColor,
-    );
-    final double size = _thumbSize * sizeTween.evaluate(enableAnimation);
-    final Path thumbPath = _downTriangle(size, thumbCenter);
-    canvas.drawPath(
-        thumbPath, Paint()..color = colorTween.evaluate(enableAnimation));
-  }
-}
-
-class _CustomValueIndicatorShape extends SliderComponentShape {
-  static const double _indicatorSize = 4.0;
-  static const double _disabledIndicatorSize = 3.0;
-  static const double _slideUpHeight = 40.0;
-
-  @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
-    return Size.fromRadius(isEnabled ? _indicatorSize : _disabledIndicatorSize);
-  }
-
-  static final Animatable<double> sizeTween = Tween<double>(
-    begin: _disabledIndicatorSize,
-    end: _indicatorSize,
-  );
-
-  @override
-  void paint(PaintingContext context, Offset thumbCenter,
-      {Animation<double> activationAnimation,
-      Animation<double> enableAnimation,
-      bool isDiscrete,
-      TextPainter labelPainter,
-      RenderBox parentBox,
-      SliderThemeData sliderTheme,
-      TextDirection textDirection,
-      double value,
-      double textScaleFactor,
-      Size sizeWithOverflow}) {
-    final Canvas canvas = context.canvas;
-    final ColorTween enableColor = ColorTween(
-      begin: sliderTheme.disabledThumbColor,
-      end: sliderTheme.valueIndicatorColor,
-    );
-    final Tween<double> slideUpTween = Tween<double>(
-      begin: 0.0,
-      end: _slideUpHeight,
-    );
-    final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
-    final Offset slideUpOffset =
-        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
-    final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
-    final Color paintColor = enableColor
-        .evaluate(enableAnimation)
-        .withAlpha((255.0 * activationAnimation.value).round());
-    canvas.drawPath(
-      thumbPath,
-      Paint()..color = paintColor,
-    );
-    canvas.drawLine(
-        thumbCenter,
-        thumbCenter + slideUpOffset,
-        Paint()
-          ..color = paintColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0);
-    labelPainter.paint(
-        canvas,
-        thumbCenter +
-            slideUpOffset +
-            Offset(-labelPainter.width / 2.0, -labelPainter.height - 4.0));
-  }
-}
-
-Path _upTriangle(double size, Offset thumbCenter) =>
-    _downTriangle(size, thumbCenter, invert: true);
-
-Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
-  final Path thumbPath = Path();
-  final double height = math.sqrt(3.0) / 2.0;
-  final double centerHeight = size * height / 3.0;
-  final double halfSize = size / 2.0;
-  final double sign = invert ? -1.0 : 1.0;
-  thumbPath.moveTo(
-      thumbCenter.dx - halfSize, thumbCenter.dy + sign * centerHeight);
-  thumbPath.lineTo(thumbCenter.dx, thumbCenter.dy - 2.0 * sign * centerHeight);
-  thumbPath.lineTo(
-      thumbCenter.dx + halfSize, thumbCenter.dy + sign * centerHeight);
-  thumbPath.close();
-  return thumbPath;
 }
 
 Future<Person> _getPerson(IServiceProvider site, String person) async {

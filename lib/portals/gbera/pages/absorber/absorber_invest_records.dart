@@ -93,6 +93,28 @@ class _AbsorberInvestRecordsPageState extends State<AbsorberInvestRecordsPage> {
                         SizedBox(
                           height: 5,
                         ),
+                        Row(
+                          children: [
+                            Text(
+                              '${(record.payStatus??200)==200?'喂猫成功':'喂猫失败'}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:(record.payStatus??200)==200? Colors.grey:Colors.red,
+                              ),
+                            ),
+                            SizedBox(width: 10,),
+                            Text(
+                              '${record.payMessage ?? 'ok'}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:(record.payStatus??200)==200? Colors.grey:Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
                         Wrap(
                           direction: Axis.horizontal,
                           crossAxisAlignment: WrapCrossAlignment.end,

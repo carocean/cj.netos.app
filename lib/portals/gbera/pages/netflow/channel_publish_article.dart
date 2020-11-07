@@ -113,26 +113,28 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
-      _rechargeController = StreamController();
-      _rechargeHandler = _rechargeController.stream.listen((event) async {
-        // print('---充值返回---$event');
-        _purchaseInfo = await _getPurchaseInfo();
-        if (_purchaseInfo.bankInfo == null) {
-          return;
-        }
-        if (_purchaseInfo.myWallet.change >= _purchse_amount) {
-          _isEnoughMoney = true;
-          _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
-          if (mounted) {
-            setState(() {});
+      if(_rechargeController==null) {
+        _rechargeController = StreamController();
+        _rechargeHandler = _rechargeController.stream.listen((event) async {
+          // print('---充值返回---$event');
+          _purchaseInfo = await _getPurchaseInfo();
+          if (_purchaseInfo.bankInfo == null) {
+            return;
           }
-          return;
-        }
-        var balance =
-            '¥${(_purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
-        var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
-        _label = '余额:$balance，至少:$least，请到钱包中充值';
-      });
+          if (_purchaseInfo.myWallet.change >= _purchse_amount) {
+            _isEnoughMoney = true;
+            _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+            if (mounted) {
+              setState(() {});
+            }
+            return;
+          }
+          var balance =
+              '¥${(_purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+          var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+          _label = '余额:$balance，至少:$least，请到钱包中充值';
+        });
+      }
       widget.context.forward('/wallet/change/deposit',
           arguments: {'changeController': _rechargeController});
       return;

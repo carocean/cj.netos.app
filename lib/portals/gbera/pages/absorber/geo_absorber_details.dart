@@ -16,6 +16,8 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
+import 'invest_popup.dart';
+
 class GeoAbsorberDetailsPage extends StatefulWidget {
   PageContext context;
 
@@ -179,7 +181,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                                 showDialog(
                                   context: context,
                                   builder: (ctx) {
-                                    return _InvestPopupWidget(
+                                    return InvestPopupWidget(
                                       context: widget.context,
                                       absorberResultOR: _absorberResultOR,
                                       bulletin: _bulletin,

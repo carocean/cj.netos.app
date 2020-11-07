@@ -235,6 +235,8 @@ class InvestRecordOR {
   String outTradeSn;
   String investOrderNo;
   String investOrderTitle;
+  int payStatus;
+  String payMessage;
   String note;
 
   InvestRecordOR({
@@ -247,8 +249,25 @@ class InvestRecordOR {
     this.outTradeSn,
     this.investOrderNo,
     this.investOrderTitle,
+    this.payStatus,
+    this.payMessage,
     this.note,
   });
+
+  InvestRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.absorber = obj['absorber'];
+    this.amount = obj['amount'];
+    this.invester = obj['invester'];
+    this.ctime = obj['ctime'];
+    this.personName = obj['personName'];
+    this.outTradeSn = obj['outTradeSn'];
+    this.investOrderNo = obj['investOrderNo'];
+    this.investOrderTitle = obj['investOrderTitle'];
+    this.payStatus = obj['payStatus'] ?? 200;
+    this.payMessage = obj['payMessage'];
+    this.note = obj['note'];
+  }
 }
 
 class WithdrawRecordOR {
@@ -391,7 +410,7 @@ class QrcodeSliceOR {
     this.state = obj['state'];
     this.note = obj['note'];
     var propList = obj['properties'];
-    if(propList!=null) {
+    if (propList != null) {
       this.props = <String, SlicePropOR>{};
       for (var pobj in propList) {
         var prop = SlicePropOR.parse(pobj);
@@ -607,6 +626,8 @@ mixin IRobotRemote {
 
   Future<List<InvestRecordOR>> pageInvestRecord(
       String absorber, int limit, int offset);
+
+  Future<InvestRecordOR> getInvestRecord(String record_sn);
 
   Future<int> totalAmountInvests(String absorber);
 
@@ -1315,6 +1336,21 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
   }
 
   @override
+  Future<InvestRecordOR> getInvestRecord(String record_sn) async {
+    var obj = await remotePorts.portGET(
+      robotRecordPorts,
+      'getInvestRecord',
+      parameters: {
+        'record_sn': record_sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return InvestRecordOR.parse(obj);
+  }
+
+  @override
   Future<List<InvestRecordOR>> pageInvestRecord(
       String absorber, int limit, int offset) async {
     var list = await remotePorts.portGET(
@@ -1329,18 +1365,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     var recordList = <InvestRecordOR>[];
     for (var obj in list) {
       recordList.add(
-        InvestRecordOR(
-          sn: obj['sn'],
-          amount: obj['amount'],
-          ctime: obj['ctime'],
-          absorber: obj['absorber'],
-          personName: obj['personName'],
-          outTradeSn: obj['outTradeSn'],
-          note: obj['note'],
-          invester: obj['invester'],
-          investOrderNo: obj['investOrderNo'],
-          investOrderTitle: obj['investOrderTitle'],
-        ),
+        InvestRecordOR.parse(obj),
       );
     }
     return recordList;
@@ -1973,14 +1998,12 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
     );
   }
 
-
   @override
-  Future<List<QrcodeSliceOR>> listUnconsumeSlices()async {
+  Future<List<QrcodeSliceOR>> listUnconsumeSlices() async {
     var list = await remotePorts.portGET(
       robotHubPorts,
       'listUnconsumeSlices',
-      parameters: {
-      },
+      parameters: {},
     );
     List<QrcodeSliceOR> items = [];
     for (var obj in list) {
