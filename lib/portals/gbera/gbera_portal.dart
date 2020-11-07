@@ -26,6 +26,7 @@ import 'package:netos_app/portals/gbera/pages/absorber/absorber_invest_records.d
 import 'package:netos_app/portals/gbera/pages/absorber/my_absorbers.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_image.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/qrcode_slices.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/recipients_selector.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/caisheng_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/caisheng_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/chiji_slice.dart';
@@ -1188,7 +1189,6 @@ class GberaPortal {
             context: pageContext,
           ),
         ),
-
         LogicPage(
           title: '已选公众',
           subtitle: '',
@@ -2655,6 +2655,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/details/selectRecipients',
           buildPage: (PageContext pageContext) => SelectPersons(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '选择洇取成员',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/details/recipients_selector',
+          buildPage: (PageContext pageContext) => AbsorberRecipientsSelector(
             context: pageContext,
           ),
         ),

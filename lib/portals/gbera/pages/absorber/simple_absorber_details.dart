@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:intl/intl.dart' as intl;
@@ -208,14 +209,14 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                         behavior: HitTestBehavior.opaque,
                                         onTap: () {
                                           widget.context.forward(
-                                              '/absorber/details/selectRecipients',
+                                              '/absorber/details/recipients_selector',
                                               arguments: {
-                                                'personViewer': 'chasechain',
-                                                'action': 'select'
+                                                'absorberId': _absorberResultOR.absorber.id,
                                               }).then((value) {
                                             if (value == null) {
                                               return;
                                             }
+                                            // print('------$value');
                                             _addRecipients(value);
                                           });
                                         },
@@ -231,19 +232,19 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                             children: [
                                               Icon(
                                                 Icons.person_add,
-                                                size: 16,
-                                                color: Colors.black54,
+                                                size: 30,
+                                                color: Colors.red,
                                               ),
                                               SizedBox(
                                                 width: 0,
                                               ),
                                               Text(
-                                                '加喵',
+                                                '加人',
                                                 style: TextStyle(
-                                                  color: Colors.blueGrey,
-                                                  fontSize: 12,
-                                                  decoration:
-                                                      TextDecoration.underline,
+                                                  color: Colors.black,
+                                                  fontSize: 14,
+                                                  // decoration:
+                                                  //     TextDecoration.underline,
                                                 ),
                                               ),
                                             ],
@@ -279,12 +280,9 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                           CrossAxisAlignment.end,
                                       children: [
                                         Icon(
-                                          IconData(
-                                            0xe6b2,
-                                            fontFamily: 'absorber',
-                                          ),
-                                          size: 16,
-                                          color: Colors.black54,
+                                          Icons.emoji_food_beverage,
+                                          size: 30,
+                                          color: Colors.red,
                                         ),
                                         SizedBox(
                                           width: 0,
@@ -292,10 +290,9 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                         Text(
                                           '喂喵',
                                           style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontSize: 12,
-                                            decoration:
-                                                TextDecoration.underline,
+                                            color: Colors.black,
+                                            fontSize: 14,
+                                            // decoration: TextDecoration.underline,
                                           ),
                                         ),
                                       ],

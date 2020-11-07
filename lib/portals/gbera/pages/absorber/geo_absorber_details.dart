@@ -201,19 +201,19 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Icon(
-                                      Icons.add,
-                                      size: 16,
-                                      color: Colors.black54,
+                                      Icons.emoji_food_beverage,
+                                      size: 30,
+                                      color: Colors.red,
                                     ),
                                     SizedBox(
                                       width: 0,
                                     ),
                                     Text(
-                                      '喵喵',
+                                      '喂喵',
                                       style: TextStyle(
-                                        color: Colors.blueGrey,
-                                        fontSize: 12,
-                                        decoration: TextDecoration.underline,
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        // decoration: TextDecoration.underline,
                                       ),
                                     ),
                                   ],
@@ -634,119 +634,115 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                 padding: EdgeInsets.only(
                   left: 15,
                   right: 15,
+                  top: 20,
+                  bottom: 20,
                 ),
                 child: Row(
                   children: <Widget>[
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: 20,
-                          bottom: 20,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Container(
-                              width: 40,
-                              height: 40,
-                              padding: EdgeInsets.only(
-                                right: 10,
-                              ),
-                              child: FutureBuilder<Person>(
-                                future: _getPerson(
-                                    widget.context.site, item.person),
-                                builder: (ctx, snapshot) {
-                                  if (snapshot.connectionState !=
-                                      ConnectionState.done) {
-                                    return Image.asset(
-                                      'lib/portals/gbera/images/default_watting.gif',
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  var person = snapshot.data;
-                                  if (person == null) {
-                                    return SizedBox(
-                                      height: 0,
-                                      width: 0,
-                                    );
-                                  }
-                                  var avatar = person.avatar;
-                                  if (StringUtil.isEmpty(avatar)) {
-                                    return Image.asset(
-                                      'lib/portals/gbera/images/default_avatar.png',
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  if (avatar.startsWith('/')) {
-                                    return Image.file(
-                                      File(avatar),
-                                      width: 40,
-                                      height: 40,
-                                    );
-                                  }
-                                  return FadeInImage.assetNetwork(
-                                    placeholder:
-                                        'lib/portals/gbera/images/default_watting.gif',
-                                    image:
-                                        '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            width: 40,
+                            height: 40,
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: FutureBuilder<Person>(
+                              future: _getPerson(
+                                  widget.context.site, item.person),
+                              builder: (ctx, snapshot) {
+                                if (snapshot.connectionState !=
+                                    ConnectionState.done) {
+                                  return Image.asset(
+                                    'lib/portals/gbera/images/default_watting.gif',
                                     width: 40,
                                     height: 40,
                                   );
-                                },
-                              ),
+                                }
+                                var person = snapshot.data;
+                                if (person == null) {
+                                  return SizedBox(
+                                    height: 0,
+                                    width: 0,
+                                  );
+                                }
+                                var avatar = person.avatar;
+                                if (StringUtil.isEmpty(avatar)) {
+                                  return Image.asset(
+                                    'lib/portals/gbera/images/default_avatar.png',
+                                    width: 40,
+                                    height: 40,
+                                  );
+                                }
+                                if (avatar.startsWith('/')) {
+                                  return Image.file(
+                                    File(avatar),
+                                    width: 40,
+                                    height: 40,
+                                  );
+                                }
+                                return FadeInImage.assetNetwork(
+                                  placeholder:
+                                  'lib/portals/gbera/images/default_watting.gif',
+                                  image:
+                                  '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                  width: 40,
+                                  height: 40,
+                                );
+                              },
                             ),
-                            Expanded(
-                              child: Wrap(
-                                direction: Axis.vertical,
-                                spacing: 5,
-                                runSpacing: 5,
-                                crossAxisAlignment: WrapCrossAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    '${item.personName}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                          ),
+                          Expanded(
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 5,
+                              runSpacing: 5,
+                              crossAxisAlignment: WrapCrossAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  '${item.personName}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
+                                ),
 //                                  Text(
 //                                    '${item.person}',
 //                                    style: TextStyle(
 //                                      fontSize: 12,
 //                                    ),
 //                                  ),
-                                  _absorberResultOR.absorber.type == 0 ||
-                                          item.distance == null
-                                      ? SizedBox(
-                                          height: 0,
-                                          width: 0,
-                                        )
-                                      : Text(
-                                          '距中心: ${item.distance?.toStringAsFixed(2)}米',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                  Text(
-                                    '激励原因: ${item.encourageCause ?? ''}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
+                                _absorberResultOR.absorber.type == 0 ||
+                                    item.distance == null
+                                    ? SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                )
+                                    : Text(
+                                  '距中心: ${item.distance?.toStringAsFixed(2)}米',
+                                  style: TextStyle(
+                                    fontSize: 12,
                                   ),
-                                  Text(
-                                    '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+                                ),
+                                Text(
+                                  '激励原因: ${item.encourageCause ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 12,
                                   ),
-                                ],
-                              ),
+                                ),
+                                Text(
+                                  '${intl.DateFormat('yyyy年M月d日 HH:mm:ss').format(parseStrTime(item.ctime))}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                     Row(

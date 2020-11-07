@@ -7,6 +7,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -369,11 +370,7 @@ class _PersonsViewState extends State<PersonsView> {
                         fontSize: 12,
                       ),
                     ),
-                    leading: Image.file(
-                      File(item.avatar),
-                      width: 40,
-                      height: 40,
-                    ),
+                    leading: SizedBox(width: 40,height: 40,child: getAvatarWidget(item.avatar, widget.context),),
                     tail: _getTailIcon(item),
                     onItemTap: widget.selectMode
                         ? () {
