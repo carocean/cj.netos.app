@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
@@ -10,6 +9,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
+
 class InvestPopupWidget extends StatefulWidget {
   PageContext context;
   AbsorberResultOR absorberResultOR;
@@ -55,7 +55,7 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
 
   Future<PurchaseInfo> _getPurchaseInfo() async {
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     var result = await AmapLocation.fetchLocation();
     var districtCode = await result.adCode;
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(districtCode);
@@ -75,7 +75,7 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
         "payeeType": "absorber",
         "orderno": "${MD5Util.MD5(Uuid().v1())}",
         "orderTitle":
-        "${widget.context.principal.nickName}喂了${creator?.nickName}的喵",
+            "${widget.context.principal.nickName}喂了${creator?.nickName}的喵",
         "serviceid": "netflow",
         "serviceName": "网流",
         "note": "谢谢"
@@ -90,7 +90,7 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
   }
 
   Future<void> _doRecharge() async {
-    if(_rechargeController ==null) {
+    if (_rechargeController == null) {
       _rechargeController = StreamController();
       _rechargeHandler = _rechargeController.stream.listen((event) async {
         // print('---充值返回---$event');
@@ -211,11 +211,11 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
                 data: theme.sliderTheme.copyWith(
                   activeTrackColor: Colors.greenAccent,
                   inactiveTrackColor:
-                  theme.colorScheme.onSurface.withOpacity(0.5),
+                      theme.colorScheme.onSurface.withOpacity(0.5),
                   activeTickMarkColor:
-                  theme.colorScheme.onSurface.withOpacity(0.7),
+                      theme.colorScheme.onSurface.withOpacity(0.7),
                   inactiveTickMarkColor:
-                  theme.colorScheme.surface.withOpacity(0.7),
+                      theme.colorScheme.surface.withOpacity(0.7),
                   overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
                   thumbColor: Colors.redAccent,
                   valueIndicatorColor: Colors.deepPurpleAccent,
@@ -265,12 +265,48 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
     } else {
       items.add(
         Center(
-          child: Text(
-            '当前余额不足，剩余¥${_purchaseInfo.myWallet.changeYan}元，请充值！',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.red,
-            ),
+          child: Column(
+            children: [
+              Text(
+                '当前余额不足，剩余¥${_purchaseInfo.myWallet.changeYan}元，请充值！',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 45,right: 45,),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '提示:',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: Text(
+                        '充值后该窗口会自动关闭，但系统并不会自动喂猫，请再次打开窗口以喂食。',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
+                          // fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -318,15 +354,15 @@ class _CustomThumbShape extends SliderComponentShape {
   @override
   void paint(PaintingContext context, Offset thumbCenter,
       {Animation<double> activationAnimation,
-        Animation<double> enableAnimation,
-        bool isDiscrete,
-        TextPainter labelPainter,
-        RenderBox parentBox,
-        SliderThemeData sliderTheme,
-        TextDirection textDirection,
-        double value,
-        double textScaleFactor,
-        Size sizeWithOverflow}) {
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
     final Canvas canvas = context.canvas;
     final ColorTween colorTween = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -357,15 +393,15 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
   @override
   void paint(PaintingContext context, Offset thumbCenter,
       {Animation<double> activationAnimation,
-        Animation<double> enableAnimation,
-        bool isDiscrete,
-        TextPainter labelPainter,
-        RenderBox parentBox,
-        SliderThemeData sliderTheme,
-        TextDirection textDirection,
-        double value,
-        double textScaleFactor,
-        Size sizeWithOverflow}) {
+      Animation<double> enableAnimation,
+      bool isDiscrete,
+      TextPainter labelPainter,
+      RenderBox parentBox,
+      SliderThemeData sliderTheme,
+      TextDirection textDirection,
+      double value,
+      double textScaleFactor,
+      Size sizeWithOverflow}) {
     final Canvas canvas = context.canvas;
     final ColorTween enableColor = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -377,7 +413,7 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     );
     final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
     final Offset slideUpOffset =
-    Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
     final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
     final Color paintColor = enableColor
         .evaluate(enableAnimation)

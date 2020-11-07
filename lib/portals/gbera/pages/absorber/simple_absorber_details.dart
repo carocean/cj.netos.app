@@ -268,7 +268,6 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                         );
                                       },
                                     ).then((value) {
-                                      print('----2323----$value');
                                       if (value != null) {
 //                                  _reloadAbsorber();
                                       }
