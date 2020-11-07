@@ -15,6 +15,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
@@ -1165,21 +1166,25 @@ class __MessageCardState extends State<_MessageCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  DefaultTabController(
-                    length: widget.messageWrapper.medias.length,
-                    child: PageSelector(
-                      medias: widget.messageWrapper.medias,
-                      onMediaLongTap: (media, index) {
-                        widget.context.forward(
-                          '/images/viewer',
-                          arguments: {
-                            'medias': widget.messageWrapper.medias,
-                            'index': index,
-                          },
-                        );
-                      },
-                    ),
+                  MediaWidget(
+                    widget.messageWrapper.medias,
+                    widget.context,
                   ),
+                  // DefaultTabController(
+                  //   length: widget.messageWrapper.medias.length,
+                  //   child: PageSelector(
+                  //     medias: widget.messageWrapper.medias,
+                  //     onMediaLongTap: (media, index) {
+                  //       widget.context.forward(
+                  //         '/images/viewer',
+                  //         arguments: {
+                  //           'medias': widget.messageWrapper.medias,
+                  //           'index': index,
+                  //         },
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
                   Row(
                     //内容坠
                     mainAxisAlignment: MainAxisAlignment.end,

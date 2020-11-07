@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -345,20 +346,24 @@ class __MessageCardState extends State<_MessageCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  DefaultTabController(
-                    length: images.length,
-                    child: PageSelector(
-                      medias: images,
-                      onMediaLongTap: (media,index) {
-                        widget.context.forward(
-                          '/images/viewer',
-                          arguments: {
-                            'medias': images,
-                            'index': index,
-                          },
-                        );
-                      },
-                    ),
+                  // DefaultTabController(
+                  //   length: images.length,
+                  //   child: PageSelector(
+                  //     medias: images,
+                  //     onMediaLongTap: (media,index) {
+                  //       widget.context.forward(
+                  //         '/images/viewer',
+                  //         arguments: {
+                  //           'medias': images,
+                  //           'index': index,
+                  //         },
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
+                  MediaWidget(
+                    images,
+                    widget.context,
                   ),
                   Row(
                     //内容坠
