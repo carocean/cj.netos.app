@@ -775,6 +775,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
           ),
         ),
       );
+      return items;
     }
     if (_publishingState > 0) {
       var tips = '';

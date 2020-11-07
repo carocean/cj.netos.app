@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,6 +14,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -32,7 +34,6 @@ class GeospherePublishArticle extends StatefulWidget {
 
 class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
-  bool _enablePublishButton = false;
   TextEditingController _contentController;
   String _category;
   String _receptor;
@@ -46,6 +47,12 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   bool _canPublish = false;
   GeoReceptor _receptorObj;
   bool _isVideoCompressing = false;
+  bool _isEnoughMoney = true;
+  StreamController _rechargeController;
+  StreamSubscription _rechargeHandler;
+  int _publishingState = 0; //1正在申购；2正在发布；3发布出错；4成功完成且跳转
+  String _purchaseError;
+  StreamSubscription _purchaseHandler;
 
   @override
   void initState() {
@@ -59,6 +66,9 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
   @override
   void dispose() {
+    _purchaseHandler?.cancel();
+    _rechargeHandler?.cancel();
+    _rechargeController?.close();
     _poi = null;
     _contentController.dispose();
     super.dispose();
@@ -82,8 +92,6 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
     _receptorObj = await receptorRemote.getReceptor(_category, _receptor);
-    _enablePublishButton =
-        _poi != null && !StringUtil.isEmpty(_contentController.text);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
@@ -96,7 +104,11 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     }
     _purchaseInfo = purchaseInfo;
     if (purchaseInfo.myWallet.change < _purchse_amount) {
-      _label = '余额不足，请到钱包中充值';
+      _isEnoughMoney = false;
+      var balance =
+          '¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+      var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+      _label = '余额:$balance，至少:$least，请到钱包中充值';
       _isLoaded = true;
       if (mounted) {
         setState(() {});
@@ -111,18 +123,123 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     }
   }
 
-  Future<void> _publishMessage() async {
+  Future<void> _buywy() async {
+    if (!_isEnoughMoney) {
+      _rechargeController = StreamController();
+      _rechargeHandler = _rechargeController.stream.listen((event) async {
+        // print('---充值返回---$event');
+        _purchaseInfo = await _getPurchaseInfo();
+        if (_purchaseInfo.bankInfo == null) {
+          return;
+        }
+        if (_purchaseInfo.myWallet.change >= _purchse_amount) {
+          _isEnoughMoney = true;
+          _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+          if (mounted) {
+            setState(() {});
+          }
+          return;
+        }
+        var balance =
+            '¥${(_purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+        var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+        _label = '余额:$balance，至少:$least，请到钱包中充值';
+      });
+      widget.context.forward('/wallet/change/deposit',
+          arguments: {'changeController': _rechargeController});
+      return;
+    }
+    widget.context.forward('/channel/article/buywy', arguments: {
+      'purchaseInfo': _purchaseInfo,
+      'purchaseAmount': _purchse_amount
+    }).then((value) async {
+      if (value == null) {
+        return;
+      }
+
+      var purchaseInfo = await _getPurchaseInfo();
+      if (purchaseInfo.bankInfo == null) {
+        return;
+      }
+      if (purchaseInfo.myWallet.change < value) {
+        _isEnoughMoney = false;
+        var v = value as int;
+        var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
+        _label =
+            '欲购金额:$labelV元 大于 现有余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
+        if (mounted) {
+          setState(() {});
+        }
+        return;
+      }
+      _purchse_amount = value;
+      _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<PurchaseInfo> _getPurchaseInfo() async {
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
+    return purchaseInfo;
+  }
+
+  Future<void> _doPublish() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
-    var location = jsonEncode(_poi.latLng.toJson());
+    var msgid = MD5Util.MD5('${Uuid().v1()}');
 
-    var images = shower_key.currentState.files;
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
-    IGeosphereMediaService mediaService =
-        widget.context.site.getService('/geosphere/receptor/messages/medias');
-    var msgid = MD5Util.MD5(Uuid().v1());
+    if (mounted) {
+      setState(() {
+        _publishingState = 1;
+      });
+    }
+    var purchaseOR = await _purchaseImpl(user, msgid);
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    _purchaseHandler = Stream.periodic(Duration(seconds: 1), (count) async {
+      var record = await purchaserRemote.getPurchaseRecord(purchaseOR.sn);
+      return record;
+    }).listen((event) async {
+      var result = await event;
+      if (result == null) {
+        return;
+      }
+      if (result.state != 1) {
+        print('申购中...');
+        return;
+      }
+      _purchaseHandler?.cancel();
+      if (result.status != 200) {
+        _purchaseError = '${result.status} ${result.message}';
+        print('申购完成【${result.status} ${result.message}】，但出错');
+        setState(() {
+          _publishingState = 3;
+        });
+        return;
+      }
+      print('成功申购');
+      if (mounted) {
+        setState(() {
+          _publishingState = 2;
+        });
+      }
+      await _publishImpl(user, content, msgid, result);
+      if (mounted) {
+        setState(() {
+          _publishingState = 0;
+        });
+      }
+      print('发布完成');
 
+      widget.context.backward(result: msgid);
+    });
+  }
+
+  Future<PurchaseOR> _purchaseImpl(user, msgid) async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
     var purchaseOR = await purchaserRemote.doPurchase(
@@ -131,6 +248,18 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         'receptor',
         '${_receptorObj.category}/$msgid',
         '在地理感知器${_receptorObj.title}');
+    return purchaseOR;
+  }
+
+  Future<void> _publishImpl(user, content, msgid, purchaseOR) async {
+    var content = _contentController.text;
+    var location = jsonEncode(_poi.latLng.toJson());
+
+    var images = shower_key.currentState.files;
+    IGeosphereMessageService geoMessageService =
+        widget.context.site.getService('/geosphere/receptor/messages');
+    IGeosphereMediaService mediaService =
+        widget.context.site.getService('/geosphere/receptor/messages/medias');
 
     await geoMessageService.addMessage(
       GeosphereMessageOL(
@@ -180,8 +309,16 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         ),
       );
     }
+  }
 
-    widget.context.backward(result: msgid);
+  bool _isDisableButton() {
+    return !_canPublish ||
+        _poi == null ||
+        (_purchaseInfo != null &&
+            _purchaseInfo.myWallet.change < _purchse_amount) ||
+        _publishingState > 0 ||
+        StringUtil.isEmpty(_contentController.text) ||
+        StringUtil.isEmpty(_districtCode);
   }
 
   @override
@@ -205,10 +342,10 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         ),
         actions: <Widget>[
           FlatButton(
-            onPressed: !_enablePublishButton
+            onPressed: _isDisableButton()
                 ? null
                 : () {
-                    _publishMessage();
+                    _doPublish();
                   },
             child: Container(
               color: null,
@@ -221,7 +358,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
               child: Text(
                 '发表',
                 style: TextStyle(
-                  color: _enablePublishButton ? Colors.green : Colors.grey[400],
+                  color: _isDisableButton() ? Colors.grey[400] : Colors.green,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -247,9 +384,10 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                   maxLines: 10,
                   autofocus: true,
                   onChanged: (v) {
-                    _enablePublishButton = _poi != null &&
-                        !StringUtil.isEmpty(_contentController.text);
-                    setState(() {});
+                    _canPublish = !StringUtil.isEmpty(v);
+                    if (mounted) {
+                      setState(() {});
+                    }
                   },
                   decoration: InputDecoration(
                     border: InputBorder.none,
@@ -264,21 +402,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
-            !_isVideoCompressing
-                ? SliverToBoxAdapter(child: SizedBox(
-              height: 0,
-              width: 0,
-            ),)
-                : SliverToBoxAdapter(child: Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.only(bottom: 10,top: 10,),
-              child: Text(
-                '正在压缩视频，请稍候...',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-            ),),
+            ..._renderProcessing(),
             SliverFillRemaining(
               child: Container(
                 color: Colors.white,
@@ -575,13 +699,15 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  Flexible(
-                                    fit: FlexFit.loose,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        Flexible(
-                                          fit: FlexFit.loose,
+                                  Expanded(child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
                                           child: Text(
                                             '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
                                             style: TextStyle(
@@ -590,19 +716,19 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            left: 10,
-                                          ),
-                                          child: Icon(
-                                            Icons.arrow_forward_ios,
-                                            size: 16,
-                                            color: Colors.grey,
-                                          ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 10,
                                         ),
-                                      ],
-                                    ),
-                                  ),
+                                        child: Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),),
                                 ],
                               ),
                             ),
@@ -612,22 +738,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                       behavior: HitTestBehavior.opaque,
                       onTap: StringUtil.isEmpty(_districtCode)
                           ? null
-                          : () async {
-                              widget.context.forward('/channel/article/buywy',
-                                  arguments: {
-                                    'purchaseInfo': _purchaseInfo,
-                                    'purchaseAmount': _purchse_amount
-                                  }).then((value) {
-                                if (value == null) {
-                                  return;
-                                }
-                                _purchse_amount = value;
-                                _label =
-                                    '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
-                                if (mounted) {
-                                  setState(() {});
-                                }
-                              });
+                          : () {
+                              _buywy();
                             },
                     ),
                     Divider(
@@ -722,6 +834,67 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         ),
       ),
     );
+  }
+  List<Widget> _renderProcessing() {
+    var items = <Widget>[];
+    if (_isVideoCompressing) {
+      items.add(
+        SliverToBoxAdapter(
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              bottom: 10,
+              top: 10,
+            ),
+            child: Text(
+              '正在压缩视频，请稍候...',
+              style: TextStyle(
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      );
+      return items;
+    }
+    if (_publishingState > 0) {
+      var tips = '';
+      switch (_publishingState) {
+        case 1:
+          tips = '正在申购发文服务..';
+          break;
+        case 2:
+          tips = '申购完成，正在发表';
+          break;
+        case 3:
+          tips = _purchaseError;
+          break;
+        case 4:
+          tips = '成功发表';
+          break;
+      }
+      items.add(
+        SliverToBoxAdapter(
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              bottom: 10,
+              top: 10,
+              left: 15,
+              right: 15,
+            ),
+            child: Text(
+              '$tips',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return items;
   }
 }
 
