@@ -324,7 +324,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     if (!(await chatRoomService.existsMember(room, sender))) {
       var member =
           await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
-      await chatRoomService.addMember(member, isOnlySaveLocal: true);
+      if(member!=null) {
+        await chatRoomService.addMember(member, isOnlySaveLocal: true);
+      }
     } else {
       IChatRoomRemote chatRoomRemote =
           widget.context.site.getService('/remote/chat/rooms');
