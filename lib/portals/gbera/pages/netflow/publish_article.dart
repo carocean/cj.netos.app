@@ -13,6 +13,7 @@ import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -47,6 +48,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   bool _isEnoughMoney = true;
   StreamController _rechargeController;
   StreamSubscription _rechargeHandler;
+  int _publishingState = 0; //1正在申购；2正在发布；3发布出错；4成功完成且跳转
+  String _purchaseError;
+  StreamSubscription _purchaseHandler;
 
   @override
   void initState() {
@@ -60,6 +64,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
   @override
   void dispose() {
+    _purchaseHandler?.cancel();
     _rechargeHandler?.cancel();
     _rechargeController?.close();
     _contentController.dispose();
@@ -81,7 +86,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     _purchaseInfo = purchaseInfo;
     if (purchaseInfo.myWallet.change < _purchse_amount) {
       _isEnoughMoney = false;
-      var balance='¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+      var balance =
+          '¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
       var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
       _label = '余额:$balance，至少:$least，请到钱包中充值';
       _isLoaded = true;
@@ -110,19 +116,20 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       _rechargeController = StreamController();
       _rechargeHandler = _rechargeController.stream.listen((event) async {
         // print('---充值返回---$event');
-        var purchaseInfo = await _getPurchaseInfo();
-        if (purchaseInfo.bankInfo == null) {
+        _purchaseInfo = await _getPurchaseInfo();
+        if (_purchaseInfo.bankInfo == null) {
           return;
         }
-        if (purchaseInfo.myWallet.change >= _purchse_amount) {
+        if (_purchaseInfo.myWallet.change >= _purchse_amount) {
           _isEnoughMoney = true;
           _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
           if (mounted) {
             setState(() {});
           }
-          return ;
+          return;
         }
-        var balance='¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
+        var balance =
+            '¥${(_purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元';
         var least = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
         _label = '余额:$balance，至少:$least，请到钱包中充值';
       });
@@ -166,17 +173,58 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
   }
 
-  _publish() async {
+  Future<void> _doPublish() async {
     UserPrincipal user = widget.context.principal;
     var content = _contentController.text;
-
-    var images = shower_key.currentState.files;
-    IChannelMessageService channelMessageService =
-        widget.context.site.getService('/channel/messages');
-    IChannelMediaService channelMediaService =
-        widget.context.site.getService('/channel/messages/medias');
     var msgid = MD5Util.MD5('${Uuid().v1()}');
 
+    if (mounted) {
+      setState(() {
+        _publishingState = 1;
+      });
+    }
+    var purchaseOR = await _purchaseImpl(user, msgid);
+    IWyBankPurchaserRemote purchaserRemote =
+        widget.context.site.getService('/remote/purchaser');
+    _purchaseHandler = Stream.periodic(Duration(seconds: 1), (count) async {
+      var record = await purchaserRemote.getPurchaseRecord(purchaseOR.sn);
+      return record;
+    }).listen((event) async {
+      var result = await event;
+      if (result == null) {
+        return;
+      }
+      if (result.state != 1) {
+        print('申购中...');
+        return;
+      }
+      _purchaseHandler?.cancel();
+      if (result.status != 200) {
+        _purchaseError = '${result.status} ${result.message}';
+        print('申购完成【${result.status} ${result.message}】，但出错');
+        setState(() {
+          _publishingState = 3;
+        });
+        return;
+      }
+      print('成功申购');
+      if (mounted) {
+        setState(() {
+          _publishingState = 2;
+        });
+      }
+      await _publishImpl(user, content, msgid, result);
+      if (mounted) {
+        setState(() {
+          _publishingState = 0;
+        });
+      }
+      print('发布完成');
+      widget.context.backward();
+    });
+  }
+
+  Future<PurchaseOR> _purchaseImpl(user, msgid) async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
     var purchaseOR = await purchaserRemote.doPurchase(
@@ -185,6 +233,15 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         'netflow',
         '${user.person}/$msgid',
         '在管道${_channel.name}');
+    return purchaseOR;
+  }
+
+  _publishImpl(user, content, msgid, purchaseOR) async {
+    var images = shower_key.currentState.files;
+    IChannelMessageService channelMessageService =
+        widget.context.site.getService('/channel/messages');
+    IChannelMediaService channelMediaService =
+        widget.context.site.getService('/channel/messages/medias');
 
     String absorbabler = '${_channel.owner}/${_channel.id}';
     AbsorberResultOR absorberResultOR;
@@ -266,8 +323,15 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     if (refreshMessages != null) {
       await refreshMessages();
     }
+  }
 
-    widget.context.backward();
+  bool _isDisableButton() {
+    return !_canPublish ||
+        (_purchaseInfo != null &&
+            _purchaseInfo.myWallet.change < _purchse_amount) ||
+        _publishingState > 0 ||
+        StringUtil.isEmpty(_contentController.text) ||
+        StringUtil.isEmpty(_districtCode);
   }
 
   @override
@@ -291,21 +355,15 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         ),
         actions: <Widget>[
           FlatButton(
-            onPressed: !_canPublish ||
-                    StringUtil.isEmpty(_contentController.text) ||
-                    StringUtil.isEmpty(_districtCode)
+            onPressed: _isDisableButton()
                 ? null
                 : () {
-                    _publish();
+                    _doPublish();
                   },
             child: Text(
               '发表',
               style: TextStyle(
-                color: !_canPublish ||
-                        StringUtil.isEmpty(_contentController.text) ||
-                        StringUtil.isEmpty(_districtCode)
-                    ? Colors.grey[400]
-                    : Colors.blueGrey,
+                color: _isDisableButton() ? Colors.grey[400] : Colors.blueGrey,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -348,28 +406,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
-            !_isVideoCompressing
-                ? SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 0,
-                      width: 0,
-                    ),
-                  )
-                : SliverToBoxAdapter(
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                      ),
-                      child: Text(
-                        '正在压缩视频，请稍候...',
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                  ),
+            ..._renderProcessing(),
             SliverFillRemaining(
               child: Container(
                 color: Colors.white,
@@ -663,7 +700,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        SizedBox(width: 10,),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
                                         Expanded(
                                           child: Align(
                                             alignment: Alignment.centerRight,
@@ -714,6 +753,67 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         ),
       ),
     );
+  }
+
+  List<Widget> _renderProcessing() {
+    var items = <Widget>[];
+    if (_isVideoCompressing) {
+      items.add(
+        SliverToBoxAdapter(
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              bottom: 10,
+              top: 10,
+            ),
+            child: Text(
+              '正在压缩视频，请稍候...',
+              style: TextStyle(
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    if (_publishingState > 0) {
+      var tips = '';
+      switch (_publishingState) {
+        case 1:
+          tips = '正在申购发文服务..';
+          break;
+        case 2:
+          tips = '申购完成，正在发表';
+          break;
+        case 3:
+          tips = _purchaseError;
+          break;
+        case 4:
+          tips = '成功发表';
+          break;
+      }
+      items.add(
+        SliverToBoxAdapter(
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(
+              bottom: 10,
+              top: 10,
+              left: 15,
+              right: 15,
+            ),
+            child: Text(
+              '$tips',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return items;
   }
 }
 
