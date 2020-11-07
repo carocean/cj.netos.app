@@ -132,7 +132,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/outsite_persons_add.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/channel_router_path.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/portal/portal_netflow_person.dart';
-import 'package:netos_app/portals/gbera/pages/netflow/publish_article.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel_publish_article.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/scan_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/see_channelpin_persons.dart';
