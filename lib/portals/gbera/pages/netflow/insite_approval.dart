@@ -697,11 +697,10 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                     ),
                     onTap: () {
                       widget.context.backward();
-                      widget.context.forward('/netflow/portal/channel',
-                          arguments: {
-                            'channel': _channel,
-                            'purchase': _purchaseOR
-                          }).then((v) {});
+                      widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                        'channel': _channel.id,
+                        'origin':_person.official,
+                      });
                     },
                   ),
                   SizedBox(
@@ -715,11 +714,10 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         widget.context.backward();
-                        widget.context.forward('/netflow/portal/channel',
-                            arguments: {
-                              'channel': _channel,
-                              'purchase': _purchaseOR
-                            }).then((v) {});
+                        widget.context.forward("/netflow/channel/portal/channel", arguments: {
+                          'channel': _channel.id,
+                          'origin':_person.official,
+                        });
                       },
                       child: Text(
                         '${_channel?.name}',

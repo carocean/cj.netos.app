@@ -228,33 +228,33 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         });
                       });
                       break;
-                    case '/netflow/manager/scan_channel':
-                      String cameraScanResult = await scanner.scan();
-                      if (cameraScanResult == null) break;
-                      arguments['qrcode'] = cameraScanResult;
-                      widget.context
-                          .forward(value, arguments: arguments)
-                          .then((v) {
-                        _items.clear();
-                        _loadChannels().then((v) {
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      });
-                      break;
-                    case '/netflow/manager/search_channel':
-                      widget.context
-                          .forward(value, arguments: arguments)
-                          .then((v) {
-                        _items.clear();
-                        _loadChannels().then((v) {
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      });
-                      break;
+                    // case '/netflow/manager/scan_channel':
+                    //   String cameraScanResult = await scanner.scan();
+                    //   if (cameraScanResult == null) break;
+                    //   arguments['qrcode'] = cameraScanResult;
+                    //   widget.context
+                    //       .forward(value, arguments: arguments)
+                    //       .then((v) {
+                    //     _items.clear();
+                    //     _loadChannels().then((v) {
+                    //       if (mounted) {
+                    //         setState(() {});
+                    //       }
+                    //     });
+                    //   });
+                    //   break;
+                    // case '/netflow/manager/search_channel':
+                    //   widget.context
+                    //       .forward(value, arguments: arguments)
+                    //       .then((v) {
+                    //     _items.clear();
+                    //     _loadChannels().then((v) {
+                    //       if (mounted) {
+                    //         setState(() {});
+                    //       }
+                    //     });
+                    //   });
+                    //   break;
                     case '/netflow/manager/my_persons':
                       widget.context.forward('/contacts/person/public',
                           arguments: {'personViewer': 'chasechain'});
@@ -288,32 +288,32 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       ],
                     ),
                   ),
-                  PopupMenuItem(
-                    value: '/netflow/manager/scan_channel',
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                          ),
-                          child: Icon(
-                            widget.context
-                                .findPage('/netflow/manager/scan_channel')
-                                ?.icon,
-                            color: Colors.grey[500],
-                            size: 15,
-                          ),
-                        ),
-                        Text(
-                          '扫码以连接',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // PopupMenuItem(
+                  //   value: '/netflow/manager/scan_channel',
+                  //   child: Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                  //     children: <Widget>[
+                  //       Padding(
+                  //         padding: EdgeInsets.only(
+                  //           right: 10,
+                  //         ),
+                  //         child: Icon(
+                  //           widget.context
+                  //               .findPage('/netflow/manager/scan_channel')
+                  //               ?.icon,
+                  //           color: Colors.grey[500],
+                  //           size: 15,
+                  //         ),
+                  //       ),
+                  //       Text(
+                  //         '扫码以连接',
+                  //         style: TextStyle(
+                  //           fontSize: 14,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   // PopupMenuItem(
                   //   value: '/netflow/manager/search_channel',
                   //   child: Row(
