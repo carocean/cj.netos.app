@@ -214,10 +214,10 @@ class _AbsorberRecipientsViewPageState
                           TextSpan(
                             text: '${_recipientsOR.weight?.toStringAsFixed(4)}',
                             style: TextStyle(
-                              decoration:_absorberResultOR.absorber.creator!=widget.context.principal.person?TextDecoration.none: TextDecoration.underline,
+                              decoration:(_absorberResultOR.absorber.creator!=widget.context.principal.person||_recipientsOR.encourageCode=='enter')?TextDecoration.none: TextDecoration.underline,
                             ),
                             recognizer: TapGestureRecognizer()
-                              ..onTap =_absorberResultOR.absorber.creator!=widget.context.principal.person?null: () {
+                              ..onTap =(_absorberResultOR.absorber.creator!=widget.context.principal.person||_recipientsOR.encourageCode=='enter')?null: () {
                                 showDialog(
                                   context: context,
                                   builder: (ctx) {
