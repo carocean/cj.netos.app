@@ -73,7 +73,7 @@ class About extends StatelessWidget {
                   TextSpan(text: '\t'),
                   TextSpan(
                     text:
-                        '总部位于深圳市高新区的深圳软件园，是一家专业从事工业4.0核心产品研发、生产、销售和服务的国家级高新技术企业、双软企业。',
+                        '郑州节点动力息科技有限公司于2020年4月28日于郑州成立，立足中原，致力于打造移动互联网创新型企业，通过技术和模式创新，丰富互联网用户生活，助力企业数字化升级。',
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                     ),
@@ -82,7 +82,16 @@ class About extends StatelessWidget {
                   TextSpan(text: '      '),
                   TextSpan(
                     text:
-                        '十多年来的不断创新和发展，显控产品不断成熟并逐步确立了行业领先地位，受到国内外用户的青睐。目前，产品已远销美国、欧盟、印度、俄罗斯等三十多个国家和地区。公司在广州、佛山、东莞、北京、南京、无锡、成都、杭州、宁波、天津、青岛、武汉、西安、沈阳、郑州、南宁、泉州等国内主要城市设立了办事处，与全国各区域代理商一起为广大客户提供高品质全方位服务。',
+                        '节点动力𣄃下拥有多项发明专利以及丰富多样的互联网产品，其中地微app独特的平聊、网流，地圈，追链传播渠道，让人与人之间的沟通更加方便快捷高效，让信息的推广更加多维，更加精准，更有深度。',
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  TextSpan(text: '\r\n\r\n'),
+                  TextSpan(text: '      '),
+                  TextSpan(
+                    text:
+                    '\"技术改变生活\”是节点动力全球化发展的核心战略。',
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                     ),
@@ -96,13 +105,13 @@ class About extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: '携手迈向工业4.0时代，共创中国智造的美好未来！',
+                    text: '携手并进，共创未来。',
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                     ),
                   ),
                 ],
-                text: '      节点动力',
+                text: '      ',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -139,7 +148,7 @@ class About extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        child: Text('广州市天河区科韵路天河软件园建中路22号 区科韵路天河软件园建中路22号'),
+                        child: Text('河南省郑州市航空港区裕鸿世界港·商业广场4号楼A座'),
                       ),
                     ],
                   ),
@@ -154,7 +163,7 @@ class About extends StatelessWidget {
                       Container(
                         width: 70,
                         child: Text(
-                          '客服电话',
+                          '电话',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[600],
@@ -162,34 +171,34 @@ class About extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        child: Text('020-28384833'),
+                        child: Text('0371-63396318'),
                       ),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 10,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Container(
-                        width: 70,
-                        child: Text(
-                          '节点动力号',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text('0002838472166117239929'),
-                      ),
-                    ],
-                  ),
-                ),
+                // Padding(
+                //   padding: EdgeInsets.only(
+                //     bottom: 10,
+                //   ),
+                //   child: Row(
+                //     crossAxisAlignment: CrossAxisAlignment.end,
+                //     children: <Widget>[
+                //       Container(
+                //         width: 70,
+                //         child: Text(
+                //           '节点动力号',
+                //           style: TextStyle(
+                //             fontWeight: FontWeight.w500,
+                //             color: Colors.grey[600],
+                //           ),
+                //         ),
+                //       ),
+                //       Expanded(
+                //         child: Text('0002838472166117239929'),
+                //       ),
+                //     ],
+                //   ),
+                // ),
               ],
             ),
           ),
