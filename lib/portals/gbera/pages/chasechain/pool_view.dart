@@ -416,7 +416,7 @@ class _PoolPageState extends State<PoolViewPage> {
                                                     TextSpan(text: ' '),
                                                     TextSpan(
                                                       text:
-                                                          '${_dashboard.innateRecommends??0}',
+                                                          '${_dashboard.innateRecommends ?? 0}',
                                                       style: TextStyle(
                                                         color: Colors.red,
                                                       ),
@@ -603,7 +603,9 @@ class _PoolPageState extends State<PoolViewPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      SizedBox(height: 10,),
+                      SizedBox(
+                        height: 10,
+                      ),
                       Row(
                         children: <Widget>[
                           GestureDetector(
@@ -626,7 +628,8 @@ class _PoolPageState extends State<PoolViewPage> {
                                 '内容提供者',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: _index == 0 ? Colors.black : Colors.grey,
+                                  color:
+                                      _index == 0 ? Colors.black : Colors.grey,
                                 ),
                               ),
                             ),
@@ -651,7 +654,8 @@ class _PoolPageState extends State<PoolViewPage> {
                                 '内容盒',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: _index == 1 ? Colors.black : Colors.grey,
+                                  color:
+                                      _index == 1 ? Colors.black : Colors.grey,
                                 ),
                               ),
                             ),
@@ -807,30 +811,56 @@ class __ContentProviderListPanelState extends State<_ContentProviderListPanel> {
         return SliverToBoxAdapter(
           child: Column(
             children: <Widget>[
-              CardItem(
-                title: '${provider.nickName}',
-                leading: provider.avatar.startsWith('/')
-                    ? Image.file(
-                        File(provider.avatar),
-                        width: 40,
-                        height: 40,
-                      )
-                    : FadeInImage.assetNetwork(
-                        placeholder:
-                            'lib/portals/gbera/images/default_watting.gif',
-                        image:
-                            '${provider.avatar}?accessToken=${widget.context.principal.accessToken}',
-                        width: 40,
-                        height: 40,
-                      ),
-                paddingLeft: 15,
-                paddingRight: 15,
-                onItemTap: () {
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
                   widget.context.forward('/chasechain/provider', arguments: {
                     'provider': provider.official,
                     'pool': widget.pool.id,
                   });
                 },
+                child: Padding(
+                  padding:
+                      EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+                  child: Row(
+                    children: [
+                      provider.avatar.startsWith('/')
+                          ? Image.file(
+                              File(provider.avatar),
+                              width: 40,
+                              height: 40,
+                            )
+                          : FadeInImage.assetNetwork(
+                              placeholder:
+                                  'lib/portals/gbera/images/default_watting.gif',
+                              image:
+                                  '${provider.avatar}?accessToken=${widget.context.principal.accessToken}',
+                              width: 40,
+                              height: 40,
+                            ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${provider.nickName}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
               ),
               SizedBox(
                 height: 15,
@@ -921,38 +951,71 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
         return SliverToBoxAdapter(
           child: Column(
             children: <Widget>[
-              CardItem(
-                title: '${box.pointer.title}',
-                leading: StringUtil.isEmpty(box.pointer.leading)
-                    ? Image.asset(
-                  'lib/portals/gbera/images/netflow.png',
-                  width: 40,
-                  height: 40,
-                )
-                    : FadeInImage.assetNetwork(
-                  placeholder:
-                  'lib/portals/gbera/images/default_watting.gif',
-                  image:
-                  '${box.pointer.leading}?accessToken=${widget.context.principal.accessToken}',
-                  width: 40,
-                  height: 40,
-                ),
-                subtitle: Text(
-                  '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                paddingLeft: 15,
-                paddingRight: 15,
-                onItemTap: () {
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
                   widget.context.forward(
                     '/chasechain/box',
                     arguments: {'box': box, 'pool': widget.pool.id},
                   );
                 },
+                child: Padding(
+                  padding:
+                  EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+                  child: Row(
+                    children: [
+                      StringUtil.isEmpty(box.pointer.leading)
+                          ? Image.asset(
+                        'lib/portals/gbera/images/netflow.png',
+                        width: 40,
+                        height: 40,
+                      )
+                          : FadeInImage.assetNetwork(
+                        placeholder:
+                        'lib/portals/gbera/images/default_watting.gif',
+                        image:
+                        '${box.pointer.leading}?accessToken=${widget.context.principal.accessToken}',
+                        width: 40,
+                        height: 40,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                        child:Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${box.pointer.title}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 5,),
+                            Text(
+                              '${box.pointer.type.startsWith('geo.receptor') ? '地理感知器' : '网流管道'}',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
               ),
+
               SizedBox(
                 height: 15,
                 child: Divider(

@@ -41,12 +41,9 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
 
   Future<void> _loadBoxPointerRealObject() async {
     ContentBoxOR box = widget.context.parameters['box'];
-    if (box.pointer.type.startsWith('geo.receptor.')) {
+    if (box.pointer.type.startsWith('geo.receptor')) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      var category = box.pointer.type;
-      int pos = category.lastIndexOf('.');
-      category = category.substring(pos + 1);
       var receptor = await receptorRemote.getReceptor( box.pointer.id);
       if (receptor == null) {
         return;
@@ -69,12 +66,14 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
         widget.context.site.getService('/remote/channels');
     var channel = await channelRemote.findChannelOfPerson(
         box.pointer.id, box.pointer.type);
-    _boxPointerRealObject = BoxPointerRealObject(
-      type: 'channel',
-      title: channel.name,
-      id: channel.id,
-      icon: channel.leading,
-    );
+    if(channel!=null) {
+      _boxPointerRealObject = BoxPointerRealObject(
+        type: 'channel',
+        title: channel.name,
+        id: channel.id,
+        icon: channel.leading,
+      );
+    }
   }
 
   @override

@@ -149,13 +149,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-    if (pointer.type.indexOf('geo.receptor.') >= 0) {
-      int pos = pointer.type.lastIndexOf('.');
-      var category = pointer.type.substring(pos + 1);
-      absorbabler = '$category/$pointerBoxID';
-    } else {
       absorbabler = '${pointer.type}/$pointerBoxID';
-    }
     switch (behave) {
       case 'like':
         _tryAddRecipients(
@@ -184,13 +178,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-    if (pointer.type.indexOf('geo.receptor.') >= 0) {
-      int pos = pointer.type.lastIndexOf('.');
-      var category = pointer.type.substring(pos + 1);
-      absorbabler = '$category/$pointerBoxID';
-    } else {
       absorbabler = '${pointer.type}/$pointerBoxID';
-    }
     switch (behave) {
       case 'like':
         _removeRecipients(

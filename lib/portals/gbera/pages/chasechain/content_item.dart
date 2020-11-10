@@ -386,9 +386,9 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
               ),
             ],
           ),
-//          SizedBox(
-//            height: 5,
-//          ),
+         SizedBox(
+           height: 5,
+         ),
 //          Row(
 //            children: <Widget>[
 //              FutureBuilder<Person>(
@@ -729,13 +729,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-    if (pointer.type.indexOf('geo.receptor.') >= 0) {
-      int pos = pointer.type.lastIndexOf('.');
-      var category = pointer.type.substring(pos + 1);
-      absorbabler = '$category/$pointerBoxID';
-    } else {
       absorbabler = '${pointer.type}/$pointerBoxID';
-    }
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {

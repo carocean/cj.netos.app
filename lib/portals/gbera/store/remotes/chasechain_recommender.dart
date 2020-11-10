@@ -853,7 +853,7 @@ class ChasechainRecommenderRemote
   Future<RecommenderMessageOR> _fetchMessage(ContentItemOR contentItem) async {
     var pointer = contentItem.pointer;
     var type = pointer.type;
-    if (!type.startsWith('geo.receptor.')) {
+    if (!type.startsWith('geo.receptor')) {
       var message = await channelRemote.getMessage(type, pointer.id);
       return RecommenderMessageOR(
         creator: message.creator,
@@ -868,8 +868,6 @@ class ChasechainRecommenderRemote
       );
     }
     //geo.receptor.mobiles.docs
-    type =
-        type.substring('geo.receptor'.length + 1, type.length - '.docs'.length);
     var message = await geoReceptorRemote.getMessage(pointer.id);
     if(message==null) {
       return null;
