@@ -91,7 +91,7 @@ class ReceptorInfo {
     this.id=receptor.id;
     this.title=receptor.title;
     this.leading=receptor.leading;
-    this.isMobileReceptor =receptor.category=='mobiles';
+    this.isMobileReceptor =receptor.moveMode=='moveableSelf';
     this.isAutoScrollMessage=receptor.isAutoScrollMessage=='true';
     this.creator=receptor.creator;
     this.category=receptor.category;
@@ -146,8 +146,9 @@ class GeosphereMessageOR {
 
   ///location是GEOPoi对象
   LatLng location;
+  String channel;//分类频道
   String category;
-
+  String brand;
   GeosphereMessageOR({
     this.id,
     this.upstreamPerson,
@@ -164,7 +165,9 @@ class GeosphereMessageOR {
     this.text,
     this.purchaseSn,
     this.location,
+    this.channel,
     this.category,
+    this.brand,
   });
 
   GeosphereMessageOR.form(GeosphereMessageOL ol) {

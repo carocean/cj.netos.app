@@ -51,74 +51,63 @@ class GeosphereMediaOR {
 mixin IGeoReceptorRemote {
   Future<void> addReceptor(GeoReceptor receptor);
 
-  Future<void> removeReceptor(String category, String id);
+  Future<void> removeReceptor(String id);
 
-  Future<void> updateLeading(String rleading, String category, String id) {}
+  Future<void> updateLeading(String rleading, String receptor) {}
 
-  Future<void> updateForeground(String category, String receptor, mode) {}
+  Future<void> updateForeground(String receptor, mode) {}
 
-  Future<void> emptyBackground(String category, String receptor) {}
+  Future<void> emptyBackground(String receptor) {}
 
-  Future<void> updateBackground(
-      String category, String receptor, mode, String file) {}
+  Future<void> updateBackground(String receptor, mode, String file) {}
 
   Future<void> publishMessage(GeosphereMessageOR geosphereMessageOR) {}
 
-  Future<void> removeMessage(String category, String receptor, String msgid);
+  Future<void> removeMessage(String receptor, String msgid);
 
-  Future<GeosphereMessageOR> getMessage(String category, String msgid);
+  Future<GeosphereMessageOR> getMessage(String msgid);
 
-  Future<void> like(String category, String receptor, String msgid) {}
+  Future<void> like(String receptor, String msgid) {}
 
-  Future<void> unlike(String category, String receptor, String msgid) {}
+  Future<void> unlike(String receptor, String msgid) {}
 
-  Future<void> addComment(String category, String receptor, String msgid,
-      String commentid, String text) {}
+  Future<void> addComment(
+      String receptor, String msgid, String commentid, String text) {}
 
-  Future<void> removeComment(
-      String category, String receptor, String msgid, String commentid) {}
+  Future<void> removeComment(String receptor, String msgid, String commentid) {}
 
-  Future<void> uploadMedia(
-      String category, GeosphereMediaOL geosphereMediaOL) {}
+  Future<void> uploadMedia(GeosphereMediaOL geosphereMediaOL) {}
 
   Future<List<GeoPOI>> searchAroundReceptors(
-      {String categroy,
-      String receptor,
-      String geoType,
-      int limit,
-      int offset}) {}
+      {String receptor, String geoType, int limit, int offset}) {}
 
   Future<List<GeoPOI>> searchAroundLocation(
       LatLng location, int radius, geoType, int limit, int offset) {}
 
   Future<List<GeoPOF>> pageReceptorFans(
-      {String categroy, String receptor, int limit, int offset}) {}
+      {String receptor, int limit, int offset}) {}
 
   Future<List<ChannelOR>> listReceptorChannels() {}
 
   Future<List<GeoPOD>> searchAroundDocuments(
-      {String category,
-      String receptor,
-      String geoType,
-      int limit,
-      int offset}) {}
+      {String receptor, String geoType, int limit, int offset}) {}
 
-  Future<GeoReceptor> getReceptor(String category, String receptorid) {}
+  Future<GeoReceptor> getReceptor(String receptorid) {}
 
   Future<bool> syncTaskRemote(Frame frame) async {}
 
   Future<GeoReceptor> getMyMobilReceptor() {}
 
-  Future<List<GeosphereMessageOL>> pageMessage(String category, String receptor,
-      String creator, int limit, int offset) {}
+  Future<List<GeosphereMessageOL>> pageMessage(
+      String receptor, String creator, int limit, int offset) {}
 
-  Future<void> follow(String category, String receptor) {}
+  Future<void> follow(String receptor) {}
 
-  Future<void> unfollow(String category, String receptor) {}
+  Future<void> unfollow(String receptor) {}
 
-  Future<int> countReceptorFans(String category, String id) {}
+  Future<int> countReceptorFans(String id) {}
 
-  Future<void> updateLocation(String category, String receptor, String json) {}
+  Future<void> updateLocation(String receptor, String json) {}
 
   Future<List<GeosphereMediaOR>> listExtraMedia(String type, String id) {}
 }
@@ -152,7 +141,9 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       parameters: {
         'id': receptor.id,
         'title': receptor.title,
+        'channel': receptor.channel,
         'category': receptor.category,
+        'brand': receptor.brand,
         'leading': receptor.leading,
         'location': receptor.location,
         'radius': receptor.radius,
@@ -162,25 +153,23 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeReceptor(String category, String id) async {
+  Future<Function> removeReceptor(String id) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'removeGeoReceptor',
       parameters: {
         'id': id,
-        'category': category,
       },
     );
   }
 
   @override
-  Future<GeoReceptor> getReceptor(String category, String receptor) async {
+  Future<GeoReceptor> getReceptor(String receptor) async {
     var map = await remotePorts.portGET(
       _receptorPortsUrl,
       'getGeoReceptor',
       parameters: {
         'id': receptor,
-        'category': category,
       },
     );
     if (map == null) {
@@ -190,67 +179,59 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateLocation(
-      String category, String receptor, String location) async {
+  Future<Function> updateLocation(String receptor, String location) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'updateLocation',
       parameters: {
         'id': receptor,
-        'category': category,
         'location': location,
       },
     );
   }
 
   @override
-  Future<Function> updateLeading(
-      String leading, String category, String id) async {
+  Future<Function> updateLeading(String leading, String id) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'updateLeading',
       parameters: {
         'id': id,
-        'category': category,
         'leading': leading,
       },
     );
   }
 
   @override
-  Future<Function> updateForeground(
-      String category, String receptor, mode) async {
+  Future<Function> updateForeground(String receptor, mode) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'updateForeground',
       parameters: {
         'id': receptor,
-        'category': category,
         'mode': mode,
       },
     );
   }
 
   @override
-  Future<Function> emptyBackground(String category, String receptor) async {
+  Future<Function> emptyBackground(String receptor) async {
     await remotePorts.portGET(
       _receptorPortsUrl,
       'emptyBackground',
       parameters: {
         'id': receptor,
-        'category': category,
       },
     );
   }
 
   @override
-  Future<Function> updateBackground(
-      String category, String receptor, mode, String file) async {
+  Future<Function> updateBackground(String receptor, mode, String file) async {
     remotePorts.portTask.addUploadTask(
       '/app/geosphere',
       [file],
       callbackUrl:
-          '/geosphere/receptor/settings?category=$category&receptor=$receptor&mode=$mode&background=$file',
+          '/geosphere/receptor/settings?receptor=$receptor&mode=$mode&background=$file',
     );
   }
 
@@ -267,33 +248,30 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
         'document': docMap,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/publishMessage?receptor=${geosphereMessageOR.receptor}&category=${geosphereMessageOR.category}&msgid=${geosphereMessageOR.id}',
+          '/geosphere/receptor/docs/publishMessage?receptor=${geosphereMessageOR.receptor}&msgid=${geosphereMessageOR.id}',
     );
   }
 
   @override
-  Future<Function> removeMessage(
-      String category, String receptor, String msgid) async {
+  Future<Function> removeMessage(String receptor, String msgid) async {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'removeArticle',
       parameters: {
         'receptor': receptor,
-        'category': category,
         'docid': msgid,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/removeMessage?category=$category&receptor=$receptor&msgid=$msgid',
+          '/geosphere/receptor/docs/removeMessage?receptor=$receptor&msgid=$msgid',
     );
   }
 
   @override
-  Future<GeosphereMessageOR> getMessage(String category, String msgid) async {
+  Future<GeosphereMessageOR> getMessage(String msgid) async {
     var obj = await remotePorts.portGET(
       _receptorPortsUrl,
       'getGeoDocument',
       parameters: {
-        'category': category,
         'docid': msgid,
       },
     );
@@ -322,78 +300,72 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<Function> removeComment(
-      String category, String receptor, String msgid, String commentid) {
+      String receptor, String msgid, String commentid) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'removeComment',
       parameters: {
         'receptor': receptor,
-        'category': category,
         'docid': msgid,
         'commentid': commentid,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/removeComment?category=$category&receptor=$receptor&msgid=$msgid&commentid=$commentid',
+          '/geosphere/receptor/docs/removeComment?receptor=$receptor&msgid=$msgid&commentid=$commentid',
     );
   }
 
   @override
-  Future<Function> addComment(String category, String receptor, String msgid,
-      String commentid, String text) {
+  Future<Function> addComment(
+      String receptor, String msgid, String commentid, String text) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'addComment',
       parameters: {
-        'receptor': receptor,
-        'category': category,
         'docid': msgid,
+        'receptor': receptor,
         'commentid': commentid,
         'content': text,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/addComment?category=$category&receptor=$receptor&msgid=$msgid&commentid=$commentid&content=$text',
+          '/geosphere/receptor/docs/addComment?receptor=$receptor&msgid=$msgid&commentid=$commentid&content=$text',
     );
   }
 
   @override
-  Future<Function> unlike(String category, String receptor, String msgid) {
+  Future<Function> unlike(String receptor, String msgid) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'unlike',
       parameters: {
         'receptor': receptor,
-        'category': category,
         'docid': msgid,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/unlike?category=$category&receptor=$receptor&msgid=$msgid',
+          '/geosphere/receptor/docs/unlike?receptor=$receptor&msgid=$msgid',
     );
   }
 
   @override
-  Future<Function> like(String category, String receptor, String msgid) {
+  Future<Function> like(String receptor, String msgid) {
     remotePorts.portTask.addPortGETTask(
       _receptorPortsUrl,
       'like',
       parameters: {
         'receptor': receptor,
-        'category': category,
         'docid': msgid,
       },
       callbackUrl:
-          '/geosphere/receptor/docs/like?category=$category&receptor=$receptor&msgid=$msgid',
+          '/geosphere/receptor/docs/like?receptor=$receptor&msgid=$msgid',
     );
   }
 
   @override
-  Future<Function> uploadMedia(
-      String category, GeosphereMediaOL geosphereMediaOL) {
+  Future<Function> uploadMedia(GeosphereMediaOL geosphereMediaOL) {
     remotePorts.portTask.addUploadTask(
       '/app/geosphere',
       [geosphereMediaOL.src],
       callbackUrl: '/geosphere/receptor/docs/uploadMedia'
-          '?category=$category'
-          '&receptor=${geosphereMediaOL.receptor}'
+          '?receptor=${geosphereMediaOL.receptor}'
           '&msgid=${geosphereMediaOL.msgid}'
           '&id=${geosphereMediaOL.id}'
           '&type=${geosphereMediaOL.type ?? ''}'
@@ -405,16 +377,11 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<List<GeoPOI>> searchAroundReceptors(
-      {String categroy,
-      String receptor,
-      String geoType,
-      int limit,
-      int offset}) async {
+      {String receptor, String geoType, int limit, int offset}) async {
     var list = await remotePorts.portGET(
       _geospherePortsUrl,
       'searchAroundReceptors',
       parameters: {
-        'category': categroy,
         'receptor': receptor,
         'geoType': geoType,
         'limit': limit,
@@ -474,7 +441,10 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               origin: GeoReceptor(
                 receptor['id'],
                 receptor['title'],
+                receptor['channel'],
                 receptor['category'],
+                receptor['brand'],
+                receptor['moveMode'],
                 receptor['leading'],
                 receptor['creator'],
                 jsonEncode(receptor['location']),
@@ -572,7 +542,10 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               origin: GeoReceptor(
                 receptor['id'],
                 receptor['title'],
+                receptor['channel'],
                 receptor['category'],
+                receptor['brand'],
+                receptor['moveMode'],
                 receptor['leading'],
                 receptor['creator'],
                 jsonEncode(receptor['location']),
@@ -595,12 +568,11 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<List<GeoPOF>> pageReceptorFans(
-      {String categroy, String receptor, int limit, int offset}) async {
+      {String receptor, int limit, int offset}) async {
     var list = await remotePorts.portGET(
       _geospherePortsUrl,
       'pageReceptorFans',
       parameters: {
-        'category': categroy,
         'receptor': receptor,
         'limit': limit,
         'skip': offset,
@@ -690,8 +662,8 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     bool issync = false;
     for (var item in list) {
       var receptor = GeoReceptor.load(item, principal.person);
-      CountValue value = await receptorDAO.countReceptor(
-          receptor.id, receptor.category, principal.person);
+      CountValue value =
+          await receptorDAO.countReceptor(receptor.id, principal.person);
       if (value.value < 1) {
         print('感知器:${receptor.title} 正在下载...');
         var home = await getApplicationDocumentsDirectory();
@@ -730,14 +702,13 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<GeosphereMessageOL>> pageMessage(String category, String receptor,
-      String creator, int limit, int offset) async {
+  Future<List<GeosphereMessageOL>> pageMessage(
+      String receptor, String creator, int limit, int offset) async {
     var list = await remotePorts.portGET(
       _receptorPortsUrl,
       'pageDocument',
       parameters: {
         'id': receptor,
-        'category': category,
         'creator': creator,
         'limit': limit,
         'skip': offset,
@@ -753,36 +724,33 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> unfollow(String category, String receptor) async {
+  Future<Function> unfollow(String receptor) async {
     await remotePorts.portGET(
       _geospherePortsUrl,
       'unfollowReceptor',
       parameters: {
-        'category': category,
         'receptor': receptor,
       },
     );
   }
 
   @override
-  Future<Function> follow(String category, String receptor) async {
+  Future<Function> follow(String receptor) async {
     await remotePorts.portGET(
       _geospherePortsUrl,
       'followReceptor',
       parameters: {
-        'category': category,
         'receptor': receptor,
       },
     );
   }
 
   @override
-  Future<int> countReceptorFans(String category, String receptor) async {
+  Future<int> countReceptorFans(String receptor) async {
     var count = await remotePorts.portGET(
       _geospherePortsUrl,
       'countReceptorFans',
       parameters: {
-        'category': category,
         'receptor': receptor,
       },
     );

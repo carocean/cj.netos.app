@@ -109,11 +109,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
         widget.context.site.getService('/remote/geo/receptors');
 
     List<GeosphereMessageOL> messages = await receptorRemote.pageMessage(
-        _receptorInfo.category,
-        _receptorInfo.id,
-        _receptorInfo.creator,
-        _limit,
-        _offset);
+        _receptorInfo.id, _receptorInfo.creator, _limit, _offset);
     if (messages.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
       return;
@@ -165,7 +161,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     await geoMessageService.removeMessage(
-        _receptorInfo.category, wrapper.message.receptor, wrapper.message.id);
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -336,6 +332,7 @@ class _GeoViewReceptorState extends State<GeoViewReceptor> {
             content: _MessageCard(
               context: widget.context,
               messageWrapper: msg,
+              receptor: _receptorInfo,
               onDeleted: _deleteMessage,
             ),
             title: Container(
@@ -666,10 +663,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
         widget.context.site.getService('/geosphere/receptors');
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
-    var exists = await receptorService.existsLocal(
-        widget.receptorInfo.category, widget.receptorInfo.id);
-    _followCount = await receptorRemote.countReceptorFans(
-        widget.receptorInfo.category, widget.receptorInfo.id);
+    var exists = await receptorService.existsLocal(widget.receptorInfo.id);
+    _followCount =
+        await receptorRemote.countReceptorFans(widget.receptorInfo.id);
     _isFollowed = exists;
     _followLabel = exists ? '不再关注' : '关注';
   }
@@ -683,22 +679,22 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
         widget.context.site.getService('/geosphere/receptors');
     if (_isFollowed) {
       //取消
-      await receptorService.remove(
-          widget.receptorInfo.category, widget.receptorInfo.id);
-      await receptorRemote.unfollow(
-          widget.receptorInfo.category, widget.receptorInfo.id);
+      await receptorService.remove(widget.receptorInfo.id);
+      await receptorRemote.unfollow(widget.receptorInfo.id);
       await _loadFollow();
       geosphereEvents.onRemoveReceptor(widget.receptorInfo.origin);
       _isFollowed = false;
       _followLabel = '关注';
       return;
     }
-    await receptorService.add(widget.receptorInfo.origin,
-        isOnlySaveLocal: true);
-    await receptorRemote.follow(
-        widget.receptorInfo.category, widget.receptorInfo.id);
+    var recobj = await receptorRemote.getReceptor(widget.receptorInfo.id);
+    if(recobj==null) {
+      recobj=widget.receptorInfo.origin;
+    }
+    await receptorService.add(recobj, isOnlySaveLocal: true);
+    await receptorRemote.follow(recobj.id);
     await _loadFollow();
-    geosphereEvents.onAddReceptor(widget.receptorInfo.origin);
+    geosphereEvents.onAddReceptor(recobj);
     _isFollowed = true;
     _followLabel = '不再关注';
   }
@@ -1084,11 +1080,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 class _MessageCard extends StatefulWidget {
   PageContext context;
   _GeosphereMessageWrapper messageWrapper;
+  ReceptorInfo receptor;
   void Function(_GeosphereMessageWrapper message) onDeleted;
 
   _MessageCard({
     this.context,
     this.messageWrapper,
+    this.receptor,
     this.onDeleted,
   });
 
@@ -1219,6 +1217,7 @@ class __MessageCardState extends State<_MessageCard> {
                   _InteractiveRegion(
                     messageWrapper: widget.messageWrapper,
                     context: widget.context,
+                    receptor: widget.receptor,
                     interactiveRegionRefreshAdapter:
                         _interactiveRegionRefreshAdapter,
                   ),
@@ -1553,11 +1552,13 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
 class _InteractiveRegion extends StatefulWidget {
   _GeosphereMessageWrapper messageWrapper;
   PageContext context;
+  ReceptorInfo receptor;
   _InteractiveRegionRefreshAdapter interactiveRegionRefreshAdapter;
 
   _InteractiveRegion({
     this.messageWrapper,
     this.context,
+    this.receptor,
     this.interactiveRegionRefreshAdapter,
   });
 
@@ -1680,11 +1681,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-                    var person = await personService.getPerson(comment.person);
-                    widget.context.forward("/site/personal",
-                        arguments: {'person': person});
+                    widget.context.forward(
+                      '/geosphere/portal.person',
+                      arguments: {
+                        'receptor': widget.receptor,
+                        'person': comment.person,
+                      },
+                    );
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -1792,13 +1795,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.official);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+                                      widget.context.forward(
+                                        '/geosphere/portal.person',
+                                        arguments: {
+                                          'receptor': widget.receptor,
+                                          'person': like.person,
+                                        },
+                                      );
                                     },
                                   children: [
                                     TextSpan(

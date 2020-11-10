@@ -23,12 +23,16 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
   TextEditingController _titleController;
   TextEditingController _radiusController;
   bool _enableFinishButton = false;
+  GeoChannelOR _channel;
   GeoCategoryOR _category;
+  GeoBrandOR _brand;
   var _key = GlobalKey<_LocationSettingWidgetState>();
 
   @override
   void initState() {
+    _channel = widget.context.parameters['channel'];
     _category = widget.context.parameters['category'];
+    _brand = widget.context.parameters['brand'];
     _titleController = TextEditingController();
     _radiusController = TextEditingController(
         text:
@@ -51,12 +55,27 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         widget.context.site.getService('/geosphere/receptors');
     var _geoPoi = _key.currentState._geoPoi;
     var _udistance = _key.currentState._distanceUpdateRate;
+    var moveMode;
+    switch (_category.moveMode) {
+      case GeoCategoryMoveableMode.unmoveable:
+        moveMode = 'unmoveable';
+        break;
+      case GeoCategoryMoveableMode.moveableDependon:
+        moveMode = 'moveableDependon';
+        break;
+      case GeoCategoryMoveableMode.moveableSelf:
+        moveMode = 'moveableSelf';
+        break;
+    }
     await receptorService.add(
       GeoReceptor(
         MD5Util.MD5(Uuid().v1()),
         _titleController.text,
+        _channel.id,
         _category.id,
-        null,
+        _brand?.id,
+        moveMode,
+        _category.leading,
         widget.context.principal.person,
         jsonEncode(_geoPoi.latLng.toJson()),
         double.parse(_radiusController.text),
@@ -291,7 +310,7 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
 
   @override
   void initState() {
-    geoLocation.listen('locationSettings', 0, _setLocation);
+    _loadLocation();
     super.initState();
   }
 
@@ -301,7 +320,9 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
     super.dispose();
   }
 
-  _setLocation(Location location) async {
+  _loadLocation() async {
+    var location =
+        await AmapLocation.fetchLocation(mode: LocationAccuracy.High);
     var address = await location.address;
     if (StringUtil.isEmpty(address)) {
       return;
@@ -311,7 +332,6 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
       address: address,
       title: await location.poiName,
     );
-    geoLocation.unlisten('locationSettings');
     setState(() {});
   }
 

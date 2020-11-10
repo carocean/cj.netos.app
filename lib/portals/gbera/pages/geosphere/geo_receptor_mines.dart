@@ -47,8 +47,6 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
   List<ChannelMessage> messages = [];
   ReceptorInfo _receptorInfo;
   EasyRefreshController _refreshController;
-  GeoCategoryOL _category;
-  bool _isLoaded = false;
   int _limit = 15, _offset = 0;
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
@@ -62,10 +60,6 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
     geoLocation.listen('geosphere.receptors.mines',
         (_receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
     _refreshController = EasyRefreshController();
-    _loadCategory().then((v) {
-      _isLoaded = true;
-      setState(() {});
-    });
     _onloadMessages().then((v) {
       _isLoadedMessages = true;
       setState(() {});
@@ -157,12 +151,6 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
     }
   }
 
-  Future<void> _loadCategory() async {
-    IGeoCategoryLocal categoryLocal =
-        widget.context.site.getService('/geosphere/categories');
-    _category = await categoryLocal.get(_receptorInfo.category);
-  }
-
   //只装载消息体，交互区域信息可能非常长，因此采用独立的滥加载模式
   Future<void> _onloadMessages() async {
     IGeosphereMessageService geoMessageService =
@@ -195,7 +183,7 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor, message.id);
+        await mediaService.listMedia(message.receptor,message.id);
     Person creator =
         await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
@@ -237,8 +225,8 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(
-        _receptorInfo.category, wrapper.message.receptor, wrapper.message.id);
+    await geoMessageService.removeMessage(wrapper.message.receptor,
+      wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -288,37 +276,35 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
         ),
       ),
     ];
-    if (_isLoaded) {
-      slivers.add(
-        SliverToBoxAdapter(
-          child: _HeaderWidget(
-            context: widget.context,
-            receptorInfo: _receptorInfo,
-            isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
-            categoryOL: _category,
-            filterMessages: (category) async {
-              _offset = 0;
-              _messageList.clear();
-              if (category != null) {
-                _filterCategory = category['category'];
-              } else {
-                _filterCategory = null;
-              }
-              await _onloadMessages();
-              await _flagMessagesReaded();
-              setState(() {});
-            },
-            refresh: () async {
-              _offset = 0;
-              _messageList.clear();
-              await _onloadMessages();
-              await _flagMessagesReaded();
-              setState(() {});
-            },
-          ),
+    slivers.add(
+      SliverToBoxAdapter(
+        child: _HeaderWidget(
+          context: widget.context,
+          receptorInfo: _receptorInfo,
+          isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
+          filterMessages: (filter) async {
+            _offset = 0;
+            _messageList.clear();
+            if (filter != null) {
+              var categoryOR = filter[1];
+              _filterCategory = categoryOR?.id;
+            } else {
+              _filterCategory = null;
+            }
+            await _onloadMessages();
+            await _flagMessagesReaded();
+            setState(() {});
+          },
+          refresh: () async {
+            _offset = 0;
+            _messageList.clear();
+            await _onloadMessages();
+            await _flagMessagesReaded();
+            setState(() {});
+          },
         ),
-      );
-    }
+      ),
+    );
     slivers.addAll(
       _getMessageCards(),
     );
@@ -436,7 +422,6 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
           widget.context.forward('/geosphere/publish_article',
               arguments: <String, dynamic>{
                 'type': 'text',
-                'category': _category.id,
                 'receptor': _receptorInfo.id,
               }).then((v) {
             if (v == null) {
@@ -467,7 +452,6 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
                     onPressed: () {
                       widget.context.backward(result: <String, dynamic>{
                         'type': 'text',
-                        'category': _category.id,
                         'receptor': _receptorInfo.id,
                       });
                     },
@@ -478,13 +462,15 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
                     color: Colors.grey[500],
                     onPressed: () async {
                       var image = await ImagePicker().getImage(
-                          source: ImageSource.gallery,maxHeight: Adapt.screenH(),imageQuality: 80,);
+                        source: ImageSource.gallery,
+                        maxHeight: Adapt.screenH(),
+                        imageQuality: 80,
+                      );
                       widget.context.backward(result: <String, dynamic>{
                         'type': 'gallery',
-                        'category': _category.id,
                         'receptor': _receptorInfo.id,
-                        'mediaFile':
-                            MediaFile(type: MediaFileType.image, src: File(image.path)),
+                        'mediaFile': MediaFile(
+                            type: MediaFileType.image, src: File(image.path)),
                       });
                     },
                   ),
@@ -515,8 +501,7 @@ class _HeaderWidget extends StatefulWidget {
   Function() refresh;
   ReceptorInfo receptorInfo;
   bool isShowWhite;
-  Function(Map category) filterMessages;
-  GeoCategoryOL categoryOL;
+  Function(List filter) filterMessages;
 
   _HeaderWidget({
     this.context,
@@ -524,7 +509,6 @@ class _HeaderWidget extends StatefulWidget {
     this.filterMessages,
     this.receptorInfo,
     this.isShowWhite,
-    this.categoryOL,
   });
 
   @override
@@ -537,14 +521,19 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   String _poiTitle;
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
-  Map<String, String> _selectCategory;
+  List _filter; //0为channel;1为category;2为brand
   StreamSubscription _streamSubscription;
+  GeoCategoryOR _ownerCategory;
 
   @override
   void initState() {
-    _loadLocation().then((v) {
-      setState(() {});
-    });
+    () async {
+      _loadReceptorCategory();
+      _loadLocation();
+      if (mounted) {
+        setState(() {});
+      }
+    }();
     geoLocation.listen('receptor.header',
         (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
 //    _workingChannel = widget.context.parameters['workingChannel'];
@@ -610,10 +599,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   @override
   void didUpdateWidget(_HeaderWidget oldWidget) {
-    if (oldWidget.categoryOL != widget.categoryOL) {
-      oldWidget.categoryOL = widget.categoryOL;
+    if (oldWidget.receptorInfo != widget.receptorInfo) {
+      oldWidget.receptorInfo = widget.receptorInfo;
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _loadReceptorCategory() async {
+    IGeoCategoryRemote categoryRemote =
+        widget.context.site.getService('/remote/geo/categories');
+    _ownerCategory =
+        await categoryRemote.getCategory(widget.receptorInfo.category);
   }
 
   Future<void> _loadUnreadMessage() async {
@@ -624,38 +620,33 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   Future<void> _loadCategoryAllApps() async {
-    if (widget.categoryOL == null ||
-        widget.receptorInfo.creator != widget.context.principal.person) {
-      return;
-    }
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
     var on;
-    if (widget.categoryOL.moveMode == 'moveableSelf') {
+    if (widget.receptorInfo.isMobileReceptor) {
       on = 'onserved';
     } else {
       on = 'onservice';
     }
-    _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
+    IGeoCategoryRemote categoryRemote =
+        widget.context.site.getService('/remote/geo/categories');
+    _apps = await categoryRemote.getApps(widget.receptorInfo.category, on);
   }
 
-  Future<void> _loadAppsOfCategory(categroyMap) async {
-    _selectCategory = categroyMap.cast<String, String>();
+  Future<void> _loadAppsOfCategory(filter) async {
     IGeoCategoryRemote categoryRemote =
         widget.context.site.getService('/remote/geo/categories');
     var on = 'onserved';
-    _apps = await categoryRemote.getApps(categroyMap['category'], on);
-    await _filterMessages(categroyMap);
+    _apps = await categoryRemote.getApps(_filter[1].id, on);
+    await _filterMessages(filter);
   }
 
   Future<void> _clearSelectCategory() async {
-    _selectCategory = null;
+    _filter = null;
     await _loadCategoryAllApps();
     _filterMessages(null);
   }
 
-  Future<void> _filterMessages(categroyMap) async {
-    await widget.filterMessages(categroyMap);
+  Future<void> _filterMessages(filter) async {
+    await widget.filterMessages(filter);
   }
 
   Future<void> _loadLocation() async {
@@ -669,10 +660,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   }
 
   _updateLocation(Location location) async {
-    if (widget.categoryOL == null) {
-      return;
-    }
-    if (widget.categoryOL.moveMode == 'unmoveable') {
+    var moveMode = widget.receptorInfo.origin.moveMode;
+    if (moveMode == 'unmoveable') {
       _currentLatLng = await location.latLng;
       if (mounted) {
         setState(() {});
@@ -749,7 +738,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 '/geosphere/settings.mines', context,
                                 arguments: {
                                   'receptor': widget.receptorInfo,
-                                  'moveMode': widget.categoryOL?.moveMode
                                 });
                           }).then((v) {});
                     },
@@ -791,7 +779,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                               children: <Widget>[
                                 Text.rich(
                                   TextSpan(
-                                    text: '${widget.categoryOL?.title ?? ''}',
+                                    text: '${_ownerCategory?.title ?? ''}',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
@@ -911,13 +899,15 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context.part(
-                              '/geosphere/filter', context,
-                              arguments: {'category': widget.categoryOL});
-                        }).then((v) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) {
+                        return widget.context.part(
+                          '/geosphere/filter',
+                          context,
+                        );
+                      },
+                    ).then((v) {
                       if (v == null) {
                         return;
                       }
@@ -927,16 +917,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                         });
                         return;
                       }
-                      var map = v as Map;
-                      if (widget.categoryOL.moveMode == 'moveableSelf') {
-                        _loadAppsOfCategory(map).then((v) {
+                      var filter = v as List;
+                      _filter = filter;
+                      // if (widget.receptorInfo.isMobileReceptor) {
+                      //   _loadAppsOfCategory(filter).then((v) {
+                      //     setState(() {});
+                      //   });
+                      // } else {
+                        _filterMessages(filter).then((v) {
                           setState(() {});
                         });
-                      } else {
-                        _filterMessages(map).then((v) {
-                          setState(() {});
-                        });
-                      }
+                      // }
                     });
                   },
                   child: Row(
@@ -946,11 +937,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           right: 2,
                         ),
                         child: Text(
-                          _selectCategory != null
-                              ? _selectCategory['title']
-                              : widget.categoryOL?.moveMode == 'moveableSelf'
-                                  ? '服务'
-                                  : '筛选',
+                          '${_getCategoryTitile()}',
                           style: TextStyle(
                             fontSize: 10,
                             color: widget.isShowWhite
@@ -959,7 +946,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           ),
                         ),
                       ),
-                      widget.categoryOL?.moveMode == 'moveableSelf'
+                      widget.receptorInfo.isMobileReceptor
                           ? Icon(
                               Icons.apps,
                               size: 18,
@@ -1018,6 +1005,16 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       );
     }
     return apps;
+  }
+
+  _getCategoryTitile() {
+    if (_filter == null) {
+      return widget.receptorInfo.isMobileReceptor ? '服务' : '筛选';
+    }
+    if (_filter[2] != null) {
+      return _filter[2].title;
+    }
+    return _filter[1].title;
   }
 }
 
@@ -1096,7 +1093,6 @@ class __MessageCardState extends State<_MessageCard> {
 
   _loadUpstreamReceptor() async {
     var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
-    var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
     var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
     if (StringUtil.isEmpty(upstreamReceptor)) {
       _upstreamReceptor = null;
@@ -1106,16 +1102,16 @@ class __MessageCardState extends State<_MessageCard> {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     _upstreamReceptor =
-        await receptorService.get(upstreamCategory, upstreamReceptor);
+        await receptorService.get( upstreamReceptor);
     if (_upstreamReceptor == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
       _upstreamReceptor =
-          await receptorRemote.getReceptor(upstreamCategory, upstreamReceptor);
+          await receptorRemote.getReceptor(upstreamReceptor);
     }
     if (!StringUtil.isEmpty(upstreamPerson)) {
-      IPersonService personService =
-          widget.context.site.getService('/gbera/persons');
+      // IPersonService personService =
+      //     widget.context.site.getService('/gbera/persons');
 //      _upstreamPerson = await personService.getPerson(
 //        upstreamPerson,
 //        isDownloadAvatar: true,
@@ -1213,39 +1209,39 @@ class __MessageCardState extends State<_MessageCard> {
                         ),
                       ),
                     ),
-                    widget.messageWrapper.message.upstreamCategory ==
-                                'mobiles' ||
-                            _isMine
-                        ? Container(
-                            width: 0,
-                            height: 0,
-                          )
-                        : SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: IconButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (context) {
-                                      return widget.context.part(
-                                          '/netflow/channel/serviceMenu',
-                                          context);
-                                    }).then((value) {
-                                  print('-----$value');
-                                  if (value == null) return;
-                                  widget.context
-                                      .forward('/micro/app', arguments: value);
-                                });
-                              },
-                              icon: Icon(
-                                Icons.art_track,
-                                size: 20,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ),
+                    // widget.messageWrapper.message.upstreamCategory ==
+                    //             'mobiles' ||
+                    //         _isMine
+                    //     ? Container(
+                    //         width: 0,
+                    //         height: 0,
+                    //       )
+                    //     : SizedBox(
+                    //         height: 20,
+                    //         width: 20,
+                    //         child: IconButton(
+                    //           padding: EdgeInsets.all(0),
+                    //           onPressed: () {
+                    //             showModalBottomSheet(
+                    //                 context: context,
+                    //                 builder: (context) {
+                    //                   return widget.context.part(
+                    //                       '/netflow/channel/serviceMenu',
+                    //                       context);
+                    //                 }).then((value) {
+                    //               print('-----$value');
+                    //               if (value == null) return;
+                    //               widget.context
+                    //                   .forward('/micro/app', arguments: value);
+                    //             });
+                    //           },
+                    //           icon: Icon(
+                    //             Icons.art_track,
+                    //             size: 20,
+                    //             color: Colors.grey[700],
+                    //           ),
+                    //         ),
+                    //       ),
                   ],
                 ),
                 Container(

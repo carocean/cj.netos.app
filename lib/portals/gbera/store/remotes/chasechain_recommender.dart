@@ -870,7 +870,7 @@ class ChasechainRecommenderRemote
     //geo.receptor.mobiles.docs
     type =
         type.substring('geo.receptor'.length + 1, type.length - '.docs'.length);
-    var message = await geoReceptorRemote.getMessage(type, pointer.id);
+    var message = await geoReceptorRemote.getMessage(pointer.id);
     return RecommenderMessageOR(
       creator: message.creator,
       ctime: message.ctime,

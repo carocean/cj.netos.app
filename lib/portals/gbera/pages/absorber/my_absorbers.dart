@@ -1194,7 +1194,6 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
 
     List<GeoPOI> pois = await receptorRemote.searchAroundReceptors(
-        categroy: 'mobiles',
         receptor: _myReceptor.id,
         geoType: 'mobiles',
         limit: _limit,

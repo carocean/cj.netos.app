@@ -32,7 +32,7 @@ class About extends StatelessWidget {
             child: Text('地微'),
           ),
           Text(
-            '广州金证时代科技有限公司',
+            '郑州节点动力信息科技有限公司',
             style: TextStyle(
               color: Colors.blueGrey,
               fontWeight: FontWeight.w500,
@@ -102,7 +102,7 @@ class About extends StatelessWidget {
                     ),
                   ),
                 ],
-                text: '      金证时代中国公司',
+                text: '      节点动力',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -177,7 +177,7 @@ class About extends StatelessWidget {
                       Container(
                         width: 70,
                         child: Text(
-                          '金证时代号',
+                          '节点动力号',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[600],
@@ -199,7 +199,7 @@ class About extends StatelessWidget {
             ),
             alignment: Alignment.bottomCenter,
             child: Text.rich(
-              TextSpan(text: '© 1997-2019 金证时代科技版权所有'),
+              TextSpan(text: '© 1997-2019 节点动力版权所有'),
               style: TextStyle(color: Colors.grey[400],),
               softWrap: true,
             ),

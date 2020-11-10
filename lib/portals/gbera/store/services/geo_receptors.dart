@@ -49,26 +49,28 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         return true;
       }
       var latlng = await location.latLng;
-      await add(
-        GeoReceptor(
-          MD5Util.MD5(Uuid().v1()),
-          '${principal.nickName}',
-          'mobiles',
-          null,
-          principal.person,
-          jsonEncode(latlng.toJson()),
-          1000,
-          5,
-          DateTime.now().millisecondsSinceEpoch,
-          'false',
-          'none',
-          null,
-          'false',
-          principal.device,
-          'false',
-          principal.person,
-        ),
+      var myDevice = GeoReceptor(
+        MD5Util.MD5(Uuid().v1()),
+        '${principal.nickName}',
+        'transits',
+        'mobiles',
+        null,
+        'moveableSelf',
+        principal.avatarOnRemote,
+        principal.person,
+        jsonEncode(latlng.toJson()),
+        1000,
+        100,
+        DateTime.now().millisecondsSinceEpoch,
+        'false',
+        'none',
+        null,
+        'false',
+        principal.device,
+        'false',
+        principal.person,
       );
+      await add(myDevice);
       return true;
     }
     return false;
@@ -82,13 +84,12 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
     if (!dirFile.existsSync()) {
       dirFile.createSync();
     }
-    if (!StringUtil.isEmpty(receptor.leading) &&
-        receptor.leading.startsWith("http")) {
-      var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(receptor.leading)}';
+    var leading = receptor.leading;
+    if (!StringUtil.isEmpty(leading) && leading.startsWith("http")) {
+      var fn = '${MD5Util.MD5(Uuid().v1())}.${fileExt(leading)}';
       var localFile = '$dir/$fn';
       await remotePorts.download(
-          '${receptor.leading}?accessToken=${principal.accessToken}',
-          localFile);
+          '$leading?accessToken=${principal.accessToken}', localFile);
       receptor.leading = localFile;
     }
     if (!StringUtil.isEmpty(receptor.background) &&
@@ -102,6 +103,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
     }
     await this.receptorDAO.add(receptor);
     if (!isOnlySaveLocal) {
+      receptor.leading = leading;
       await receptorRemote.addReceptor(receptor);
     }
   }
@@ -113,9 +115,9 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
 
   @override
   Future<Function> updateLeading(
-      String category, String id, String lleading, String rleading) async {
-    await receptorDAO.updateLeading(lleading, category, id, principal.person);
-    await receptorRemote.updateLeading(rleading, category, id);
+      String id, String lleading, String rleading) async {
+    await receptorDAO.updateLeading(lleading, id, principal.person);
+    await receptorRemote.updateLeading(rleading, id);
   }
 
   @override
@@ -142,19 +144,17 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         break;
     }
     await receptorDAO.updateBackground(_mode, file, receptor, principal.person);
-    var o = await receptorDAO.get(receptor, principal.person);
     if (BackgroundMode.none == mode) {
-      await receptorRemote.emptyBackground(o.category, receptor);
+      await receptorRemote.emptyBackground(receptor);
     } else {
-      await receptorRemote.updateBackground(o.category, receptor, _mode, file);
+      await receptorRemote.updateBackground(receptor, _mode, file);
     }
   }
 
   @override
   Future<Function> emptyBackground(String receptor) async {
     await receptorDAO.updateBackground('none', '', receptor, principal.person);
-    var o = await receptorDAO.get(receptor, principal.person);
-    await receptorRemote.emptyBackground(o.category, receptor);
+    await receptorRemote.emptyBackground(receptor);
   }
 
   @override
@@ -170,8 +170,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         break;
     }
     await receptorDAO.updateForeground(_mode, receptor, principal.person);
-    var o = await receptorDAO.get(receptor, principal.person);
-    await receptorRemote.updateForeground(o.category, receptor, _mode);
+    await receptorRemote.updateForeground(receptor, _mode);
   }
 
   @override
@@ -180,18 +179,18 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<GeoReceptor> get(String category, String receptorid) async {
+  Future<GeoReceptor> get(String receptorid) async {
     GeoReceptor receptor = await receptorDAO.get(receptorid, principal.person);
     if (receptor == null) {
-      receptor = await receptorCache.get(category, receptorid);
+      receptor = await receptorCache.get(receptorid);
     }
     return receptor;
   }
 
   @override
-  Future<bool> existsLocal(String category, String receptor) async {
+  Future<bool> existsLocal(String receptor) async {
     CountValue count =
-        await receptorDAO.countReceptor(receptor, category, principal.person);
+        await receptorDAO.countReceptor(receptor, principal.person);
     return count != null && count.value > 0;
   }
 
@@ -202,20 +201,21 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
-  Future<Function> remove(String category, String id) async {
-    await receptorDAO.remove(category, id, principal.person);
-    await receptorRemote.removeReceptor(category, id);
+  Future<Function> remove(String id) async {
+    await receptorDAO.remove(id, principal.person);
+    await receptorRemote.removeReceptor(id);
   }
 
   @override
-  Future<void> updateLocation(String category, String receptor, LatLng location,
+  Future<void> updateLocation(String receptor, LatLng location,
       {bool isOnlyLocal = false}) async {
     var json = jsonEncode(location.toJson());
     await receptorDAO.updateLocation(json, receptor, principal.person);
     if (!isOnlyLocal) {
-      await receptorRemote.updateLocation(category, receptor, json);
-      if (category == 'mobiles') {
-        var absorbabler = '$category/$receptor';
+      await receptorRemote.updateLocation(receptor, json);
+      var receptorObj = await receptorDAO.get(receptor, principal.person);
+      if (receptorObj.moveMode != 'unmoveable') {
+        var absorbabler = '$receptor';
         var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
         if (absorber != null) {
           await robotRemote.updateAbsorberLocation(
@@ -277,14 +277,13 @@ class GeoReceptorCache implements IGeoReceptorCache, IServiceBuilder {
     }
     var json = jsonEncode(receptor.toMap());
     await sharedPreferences.setString(
-        '/geosphere/receptors/${receptor.id}.${receptor.category}', json,
+        '/geosphere/receptors/${receptor.id}', json,
         person: principal.person);
   }
 
   @override
-  Future<GeoReceptor> get(String category, String receptorid) async {
-    var json = sharedPreferences.getString(
-        '/geosphere/receptors/$receptorid.$category',
+  Future<GeoReceptor> get(String receptorid) async {
+    var json = sharedPreferences.getString('/geosphere/receptors/$receptorid',
         person: principal.person);
     if (StringUtil.isEmpty(json)) {
       return null;

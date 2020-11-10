@@ -47,7 +47,7 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
       var category = box.pointer.type;
       int pos = category.lastIndexOf('.');
       category = category.substring(pos + 1);
-      var receptor = await receptorRemote.getReceptor(category, box.pointer.id);
+      var receptor = await receptorRemote.getReceptor( box.pointer.id);
       if (receptor == null) {
         return;
       }

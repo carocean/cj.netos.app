@@ -267,7 +267,6 @@ class _TaskBarState extends State<TaskBar> {
                 flowGeoPortsUrl,
                 'pushGeoDocument',
                 parameters: {
-                  'category': frame.parameter('category'),
                   'receptor': frame.parameter('receptor'),
                   'docid': frame.parameter('msgid'),
                   'interval': 100,

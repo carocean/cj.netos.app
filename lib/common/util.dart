@@ -248,7 +248,7 @@ Widget getAvatarWidget(String avatar, PageContext context,[defaultAssetAvatar='l
     return Image.asset(defaultAssetAvatar??'lib/portals/gbera/images/default_avatar.png',color: color,);
   }
   if (avatar.startsWith('/')) {
-    return Image.file(File(avatar));
+    return Image.file(File(avatar),color: color,);
   }
   return FadeInImage.assetNetwork(
       placeholder: 'lib/portals/gbera/images/default_watting.gif',

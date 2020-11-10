@@ -105,7 +105,7 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor, message.id);
+        await mediaService.listMedia(message.receptor,message.id);
     Person creator =
         await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
@@ -137,8 +137,8 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(
-        _receptorInfo.category, wrapper.message.receptor, wrapper.message.id);
+    await geoMessageService.removeMessage(wrapper.message.receptor,
+       wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -1139,8 +1139,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<bool> _isLiked() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    return await geoMessageService.isLiked(
-        widget.messageWrapper.message.receptor,
+    return await geoMessageService.isLiked(widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id,
         widget.context.principal.person);
   }

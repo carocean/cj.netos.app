@@ -81,7 +81,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
       case 'receptor':
         IGeoReceptorRemote receptorRemote =
             widget.context.site.getService('/remote/geo/receptors');
-        var receptorMsg = await receptorRemote.getMessage(who, sn);
+        var receptorMsg = await receptorRemote.getMessage( sn);
         _messageDigest = receptorMsg?.text;
         if(receptorMsg!=null) {
           _publisher = await personService.getPerson(receptorMsg.creator);

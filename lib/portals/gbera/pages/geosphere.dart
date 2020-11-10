@@ -89,7 +89,6 @@ class _GeosphereState extends State<Geosphere>
     _onload().then((v) {
       setState(() {});
     });
-    _checkMobileReceptor();
 
     _listenMeidaFileDownload();
     if (!widget.context.isListeningMessage(matchPath: '/geosphere/receptor')) {
@@ -192,6 +191,7 @@ class _GeosphereState extends State<Geosphere>
     IGeoReceptorRemote receptorRemote =
         context.site.getService('/remote/geo/receptors');
     bool issync = await receptorRemote.syncTaskRemote(frame);
+    _checkMobileReceptor();
     if (!issync) {
       return;
     }
@@ -295,10 +295,7 @@ class _GeosphereState extends State<Geosphere>
     await _cachePerson(sender);
 
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var category = receptorkeypare.substring(0, pos);
-      var receptor = receptorkeypare.substring(pos + 1);
+    for (String receptor in toReceptors) {
       var home = await getApplicationDocumentsDirectory();
       var dir = '${home.path}/images';
       var dirFile = Directory(dir);
@@ -343,10 +340,7 @@ class _GeosphereState extends State<Geosphere>
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var category = receptorkeypare.substring(0, pos);
-      var receptor = receptorkeypare.substring(pos + 1);
+    for (String receptor in toReceptors) {
       var exists = await messageService.getMessage(receptor, docid);
       if (exists == null) {
         print('消息不存在，被丢弃。');
@@ -406,10 +400,7 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptor/messages');
 
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var category = receptorkeypare.substring(0, pos);
-      var receptor = receptorkeypare.substring(pos + 1);
+    for (String receptor in toReceptors) {
       var exists = await messageService.getMessage(receptor, docid);
       if (exists == null) {
         print('消息不存在，被丢弃。');
@@ -458,10 +449,7 @@ class _GeosphereState extends State<Geosphere>
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var category = receptorkeypare.substring(0, pos);
-      var receptor = receptorkeypare.substring(pos + 1);
+    for (String receptor in toReceptors) {
       var exists = await messageService.getMessage(receptor, docid);
       if (exists == null) {
         print('消息不存在，被丢弃。');
@@ -524,10 +512,7 @@ class _GeosphereState extends State<Geosphere>
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var category = receptorkeypare.substring(0, pos);
-      var receptor = receptorkeypare.substring(pos + 1);
+    for (String receptor in toReceptors) {
       var exists = await messageService.getMessage(receptor, docid);
       if (exists == null) {
         print('消息不存在，被丢弃。');
@@ -564,13 +549,11 @@ class _GeosphereState extends State<Geosphere>
     }
 
     var docMap = jsonDecode(text);
-    var category = frame.parameter('category');
     var message =
         GeosphereMessageOL.from(docMap, widget.context.principal.person);
     message.state = 'arrived';
     message.atime = DateTime.now().millisecondsSinceEpoch;
     message.upstreamPerson = frame.head('sender-person');
-    message.category = frame.parameter('category');
 
     if (message.creator == message.upstreamPerson) {
       await _cachePerson(message.creator);
@@ -587,25 +570,23 @@ class _GeosphereState extends State<Geosphere>
 //      return null;
 //    }
     //如果是cache则出现在感知器列表，这与关注冲突
-    await _cacheReceptor(message.category, message.receptor);
+    var upstreamReceptor = await _cacheReceptor(message.receptor);
 
-    message.upstreamReceptor = message.receptor;
-    message.upstreamCategory = message.category;
+    message.upstreamReceptor = upstreamReceptor?.id;
+    message.upstreamCategory = upstreamReceptor?.category;
 
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     var toReceptors = jsonDecode(frame.head('to-receptors'));
-    for (String receptorkeypare in toReceptors) {
-      int pos = receptorkeypare.indexOf('/');
-      var ocategory = receptorkeypare.substring(0, pos);
-      var receptorid = receptorkeypare.substring(pos + 1);
-      if (!(await receptorService.existsLocal(ocategory, receptorid))) {
-        var exists = await receptorService.get(ocategory, receptorid);
-        print('不存在感知器:${receptorid} 在分类:$ocategory');
+    for (String receptorid in toReceptors) {
+      var receptor = await receptorService.get(receptorid);
+      if (receptor == null) {
+        // var exists = await receptorService.get(receptorid);
+        print('不存在感知器:$receptorid');
         continue;
       }
-      message.receptor = receptorid;
-      message.category = ocategory;
+      message.receptor = receptor.id;
+      message.category = upstreamReceptor.category;
       await messageService.addMessage(message, isOnlySaveLocal: true);
 
       //通知当前工作的管道有新消息到
@@ -622,20 +603,21 @@ class _GeosphereState extends State<Geosphere>
     return message;
   }
 
-  Future<void> _cacheReceptor(category, receptor) async {
+  Future<GeoReceptor> _cacheReceptor(receptor) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    var obj = await receptorService.get(category, receptor);
+    var obj = await receptorService.get(receptor);
     if (obj == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      obj = await receptorRemote.getReceptor(category, receptor);
+      obj = await receptorRemote.getReceptor(receptor);
       if (obj != null) {
         IGeoReceptorCache receptorCache =
             widget.context.site.getService('/cache/geosphere/receptor');
         await receptorCache.add(obj);
       }
     }
+    return obj;
   }
 
 //如果不缓存用户的话，感知器打开时超慢，而且消息越多越慢，原因是每个消息均要加载消息的相关用户导致慢
@@ -1424,7 +1406,11 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
       var bLocation = LatLng.fromJson(jsonDecode(b.location));
       var aDistance = getDistance(start: _currentLatLng, end: aLocation);
       var bDistance = getDistance(start: _currentLatLng, end: bLocation);
-      return aDistance > bDistance ? 1 : aDistance == bDistance ? 0 : -1;
+      return aDistance > bDistance
+          ? 1
+          : aDistance == bDistance
+              ? 0
+              : -1;
     });
   }
 
@@ -1487,7 +1473,7 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
   Future<void> _updateReceptorCenter(category, id, location) async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    await receptorService.updateLocation(category, id, location);
+    await receptorService.updateLocation(id, location);
   }
 
   Future<void> _deleteReceptor(GeoReceptor receptor) async {
@@ -1496,9 +1482,13 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
     if (receptor.creator != widget.context.principal.person) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      await receptorRemote.unfollow(receptor.category, receptor.id);
+      try {
+        await receptorRemote.unfollow(receptor.id);
+      } catch (e) {
+        print(e);
+      }
     }
-    await receptorService.remove(receptor.category, receptor.id);
+    await receptorService.remove(receptor.id);
     for (var i = 0; i < _receptors.length; i++) {
       if (_receptors[i].id == receptor.id) {
         _receptors.removeAt(i);
@@ -1777,7 +1767,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     });
     var remotePath = map[receptor.leading];
     await receptorService.updateLeading(
-        receptor.category, receptor.id, receptor.leading, remotePath);
+        receptor.id, receptor.leading, remotePath);
   }
 
   @override
@@ -1869,6 +1859,29 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                             borderRadius: BorderRadius.circular(6.0),
                             child: imgSrc,
                           ),
+                        ),
+                        Positioned(
+                          top: -6,
+                          left: -5,
+                          child: (widget.receptor.creator !=
+                                  widget.context.principal.person)
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  height: 16,
+                                  width: 16,
+                                  child: Icon(
+                                    Icons.connect_without_contact_sharp,
+                                    size: 12,
+                                    color: Colors.green,
+                                  ),
+                                )
+                              : SizedBox(
+                                  width: 0,
+                                  height: 0,
+                                ),
                         ),
                         Positioned(
                           top: -10,

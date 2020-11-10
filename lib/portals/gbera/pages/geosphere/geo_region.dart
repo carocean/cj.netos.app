@@ -5,6 +5,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/system/local/entities.dart';
 import 'dart:math' as math;
 import 'geo_utils.dart';
 
@@ -24,6 +25,7 @@ class _GeoRegionState extends State<GeoRegion> {
   List<GeoPOI> _pois = [];
   int _limit = 4, _offset = 0;
   String _geoType;
+  GeoCategoryOR _selectCategory;
   EasyRefreshController _controller;
   int _radius = 2000;
   bool _isLoading = false;
@@ -180,22 +182,26 @@ class _GeoRegionState extends State<GeoRegion> {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (context) {
-                            return widget.context.part(
-                                '/geosphere/filter', context,
-                                arguments: {'category': null});
-                          }).then((value) {
-                        if (value == null) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return widget.context.part(
+                            '/geosphere/filter',
+                            context,
+                          );
+                        },
+                      ).then((v) {
+                        if (v == null) {
                           return;
                         }
-                        if (value == 'clear') {
+                        if (v == 'clear') {
                           _geoType = null;
                           _onRefresh();
                           return;
                         }
-                        _geoType = value['category'];
+                        var cat=v[1];
+                        _selectCategory=cat;
+                        _geoType = cat.id;
                         _onRefresh();
                       });
                     },
@@ -205,7 +211,7 @@ class _GeoRegionState extends State<GeoRegion> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '全部',
+                          '${_selectCategory==null?'全部':_selectCategory.title}',
                           style: TextStyle(
                             fontSize: 12,
                           ),

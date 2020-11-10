@@ -684,17 +684,17 @@ abstract class IGeoReceptorDAO {
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
 
   @Query(
-      'delete FROM GeoReceptor WHERE category=:category and id=:id and sandbox = :sandbox')
-  Future<void> remove(String category, String id, String sandbox) {}
+      'delete FROM GeoReceptor WHERE id=:id and sandbox = :sandbox')
+  Future<void> remove(String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET title=:title WHERE id=:id and sandbox=:sandbox')
   Future<void> updateTitle(String title, String id, String sandbox) {}
 
   @Query(
-      'UPDATE GeoReceptor SET leading=:leading WHERE category=:category and id=:id and sandbox=:sandbox')
+      'UPDATE GeoReceptor SET leading=:leading WHERE id=:id and sandbox=:sandbox')
   Future<void> updateLeading(
-      String leading, String category, String id, String sandbox) {}
+      String leading, String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET location=:location WHERE id=:id and sandbox=:sandbox')
@@ -719,9 +719,9 @@ abstract class IGeoReceptorDAO {
       String isAutoScrollMessage, String receptor, String sandbox) {}
 
   @Query(
-      'SELECT count(*) as value  FROM GeoReceptor WHERE id=:id and category=:category and sandbox=:sandbox')
+      'SELECT count(*) as value  FROM GeoReceptor WHERE id=:id and sandbox=:sandbox')
   Future<CountValue> countReceptor(
-      String id, String category, String sandbox) {}
+      String id, String sandbox) {}
 }
 
 @dao
@@ -758,8 +758,8 @@ abstract class IGeosphereMessageDAO {
       String receptor, String creator, String sandbox, int limit, int offset) {}
 
   @Query(
-      'delete FROM GeosphereMessageOL where id=:id and receptor=:receptor and sandbox=:sandbox')
-  Future<void> removeMessage(String id, String receptor, String sandbox) {}
+      'delete FROM GeosphereMessageOL where receptor=:receptor and id=:id and sandbox=:sandbox')
+  Future<void> removeMessage( String receptor, String id,  String sandbox) {}
 
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
@@ -791,7 +791,7 @@ abstract class IGeosphereMessageDAO {
   @Query(
       'delete FROM GeosphereLikePersonOL where receptor=:receptor and msgid=:msgid and person=:liker and sandbox=:sandbox')
   Future<void> unlike(
-      String receptor, String msgid, String liker, String sandbox) {}
+      String receptor,  String msgid, String liker, String sandbox) {}
 
   @insert
   Future<void> like(GeosphereLikePersonOL likePerson) {}
@@ -810,9 +810,9 @@ abstract class IGeosphereMessageDAO {
   Future<void> addComment(GeosphereCommentOL geosphereCommentOL) {}
 
   @Query(
-      'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
+      'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and  msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
   Future<List<GeosphereCommentOL>> pageComments(
-      String receptor, String msgid, String sandbox, int limit, int offset) {}
+     String receptor, String msgid, String sandbox, int limit, int offset) {}
 }
 
 @dao
@@ -829,7 +829,7 @@ abstract class IGeosphereMediaDAO {
   @Query(
       'SELECT *  FROM GeosphereMediaOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox')
   Future<List<GeosphereMediaOL>> listMedia(
-      String receptor, String msgid, String sandbox) {}
+      String receptor,  String msgid, String sandbox) {}
 
   @Query(
       'delete FROM GeosphereMediaOL where receptor=:receptor and msgid=:msgid and sandbox=:sandbox')

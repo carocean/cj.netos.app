@@ -79,8 +79,8 @@ class Channel {
   int ctime = DateTime.now().millisecondsSinceEpoch;
   String sandbox;
 
-  Channel(this.id, this.name, this.owner,this.upstreamPerson, this.leading, this.site, this.ctime,
-      this.sandbox);
+  Channel(this.id, this.name, this.owner, this.upstreamPerson, this.leading,
+      this.site, this.ctime, this.sandbox);
 
   toMap() {
     return {
@@ -88,7 +88,7 @@ class Channel {
       'name': name,
       'owner': owner,
       'leading': leading,
-      'upstreamPerson':upstreamPerson,
+      'upstreamPerson': upstreamPerson,
       'site': site,
       'ctime': ctime,
       'sandbox': sandbox,
@@ -360,8 +360,8 @@ class ChannelOutputPerson {
   final int atime;
   final String sandbox;
 
-  ChannelOutputPerson(
-      this.id, this.channel, this.person,this.rights, this.atime, this.sandbox);
+  ChannelOutputPerson(this.id, this.channel, this.person, this.rights,
+      this.atime, this.sandbox);
 }
 
 enum PinPersonsSettingsStrategy {
@@ -565,7 +565,10 @@ class Principal implements IPrincipal {
 class GeoReceptor {
   String id;
   String title;
+  String channel;
   String category;
+  String brand;
+  String moveMode;
   String leading;
   String creator;
   String location;
@@ -589,7 +592,10 @@ class GeoReceptor {
   GeoReceptor(
       this.id,
       this.title,
+      this.channel,
       this.category,
+      this.brand,
+      this.moveMode,
       this.leading,
       this.creator,
       this.location,
@@ -626,7 +632,10 @@ class GeoReceptor {
     }
     id = map['id'];
     title = map['title'];
+    channel=map['channel'];
     category = map['category'];
+    brand=map['brand'];
+    moveMode=map['moveMode'];
     leading = map['leading'];
     creator = map['creator'];
     location = locStr;
@@ -645,7 +654,10 @@ class GeoReceptor {
     return {
       'id': id,
       'title': title,
+      'channel': channel,
       'category': category,
+      'brand': brand,
+      'moveMode':moveMode,
       'leading': leading,
       'creator': creator,
       'location': location,
@@ -669,6 +681,23 @@ enum GeoCategoryMoveableMode {
 }
 
 @Entity(primaryKeys: ['id', 'sandbox'])
+class GeoChannelOL {
+  String id;
+  String title;
+  String leading;
+  int sort;
+  String sandbox;
+
+  GeoChannelOL(
+    this.id,
+    this.title,
+    this.leading,
+    this.sort,
+    this.sandbox,
+  );
+}
+
+@Entity(primaryKeys: ['id', 'sandbox'])
 class GeoCategoryOL {
   String id;
   String title;
@@ -676,6 +705,8 @@ class GeoCategoryOL {
   int sort;
   int ctime;
   String creator;
+  String channel;
+  bool isHot;
   String moveMode;
   double defaultRadius;
   String sandbox;
@@ -687,21 +718,108 @@ class GeoCategoryOL {
     this.sort,
     this.ctime,
     this.creator,
+    this.channel,
+    this.isHot,
     this.moveMode,
     this.defaultRadius,
     this.sandbox,
   );
 }
 
-class GeoCategoryOR {
+class GeoChannelPortalOR {
+  List<GeoChannelOR> channels;
+  List<GeoCategoryOR> hotCategories;
+  List<GeoBrandOR> hotBrands;
+
+  GeoChannelPortalOR({this.channels, this.hotCategories, this.hotBrands});
+
+  GeoChannelPortalOR.parse(obj) {
+    this.channels = <GeoChannelOR>[];
+    var channelList = obj['channels'];
+    for (var item in channelList) {
+      channels.add(
+        GeoChannelOR.parse(item),
+      );
+    }
+    this.hotCategories = <GeoCategoryOR>[];
+    var categorylList = obj['hotCategories'];
+    for (var item in categorylList) {
+      hotCategories.add(
+        GeoCategoryOR.parse(item),
+      );
+    }
+    this.hotBrands = <GeoBrandOR>[];
+    var brandlList = obj['hotBrands'];
+    for (var item in brandlList) {
+      hotBrands.add(
+        GeoBrandOR.parse(item),
+      );
+    }
+  }
+}
+
+class GeoChannelOR {
   String id;
   String title;
   String leading;
   int sort;
-  int ctime;
+  List<GeoCategoryOR> categories;
+
+  GeoChannelOR({this.id, this.title, this.leading, this.sort, this.categories});
+
+  GeoChannelOR.parse(obj) {
+    this.id = obj['id'];
+    this.title = obj['title'];
+    this.leading = obj['leading'];
+    this.sort = obj['sort'];
+    var categorieObjs = obj['categories'];
+    this.categories = <GeoCategoryOR>[];
+    for (var item in categorieObjs) {
+      this.categories.add(
+            GeoCategoryOR.parse(item),
+          );
+    }
+  }
+}
+
+class GeoBrandOR {
+  String id;
+  String title;
+  String channel;
+  String category;
+  bool isHot; //是否热点品牌
+  int sort;
+
+  GeoBrandOR(
+      {this.id,
+      this.title,
+      this.channel,
+      this.category,
+      this.isHot,
+      this.sort});
+
+  GeoBrandOR.parse(obj) {
+    this.id = obj['id'];
+    this.title = obj['title'];
+    this.channel = obj['channel'];
+    this.category = obj['category'];
+    this.isHot = obj['isHot'];
+    this.sort = obj['sort'];
+  }
+}
+
+class GeoCategoryOR {
+  String id;
+  String title;
+  String leading;
+  String channel; //所属频到标识
   String creator;
-  GeoCategoryMoveableMode moveMode;
+  bool isHot; //是否热点类别
+  int sort;
+  int ctime;
   double defaultRadius;
+  GeoCategoryMoveableMode moveMode;
+  List<GeoBrandOR> brands;
 
   GeoCategoryOR({
     this.id,
@@ -712,6 +830,9 @@ class GeoCategoryOR {
     this.creator,
     this.moveMode,
     this.defaultRadius = 500,
+    this.isHot,
+    this.channel,
+    this.brands,
   });
 
   GeoCategoryOL toLocal(sandbox) {
@@ -727,8 +848,41 @@ class GeoCategoryOR {
         mode = 'moveableDependon';
         break;
     }
-    return GeoCategoryOL(
-        id, title, leading, sort, ctime, creator, mode, defaultRadius, sandbox);
+    return GeoCategoryOL(id, title, leading, sort, ctime, creator, channel,
+        isHot, mode, defaultRadius, sandbox);
+  }
+
+  GeoCategoryOR.parse(obj) {
+    GeoCategoryMoveableMode mode;
+    switch (obj['moveMode']) {
+      case 'unmoveable':
+        mode = GeoCategoryMoveableMode.unmoveable;
+        break;
+      case 'moveableSelf':
+        mode = GeoCategoryMoveableMode.moveableSelf;
+        break;
+      case 'moveableDependon':
+        mode = GeoCategoryMoveableMode.moveableDependon;
+        break;
+      default:
+        mode = GeoCategoryMoveableMode.unmoveable;
+        break;
+    }
+    this.id = obj['id'];
+    this.title = obj['title'];
+    this.leading = obj['leading'];
+    this.sort = obj['sort'];
+    this.ctime = obj['ctime'];
+    this.creator = obj['creator'];
+    this.moveMode = mode;
+    this.defaultRadius = obj['defaultRadius'];
+    this.isHot = obj['isHot'];
+    this.channel = obj['channel'];
+    var list = obj['brands'];
+    this.brands = <GeoBrandOR>[];
+    for (var item in list) {
+      this.brands.add(GeoBrandOR.parse(item));
+    }
   }
 }
 
@@ -775,7 +929,9 @@ class GeosphereMessageOL {
 
   ///location是LatLng对象
   String location;
+  String channel;
   String category;
+  String brand;
   String sandbox;
 
   GeosphereMessageOL(
@@ -796,7 +952,9 @@ class GeosphereMessageOL {
       this.text,
       this.purchaseSn,
       this.location,
+      this.channel,
       this.category,
+      this.brand,
       this.sandbox);
 
   GeosphereMessageOL.from(map, sandbox) {
@@ -817,7 +975,9 @@ class GeosphereMessageOL {
     text = map['text'];
     purchaseSn = map['purchaseSn'];
     location = jsonEncode(map['location']);
+    channel = map['channel'];
     category = map['category'];
+    brand = map['brand'];
     this.sandbox = sandbox;
   }
 }

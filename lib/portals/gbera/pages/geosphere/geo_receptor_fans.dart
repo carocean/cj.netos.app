@@ -239,7 +239,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     GeosphereMessageOL messageOL =
-        await geoMessageService.getMessage(_receptorInfo.id, msgid);
+        await geoMessageService.getMessage(_receptorInfo.id,msgid);
     List<_GeosphereMessageWrapper> wrappers = [];
     await _fillMessageWrapper(messageOL, wrappers);
     _messageList.insertAll(0, wrappers);
@@ -248,8 +248,8 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(
-        _receptorInfo.category, wrapper.message.receptor, wrapper.message.id);
+    await geoMessageService.removeMessage( wrapper.message.receptor,
+        wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -308,11 +308,12 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
-            filterMessages: (category) async {
+            filterMessages: (filter) async {
               _offset = 0;
               _messageList.clear();
-              if (category != null) {
-                _filterCategory = category['category'];
+              if (filter != null) {
+                var category=filter[1];
+                _filterCategory = category?.id;
               } else {
                 _filterCategory = null;
               }
@@ -632,7 +633,7 @@ class _HeaderWidget extends StatefulWidget {
   Function() refresh;
   ReceptorInfo receptorInfo;
   bool isShowWhite;
-  Function(Map category) filterMessages;
+  Function(List filter) filterMessages;
   GeoCategoryOL categoryOL;
   Person owner;
 
@@ -660,7 +661,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   StreamSubscription _streamSubscription;
   List<List<ThirdPartyService>> _serviceMenu = [];
   TabController _controller;
-
+  List _filter; //0为channel;1为category;2为brand
   @override
   void initState() {
     _controller = DefaultTabController.of(context);
@@ -850,8 +851,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _filterMessages(null);
   }
 
-  Future<void> _filterMessages(categroyMap) async {
-    await widget.filterMessages(categroyMap);
+  Future<void> _filterMessages(filter) async {
+    await widget.filterMessages(filter);
   }
 
   Future<void> _loadLocation() async {
@@ -1182,16 +1183,19 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 ],
                               ),
                             ),
+                      /*
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (context) {
-                                return widget.context.part(
-                                    '/geosphere/filter', context,
-                                    arguments: {'category': widget.categoryOL});
-                              }).then((v) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) {
+                              return widget.context.part(
+                                '/geosphere/filter',
+                                context,
+                              );
+                            },
+                          ).then((v) {
                             if (v == null) {
                               return;
                             }
@@ -1201,16 +1205,17 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                               });
                               return;
                             }
-                            var map = v as Map;
-                            if (widget.categoryOL.moveMode == 'moveableSelf') {
-                              _loadAppsOfCategory(map).then((v) {
+                            var filter = v as List;
+                            _filter = filter;
+                            // if (widget.receptorInfo.isMobileReceptor) {
+                            //   _loadAppsOfCategory(filter).then((v) {
+                            //     setState(() {});
+                            //   });
+                            // } else {
+                              _filterMessages(filter).then((v) {
                                 setState(() {});
                               });
-                            } else {
-                              _filterMessages(map).then((v) {
-                                setState(() {});
-                              });
-                            }
+                            // }
                           });
                         },
                         child: Row(
@@ -1220,7 +1225,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 right: 2,
                               ),
                               child: Text(
-                                '筛选',
+                                '${_getCategoryTitile()}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: widget.isShowWhite
@@ -1239,6 +1244,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           ],
                         ),
                       ),
+
+                       */
                     ],
                   ),
                 ),
@@ -1249,7 +1256,15 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       ),
     );
   }
-
+  _getCategoryTitile() {
+    if (_filter == null) {
+      return '筛选';
+    }
+    if (_filter[2] != null) {
+      return _filter[2].title;
+    }
+    return _filter[1].title;
+  }
   Widget _renderServiceMenu() {
     if (_serviceMenu.isEmpty) {
       return Container(
@@ -1454,7 +1469,6 @@ class __MessageCardState extends State<_MessageCard> {
 
   _loadUpstreamReceptor() async {
     var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
-    var upstreamCategory = widget.messageWrapper.message.upstreamCategory;
     var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
     if (StringUtil.isEmpty(upstreamReceptor)) {
       _upstreamReceptor = null;
@@ -1464,12 +1478,12 @@ class __MessageCardState extends State<_MessageCard> {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
     _upstreamReceptor =
-        await receptorService.get(upstreamCategory, upstreamReceptor);
+        await receptorService.get( upstreamReceptor);
     if (_upstreamReceptor == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
       _upstreamReceptor =
-          await receptorRemote.getReceptor(upstreamCategory, upstreamReceptor);
+          await receptorRemote.getReceptor(upstreamReceptor);
     }
     if (!StringUtil.isEmpty(upstreamPerson)) {
       IPersonService personService =
@@ -1904,7 +1918,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<void> _unlike() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.unlike(widget.messageWrapper.message.receptor,
+    await geoMessageService.unlike( widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id, widget.context.principal.person);
   }
 

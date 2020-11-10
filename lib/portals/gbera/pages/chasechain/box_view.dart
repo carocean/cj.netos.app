@@ -626,7 +626,7 @@ class __FollowReceptorActionState extends State<_FollowReceptorAction> {
     var category = widget.box.pointer.type;
     int pos = category.lastIndexOf('.');
     category = category.substring(pos + 1);
-    var exists = await receptorService.existsLocal(category, receptorId);
+    var exists = await receptorService.existsLocal(receptorId);
     _isFollowed = exists;
     _followLabel = exists ? '不再关注' : '关注';
   }
@@ -646,8 +646,8 @@ class __FollowReceptorActionState extends State<_FollowReceptorAction> {
     category = category.substring(pos + 1);
     if (_isFollowed) {
       //取消
-      await receptorService.remove(category, receptorId);
-      await receptorRemote.unfollow(category, receptorId);
+      await receptorService.remove(receptorId);
+      await receptorRemote.unfollow(receptorId);
       await _loadFollow();
       _isFollowed = false;
       _isProcess = false;
@@ -657,11 +657,11 @@ class __FollowReceptorActionState extends State<_FollowReceptorAction> {
       }
       return;
     }
-    var receptor = await receptorRemote.getReceptor(category, receptorId);
+    var receptor = await receptorRemote.getReceptor( receptorId);
     if (receptor != null) {
       await receptorService.add(receptor, isOnlySaveLocal: true);
     }
-    await receptorRemote.follow(category, receptorId);
+    await receptorRemote.follow( receptorId);
     await _loadFollow();
     _isFollowed = true;
     _isProcess = false;

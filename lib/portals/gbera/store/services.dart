@@ -386,27 +386,27 @@ mixin IPrincipalService {
 mixin IGeoReceptorCache {
   Future<void> add(GeoReceptor receptor);
 
-  Future<GeoReceptor> get(String category, String receptorid);
+  Future<GeoReceptor> get(String receptorid);
 }
 mixin IGeoReceptorService {
   Future<bool> init(Location location);
 
   Future<void> add(GeoReceptor receptor, {bool isOnlySaveLocal = false});
 
-  Future<void> remove(String category, String id);
+  Future<void> remove( String id);
 
-  Future<GeoReceptor> get(String category, String receptorid);
+  Future<GeoReceptor> get(String receptorid);
 
   Future<GeoReceptor> getMobileReceptor(String person, String device);
 
   Future<List<GeoReceptor>> page(int limit, int offset);
 
   Future<void> updateLeading(
-      String category, String id, String lleading, String rleading);
+     String id, String lleading, String rleading);
 
   Future<void> updateTitle(String id, String title);
 
-  Future<void> updateLocation(String category, String receptor, LatLng location,
+  Future<void> updateLocation( String receptor, LatLng location,
       {bool isOnlyLocal = false});
 
   Future<void> updateRadius(String id, double radius);
@@ -419,7 +419,7 @@ mixin IGeoReceptorService {
 
   Future<void> setAutoScrollMessage(String id, bool isAutoScrollMessage) {}
 
-  Future<bool> existsLocal(String category, String receptor) {}
+  Future<bool> existsLocal( String receptor) {}
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
@@ -427,6 +427,9 @@ mixin IGeoCategoryRemote {
   Future<GeoCategoryOR> getCategory(String category) {}
 
   Future<List<GeoCategoryAppOR>> getApps(String category, String on) {}
+
+ Future<GeoChannelPortalOR> getGeoPortal() {}
+
 }
 mixin IGeoCategoryLocal {
   Future<GeoCategoryOL> get(String category);
@@ -445,19 +448,19 @@ mixin IGeosphereMessageService {
       String receptor, String filterCategory, int limit, int offset) {}
 
   Future<List<GeosphereMessageOL>> pageMyMessage(
-      String id, String creator, int limit, int offset) {}
+      String receptor, String creator, int limit, int offset) {}
 
-  Future<void> removeMessage(String category, String receptor, String msgid) {}
+  Future<void> removeMessage(String receptor, String msgid) {}
 
   Future<GeosphereMessageOL> getMessage(String receptor, msgid) {}
 
   Future<void> like(GeosphereLikePersonOL likePerson,
       {bool isOnlySaveLocal = false}) {}
 
-  Future<void> unlike(String receptor, String msgid, String person,
+  Future<void> unlike(String receptor,String msgid, String person,
       {bool isOnlySaveLocal = false}) {}
 
-  Future<bool> isLiked(String receptor, String msgid, String person) {}
+  Future<bool> isLiked(String receptor,String msgid, String person) {}
 
   Future<List<GeosphereLikePersonOL>> pageLikePersons(
       String receptor, String id, int i, int j) {}

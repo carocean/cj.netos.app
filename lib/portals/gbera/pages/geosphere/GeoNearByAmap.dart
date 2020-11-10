@@ -41,8 +41,7 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
     /// 搜索周边poi
     final poiList = await AmapSearch.searchAround(
       _selectedPoi.latLng,
-      type:
-      amapPOIType,
+      type: amapPOIType,
       radius: 20000,
     );
     for (var poi in poiList) {
@@ -69,6 +68,7 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
       appBar: AppBar(
         title: Text('选择'),
         elevation: 0.0,
+        titleSpacing: 0,
       ),
       body: Column(
         children: <Widget>[
@@ -86,35 +86,33 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
                   size: 16,
                   color: Colors.grey[500],
                 ),
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 5,
-                      right: 20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          _selectedPoi?.title ?? '',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 5,
+                    right: 20,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _selectedPoi?.title ?? '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
                         ),
-                        StringUtil.isEmpty(_selectedPoi?.address)
-                            ? Container(
-                                width: 0,
-                                height: 0,
-                              )
-                            : Text(
-                                _selectedPoi?.address ?? '',
-                                softWrap: true,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                ),
+                      ),
+                      StringUtil.isEmpty(_selectedPoi?.address)
+                          ? Container(
+                              width: 0,
+                              height: 0,
+                            )
+                          : Text(
+                              _selectedPoi?.address ?? '',
+                              softWrap: true,
+                              style: TextStyle(
+                                fontSize: 12,
                               ),
-                      ],
-                    ),
+                            ),
+                    ],
                   ),
                 ),
               ],
@@ -156,23 +154,69 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
             },
             child: Column(
               children: <Widget>[
-                CardItem(
-                  title: item.title,
-                  tipsText:
-                      '${item.distance < 1000 ? '${item.distance}米' : '${(item.distance / 1000.0).toStringAsFixed(3)}公里'}',
-                  subtitle: StringUtil.isEmpty(item.address)
-                      ? null
-                      : Padding(
-                          padding: EdgeInsets.only(
-                            left: 0,
-                          ),
-                          child: Text(
-                            item.address,
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${item.title}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            StringUtil.isEmpty(item.address)
+                                ? null
+                                : Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 0,
+                                    ),
+                                    child: Text(
+                                      item.address,
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            '${getFriendlyDistance(item.distance*1.0)}',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey,
+                              fontSize: 12,
                             ),
                           ),
-                        ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 Divider(
                   height: 1,

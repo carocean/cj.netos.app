@@ -49,7 +49,7 @@ class UserContract extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: 10,),
                   alignment: Alignment.bottomCenter,
                   child: Text(
-                    '金证时代中国公司',
+                    '节点动力',
                     style: TextStyle(color: Colors.grey[400]),
                   ),
                 ),

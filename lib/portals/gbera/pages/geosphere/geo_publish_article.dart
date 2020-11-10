@@ -35,7 +35,6 @@ class GeospherePublishArticle extends StatefulWidget {
 class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   GlobalKey<_MediaShowerState> shower_key;
   TextEditingController _contentController;
-  String _category;
   String _receptor;
   AmapPoi _poi;
   bool _isLoaded = false;
@@ -56,7 +55,6 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
   @override
   void initState() {
-    _category = widget.context.parameters['category'];
     _receptor = widget.context.parameters['receptor'];
     shower_key = GlobalKey<_MediaShowerState>();
     _contentController = TextEditingController();
@@ -91,7 +89,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     );
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
-    _receptorObj = await receptorRemote.getReceptor(_category, _receptor);
+    _receptorObj = await receptorRemote.getReceptor(_receptor);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
@@ -125,7 +123,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
-      if(_rechargeController==null) {
+      if (_rechargeController == null) {
         _rechargeController = StreamController();
         _rechargeHandler = _rechargeController.stream.listen((event) async {
           // print('---充值返回---$event');
@@ -282,7 +280,9 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         content,
         purchaseOR.sn,
         location,
-        _category,
+        _receptorObj.channel,
+        _receptorObj.category,
+        _receptorObj.brand,
         widget.context.principal.person,
       ),
     );
@@ -701,36 +701,38 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  Expanded(child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Text(
-                                            '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12,
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                              '${!_isLoaded ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 12,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 10,
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 10,
+                                          ),
+                                          child: Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 16,
+                                            color: Colors.grey,
+                                          ),
                                         ),
-                                        child: Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -837,6 +839,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       ),
     );
   }
+
   List<Widget> _renderProcessing() {
     var items = <Widget>[];
     if (_isVideoCompressing) {

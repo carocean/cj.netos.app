@@ -56,6 +56,10 @@ class GeoCategoryRemote implements IGeoCategoryRemote, IServiceBuilder {
       'getCategory',
       parameters: {'id': category},
     );
+    if(map==null) {
+      print('分类不存在:$category');
+      return null;
+    }
     var moveMode = map['moveMode'];
     var lmode = GeoCategoryMoveableMode.unmoveable;
     switch (moveMode) {
@@ -116,5 +120,17 @@ class GeoCategoryRemote implements IGeoCategoryRemote, IServiceBuilder {
       );
     }
     return categories;
+  }
+
+  @override
+  Future<GeoChannelPortalOR> getGeoPortal() async{
+    var obj = await remotePorts.portGET(
+      _categoryPortsUrl,
+      'getGeoPortal',
+    );
+    if(obj==null) {
+      return null;
+    }
+    return GeoChannelPortalOR.parse(obj);
   }
 }

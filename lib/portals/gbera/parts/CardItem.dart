@@ -97,7 +97,7 @@ class CardItemState extends State<CardItem> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      widget.title,
+                     '${ widget.title??''}',
                       style: TextStyle(
                         color: widget.titleColor,
                         fontWeight: FontWeight.w600,

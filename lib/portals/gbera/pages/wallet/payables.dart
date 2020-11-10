@@ -61,7 +61,7 @@ class _PayablesState extends State<Payables> {
       PayChannel(
         code: 'gberaPay',
         name: '零钱',
-        note: '金证时代钱包',
+        note: '节点动力钱包',
       ),
     );
     _payChannels.add(

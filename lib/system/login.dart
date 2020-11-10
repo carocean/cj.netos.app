@@ -115,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: Text.rich(
                     TextSpan(
-                      text: '金证时代中国公司',
+                      text: '节点动力',
                       style: TextStyle(
                         color: Colors.blueGrey,
                       ),

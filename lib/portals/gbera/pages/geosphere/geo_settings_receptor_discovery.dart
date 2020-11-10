@@ -64,7 +64,6 @@ class _GeosphereReceptorDiscoveryState
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
     var poiList = await receptorRemote.searchAroundReceptors(
-      categroy: _receptor.category,
       receptor: _receptor.id,
       geoType: _selectedCategory,
       limit: _limit,
@@ -111,12 +110,15 @@ class _GeosphereReceptorDiscoveryState
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return widget.context.part('/geosphere/filter', context,
-                          arguments: {'category': _categoryOL});
-                    }).then((v) {
+                showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    return widget.context.part(
+                      '/geosphere/filter',
+                      context,
+                    );
+                  },
+                ).then((v) {
                   if (v == null) {
                     return;
                   }
@@ -131,8 +133,9 @@ class _GeosphereReceptorDiscoveryState
                     });
                     return;
                   }
-                  _selectedFilterLabel = v['title'];
-                  _selectedCategory = v['category'];
+                  var cat=v[1];
+                  _selectedFilterLabel = cat.title;
+                  _selectedCategory = cat.id;
                   _offset = 0;
                   _poiList.clear();
                   _onloadDiscoveryReceptors().then((v) {
@@ -243,18 +246,66 @@ class _GeosphereReceptorDiscoveryState
           color: Colors.white,
           child: Column(
             children: <Widget>[
-              CardItem(
-                leading: leadingImg,
-                title: title,
-                subtitle: Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                  ),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 15,
+                  bottom: 15,
                 ),
-                tipsText: poi.receptor.id == _receptor.id
-                    ? '感知器中心'
-                    : '距中心：${getFriendlyDistance(poi.distance)}',
+                child: Row(
+                  children: [
+                    SizedBox(width: 40,height: 40,child: leadingImg,),
+                    SizedBox(width: 10,),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${title}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          poi.receptor.id == _receptor.id
+                              ? '感知器中心'
+                              : '距中心：${getFriendlyDistance(poi.distance)}',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+
+                      ],
+                    ),
+                  ],
+                ),
               ),
               Divider(
                 height: 1,

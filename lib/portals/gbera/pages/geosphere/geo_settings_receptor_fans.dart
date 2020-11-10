@@ -47,7 +47,6 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
     IGeoReceptorRemote receptorRemote =
     widget.context.site.getService('/remote/geo/receptors');
     var pofList = await receptorRemote.pageReceptorFans(
-      categroy: _receptor.category,
       receptor: _receptor.id,
       limit: _limit,
       offset: _offset,

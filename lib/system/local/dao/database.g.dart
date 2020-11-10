@@ -164,11 +164,11 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `category` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `moveMode` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `channel` TEXT, `isHot` INTEGER, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `category` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `receptor`, `category`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeosphereMessageOL` (`id` TEXT, `upstreamPerson` TEXT, `upstreamReceptor` TEXT, `upstreamCategory` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `receptor` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `state` TEXT, `text` TEXT, `purchaseSn` TEXT, `location` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `receptor`, `category`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeosphereLikePersonOL` (`id` TEXT, `person` TEXT, `avatar` TEXT, `msgid` TEXT, `ctime` INTEGER, `nickName` TEXT, `receptor` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -581,7 +581,9 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
                   'text': item.text,
                   'purchaseSn': item.purchaseSn,
                   'location': item.location,
+                  'channel': item.channel,
                   'category': item.category,
+                  'brand': item.brand,
                   'sandbox': item.sandbox
                 }),
         _geosphereLikePersonOLInsertionAdapter = InsertionAdapter(
@@ -637,7 +639,9 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
           row['text'] as String,
           row['purchaseSn'] as String,
           row['location'] as String,
+          row['channel'] as String,
           row['category'] as String,
+          row['brand'] as String,
           row['sandbox'] as String);
 
   static final _countValueMapper =
@@ -703,10 +707,10 @@ class _$IGeosphereMessageDAO extends IGeosphereMessageDAO {
   }
 
   @override
-  Future<void> removeMessage(String id, String receptor, String sandbox) async {
+  Future<void> removeMessage(String receptor, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'delete FROM GeosphereMessageOL where id=? and receptor=? and sandbox=?',
-        arguments: <dynamic>[id, receptor, sandbox]);
+        'delete FROM GeosphereMessageOL where receptor=? and id=? and sandbox=?',
+        arguments: <dynamic>[receptor, id, sandbox]);
   }
 
   @override
@@ -890,7 +894,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
             (GeoReceptor item) => <String, dynamic>{
                   'id': item.id,
                   'title': item.title,
+                  'channel': item.channel,
                   'category': item.category,
+                  'brand': item.brand,
+                  'moveMode': item.moveMode,
                   'leading': item.leading,
                   'creator': item.creator,
                   'location': item.location,
@@ -915,7 +922,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   static final _geoReceptorMapper = (Map<String, dynamic> row) => GeoReceptor(
       row['id'] as String,
       row['title'] as String,
+      row['channel'] as String,
       row['category'] as String,
+      row['brand'] as String,
+      row['moveMode'] as String,
       row['leading'] as String,
       row['creator'] as String,
       row['location'] as String,
@@ -961,10 +971,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   }
 
   @override
-  Future<void> remove(String category, String id, String sandbox) async {
+  Future<void> remove(String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'delete FROM GeoReceptor WHERE category=? and id=? and sandbox = ?',
-        arguments: <dynamic>[category, id, sandbox]);
+        'delete FROM GeoReceptor WHERE id=? and sandbox = ?',
+        arguments: <dynamic>[id, sandbox]);
   }
 
   @override
@@ -975,11 +985,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   }
 
   @override
-  Future<void> updateLeading(
-      String leading, String category, String id, String sandbox) async {
+  Future<void> updateLeading(String leading, String id, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE GeoReceptor SET leading=? WHERE category=? and id=? and sandbox=?',
-        arguments: <dynamic>[leading, category, id, sandbox]);
+        'UPDATE GeoReceptor SET leading=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[leading, id, sandbox]);
   }
 
   @override
@@ -1021,11 +1030,10 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   }
 
   @override
-  Future<CountValue> countReceptor(
-      String id, String category, String sandbox) async {
+  Future<CountValue> countReceptor(String id, String sandbox) async {
     return _queryAdapter.query(
-        'SELECT count(*) as value FROM GeoReceptor WHERE id=? and category=? and sandbox=?',
-        arguments: <dynamic>[id, category, sandbox],
+        'SELECT count(*) as value FROM GeoReceptor WHERE id=? and sandbox=?',
+        arguments: <dynamic>[id, sandbox],
         mapper: _countValueMapper);
   }
 
@@ -1049,6 +1057,8 @@ class _$IGeoCategoryDAO extends IGeoCategoryDAO {
                   'sort': item.sort,
                   'ctime': item.ctime,
                   'creator': item.creator,
+                  'channel': item.channel,
+                  'isHot': item.isHot ? 1 : 0,
                   'moveMode': item.moveMode,
                   'defaultRadius': item.defaultRadius,
                   'sandbox': item.sandbox
@@ -1068,6 +1078,8 @@ class _$IGeoCategoryDAO extends IGeoCategoryDAO {
           row['sort'] as int,
           row['ctime'] as int,
           row['creator'] as String,
+          row['channel'] as String,
+          (row['isHot'] as int) != 0,
           row['moveMode'] as String,
           row['defaultRadius'] as double,
           row['sandbox'] as String);
