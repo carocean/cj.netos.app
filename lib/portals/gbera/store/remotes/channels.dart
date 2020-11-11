@@ -64,6 +64,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
       map['leading'],
       map['site'],
       map['ctime'],
+      map['ctime'],
       principal.person,
     );
   }
@@ -195,6 +196,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         map['leading'],
         map['site'],
         map['ctime'],
+        map['ctime'],
         principal.person,
       ));
     }
@@ -218,6 +220,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
         obj['upstreamPerson'],
         obj['leading'],
         obj['site'],
+        obj['ctime'],
         obj['ctime'],
         principal.person,
       ));

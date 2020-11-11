@@ -587,6 +587,8 @@ class _GeosphereState extends State<Geosphere>
       }
       message.receptor = receptor.id;
       message.category = upstreamReceptor.category;
+
+      await receptorService.updateUtime(receptor.id);
       await messageService.addMessage(message, isOnlySaveLocal: true);
 
       //通知当前工作的管道有新消息到

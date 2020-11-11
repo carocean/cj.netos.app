@@ -81,6 +81,7 @@ class _CreateChannelState extends State<CreateChannel> {
                 null,
                 null,
                 DateTime.now().millisecondsSinceEpoch,
+                DateTime.now().millisecondsSinceEpoch,
                 widget.context.principal.person,
               );
               await channelService.addChannel(channel);

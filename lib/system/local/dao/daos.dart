@@ -86,7 +86,8 @@ abstract class IChannelDAO {
   @Query('SELECT * FROM Channel WHERE sandbox=:sandbox and id = :id')
   Future<Channel> getChannel(String sandbox, String id);
 
-  @Query('SELECT * FROM Channel where sandbox=:sandbox ORDER BY ctime DESC')
+  @Query(
+      'SELECT * FROM Channel where sandbox=:sandbox ORDER BY utime DESC, ctime DESC')
   Future<List<Channel>> getAllChannel(String sandbox);
 
   @Query('delete FROM Channel where sandbox=:sandbox')
@@ -113,6 +114,10 @@ abstract class IChannelDAO {
 
   @Query('UPDATE Channel SET name = :name WHERE id = :id and sandbox=:sandbox')
   Future<void> updateName(String name, String id, String sandbox);
+
+  @Query(
+      'UPDATE Channel SET utime = :utime WHERE id = :id and sandbox=:sandbox')
+  Future<void> updateUtime(int utime, String id, String sandbox);
 }
 
 @dao
@@ -407,10 +412,11 @@ abstract class IChannelOutputPersonDAO {
       'select * FROM ChannelOutputPerson WHERE channel = :channel and sandbox=:sandbox ORDER BY atime desc LIMIT 1 OFFSET 0')
   Future<ChannelOutputPerson> getLastOutputPerson(
       String channel, String person) {}
+
   @Query(
       'UPDATE ChannelOutputPerson SET rights = :rights WHERE person=:person AND channel = :channelcode and sandbox=:sandbox')
-  Future<void>  updateOutputPersonRights(String rights, official, String channel, String person) {}
-
+  Future<void> updateOutputPersonRights(
+      String rights, official, String channel, String person) {}
 }
 
 @dao
@@ -502,7 +508,8 @@ abstract class IChatRoomDAO {
   @insert
   Future<void> addRoom(ChatRoom chatRoom) {}
 
-  @Query('SELECT *  FROM ChatRoom where sandbox=:sandbox ORDER BY ctime DESC ')
+  @Query(
+      'SELECT *  FROM ChatRoom where sandbox=:sandbox ORDER BY utime DESC, ctime DESC ')
   Future<List<ChatRoom>> listChatRoom(String sandbox) {}
 
   @Query('delete FROM ChatRoom WHERE id = :id AND sandbox=:sandbox')
@@ -525,6 +532,10 @@ abstract class IChatRoomDAO {
   @Query(
       'UPDATE ChatRoom SET title = :title WHERE sandbox=:sandbox and id = :room')
   Future<void> updateRoomTitle(String title, String sandbox, String room) {}
+
+  @Query(
+      'UPDATE ChatRoom SET utime = :utime WHERE sandbox=:sandbox and id = :room')
+  Future<void> updateRoomUtime(int utime, String sandbox, String room) {}
 
   @Query(
       'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room LIMIT 20')
@@ -680,11 +691,10 @@ abstract class IGeoReceptorDAO {
   Future<GeoReceptor> get(String id, String sandbox) {}
 
   @Query(
-      'SELECT *  FROM GeoReceptor WHERE sandbox = :sandbox ORDER BY category desc, ctime desc limit :limit, offset :offset')
+      'SELECT *  FROM GeoReceptor WHERE sandbox = :sandbox ORDER BY utime desc, ctime desc, category desc limit :limit, offset :offset')
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) {}
 
-  @Query(
-      'delete FROM GeoReceptor WHERE id=:id and sandbox = :sandbox')
+  @Query('delete FROM GeoReceptor WHERE id=:id and sandbox = :sandbox')
   Future<void> remove(String id, String sandbox) {}
 
   @Query(
@@ -693,8 +703,7 @@ abstract class IGeoReceptorDAO {
 
   @Query(
       'UPDATE GeoReceptor SET leading=:leading WHERE id=:id and sandbox=:sandbox')
-  Future<void> updateLeading(
-      String leading, String id, String sandbox) {}
+  Future<void> updateLeading(String leading, String id, String sandbox) {}
 
   @Query(
       'UPDATE GeoReceptor SET location=:location WHERE id=:id and sandbox=:sandbox')
@@ -720,8 +729,12 @@ abstract class IGeoReceptorDAO {
 
   @Query(
       'SELECT count(*) as value  FROM GeoReceptor WHERE id=:id and sandbox=:sandbox')
-  Future<CountValue> countReceptor(
-      String id, String sandbox) {}
+  Future<CountValue> countReceptor(String id, String sandbox) {}
+
+  @Query(
+      'UPDATE GeoReceptor SET utime=:utime WHERE id=:receptor and sandbox=:sandbox')
+  Future<void> updateUtime(int utime, String receptor, String sandbox) {}
+
 }
 
 @dao
@@ -759,7 +772,7 @@ abstract class IGeosphereMessageDAO {
 
   @Query(
       'delete FROM GeosphereMessageOL where receptor=:receptor and id=:id and sandbox=:sandbox')
-  Future<void> removeMessage( String receptor, String id,  String sandbox) {}
+  Future<void> removeMessage(String receptor, String id, String sandbox) {}
 
   @Query(
       'SELECT *  FROM GeosphereMessageOL WHERE receptor=:receptor and id=:id and sandbox=:sandbox LIMIT 1')
@@ -791,7 +804,7 @@ abstract class IGeosphereMessageDAO {
   @Query(
       'delete FROM GeosphereLikePersonOL where receptor=:receptor and msgid=:msgid and person=:liker and sandbox=:sandbox')
   Future<void> unlike(
-      String receptor,  String msgid, String liker, String sandbox) {}
+      String receptor, String msgid, String liker, String sandbox) {}
 
   @insert
   Future<void> like(GeosphereLikePersonOL likePerson) {}
@@ -812,7 +825,7 @@ abstract class IGeosphereMessageDAO {
   @Query(
       'SELECT *  FROM GeosphereCommentOL WHERE receptor=:receptor and  msgid=:msgid and sandbox=:sandbox ORDER BY ctime DESC LIMIT :limit OFFSET :offset')
   Future<List<GeosphereCommentOL>> pageComments(
-     String receptor, String msgid, String sandbox, int limit, int offset) {}
+      String receptor, String msgid, String sandbox, int limit, int offset) {}
 }
 
 @dao
@@ -829,7 +842,7 @@ abstract class IGeosphereMediaDAO {
   @Query(
       'SELECT *  FROM GeosphereMediaOL WHERE receptor=:receptor and msgid=:msgid and sandbox=:sandbox')
   Future<List<GeosphereMediaOL>> listMedia(
-      String receptor,  String msgid, String sandbox) {}
+      String receptor, String msgid, String sandbox) {}
 
   @Query(
       'delete FROM GeosphereMediaOL where receptor=:receptor and msgid=:msgid and sandbox=:sandbox')

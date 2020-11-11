@@ -38,6 +38,7 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       null,
       context.principal.person,
       DateTime.now().millisecondsSinceEpoch,
+      DateTime.now().millisecondsSinceEpoch,
       null,
       null,
       'false',

@@ -77,10 +77,11 @@ class Channel {
   String leading;
   String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
+  int utime = DateTime.now().millisecondsSinceEpoch;
   String sandbox;
 
   Channel(this.id, this.name, this.owner, this.upstreamPerson, this.leading,
-      this.site, this.ctime, this.sandbox);
+      this.site, this.ctime,this.utime, this.sandbox);
 
   toMap() {
     return {
@@ -91,6 +92,7 @@ class Channel {
       'upstreamPerson': upstreamPerson,
       'site': site,
       'ctime': ctime,
+      'utime':utime,
       'sandbox': sandbox,
     };
   }
@@ -102,6 +104,7 @@ class Channel {
     leading = map['leading'];
     site = map['site'];
     ctime = map['ctime'];
+    utime=map['utime'];
     sandbox = person;
   }
 }
@@ -434,6 +437,7 @@ class ChatRoom {
   String leading;
   String creator;
   int ctime;
+  int utime;
   String notice;
   String p2pBackground;
   String isForegoundWhite;
@@ -447,6 +451,7 @@ class ChatRoom {
     this.leading,
     this.creator,
     this.ctime,
+    this.utime,
     this.notice,
     this.p2pBackground,
     this.isForegoundWhite,
@@ -461,6 +466,7 @@ class ChatRoom {
     this.leading = map['leading'];
     this.creator = map['creator'];
     this.ctime = map['ctime'];
+    this.utime=map['utime'];
     this.notice = map['notice'];
     this.p2pBackground = map['background'];
     this.isDisplayNick = map['isDisplayNick'];
@@ -577,7 +583,7 @@ class GeoReceptor {
   //更新距离仅在mobiles分类下的感知器有用
   int uDistance;
   int ctime;
-
+  int utime;
   ///original,white,
   String foregroundMode;
 
@@ -602,6 +608,7 @@ class GeoReceptor {
       this.radius,
       this.uDistance,
       this.ctime,
+      this.utime,
       this.foregroundMode,
       this.backgroundMode,
       this.background,
@@ -642,6 +649,7 @@ class GeoReceptor {
     radius = map['radius'];
     uDistance = map['uDistance'];
     ctime = map['ctime'];
+    utime = map['utime'];
     foregroundMode = map['foregroundMode'] ?? 'original';
     backgroundMode = map['backgroundMode'] ?? 'none';
     background = map['background'];
@@ -664,6 +672,7 @@ class GeoReceptor {
       'radius': radius,
       'uDistance': uDistance,
       'ctime': ctime,
+      'utime': utime,
       'foregroundMode': foregroundMode,
       'backgroundMode': backgroundMode,
       'background': background,

@@ -136,7 +136,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `upstreamPerson` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `upstreamPerson` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `utime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `absorber` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -156,7 +156,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `utime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
@@ -164,7 +164,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `moveMode` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `moveMode` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `utime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `channel` TEXT, `isHot` INTEGER, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -904,6 +904,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
                   'radius': item.radius,
                   'uDistance': item.uDistance,
                   'ctime': item.ctime,
+                  'utime': item.utime,
                   'foregroundMode': item.foregroundMode,
                   'backgroundMode': item.backgroundMode,
                   'background': item.background,
@@ -932,6 +933,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
       row['radius'] as double,
       row['uDistance'] as int,
       row['ctime'] as int,
+      row['utime'] as int,
       row['foregroundMode'] as String,
       row['backgroundMode'] as String,
       row['background'] as String,
@@ -965,7 +967,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   @override
   Future<List<GeoReceptor>> page(String sandbox, int limit, int offset) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM GeoReceptor WHERE sandbox = ? ORDER BY category desc, ctime desc limit ? offset ?',
+        'SELECT * FROM GeoReceptor WHERE sandbox = ? ORDER BY utime desc, ctime desc, category desc limit ? offset ?',
         arguments: <dynamic>[sandbox, limit, offset],
         mapper: _geoReceptorMapper);
   }
@@ -1035,6 +1037,13 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
         'SELECT count(*) as value FROM GeoReceptor WHERE id=? and sandbox=?',
         arguments: <dynamic>[id, sandbox],
         mapper: _countValueMapper);
+  }
+
+  @override
+  Future<void> updateUtime(int utime, String receptor, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE GeoReceptor SET utime=? WHERE id=? and sandbox=?',
+        arguments: <dynamic>[utime, receptor, sandbox]);
   }
 
   @override
@@ -1550,6 +1559,7 @@ class _$IChannelDAO extends IChannelDAO {
                   'leading': item.leading,
                   'site': item.site,
                   'ctime': item.ctime,
+                  'utime': item.utime,
                   'sandbox': item.sandbox
                 });
 
@@ -1567,6 +1577,7 @@ class _$IChannelDAO extends IChannelDAO {
       row['leading'] as String,
       row['site'] as String,
       row['ctime'] as int,
+      row['utime'] as int,
       row['sandbox'] as String);
 
   final InsertionAdapter<Channel> _channelInsertionAdapter;
@@ -1598,7 +1609,7 @@ class _$IChannelDAO extends IChannelDAO {
   @override
   Future<List<Channel>> getAllChannel(String sandbox) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Channel where sandbox=? ORDER BY ctime DESC',
+        'SELECT * FROM Channel where sandbox=? ORDER BY utime DESC, ctime DESC',
         arguments: <dynamic>[sandbox],
         mapper: _channelMapper);
   }
@@ -1654,6 +1665,13 @@ class _$IChannelDAO extends IChannelDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE Channel SET name = ? WHERE id = ? and sandbox=?',
         arguments: <dynamic>[name, id, sandbox]);
+  }
+
+  @override
+  Future<void> updateUtime(int utime, String id, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Channel SET utime = ? WHERE id = ? and sandbox=?',
+        arguments: <dynamic>[utime, id, sandbox]);
   }
 
   @override
@@ -2638,6 +2656,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
                   'leading': item.leading,
                   'creator': item.creator,
                   'ctime': item.ctime,
+                  'utime': item.utime,
                   'notice': item.notice,
                   'p2pBackground': item.p2pBackground,
                   'isForegoundWhite': item.isForegoundWhite,
@@ -2658,6 +2677,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['leading'] as String,
       row['creator'] as String,
       row['ctime'] as int,
+      row['utime'] as int,
       row['notice'] as String,
       row['p2pBackground'] as String,
       row['isForegoundWhite'] as String,
@@ -2678,7 +2698,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
   @override
   Future<List<ChatRoom>> listChatRoom(String sandbox) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM ChatRoom where sandbox=? ORDER BY ctime DESC',
+        'SELECT * FROM ChatRoom where sandbox=? ORDER BY utime DESC, ctime DESC',
         arguments: <dynamic>[sandbox],
         mapper: _chatRoomMapper);
   }
@@ -2712,6 +2732,13 @@ class _$IChatRoomDAO extends IChatRoomDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChatRoom SET title = ? WHERE sandbox=? and id = ?',
         arguments: <dynamic>[title, sandbox, room]);
+  }
+
+  @override
+  Future<void> updateRoomUtime(int utime, String sandbox, String room) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET utime = ? WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[utime, sandbox, room]);
   }
 
   @override

@@ -345,6 +345,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       //消息已存在
       return;
     }
+    await chatRoomService.updateRoomUtime(room);
+    await _refresh();
     switch (contentType ?? '') {
       case '':
       case 'text':
@@ -507,7 +509,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         break;
     }
   }
-
+  Future<void> _refresh()async{
+    _models.clear();
+   await _load();
+  }
   Future<void> _load() async {
     await _loadChatrooms();
   }
@@ -547,6 +552,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         null,
         null,
         widget.context.principal.person,
+        DateTime.now().millisecondsSinceEpoch,
         DateTime.now().millisecondsSinceEpoch,
         null,
         null,

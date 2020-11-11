@@ -64,6 +64,7 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
         obj['leading'],
         obj['site'],
         obj['ctime'],
+        obj['utime'],
         obj['sandbox'],
       ));
     }
@@ -91,6 +92,7 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
       obj['leading'],
       obj['site'],
       obj['ctime'],
+      obj['utime'],
       obj['sandbox'],
     );
   }

@@ -55,8 +55,16 @@ class ChannelService implements IChannelService, IServiceBuilder {
   Future<void> initSystemChannel(UserPrincipal user) async {
     var _GEO_CHANNEL_ID = _SYSTEM_CHANNELS['geo_channel'];
     if (await channelDAO.getChannel(user?.person, _GEO_CHANNEL_ID) == null) {
-      var channel = Channel(_GEO_CHANNEL_ID, '地推', user.person, null, null,
-          null, DateTime.now().millisecondsSinceEpoch, user?.person);
+      var channel = Channel(
+          _GEO_CHANNEL_ID,
+          '地推',
+          user.person,
+          null,
+          null,
+          null,
+          DateTime.now().millisecondsSinceEpoch,
+          DateTime.now().millisecondsSinceEpoch,
+          user?.person);
       await channelDAO.addChannel(channel);
       await pinService.initChannelPin(_GEO_CHANNEL_ID);
       await pinService.setOutputGeoSelector(_GEO_CHANNEL_ID, true);
@@ -68,6 +76,12 @@ class ChannelService implements IChannelService, IServiceBuilder {
         outGeoSelector: true,
       );
     }
+  }
+
+  @override
+  Future<Function> updateUtime(String channel) async {
+    await channelDAO.updateUtime(
+        DateTime.now().millisecondsSinceEpoch, channel, principal?.person);
   }
 
   @override

@@ -148,6 +148,15 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateRoomUtime(String room) async {
+    await chatRoomDAO.updateRoomUtime(
+      DateTime.now().millisecondsSinceEpoch,
+      principal.person,
+      room,
+    );
+  }
+
+  @override
   Future<Function> updateRoomTitle(String room, String title,
       {bool isOnlyLocal = false}) async {
     await chatRoomDAO.updateRoomTitle(
@@ -331,10 +340,10 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   @override
   Future<Function> addMemberToOwner(String chatroomOwner, RoomMember roomMember,
-      {bool isOnlySaveLocal = false}) async{
+      {bool isOnlySaveLocal = false}) async {
     await roomMemberDAO.addMember(roomMember);
     if (!isOnlySaveLocal) {
-      await chatRoomRemote.addMemberToOwner(chatroomOwner,roomMember);
+      await chatRoomRemote.addMemberToOwner(chatroomOwner, roomMember);
     }
   }
 
@@ -359,7 +368,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
     await messageDAO.emptyRoomMessages(room.id, principal.person);
-    if(room.creator!=principal.person) {
+    if (room.creator != principal.person) {
       await chatRoomRemote.removeMember(room.id, principal.person);
     }
     if (!isOnlySaveLocal) {

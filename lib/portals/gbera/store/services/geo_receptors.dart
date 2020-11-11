@@ -62,6 +62,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         1000,
         100,
         DateTime.now().millisecondsSinceEpoch,
+        DateTime.now().millisecondsSinceEpoch,
         'false',
         'none',
         null,
@@ -230,6 +231,11 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   Future<void> updateRadius(String id, double radius) async {
     await receptorDAO.updateRadius(radius, id, principal.person);
     return null;
+  }
+
+  @override
+  Future<Function> updateUtime(String receptor)async {
+    await receptorDAO.updateUtime(DateTime.now().millisecondsSinceEpoch,receptor,principal.person);
   }
 }
 

@@ -8,6 +8,7 @@ import 'gbera_entities.dart';
 
 mixin IPersonService {
   IPersonRemote get remote;
+
   Future<void> empty();
 
   Future<bool> existsPerson(official);
@@ -68,7 +69,10 @@ mixin IChannelService {
   Future<bool> existsChannel(channelid);
 
   Future<void> addChannel(Channel channel,
-      {String upstreamPerson,String localLeading, String remoteLeading, bool isOnlyLocal = false});
+      {String upstreamPerson,
+      String localLeading,
+      String remoteLeading,
+      bool isOnlyLocal = false});
 
   Future<List<Channel>> getChannelsOfPerson(String personid);
 
@@ -98,6 +102,9 @@ mixin IChannelService {
 
   Future<List<Person>> pageInputPersonOf(
       String channel, String person, int limit, int offset) {}
+
+ Future<void> updateUtime(String channel) {}
+
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -224,7 +231,10 @@ mixin IChannelPinService {
       String channelcode, int limit, int offset);
 
   Future<void> addOutputPerson(ChannelOutputPerson person);
-  Future<Function> addOutputPersonBy(String channelCreator,ChannelOutputPerson person);
+
+  Future<Function> addOutputPersonBy(
+      String channelCreator, ChannelOutputPerson person);
+
   Future<void> removeOutputPerson(String person, String channelcode);
 
   Future<List<ChannelOutputPerson>> pageOutputPerson(
@@ -253,11 +263,10 @@ mixin IChannelPinService {
 
   Future<ChannelOutputPerson> getLastOutputPerson(String channel) {}
 
-  Future<ChannelOutputPerson> getOutputPerson(String official, String channel) {}
+  Future<ChannelOutputPerson> getOutputPerson(
+      String official, String channel) {}
 
-  Future<void>  updateOutputPersonRights(official, String channel, String s) {}
-
-
+  Future<void> updateOutputPersonRights(official, String channel, String s) {}
 }
 mixin IFriendService {
   Future<bool> exists(String official) {}
@@ -286,7 +295,8 @@ mixin IChatRoomService {
   Future<void> addMember(RoomMember roomMember,
       {bool isOnlySaveLocal = false}) {}
 
-  Future<void>addMemberToOwner(String chatroomOwner, RoomMember roomMember,{bool isOnlySaveLocal = false}) {}
+  Future<void> addMemberToOwner(String chatroomOwner, RoomMember roomMember,
+      {bool isOnlySaveLocal = false}) {}
 
   Future<List<ChatRoom>> listChatRoom() {}
 
@@ -342,7 +352,7 @@ mixin IChatRoomService {
   Future<List<RoomMember>> pageMemberLike(
       String query, String room, int limit, int offset) {}
 
-
+  Future<void> updateRoomUtime(String room) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,
@@ -393,7 +403,7 @@ mixin IGeoReceptorService {
 
   Future<void> add(GeoReceptor receptor, {bool isOnlySaveLocal = false});
 
-  Future<void> remove( String id);
+  Future<void> remove(String id);
 
   Future<GeoReceptor> get(String receptorid);
 
@@ -401,12 +411,11 @@ mixin IGeoReceptorService {
 
   Future<List<GeoReceptor>> page(int limit, int offset);
 
-  Future<void> updateLeading(
-     String id, String lleading, String rleading);
+  Future<void> updateLeading(String id, String lleading, String rleading);
 
   Future<void> updateTitle(String id, String title);
 
-  Future<void> updateLocation( String receptor, LatLng location,
+  Future<void> updateLocation(String receptor, LatLng location,
       {bool isOnlyLocal = false});
 
   Future<void> updateRadius(String id, double radius);
@@ -419,7 +428,10 @@ mixin IGeoReceptorService {
 
   Future<void> setAutoScrollMessage(String id, bool isAutoScrollMessage) {}
 
-  Future<bool> existsLocal( String receptor) {}
+  Future<bool> existsLocal(String receptor) {}
+
+ Future<void> updateUtime(String receptor) {}
+
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();
@@ -428,8 +440,7 @@ mixin IGeoCategoryRemote {
 
   Future<List<GeoCategoryAppOR>> getApps(String category, String on) {}
 
- Future<GeoChannelPortalOR> getGeoPortal() {}
-
+  Future<GeoChannelPortalOR> getGeoPortal() {}
 }
 mixin IGeoCategoryLocal {
   Future<GeoCategoryOL> get(String category);
@@ -457,10 +468,10 @@ mixin IGeosphereMessageService {
   Future<void> like(GeosphereLikePersonOL likePerson,
       {bool isOnlySaveLocal = false}) {}
 
-  Future<void> unlike(String receptor,String msgid, String person,
+  Future<void> unlike(String receptor, String msgid, String person,
       {bool isOnlySaveLocal = false}) {}
 
-  Future<bool> isLiked(String receptor,String msgid, String person) {}
+  Future<bool> isLiked(String receptor, String msgid, String person) {}
 
   Future<List<GeosphereLikePersonOL>> pageLikePersons(
       String receptor, String id, int i, int j) {}
