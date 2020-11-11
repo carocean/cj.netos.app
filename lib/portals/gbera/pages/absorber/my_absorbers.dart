@@ -1206,7 +1206,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
     }
     for (var poi in pois) {
       var receptor = poi.receptor;
-      var absorbabler = '${receptor.category}/${receptor.id}';
+      var absorbabler = 'geo.receptor/${receptor.id}';
       var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
       if (absorber == null) {
         continue;

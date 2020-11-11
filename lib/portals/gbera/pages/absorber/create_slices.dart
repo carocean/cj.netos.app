@@ -144,7 +144,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
         _location, _radius, null, geoAbsorberCount.floor(), 0);
     for (var poi in pois) {
       var receptor = poi.receptor;
-      var absorbabler = '${receptor.category}/${receptor.id}';
+      var absorbabler = 'geo.receptor/${receptor.id}';
       var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
       if (absorber == null) {
         continue;

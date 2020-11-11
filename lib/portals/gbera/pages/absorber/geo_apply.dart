@@ -197,23 +197,40 @@ class _AbsorberGeoApplyPageState extends State<AbsorberGeoApplyPage> {
                   color: Colors.white,
                   child: Column(
                     children: [
-                      CardItem(
-                        title: '位置',
-                        paddingRight: 15,
-                        subtitle: Text(
-                          '${absorbabler.indexOf('.mobiles') > 0 ? '跟随' : '固定'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: 15,
+                          top: 10,
+                          bottom: 10,
                         ),
-                        tipsText: '${_address ?? ''}',
-                        onItemTap: () {
-                          widget.context.forward('/gbera/location', arguments: {
-                            'location': location,
-                            'label': '半径:${_radius.floor()}米'
-                          });
-                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.location_on,size: 20,color: Colors.grey,),
+                            SizedBox(width: 10,),
+                            Text(
+                              '位置',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  '${_address ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       Divider(
                         height: 1,

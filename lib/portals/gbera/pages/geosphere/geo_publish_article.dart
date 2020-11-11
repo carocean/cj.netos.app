@@ -246,7 +246,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         _purchaseInfo.bankInfo.id,
         _purchse_amount,
         'receptor',
-        '${_receptorObj.category}/$msgid',
+        'geo.receptor/$msgid',
         '在地理感知器${_receptorObj.title}');
     return purchaseOR;
   }

@@ -1965,7 +1965,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     var absorbabler =
-        '${widget.receptorInfo.category}/${widget.receptorInfo.id}';
+        'geo.receptor/${widget.receptorInfo.id}';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
@@ -2008,7 +2008,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
               'location': _receptorInfo.latLng,
               'radius': _receptorInfo.radius,
               'usage': 1,
-              'absorbabler': '${_receptorInfo.category}/${_receptorInfo.id}',
+              'absorbabler': 'geo.receptor/${_receptorInfo.id}',
             },
           ).then((value) {
             _load().then((value) {
