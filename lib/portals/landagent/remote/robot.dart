@@ -1702,7 +1702,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       'updateAbsorberLocation',
       parameters: {
         'absorberid': absorberid,
-        'location': jsonEncode(location),
+        'location': jsonEncode(location.toJson()),
       },
     );
   }
