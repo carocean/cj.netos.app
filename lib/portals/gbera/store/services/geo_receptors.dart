@@ -216,7 +216,7 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
       await receptorRemote.updateLocation(receptor, json);
       var receptorObj = await receptorDAO.get(receptor, principal.person);
       if (receptorObj.moveMode != 'unmoveable') {
-        var absorbabler = '$receptor';
+        var absorbabler = 'geo.receptor/$receptor';
         var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
         if (absorber != null) {
           await robotRemote.updateAbsorberLocation(
