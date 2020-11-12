@@ -482,6 +482,8 @@ class RoomMember {
   String person;
   String nickName;
   String isShowNick;
+  String leading;//供非person类型的成员使用，如wybank
+  String type;//成员类型，有person,wybank(纹银银行)等，默认是person
   int atime;
   String sandbox;
 
@@ -490,6 +492,8 @@ class RoomMember {
     this.person,
     this.nickName,
     this.isShowNick,
+    this.leading,
+    this.type,
     this.atime,
     this.sandbox,
   );
@@ -499,6 +503,8 @@ class RoomMember {
     this.person = map['person'];
     this.nickName = map['nickName'];
     this.isShowNick = map['isShowNick'] == true ? 'true' : 'false';
+    this.leading=map['leading'];
+    this.type=map['type'];
     this.atime = map['atime'];
     this.sandbox = sandbox;
   }

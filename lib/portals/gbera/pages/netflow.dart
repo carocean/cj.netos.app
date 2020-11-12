@@ -29,6 +29,7 @@ import 'package:netos_app/system/local/entities.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
@@ -67,9 +68,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
       _items.clear();
       _loadChannels().then((value) {
         if (mounted) {
-          setState(() {
-
-          });
+          setState(() {});
         }
       });
     });
@@ -81,8 +80,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     });
     syncTaskMananger.tasks['netflow'] = SyncTask(
       doTask: _sync_task,
-    )
-      ..run(
+    )..run(
         syncName: 'netflow',
         context: widget.context,
         checkRemote: _sync_check,
@@ -103,7 +101,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   Future<SyncArgs> _sync_check(PageContext context) async {
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     Channel last = await channelService.getlastChannel();
     int ctime = 0;
     if (last != null) {
@@ -123,9 +121,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     var source = frame.contentText;
     List list = jsonDecode(source);
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     IChannelCache channelCache =
-    widget.context.site.getService('/cache/channels');
+        widget.context.site.getService('/cache/channels');
 
     for (var map in list) {
       var ch = Channel.fromMap(map, context.principal.person);
@@ -149,17 +147,17 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   Future<void> sync_pin(Channel channel) async {
     IChannelPinService pinService =
-    widget.context.site.getService('/channel/pin');
+        widget.context.site.getService('/channel/pin');
     IChannelRemote channelRemote =
-    widget.context.site.getService('/remote/channels');
+        widget.context.site.getService('/remote/channels');
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     ChannelInputPerson lastInputPerson =
-    await pinService.getLastInputPerson(channel.id);
+        await pinService.getLastInputPerson(channel.id);
     int beginInputPersonTime =
-    lastInputPerson == null ? 0 : lastInputPerson.atime;
+        lastInputPerson == null ? 0 : lastInputPerson.atime;
     List<ChannelInputPerson> inputPersons =
-    await channelRemote.getAllInputPerson(channel.id, beginInputPersonTime);
+        await channelRemote.getAllInputPerson(channel.id, beginInputPersonTime);
     for (var iperson in inputPersons) {
       if (await pinService.existsInputPerson(iperson.person, channel.id)) {
         continue;
@@ -171,9 +169,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     }
 
     ChannelOutputPerson lastOutputPerson =
-    await pinService.getLastOutputPerson(channel.id);
+        await pinService.getLastOutputPerson(channel.id);
     int beginOutputPersonTime =
-    lastOutputPerson == null ? 0 : lastOutputPerson.atime;
+        lastOutputPerson == null ? 0 : lastOutputPerson.atime;
     List<ChannelOutputPerson> outputPerson = await channelRemote
         .getAllOutputPerson(channel.id, beginOutputPersonTime);
     for (var operson in outputPerson) {
@@ -189,9 +187,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   Future<void> _loadChannels() async {
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     List<Channel> list = await channelService.getAllChannel();
     if (list.isEmpty) {
       await channelService.initSystemChannel(widget.context.principal);
@@ -243,41 +241,40 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         });
                       });
                       break;
-                  // case '/netflow/manager/scan_channel':
-                  //   String cameraScanResult = await scanner.scan();
-                  //   if (cameraScanResult == null) break;
-                  //   arguments['qrcode'] = cameraScanResult;
-                  //   widget.context
-                  //       .forward(value, arguments: arguments)
-                  //       .then((v) {
-                  //     _items.clear();
-                  //     _loadChannels().then((v) {
-                  //       if (mounted) {
-                  //         setState(() {});
-                  //       }
-                  //     });
-                  //   });
-                  //   break;
-                  // case '/netflow/manager/search_channel':
-                  //   widget.context
-                  //       .forward(value, arguments: arguments)
-                  //       .then((v) {
-                  //     _items.clear();
-                  //     _loadChannels().then((v) {
-                  //       if (mounted) {
-                  //         setState(() {});
-                  //       }
-                  //     });
-                  //   });
-                  //   break;
+                    // case '/netflow/manager/scan_channel':
+                    //   String cameraScanResult = await scanner.scan();
+                    //   if (cameraScanResult == null) break;
+                    //   arguments['qrcode'] = cameraScanResult;
+                    //   widget.context
+                    //       .forward(value, arguments: arguments)
+                    //       .then((v) {
+                    //     _items.clear();
+                    //     _loadChannels().then((v) {
+                    //       if (mounted) {
+                    //         setState(() {});
+                    //       }
+                    //     });
+                    //   });
+                    //   break;
+                    // case '/netflow/manager/search_channel':
+                    //   widget.context
+                    //       .forward(value, arguments: arguments)
+                    //       .then((v) {
+                    //     _items.clear();
+                    //     _loadChannels().then((v) {
+                    //       if (mounted) {
+                    //         setState(() {});
+                    //       }
+                    //     });
+                    //   });
+                    //   break;
                     case '/netflow/manager/my_persons':
                       widget.context.forward('/contacts/person/public',
                           arguments: {'personViewer': 'chasechain'});
                       break;
                   }
                 },
-                itemBuilder: (context) =>
-                <PopupMenuEntry<String>>[
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
                   PopupMenuItem(
                     value: '/netflow/manager/create_channel',
                     child: Row(
@@ -577,7 +574,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                           arguments: {
                             'channel': ch,
                             'stream':
-                            _streamController.stream.asBroadcastStream(),
+                                _streamController.stream.asBroadcastStream(),
                           },
                         ).then((v) {
                           _streamController.add(
@@ -627,15 +624,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   int _msgListMaxLength = 4;
   Queue<InsiteMessage> _messages = Queue();
   StreamSubscription _streamSubscription;
+  Lock _lock;
 
   @override
   void initState() {
+    _lock = Lock();
     _listenMeidaFileDownload();
     if (!widget.context.isListeningMessage(matchPath: '/netflow/channel')) {
-      widget.context.listenMessage((frame) {
+      widget.context.listenMessage((frame) async {
         switch (frame.command) {
           case 'pushDocument':
-            _arrivedPushDocumentCommand(frame).then((message) {
+            await _lock.synchronized(() async {
+              var message = await _arrivedPushDocumentCommand(frame);
               if (message == null) {
                 return;
               }
@@ -646,23 +646,41 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
                 _messages.removeLast();
               }
               _messages.addFirst(message);
-              setState(() {});
+              if (mounted) {
+                setState(() {});
+              }
             });
+
             break;
           case 'likeDocument':
-            _arrivedLikeDocumentCommand(frame);
+            await _lock.synchronized(() async {
+              await _arrivedLikeDocumentCommand(frame);
+            });
+
             break;
           case 'unlikeDocument':
-            _arrivedUnlikeDocumentCommand(frame);
+            await _lock.synchronized(() async {
+              await _arrivedUnlikeDocumentCommand(frame);
+            });
+
             break;
           case 'commentDocument':
-            _arrivedCommentDocumentCommand(frame);
+            await _lock.synchronized(() async {
+              await _arrivedCommentDocumentCommand(frame);
+            });
+
             break;
           case 'uncommentDocument':
-            _arrivedUncommentDocumentCommand(frame);
+            await _lock.synchronized(() async {
+              await _arrivedUncommentDocumentCommand(frame);
+            });
+
             break;
           case 'mediaDocument':
-            _arrivedMediaDocumentCommand(frame);
+            await _lock.synchronized(() async {
+              await _arrivedMediaDocumentCommand(frame);
+            });
+
             break;
           default:
             print('收到不支持的命令:${frame.command}');
@@ -696,25 +714,25 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var docMap = jsonDecode(text);
 //    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     ChannelMessage message =
-    await channelMessageService.getChannelMessage(docMap['id']);
+        await channelMessageService.getChannelMessage(docMap['id']);
     if (message == null) {
       print('本地不存在消息，已丢弃。');
       return null;
     }
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     await likeService.unlike(
       docMap['id'],
       frame.parameter('unliker'),
       onlySaveLocal: true,
     );
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     var unliker = frame.parameter('unliker');
     var unlikerPerson =
-    await personService.getPerson(unliker, isDownloadAvatar: true);
+        await personService.getPerson(unliker, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
     widget.sink.add(
@@ -742,20 +760,20 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var docMap = jsonDecode(text);
 //    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     ChannelMessage message =
-    await channelMessageService.getChannelMessage(docMap['id']);
+        await channelMessageService.getChannelMessage(docMap['id']);
     if (message == null) {
       print('本地不存在消息，已丢弃。');
       return null;
     }
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     IChannelLikeService likeService =
-    widget.context.site.getService('/channel/messages/likes');
+        widget.context.site.getService('/channel/messages/likes');
     var liker = frame.parameter('liker');
     var likerPerson =
-    await personService.getPerson(liker, isDownloadAvatar: true);
+        await personService.getPerson(liker, isDownloadAvatar: true);
     var like = LikePerson(
       Uuid().v1(),
       liker,
@@ -788,79 +806,79 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   _listenMeidaFileDownload() {
     ProgressTaskBar progressTaskBar =
-    widget.context.site.getService('@.prop.taskbar.progress');
+        widget.context.site.getService('@.prop.taskbar.progress');
     IRemotePorts remotePorts = widget.context.site.getService('@.remote.ports');
     remotePorts.portTask.listener('/channel/doc/file.download',
-            (Frame frame) async {
-          switch (frame.head('sub-command')) {
-            case 'begin':
-              break;
-            case 'receiveProgress':
-              var count = frame.head('count');
-              var total = frame.head('total');
-              progressTaskBar.update(int.parse(count) * 1.0 / int.parse(total));
-              break;
-            case 'done':
-              var mediaid = frame.parameter('id');
-              var docid = frame.parameter('docid');
-              var type = frame.parameter('type');
-              var src = frame.parameter('src');
-              var leading = frame.parameter('leading');
-              var text = frame.parameter('text');
-              var channel = frame.parameter('channel');
-              var localFile = frame.parameter('localFile');
+        (Frame frame) async {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'receiveProgress':
+          var count = frame.head('count');
+          var total = frame.head('total');
+          progressTaskBar.update(int.parse(count) * 1.0 / int.parse(total));
+          break;
+        case 'done':
+          var mediaid = frame.parameter('id');
+          var docid = frame.parameter('docid');
+          var type = frame.parameter('type');
+          var src = frame.parameter('src');
+          var leading = frame.parameter('leading');
+          var text = frame.parameter('text');
+          var channel = frame.parameter('channel');
+          var localFile = frame.parameter('localFile');
 
-              IChannelMessageService channelMessageService =
+          IChannelMessageService channelMessageService =
               widget.context.site.getService('/channel/messages');
-              ChannelMessage message =
+          ChannelMessage message =
               await channelMessageService.getChannelMessage(docid);
-              if (message == null) {
-                print('本地不存在消息，已丢弃。');
-                return null;
-              }
+          if (message == null) {
+            print('本地不存在消息，已丢弃。');
+            return null;
+          }
 
-              var creator = frame.parameter('creator');
-              IPersonService personService =
+          var creator = frame.parameter('creator');
+          IPersonService personService =
               widget.context.site.getService('/gbera/persons');
-              IChannelMediaService mediaService =
+          IChannelMediaService mediaService =
               widget.context.site.getService('/channel/messages/medias');
-              var mediaPerson =
+          var mediaPerson =
               await personService.getPerson(creator, isDownloadAvatar: true);
 
-              var media = Media(
-                mediaid,
-                type,
-                localFile,
-                leading,
-                docid,
-                text,
-                channel,
-                widget.context.principal.person,
-              );
+          var media = Media(
+            mediaid,
+            type,
+            localFile,
+            leading,
+            docid,
+            text,
+            channel,
+            widget.context.principal.person,
+          );
 
-              await mediaService.addMedia(
-                media,
-              );
+          await mediaService.addMedia(
+            media,
+          );
 
-              //通知当前工作的管道有新消息到
-              //网流的管道列表中的每个管道的显示消息提醒的状态栏
-              widget.sink.add(
-                ChannelEventArgs(
-                  command: 'mediaDocumentCommand',
-                  channel: channel,
-                  args: {
-                    'message': message,
-                    'media': media,
-                    'mediaer': mediaPerson,
-                  },
-                ),
-              );
-              break;
-            default:
-              print(frame);
-              break;
-          }
-        });
+          //通知当前工作的管道有新消息到
+          //网流的管道列表中的每个管道的显示消息提醒的状态栏
+          widget.sink.add(
+            ChannelEventArgs(
+              command: 'mediaDocumentCommand',
+              channel: channel,
+              args: {
+                'message': message,
+                'media': media,
+                'mediaer': mediaPerson,
+              },
+            ),
+          );
+          break;
+        default:
+          print(frame);
+          break;
+      }
+    });
   }
 
   _unlistenMeidaFileDownload() {
@@ -891,7 +909,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       '${map['src']}?accessToken=${widget.context.principal.accessToken}',
       localFile,
       callbackUrl:
-      '/channel/doc/file.download?creator=$creator&localFile=$localFile&id=${map['id']}&type=${map['type']}&src=${map['src']}&leading=${map['leading']}&docid=${map['docid']}&text=${map['text']}&channel=${map['channel']}',
+          '/channel/doc/file.download?creator=$creator&localFile=$localFile&id=${map['id']}&type=${map['type']}&src=${map['src']}&leading=${map['leading']}&docid=${map['docid']}&text=${map['text']}&channel=${map['channel']}',
     );
   }
 
@@ -910,30 +928,28 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var comments = map['comments'];
 //    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     ChannelMessage message =
-    await channelMessageService.getChannelMessage(docMap['id']);
+        await channelMessageService.getChannelMessage(docMap['id']);
     if (message == null) {
       print('本地不存在消息，已丢弃。');
       return null;
     }
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     IChannelCommentService commentService =
-    widget.context.site.getService('/channel/messages/comments');
+        widget.context.site.getService('/channel/messages/comments');
     var commenter = frame.parameter('commenter');
     var commentid = frame.parameter('commentid');
     var commentPerson =
-    await personService.getPerson(commenter, isDownloadAvatar: true);
+        await personService.getPerson(commenter, isDownloadAvatar: true);
     var comment = ChannelComment(
       commentid,
       commentPerson.official,
       commentPerson.avatar,
       docMap['id'],
       comments,
-      DateTime
-          .now()
-          .millisecondsSinceEpoch,
+      DateTime.now().millisecondsSinceEpoch,
       commentPerson.nickName,
       frame.parameter('channel'),
       widget.context.principal.person,
@@ -971,25 +987,25 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     var docMap = jsonDecode(text);
 //    {id: 6dec8d5530d5364ed2815c27cc7c9bfc, creator: cj@gbera.netos, channel: d99bf0e3b662b062d8328b9477e6df16, wy: 10.0, ctime: 1584507865101, content: 好了！好了, medias: []}
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     ChannelMessage message =
-    await channelMessageService.getChannelMessage(docMap['id']);
+        await channelMessageService.getChannelMessage(docMap['id']);
     if (message == null) {
       print('本地不存在消息，已丢弃。');
       return null;
     }
     IChannelCommentService commentService =
-    widget.context.site.getService('/channel/messages/comments');
+        widget.context.site.getService('/channel/messages/comments');
     await commentService.removeComment(
       docMap['id'],
       frame.parameter('commentid'),
       onlySaveLocal: true,
     );
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     var uncommenter = frame.parameter('uncommenter');
     var uncommentPerson =
-    await personService.getPerson(uncommenter, isDownloadAvatar: true);
+        await personService.getPerson(uncommenter, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
     widget.sink.add(
@@ -1020,11 +1036,11 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   Future<InsiteMessage> _arrivedPushDocumentCommand(Frame frame) async {
     IInsiteMessageService messageService =
-    widget.context.site.getService('/insite/messages');
+        widget.context.site.getService('/insite/messages');
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
 
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
@@ -1042,7 +1058,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     );
 
     var existsmsg =
-    await messageService.getMessage(docMap['id'], docMap['channel']);
+        await messageService.getMessage(docMap['id'], docMap['channel']);
     if (existsmsg != null) {
       print('入站消息已存在，被丢弃。');
       return null;
@@ -1067,9 +1083,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       null,
       docMap['creator'],
       docMap['ctime'],
-      DateTime
-          .now()
-          .millisecondsSinceEpoch,
+      DateTime.now().millisecondsSinceEpoch,
       docMap['content'],
       docMap['purchaseSn'],
       null,
@@ -1078,7 +1092,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     );
 
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
 
     var person = await personService.getPerson(message.upstreamPerson);
     if (person != null) {
@@ -1089,10 +1103,10 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     }
 
     bool existsChannel =
-    await channelService.existsChannel(message.upstreamChannel);
+        await channelService.existsChannel(message.upstreamChannel);
 
     IChannelPinService pinService =
-    widget.context.site.getService('/channel/pin');
+        widget.context.site.getService('/channel/pin');
 
     if (!existsChannel) {
       //缓冲channel
@@ -1100,7 +1114,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
           message.upstreamChannel, message.upstreamPerson);
       if (channel != null) {
         IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
+            widget.context.site.getService('/cache/channels');
         await channelCache.cache(channel);
       }
     }
@@ -1113,18 +1127,17 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       );
       if (channel == null) {
         IChannelCache channelCache =
-        widget.context.site.getService('/cache/channels');
+            widget.context.site.getService('/cache/channels');
         channel = await channelCache.get(message.upstreamChannel);
       }
       print(
-          '已拒收公号<${person.official}>的管道<${channel?.name}>消息，消息被抛弃:${message
-              .id}');
+          '已拒收公号<${person.official}>的管道<${channel?.name}>消息，消息被抛弃:${message.id}');
       return null;
     }
 
     bool exitsInputPerson = existsChannel
         ? await pinService.existsInputPerson(
-        message.upstreamPerson, message.upstreamChannel)
+            message.upstreamPerson, message.upstreamChannel)
         : false;
 
     if (frame.head('sender-person') != widget.context.principal.person &&
@@ -1134,21 +1147,19 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
             isDownloadAvatar: true);
         if (person != null) {
           IPersonCache _personCache =
-          widget.context.site.getService('/cache/persons');
+              widget.context.site.getService('/cache/persons');
           await _personCache.cache(person);
         }
       }
 
       ChannelMessage existsCMSG =
-      await channelMessageService.getChannelMessage(message.docid);
+          await channelMessageService.getChannelMessage(message.docid);
       if (existsCMSG != null) {
         print('管道消息已存在，被丢弃。');
         return null;
       }
       ChannelMessage channelMessage = message.copy();
-      channelMessage.atime = DateTime
-          .now()
-          .millisecondsSinceEpoch;
+      channelMessage.atime = DateTime.now().millisecondsSinceEpoch;
       channelMessage.state = 'arrived';
 
       await channelService.updateUtime(channelMessage.onChannel);
@@ -1184,9 +1195,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
   Future<void> _loadMessages() async {
     IInsiteMessageService messageService =
-    widget.context.site.getService('/insite/messages');
+        widget.context.site.getService('/insite/messages');
     var messages =
-    await messageService.pageMessageWhere('inbox', _msgListMaxLength, 0);
+        await messageService.pageMessageWhere('inbox', _msgListMaxLength, 0);
     for (var msg in messages) {
       _messages.addFirst(msg);
     }
@@ -1281,7 +1292,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
 
   @override
   void initState() {
-        () async {
+    () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
       _purchaseOR = await _getPurchase();
@@ -1301,7 +1312,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
   void didUpdateWidget(_InsiteMessageItem oldWidget) {
     oldWidget.message = widget.message;
     oldWidget.notBottom = widget.notBottom;
-        () async {
+    () async {
       _person = await _loadPerson();
       _channel = await _loadChannel();
       if (mounted) {
@@ -1317,20 +1328,20 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
       return null;
     }
     IWyBankPurchaserRemote purchaserRemote =
-    widget.context.site.getService('/remote/purchaser');
+        widget.context.site.getService('/remote/purchaser');
     return await purchaserRemote.getPurchaseRecordPerson(
         widget.message.creator, sn);
   }
 
   Future<Person> _loadPerson() async {
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     return await personService.getPerson(widget.message.upstreamPerson);
   }
 
   Future<Channel> _loadChannel() async {
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     var message = widget.message;
     return await channelService.findChannelOfPerson(
         message.upstreamChannel, widget.message.upstreamPerson);
@@ -1339,9 +1350,9 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
   @override
   Widget build(BuildContext context) {
     var atime = TimelineUtil.formatByDateTime(
-        DateTime.fromMillisecondsSinceEpoch(widget.message.atime),
-        locale: 'zh',
-        dayFormat: DayFormat.Simple)
+            DateTime.fromMillisecondsSinceEpoch(widget.message.atime),
+            locale: 'zh',
+            dayFormat: DayFormat.Simple)
         .toString();
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -1406,8 +1417,8 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                         children: [
                           TextSpan(
                             text: (((_purchaseOR?.principalAmount ?? 0.00) /
-                                100.00) ??
-                                0)
+                                        100.00) ??
+                                    0)
                                 .toStringAsFixed(2),
                             style: TextStyle(
                               color: Colors.grey[500],
@@ -1450,32 +1461,32 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                 ),
                 _channel == null
                     ? SizedBox(
-                  height: 0,
-                  width: 0,
-                )
+                        height: 0,
+                        width: 0,
+                      )
                     : CatWidget(
-                  context: widget.context,
-                  channelId: _channel.id,
-                  size: 11,
-                  canTap: false,
-                ),
+                        context: widget.context,
+                        channelId: _channel.id,
+                        size: 11,
+                        canTap: false,
+                      ),
               ],
             ),
           ),
           widget.notBottom
               ? Container(
-            child: Divider(
-              height: 1,
-            ),
-            padding: EdgeInsets.only(
-              top: 5,
-              bottom: 5,
-            ),
-          )
+                  child: Divider(
+                    height: 1,
+                  ),
+                  padding: EdgeInsets.only(
+                    top: 5,
+                    bottom: 5,
+                  ),
+                )
               : Container(
-            width: 0,
-            height: 0,
-          ),
+                  width: 0,
+                  height: 0,
+                ),
         ],
       ),
     );
@@ -1552,9 +1563,9 @@ class __ChannelItemState extends State<_ChannelItem> {
   Future<void> _initBar() async {
     _isLoading = true;
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     var digest =
-    await channelMessageService.getChannelMessageDigest(widget.channelid);
+        await channelMessageService.getChannelMessageDigest(widget.channelid);
     if (digest != null) {
       _stateBar = _ChannelStateBar(
         brackets: '[${digest.count}条]',
@@ -1580,7 +1591,7 @@ class __ChannelItemState extends State<_ChannelItem> {
     }
     String command = e.command;
     IChannelMessageService channelMessageService =
-    widget.context.site.getService('/channel/messages');
+        widget.context.site.getService('/channel/messages');
     var args = e.args;
     switch (command) {
       case 'doChannelPageBack':
@@ -1631,9 +1642,7 @@ class __ChannelItemState extends State<_ChannelItem> {
 
         _stateBar = _ChannelStateBar(
           brackets: '[撤消赞]',
-          atime: DateTime
-              .now()
-              .millisecondsSinceEpoch,
+          atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${unliker.nickName}:${message.text}',
           isShow: true,
         );
@@ -1653,9 +1662,7 @@ class __ChannelItemState extends State<_ChannelItem> {
         Person uncommenter = args['uncommenter'];
         _stateBar = _ChannelStateBar(
           brackets: '[撤消评论]',
-          atime: DateTime
-              .now()
-              .millisecondsSinceEpoch,
+          atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${uncommenter.nickName}:${message.text}',
           isShow: true,
         );
@@ -1681,9 +1688,7 @@ class __ChannelItemState extends State<_ChannelItem> {
         }
         _stateBar = _ChannelStateBar(
           brackets: brackets,
-          atime: DateTime
-              .now()
-              .millisecondsSinceEpoch,
+          atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${mediaer.nickName}:${message.text}',
           isShow: true,
         );
@@ -1703,7 +1708,7 @@ class __ChannelItemState extends State<_ChannelItem> {
       setState(() {});
     }
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     var map = await widget.context.ports.upload(
         '/app',
         <String>[
@@ -1711,9 +1716,9 @@ class __ChannelItemState extends State<_ChannelItem> {
         ],
         accessToken: widget.context.principal.accessToken,
         onSendProgress: (i, j) {
-          _percentage = ((i * 1.0 / j));
-          setState(() {});
-        });
+      _percentage = ((i * 1.0 / j));
+      setState(() {});
+    });
     var remotePath = map[widget.leading];
     await channelService.updateLeading(
         widget.leading, remotePath, widget.channelid);
@@ -1721,10 +1726,10 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   _deleteChannel(String channelid) async {
     IChannelService channelService =
-    widget.context.site.getService('/netflow/channels');
+        widget.context.site.getService('/netflow/channels');
     await channelService.remove(channelid);
     IChannelPinService pinService =
-    widget.context.site.getService('/channel/pin');
+        widget.context.site.getService('/channel/pin');
     await pinService.emptyInputPersons(channelid);
   }
 
@@ -1757,7 +1762,7 @@ class __ChannelItemState extends State<_ChannelItem> {
       imgSrc = FadeInImage.assetNetwork(
         placeholder: 'lib/portals/gbera/images/default_watting.gif',
         image:
-        '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
+            '${widget.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 40,
         height: 40,
       );
@@ -1826,59 +1831,59 @@ class __ChannelItemState extends State<_ChannelItem> {
                           top: -6,
                           left: -5,
                           child: (!StringUtil.isEmpty(widget.upstreamPerson) &&
-                              widget.upstreamPerson != widget.owner)
+                                  widget.upstreamPerson != widget.owner)
                               ? Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            height: 16,
-                            width: 16,
-                            child: Icon(
-                              Icons.connect_without_contact_sharp,
-                              size: 12,
-                              color: Colors.green,
-                            ),
-                          )
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  height: 16,
+                                  width: 16,
+                                  child: Icon(
+                                    Icons.connect_without_contact_sharp,
+                                    size: 12,
+                                    color: Colors.green,
+                                  ),
+                                )
                               : SizedBox(
-                            width: 0,
-                            height: 0,
-                          ),
+                                  width: 0,
+                                  height: 0,
+                                ),
                         ),
                         Positioned(
                           top: -10,
                           right: -3,
                           child: !_stateBar.isShow
                               ? Container(
-                            width: 0,
-                            height: 0,
-                          )
+                                  width: 0,
+                                  height: 0,
+                                )
                               : Badge(
-                            position: BadgePosition.topEnd(
-                              end: -3,
-                              top: 3,
-                            ),
-                            elevation: 0,
-                            showBadge: (_stateBar.count ?? 0) != 0,
-                            badgeContent: Text(
-                              '',
-                            ),
-                            child: null,
-                          ),
+                                  position: BadgePosition.topEnd(
+                                    end: -3,
+                                    top: 3,
+                                  ),
+                                  elevation: 0,
+                                  showBadge: (_stateBar.count ?? 0) != 0,
+                                  badgeContent: Text(
+                                    '',
+                                  ),
+                                  child: null,
+                                ),
                         ),
                         _percentage > 0 && _percentage < 1.0
                             ? Positioned(
-                          left: 0,
-                          bottom: 0,
-                          right: 0,
-                          child: LinearProgressIndicator(
-                            value: _percentage,
-                          ),
-                        )
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                child: LinearProgressIndicator(
+                                  value: _percentage,
+                                ),
+                              )
                             : Container(
-                          width: 0,
-                          height: 0,
-                        ),
+                                width: 0,
+                                height: 0,
+                              ),
                       ],
                     ),
                   ),
@@ -1905,58 +1910,58 @@ class __ChannelItemState extends State<_ChannelItem> {
                       ),
                       !_stateBar.isShow
                           ? Container(
-                        width: 0,
-                        height: 0,
-                      )
+                              width: 0,
+                              height: 0,
+                            )
                           : Padding(
-                        padding: EdgeInsets.only(
-                          top: 5,
-                        ),
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          alignment: WrapAlignment.start,
-                          spacing: 5,
-                          runSpacing: 3,
-                          children: <Widget>[
-                            Text.rich(
-                              TextSpan(
-                                text: _stateBar.brackets,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: ' ',
+                              padding: EdgeInsets.only(
+                                top: 5,
+                              ),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                alignment: WrapAlignment.start,
+                                spacing: 5,
+                                runSpacing: 3,
+                                children: <Widget>[
+                                  Text.rich(
+                                    TextSpan(
+                                      text: _stateBar.brackets,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: ' ',
+                                        ),
+                                        TextSpan(
+                                          text: _stateBar.tips,
+                                          style: TextStyle(
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  TextSpan(
-                                    text: _stateBar.tips,
+                                  Text(
+                                    _stateBar?.atime != null
+                                        ? '${TimelineUtil.format(
+                                            _stateBar?.atime,
+                                            locale: 'zh',
+                                            dayFormat: DayFormat.Simple,
+                                          )}'
+                                        : '',
                                     style: TextStyle(
-                                      color: Colors.black54,
+                                      color: Colors.grey[500],
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
-                              _stateBar?.atime != null
-                                  ? '${TimelineUtil.format(
-                                _stateBar?.atime,
-                                locale: 'zh',
-                                dayFormat: DayFormat.Simple,
-                              )}'
-                                  : '',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.normal,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),

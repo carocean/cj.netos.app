@@ -29,6 +29,7 @@ import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/dao/database.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
@@ -73,6 +74,7 @@ class _GeosphereState extends State<Geosphere>
   StreamController _receptorStreamController;
   StreamController _notifyStreamController;
   int _limit = 15, _offset = 0;
+  Lock _lock;
 
   @override
   bool get wantKeepAlive {
@@ -81,6 +83,7 @@ class _GeosphereState extends State<Geosphere>
 
   @override
   void initState() {
+    _lock = Lock();
     _receptorStreamController = StreamController();
     _notifyStreamController = StreamController.broadcast();
     geoLocation.start();
@@ -93,45 +96,51 @@ class _GeosphereState extends State<Geosphere>
     _listenMeidaFileDownload();
     if (!widget.context.isListeningMessage(matchPath: '/geosphere/receptor')) {
       widget.context.listenMessage(
-        (frame) {
+        (frame) async {
           switch (frame.command) {
             case 'pushDocument':
-              _arrivedPushDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedPushDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }
               });
               break;
             case 'likeDocument':
-              _arrivedLikeDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedLikeDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }
               });
               break;
             case 'unlikeDocument':
-              _arrivedUnlikeDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedUnlikeDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }
               });
               break;
             case 'commentDocument':
-              _arrivedCommentDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedCommentDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }
               });
               break;
             case 'uncommentDocument':
-              _arrivedUncommentDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedUncommentDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }
               });
               break;
             case 'mediaDocument':
-              _arrivedMediaDocumentCommand(frame).then((message) {
+              await _lock.synchronized(() async {
+                await _arrivedMediaDocumentCommand(frame);
                 if (mounted) {
                   setState(() {});
                 }

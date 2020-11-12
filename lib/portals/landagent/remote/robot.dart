@@ -550,6 +550,45 @@ class SliceBatchOR {
   }
 }
 
+class RecipientsRecordInfo {
+  String sn;
+  String absorber;
+  int order;
+  String person;
+  String personName;
+  String bankid;
+
+  RecipientsRecordInfo({
+    this.sn,
+    this.absorber,
+    this.order,
+    this.person,
+    this.personName,
+    this.bankid,
+  });
+
+  RecipientsRecordInfo.parse(obj) {
+    this.sn=obj['sn'];
+    this.absorber=obj['absorber'];
+    this.order=obj['order'];
+    this.person=obj['person'];
+    this.personName=obj['personName'];
+    this.bankid=obj['bankid'];
+  }
+
+  dynamic toMap() {
+    return {
+      'sn':sn,
+      'absorber':absorber,
+      'order':order,
+      'person':person,
+      'personName':personName,
+      'bankid':bankid,
+    };
+  }
+
+}
+
 mixin IRobotRemote {
   Future<double> getHubTails(String bankid) {}
 
@@ -731,6 +770,8 @@ mixin IRobotRemote {
   Future<bool> cannotCreateQrocdeSlice() {}
 
   Future<List<QrcodeSliceOR>> listUnconsumeSlices() {}
+
+  Future<RecipientsRecordInfo> getRecipientsRecordInfo(outTradeSn) {}
 }
 
 class RobotRemote implements IRobotRemote, IServiceBuilder {
@@ -2010,5 +2051,20 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       items.add(QrcodeSliceOR.parse(obj));
     }
     return items;
+  }
+
+  @override
+  Future<RecipientsRecordInfo> getRecipientsRecordInfo(outTradeSn) async {
+    var obj = await remotePorts.portGET(
+      robotRecordPorts,
+      'getRecipientsRecordInfo',
+      parameters: {
+        'record_sn': outTradeSn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return RecipientsRecordInfo.parse(obj);
   }
 }

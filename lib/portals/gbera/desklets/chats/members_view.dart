@@ -100,6 +100,8 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
           official,
           person?.nickName,
           'false',
+          null,
+          'person',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
@@ -178,13 +180,29 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
     }
     var items = <Widget>[];
     for (var model in _memberModels) {
-      var person = model.person;
+      var member=model.member;
+      var leading;
+      var title;
+      if(member.type=='wybank'){
+        leading=member.leading;
+        title=member.nickName;
+      }else{
+        var person=model.person;
+        leading=person.avatar;
+        title=person.nickName;
+      }
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
+            if(member.type=='wybank') {
+              widget.context
+                  .forward('/portlet/chat/room/view_licence', arguments: {'bankid': member.person,});
+              return;
+            }
             widget.context
-                .forward('/person/view', arguments: {'person': person});
+                .forward('/person/view', arguments: {'person': model.person});
+
           },
           child: Padding(
             padding: EdgeInsets.all(10),
@@ -197,7 +215,7 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
                     width: 40,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
-                      child: getAvatarWidget(person.avatar, widget.context),
+                      child: getAvatarWidget(leading, widget.context),
                     ),
                   ),
                   SizedBox(
@@ -208,7 +226,7 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
                       Expanded(
                         child: Center(
                           child: Text(
-                            '${person.nickName}',
+                            '${title}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],

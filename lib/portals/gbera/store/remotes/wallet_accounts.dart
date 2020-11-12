@@ -84,6 +84,20 @@ class BankInfo {
     this.principalRatio,
     this.freeRatio,
   });
+  BankInfo.parse(obj){
+    this.creator=obj['creator'];
+    this.ctime=obj['ctime'];
+    this.id=obj['id'];
+    this.state=obj['state'];
+    this.title=obj['title'];
+    this.icon=obj['icon'];
+    this.districtCode=obj['districtCode'];
+    this.districtTitle=obj['districtTitle'];
+    this.licence=obj['licence'];
+    this.reserveRatio=obj['reserveRatio'];
+    this.principalRatio=obj['principalRatio'];
+    this.freeRatio=obj['freeRatio'];
+  }
 }
 
 class PersonCardOR {

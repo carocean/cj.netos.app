@@ -61,6 +61,8 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
         official,
         person?.nickName,
         'false',
+        null,
+        'person',
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       );
@@ -84,6 +86,8 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
         context.principal.person,
         context.principal.nickName,
         'false',
+        null,
+        'person',
         DateTime.now().millisecondsSinceEpoch,
         context.principal.person,
       );

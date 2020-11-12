@@ -74,7 +74,7 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
     _offset += members.length;
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
-      if (person.official == _chatRoom.creator) {
+      if (person==null||person.official == _chatRoom.creator) {
         continue;
       }
       _memberModels.add(_MemberModel(person: person, member: member));

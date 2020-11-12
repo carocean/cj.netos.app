@@ -1090,7 +1090,11 @@ class __VerifyCodeButtonState extends State<_VerifyCodeButton> {
     _fetchButtonEnabled = false;
     setState(() {});
     AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
-    appKeyPair=await appKeyPair.getAppKeyPair(widget.context.principal.appid, widget.context.site);
+    var appid = widget.context.principal.appid;
+    if (appid == null) {
+      appid = 'gbera.netos';
+    }
+    appKeyPair = await appKeyPair.getAppKeyPair(appid, widget.context.site);
     var nonce = MD5Util.MD5(Uuid().v1());
     await widget.context.ports.callback(
       'get ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',

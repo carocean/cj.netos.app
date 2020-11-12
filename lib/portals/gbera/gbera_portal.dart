@@ -16,6 +16,7 @@ import 'package:netos_app/portals/gbera/desklets/chats/members_remove.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/show_selected.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/trans_to.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/view_licence.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_progress.dart';
@@ -2357,6 +2358,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/portlet/chat/talk',
           buildPage: (PageContext pageContext) => ChatTalk(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看地商营业执照',
+          subtitle: '',
+          desc: '',
+          icon: GalleryIcons.shrine,
+          url: '/portlet/chat/room/view_licence',
+          buildPage: (PageContext pageContext) => ViewLicencePage(
             context: pageContext,
           ),
         ),

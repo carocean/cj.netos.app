@@ -158,7 +158,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `utime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `leading` TEXT, `type` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -2690,6 +2690,8 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['person'] as String,
       row['nickName'] as String,
       row['isShowNick'] as String,
+      row['leading'] as String,
+      row['type'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 
@@ -2792,6 +2794,8 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
                   'person': item.person,
                   'nickName': item.nickName,
                   'isShowNick': item.isShowNick,
+                  'leading': item.leading,
+                  'type': item.type,
                   'atime': item.atime,
                   'sandbox': item.sandbox
                 });
@@ -2807,6 +2811,8 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
       row['person'] as String,
       row['nickName'] as String,
       row['isShowNick'] as String,
+      row['leading'] as String,
+      row['type'] as String,
       row['atime'] as int,
       row['sandbox'] as String);
 

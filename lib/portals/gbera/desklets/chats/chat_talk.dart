@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -1268,14 +1269,23 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   Future<void> _load() async {
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");
-    _sender = await friendService.getFriend(widget.p2pMessage.sender);
-
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
+
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMemberOfPerson(
-        _chatRoom.creator, _chatRoom.id, _sender.official);
+        _chatRoom.creator, _chatRoom.id, widget.p2pMessage.sender);
+    if(_member==null){
+      _sender = await friendService.getFriend(widget.p2pMessage.sender);
+      isShowNick =false;
+      return;
+    }
+
+    if (_member.type == 'wybank') {
+      return;
+    }
     isShowNick = _member.isShowNick == 'true' ? true : false;
+    _sender = await friendService.getFriend(widget.p2pMessage.sender);
   }
 
   @override
@@ -1285,28 +1295,6 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
         height: 0,
         width: 0,
       );
-    }
-    var avatar;
-    if (_sender.avatar == null) {
-      avatar = Container(
-        width: 0,
-        height: 0,
-      );
-    } else {
-      if (_sender.avatar.startsWith('/')) {
-        avatar = Image.file(
-          File(
-            _sender.avatar,
-          ),
-          fit: BoxFit.fill,
-        );
-      } else {
-        avatar = FadeInImage.assetNetwork(
-          placeholder: 'lib/portals/gbera/images/netflow.png',
-          image:
-              '${_sender.avatar}?accessToken=${widget.context.principal.accessToken}',
-        );
-      }
     }
 
     return Container(
@@ -1324,9 +1312,14 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () async {
+              if(_member!=null&&_member.type=='wybank') {
+                widget.context
+                    .forward('/portlet/chat/room/view_licence', arguments: {'bankid': _member.person,});
+                return;
+              }
               IPersonService personService =
                   widget.context.site.getService('/gbera/persons');
-              var person = await personService.getPerson(_member.person);
+              var person = await personService.getPerson(_sender.official);
               widget.context
                   .forward('/person/view', arguments: {'person': person});
             },
@@ -1342,7 +1335,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(5),
                   ),
-                  child: avatar,
+                  child: getAvatarWidget(_renderLeading(), widget.context),
                 ),
               ),
             ),
@@ -1359,9 +1352,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                         right: 5,
                       ),
                       child: Text(
-                        isShowNick
-                            ? _member.nickName ?? _sender.nickName ?? ''
-                            : _sender.nickName ?? '',
+                        _renderMemberName(),
                         style: TextStyle(
                           fontSize: 12,
                           color: widget.isForegroundWhite
@@ -1515,6 +1506,96 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ),
           ),
         );
+      case '/pay/absorbs':
+        var colors=[Color(0xFFccffff),Color(0xFFCDCDB4),Color(0xFFF5F5DC),Color(0xFFCAE1FF),];
+        var json = widget.p2pMessage.content;
+        var obj = jsonDecode(json);
+        double amount = obj['amount']/100.00;
+        var title = obj['title'];
+        var encourageCause = obj['encourageCause'];
+        return Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 15,
+            bottom: 15,
+          ),
+          decoration: BoxDecoration(
+            color: colors[(title.hashCode.abs()%colors.length)],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '给你',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                '¥${amount.toStringAsFixed(14)}',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      '发放自猫',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${title ?? ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      '奖励原因',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${encourageCause ?? ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
       default:
         print('不支持的消息类型:${widget.p2pMessage.contentType}');
         return Container(
@@ -1522,6 +1603,22 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           height: 0,
         );
     }
+  }
+
+  String _renderMemberName() {
+    if (_member?.type == 'wybank') {
+      return _member?.nickName;
+    }
+    return isShowNick
+        ? _member?.nickName ?? (_sender?.nickName ?? '')
+        : _sender?.nickName ?? '';
+  }
+
+  String _renderLeading() {
+    if (_member?.type == 'wybank') {
+      return _member?.leading;
+    }
+    return _sender?.avatar;
   }
 }
 
@@ -1799,6 +1896,96 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                 ],
               ),
             ),
+          ),
+        );
+        break;
+      case '/pay/absorbs':
+        var json = widget.p2pMessage.content;
+        var obj = jsonDecode(json);
+        double amount = obj['amount']/100.00;
+        var title = obj['title'];
+        var encourageCause = obj['encourageCause'];
+        display= Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 15,
+            bottom: 15,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '给你',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                '¥${amount.toStringAsFixed(14)}',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      '发放自',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${title ?? ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      '奖励原因',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${encourageCause ?? ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
         break;

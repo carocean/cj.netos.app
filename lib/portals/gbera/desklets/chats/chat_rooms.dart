@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:badges/badges.dart';
 import 'package:common_utils/common_utils.dart';
@@ -13,10 +14,13 @@ import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
+import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:nineold/nine_old_frame.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../main.dart';
@@ -40,9 +44,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   StreamController<dynamic> _notifyStreamController;
   List<ChatRoomModel> _models = [];
   ProgressTaskBar taskbarProgress;
+  Lock _lock;
 
   @override
   void initState() {
+    _lock = Lock();
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
     _notifyStreamController = StreamController.broadcast();
     chatroomNotifyStreamController = _notifyStreamController;
@@ -270,7 +276,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
     switch (frame.command) {
       case 'pushMessage':
-        _arrivePushMessageCommand(frame).then((message) {
+        await _lock.synchronized(() async {
+          await _arrivePushMessageCommand(frame);
           if (mounted) {
             setState(() {});
           }
@@ -279,14 +286,146 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
+  Future<void> _arriveAbsorbMessage(frame, content) async {
+    var room = frame.parameter('room');
+    var msgid = frame.parameter('msgid');
+    var ctime = frame.parameter('ctime');
+    var roomCreator = frame.parameter('roomCreator');
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+
+    if (await messageService.existsMessage(msgid)) {
+      //消息已存在
+      return;
+    }
+    var record = jsonDecode(content);
+    var nodejson = record['note'];
+    if (nodejson == null) {
+      return;
+    }
+    var map = jsonDecode(nodejson);
+    var outTradeType = map['outTradeType'];
+    var outTradeSn = map['outTradeSn'];
+    var encourageCode = map['encourageCode'];
+    var encourageCause = map['encourageCause'];
+
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var info = await robotRemote.getRecipientsRecordInfo(outTradeSn);
+    if (info == null) {
+      return;
+    }
+
+    var chatRoom = await chatRoomService.get(room);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = ChatRoom(
+        room,
+        '招财猫',
+        'http://47.105.165.186:7100/app/cats/cat-red.gif',
+        widget.context.principal.person,
+        int.parse(ctime),
+        DateTime.now().millisecondsSinceEpoch,
+        null,
+        null,
+        'false',
+        'false',
+        null,
+        widget.context.principal.person,
+      );
+      var existOnRemote = await chatRoomService.fetchRoom(
+          widget.context.principal.person, room);
+      try {
+        await chatRoomService.addRoom(
+          chatRoom,
+          isOnlySaveLocal: existOnRemote != null,
+        );
+      } catch (e) {
+        print('$e');
+      }
+    }
+    await chatRoomService.updateRoomUtime(room);
+    await _refresh();
+    var msgcontext = jsonEncode({
+      'sn': record['sn'],
+      'amount': record['realAmount'],
+      'ctime': record['ctime'],
+      'title': record['sourceTitle'],
+      'encourageCode': encourageCode,
+      'encourageCause': encourageCause,
+      'recordInfo': jsonEncode(info.toMap()),
+    });
+    var sender;
+    if (info.order == 0) {
+      sender = info.bankid; //添加纹银银行成员
+      if (!(await chatRoomService.existsMember(room, sender))) {
+        IWyBankRemote wyBankRemote =
+            widget.context.site.getService('/remote/wybank');
+        var bank = await wyBankRemote.getWenyBank(sender);
+        try {
+          await chatRoomService.addMember(
+              RoomMember(
+                room,
+                sender,
+                bank.title,
+                'false',
+                bank.icon,
+                'wybank',
+                DateTime.now().millisecondsSinceEpoch,
+                widget.context.principal.person,
+              ),
+              isOnlySaveLocal: true);
+        } catch (e) {
+          print('$e');
+        }
+      }
+    } else {
+      sender = info.person;
+      // if (!(await chatRoomService.existsMember(room, sender))) {
+      //   var person = await personService.getPerson(sender);
+      //   if (person != null) {
+      //     await chatRoomService.addMember(
+      //         RoomMember(
+      //           room,
+      //           sender,
+      //           person.nickName,
+      //           'false',
+      //           person.avatar,
+      //           'person',
+      //           DateTime.now().millisecondsSinceEpoch,
+      //           widget.context.principal.person,
+      //         ),
+      //         isOnlySaveLocal: true);
+      //   }
+      // }
+    }
+    var message = ChatMessage(
+      msgid,
+      sender,
+      room,
+      '/pay/absorbs',
+      msgcontext,
+      'arrived',
+      StringUtil.isEmpty(ctime)
+          ? DateTime.now().millisecondsSinceEpoch
+          : int.parse(ctime),
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      widget.context.principal.person,
+    );
+    await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+    _notifyStreamController
+        .add({'action': 'arrivePushMessageCommand', 'message': message});
+  }
+
   Future<void> _arrivePushMessageCommand(Frame frame) async {
     var content = frame.contentText;
     if (StringUtil.isEmpty(content)) {
       print('消息为空，被丢弃。');
-      return null;
-    }
-    if (frame.head('sender-person') == widget.context.principal.person) {
-//      print('自已的消息又发给自己，被丢弃。');
       return null;
     }
     var room = frame.parameter('room');
@@ -295,6 +434,16 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var ctime = frame.parameter('ctime');
     var roomCreator = frame.parameter('roomCreator');
     var sender = frame.head('sender-person');
+
+    if (!StringUtil.isEmpty(contentType) && contentType == '/pay/absorbs') {
+      await _arriveAbsorbMessage(frame, content);
+      return null;
+    }
+    if (frame.head('sender-person') == widget.context.principal.person) {
+//      print('自已的消息又发给自己，被丢弃。');
+      return null;
+    }
+
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IP2PMessageService messageService =
@@ -324,7 +473,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     if (!(await chatRoomService.existsMember(room, sender))) {
       var member =
           await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
-      if(member!=null) {
+      if (member != null) {
         await chatRoomService.addMember(member, isOnlySaveLocal: true);
       }
     } else {
@@ -509,10 +658,12 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         break;
     }
   }
-  Future<void> _refresh()async{
+
+  Future<void> _refresh() async {
     _models.clear();
-   await _load();
+    await _load();
   }
+
   Future<void> _load() async {
     await _loadChatrooms();
   }
@@ -527,6 +678,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       List<RoomMember> members = await chatRoomService.listMember(room.id);
       List<Friend> friends = [];
       for (var member in members) {
+        if (!StringUtil.isEmpty(member.type) && member.type != 'person') {
+          continue;
+        }
         var f = await friendService.getFriend(member.person);
         if (f == null) {
           continue;
@@ -574,6 +728,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           official,
           person?.nickName,
           'false',
+          null,
+          'person',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
@@ -590,6 +746,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           widget.context.principal.person,
           null,
           'false',
+          null,
+          'person',
           DateTime.now().millisecondsSinceEpoch,
           widget.context.principal.person,
         ),
@@ -602,7 +760,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(room.id, isOnlySaveLocal: true);
+    await chatRoomService.removeChatRoom(room.id, isOnlySaveLocal: false);
     return;
   }
 
@@ -803,7 +961,9 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       switch (command['action']) {
         case 'arrivePushMessageCommand':
           _loadUnreadMessage().then((v) {
-            setState(() {});
+            if (mounted) {
+              setState(() {});
+            }
           });
           break;
         default:
@@ -815,7 +975,9 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       }
     });
     _loadUnreadMessage().then((v) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -873,9 +1035,9 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     if (member != null &&
         member.isShowNick == 'true' &&
         !StringUtil.isEmpty(member.nickName)) {
-      whois = member.nickName;
+      whois = member?.nickName;
     } else {
-      whois = person.nickName;
+      whois = person?.nickName;
     }
     _stateBar.brackets = '${count > 0 ? '$count条' : '$whois'}';
     _stateBar.isShow = true;
@@ -902,6 +1064,18 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         break;
       case 'transTo':
         _stateBar.tips = '$whois: 转账给我';
+        break;
+      case '/pay/absorbs':
+        var cnt = message?.content;
+        var map = jsonDecode(cnt);
+        var amount = map['amount'];
+        var title = map['title'];
+        var infoText = map['recordInfo'];
+        var info = jsonDecode(infoText);
+        var order = info['order'];
+        whois = order == 0 ? member?.nickName??'' : whois;
+        _stateBar.tips =
+            '$whois: 通过招财猫[$title]发洇金给我\r\n¥${(amount/100.00).toStringAsFixed(14)}';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');

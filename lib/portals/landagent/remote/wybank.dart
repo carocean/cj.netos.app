@@ -71,6 +71,9 @@ mixin IWyBankRemote {
   Future<List<BankInfo>> pageWenyBank(int limit, int offset) {}
 
   Future<BankInfo> getAndAutoCreateWenyBankByDistrict(String distinct) {}
+
+  Future<BankInfo>  getWenyBank(_bankid) {}
+
 }
 
 class WybankRemote implements IWyBankRemote, IServiceBuilder {
@@ -155,6 +158,21 @@ class WybankRemote implements IWyBankRemote, IServiceBuilder {
       reserveRatio: map['reserveRatio'],
       freeRatio: map['freeRatio'],
     );
+  }
+
+  @override
+  Future<BankInfo> getWenyBank(bankid) async{
+    var map = await remotePorts.portGET(
+      wybankPorts,
+      'getWenyBank',
+      parameters: {
+        'banksn': bankid,
+      },
+    );
+    if (map == null) {
+      return null;
+    }
+    return BankInfo.parse(map);
   }
 
   @override

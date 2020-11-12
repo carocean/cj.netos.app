@@ -121,8 +121,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     }
     _offset += members.length;
     for (RoomMember member in members) {
+      // if (!StringUtil.isEmpty(member.type) && member.type != 'person') {
+      //   continue;
+      // }
       var person = await personService.getPerson(member.person);
-      if (_chatRoom.creator == person.official) {
+      if (person!=null&&_chatRoom.creator == person.official) {
         _memberModels.insert(0, _MemberModel(person: person, member: member));
         continue;
       }
@@ -148,6 +151,8 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             official,
             person?.nickName,
             'false',
+            person?.avatar,
+            'person',
             DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
           ),
@@ -160,6 +165,8 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             official,
             person?.nickName,
             'false',
+            person?.avatar,
+            'person',
             DateTime.now().millisecondsSinceEpoch,
             widget.context.principal.person,
           ),
@@ -538,12 +545,10 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         fit: BoxFit.fill,
       );
     }
-    return FadeInImage.assetNetwork(
-      placeholder: null,
-      image: _chatRoom.leading,
+    return SizedBox(
       width: 30,
       height: 30,
-      fit: BoxFit.fill,
+      child: getAvatarWidget(_chatRoom.leading, widget.context),
     );
   }
 
@@ -659,12 +664,23 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       var person = model.person;
       var member = model.member;
       bool isOwner = member.person == _chatRoom.creator;
-      var title =
-          '${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
+      var title ;
+      if(member.type=='wybank'){
+        title=member.nickName;
+      }else{
+        title='${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
+      }
+      var avatar =
+          StringUtil.isEmpty(member.leading) ? person?.avatar : member.leading;
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () async {
+            if(member.type=='wybank') {
+              widget.context
+                  .forward('/portlet/chat/room/view_licence', arguments: {'bankid': member.person,});
+              return;
+            }
             widget.context
                 .forward('/person/view', arguments: {'person': person});
           },
@@ -730,7 +746,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                         borderRadius: BorderRadius.all(
                           Radius.circular(4),
                         ),
-                        child: getAvatarWidget(person.avatar, widget.context),
+                        child: getAvatarWidget(avatar, widget.context),
                       ),
                     ),
                   ),
