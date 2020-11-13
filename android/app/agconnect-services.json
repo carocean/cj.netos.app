@@ -1,0 +1,35 @@
+{
+	"agcgw":{
+		"backurl":"connect-drcn.dbankcloud.cn",
+		"url":"connect-drcn.hispace.hicloud.com"
+	},
+	"client":{
+		"appType":"1",
+		"cp_id":"2850086000433376475",
+		"product_id":"736430079244686101",
+		"client_id":"485970208566019072",
+		"client_secret":"AE3057DAE17B67961D3C06A76E71DF634BD2EDB4199746309B32CC4D7B3FBB76",
+		"project_id":"736430079244686101",
+		"app_id":"103180143",
+		"api_key":"CgB6e3x94B2GVJCZoejN+Ds9olJDF9Ucs0h89nWqxM08fbPdPnnCeJhW1ufgGbt7ZTwHxQqaq4ansXL0qKjHBQSd",
+		"package_name":"cj.netos.netos_app"
+	},
+	"service":{
+		"analytics":{
+			"collector_url":"datacollector-drcn.dt.hicloud.com,datacollector-drcn.dt.dbankcloud.cn",
+			"resource_id":"p1",
+			"channel_id":""
+		},
+		"search":{
+			"url":"https://search-drcn.cloud.huawei.com"
+		},
+		"cloudstorage":{
+			"storage_url":"https://agc-storage-drcn.platform.dbankcloud.cn"
+		},
+		"ml":{
+			"mlservice_url":"ml-api-drcn.ai.dbankcloud.com,ml-api-drcn.ai.dbankcloud.cn"
+		}
+	},
+	"region":"CN",
+	"configuration_version":"1.0"
+}
