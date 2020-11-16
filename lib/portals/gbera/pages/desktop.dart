@@ -36,7 +36,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     _controller = EasyRefreshController();
-    _load().then((v) {
+    _load().then((v) async{
       _isloaded = true;
       if (mounted) {
         setState(() {});

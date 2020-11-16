@@ -17,6 +17,8 @@ dependencies:
   objectdb: ^1.0.7+1
   path_provider: ^1.5.1
   device_info: ^0.4.1+4
+  buddy_push:
+    path: ../buddy_push
 dev_dependencies:
   flutter_test:
     sdk: flutter

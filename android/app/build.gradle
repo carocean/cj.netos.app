@@ -26,6 +26,7 @@ if (flutterVersionName == null) {
 
 apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+//apply plugin: 'com.huawei.agconnect'
 
 android {
     compileSdkVersion 28
@@ -95,4 +96,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    //华为
+    implementation 'com.huawei.hms:push:5.0.2.300'
+    // 添加aar依赖到工程
+    implementation fileTree(include: ['*.jar'],   dir: 'libs')
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+    //添加push sdk aar依赖
+    implementation files("libs/vivo_pushsdk-v2.9.0.0.aar")
+    //oppo
+    implementation files("libs/com.heytap.msp.aar")
+    //小米
+    implementation files("libs/MiPush_SDK_Client_3_8_5.jar")
 }

@@ -98,3 +98,30 @@
 # 导航
 -keep class com.amap.api.navi.**{*;}
 -keep class com.autonavi.**{*;}
+
+
+
+#huawei
+-ignorewarnings
+-keepattributes *Annotation*
+-keepattributes Exceptions
+-keepattributes InnerClasses
+-keepattributes Signature
+-keepattributes SourceFile,LineNumberTable
+-keep class com.hianalytics.android.**{*;}
+-keep class com.huawei.updatesdk.**{*;}
+-keep class com.huawei.hms.**{*;}
+
+#vivo
+-dontwarn com.vivo.push.**
+-keep class com.vivo.push.**{*;   }
+-keep class com.vivo.vms.**{*; }
+-keep class xxx.xxx.xxx.PushMessageReceiverImpl{*;}
+
+#oppo
+-keep public class * extends android.app.Service
+-keep class com.heytap.msp.** { *;}
+
+#小米
+-keep class cj.netos.netos_app.XiaomiMessageReceiver {*;}
+-dontwarn com.xiaomi.push.**
