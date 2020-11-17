@@ -189,17 +189,17 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     return this._extenalServiceProvider?.getService(name);
   }
 
-  _fillDevice(AppKeyPair appKeyPair) async {
+  Future<void> _fillDevice(AppKeyPair appKeyPair) async {
     var pushDriver = await BuddyPush.currentPushDriver;
     var device;
-    if(pushDriver!=null&&!StringUtil.isEmpty(pushDriver['regId'])) {
-      device='${pushDriver['driver']}://${pushDriver['regId']}';
-    }else {
+    if (pushDriver != null && !StringUtil.isEmpty(pushDriver['regId'])) {
+      device = '${pushDriver['driver']}://${pushDriver['regId']}';
+    } else {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       if (Platform.isAndroid) {
         var android = await deviceInfo.androidInfo;
         device =
-        '${android.device}${android.type}${android.model}${android.product}';
+            '${android.device}${android.type}${android.model}${android.product}';
       } else if (Platform.isIOS) {
         var ios = await deviceInfo.iosInfo;
         //ios.identifierForVendor每次重新安装应用都会变
@@ -234,7 +234,7 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
     }
     var principal = UserPrincipal(manager: creator.localPrincipal);
 
-    _fillDevice(creator.appKeyPair);
+    await _fillDevice(creator.appKeyPair);
 
     IDeviceManager _deviceManager = DefaultDeviceManager();
     IPump _pump = DefaultPump();

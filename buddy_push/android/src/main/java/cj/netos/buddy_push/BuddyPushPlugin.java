@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -36,16 +37,16 @@ public class BuddyPushPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.method.equals("currentPushDriver")) {
+        if (call.method.equals("currentPushDriver")) {//注意：onMethodCall方法必须以result返回，否则会导致flutter调用方堵塞
             try {
-                Field field = context.getClass().getDeclaredField("__currentPusherDriver");
+                Field field = context.getClass().getDeclaredField("__currentPusherDriver");//注意：必须避免对MicrogeoApplication类中的该属性名__currentPusherDriver的混淆
                 field.setAccessible(true);
                 Map<String, String> pushDriver = (Map<String, String>) field.get(context);
                 result.success(pushDriver);
             } catch (NoSuchFieldException e) {
-                Log.d("buddyPushPlugin", e.toString());
+                result.error("404",e.getMessage(),e);
             } catch (IllegalAccessException e) {
-                Log.d("buddyPushPlugin", e.toString());
+                result.error("500",e.getMessage(),e);
             }
         } else {
             result.notImplemented();
