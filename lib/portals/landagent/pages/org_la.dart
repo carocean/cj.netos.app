@@ -206,7 +206,7 @@ class _OrgLAPageState extends State<OrgLAPage> {
               child: Column(
                 children: <Widget>[
                   CardItem(
-                    title: 'LA运营资质认证',
+                    title: 'LA运营资格证书',
                     paddingLeft: 20,
                     paddingRight: 20,
                     onItemTap: () {

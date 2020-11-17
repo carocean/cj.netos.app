@@ -19,6 +19,7 @@ class DesktopSettings extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          /*
           Container(
             padding: EdgeInsets.only(
               top: 15,
@@ -73,6 +74,8 @@ class DesktopSettings extends StatelessWidget {
             ),
           ),
           Divider(height: 1,indent: 40,),
+
+           */
           Container(
             padding: EdgeInsets.only(
               top: 15,

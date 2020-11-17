@@ -195,7 +195,7 @@ class _OrgISPPageState extends State<OrgISPPage> {
               child: Column(
                 children: <Widget>[
                   CardItem(
-                    title: 'ISP运营资质认证',
+                    title: 'ISP运营资格证书',
                     paddingLeft: 20,
                     paddingRight: 20,
                     onItemTap: () {

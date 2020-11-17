@@ -109,8 +109,8 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                     alignment: Alignment.topCenter,
                     child: Text(
                       widget.type == 2
-                          ? 'ISP运营资质认证'
-                          : widget.type == 0 ? 'LA运营资质认证' : '',
+                          ? 'ISP运营资格证书'
+                          : widget.type == 0 ? 'LA运营资格证书' : '',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 30,

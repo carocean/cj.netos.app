@@ -260,8 +260,8 @@ class _DepositState extends State<Deposit> {
             ),
           ),
           SizedBox(
-            width: 100,
-            height: 30,
+            width: 120,
+            height: 40,
             child: RaisedButton(
               onPressed: !_showRechargeButton()
                   ? null

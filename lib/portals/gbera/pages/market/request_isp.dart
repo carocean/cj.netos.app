@@ -605,7 +605,7 @@ class _RequestISPState extends State<RequestISP> {
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: '输入运营证书上的公司名',
+                    hintText: '输入营业执照上的公司名',
                     border: InputBorder.none,
                   ),
                 ),
@@ -671,7 +671,7 @@ class _RequestISPState extends State<RequestISP> {
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: '输入运营证书上的认证代码',
+                    hintText: '输入营业执照上的信用代码',
                     border: InputBorder.none,
                   ),
                 ),
@@ -779,7 +779,7 @@ class _RequestISPState extends State<RequestISP> {
                             right: 5,
                           ),
                           child: Text(
-                            '运营证书:',
+                            '营业执照:',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
