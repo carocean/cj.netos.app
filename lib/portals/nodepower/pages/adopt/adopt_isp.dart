@@ -6,6 +6,7 @@ import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/nodepower/remote/uc_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 class AdoptISP extends StatefulWidget {
@@ -128,6 +129,8 @@ class _AdoptISPState extends State<AdoptISP> {
       WorkInst inst, WorkEvent event, form) async {
     IIspRemote ispRemote = widget.context.site.getService('/remote/org/isp');
     await ispRemote.checkApplyRegisterByPlatform(inst.id, true);
+    IAppRemote appRemote=widget.context.site.getService('/uc/app');
+    await appRemote.grantRoleToPerson('users@isp.netos', inst.creator);
     widget.context.backward(result: 'adopt');
   }
 

@@ -28,6 +28,8 @@ class AppAcountOL {
 
 mixin IAppRemote {
   Future<List<AppAcountOL>> pageAccount(int limit, int offset);
+
+  Future<void> grantRoleToPerson(roleid, accountid);
 }
 
 class AppRemote implements IAppRemote, IServiceBuilder {
@@ -74,5 +76,17 @@ class AppRemote implements IAppRemote, IServiceBuilder {
       );
     }
     return accounts;
+  }
+
+  @override
+  Future<void> grantRoleToPerson(roleid, accountid) async {
+    await remotePorts.portGET(
+      appPorts,
+      'grantRoleToPerson',
+      parameters: {
+        'accountid': accountid,
+        'roleid': roleid,
+      },
+    );
   }
 }

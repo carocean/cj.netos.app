@@ -7,6 +7,7 @@ import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
+import 'package:netos_app/portals/nodepower/remote/uc_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 
 class AdoptLA extends StatefulWidget {
@@ -200,6 +201,8 @@ class _AdoptLAState extends State<AdoptLA> {
       WorkInst inst, WorkEvent event, form) async {
     ILaRemote laRemote = widget.context.site.getService('/remote/org/la');
     await laRemote.checkApplyRegisterByPlatform(inst.id, true, _selectedISP);
+    IAppRemote appRemote=widget.context.site.getService('/uc/app');
+    await appRemote.grantRoleToPerson('users@la.netos', inst.creator);
     widget.context.backward(result: 'adopt');
   }
 
