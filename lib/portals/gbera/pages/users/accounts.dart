@@ -240,12 +240,16 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
               ),
               Row(
                 children: <Widget>[
-                  widget.context.principal.person == account['person']?
-                    Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.red[400],
-                    ):Container(height: 0,width: 0,),
+                  widget.context.principal.person == account['person']
+                      ? Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.red[400],
+                        )
+                      : Container(
+                          height: 0,
+                          width: 0,
+                        ),
                   Padding(
                     padding: EdgeInsets.only(
                       left: 10,
@@ -432,17 +436,17 @@ class __OtherAppCardState extends State<_OtherAppCard> {
   @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
-    for (var app in _applist) {
-      if(widget.context.principal.appid==app['appid']) {
-        continue;
-      }
+    var principal = widget.context.principal;
+    List<dynamic> apps=_getRightsApps(principal);
+    for (var app in apps) {
       var appLogoUrl =
           '${app['appLogo']}?accessToken=${widget.context.principal.accessToken}';
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            widget.context.forward('/users/accounts/app',arguments: {'app':app});
+            widget.context
+                .forward('/users/accounts/app', arguments: {'app': app});
           },
           child: Padding(
             padding: EdgeInsets.only(
@@ -581,4 +585,22 @@ class __OtherAppCardState extends State<_OtherAppCard> {
       ),
     );
   }
+
+  List _getRightsApps(UserPrincipal principal) {
+    var apps=[];
+    apps.addAll(_applist);
+    print(principal.roles);
+    apps.removeWhere((element) => element['appid']==principal.appid);
+    if(!principal.roles.contains('app:users@la.netos')){
+      apps.removeWhere((element) => element['appid']=='la.netos');
+    }
+    if(!principal.roles.contains('app:users@isp.netos')){
+      apps.removeWhere((element) => element['appid']=='isp.netos');
+    }
+    if(!principal.roles.contains('platform:administrators')){
+      apps.removeWhere((element) => element['appid']=='system.netos');
+    }
+    return apps;
+  }
+
 }

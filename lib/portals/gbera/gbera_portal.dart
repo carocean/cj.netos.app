@@ -2362,7 +2362,7 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '查看地商营业执照',
+          title: '查看地商运营证书',
           subtitle: '',
           desc: '',
           icon: GalleryIcons.shrine,
@@ -2472,7 +2472,7 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '查看营业执照',
+          title: '查看运营证书',
           subtitle: '',
           icon: Icons.business,
           url: '/viewer/licence',
@@ -2481,7 +2481,7 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '查看营业执照',
+          title: '查看运营证书',
           subtitle: '',
           icon: Icons.business,
           url: '/viewer/licenceById',

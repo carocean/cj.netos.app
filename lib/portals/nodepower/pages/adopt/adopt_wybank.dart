@@ -297,7 +297,7 @@ class _AdoptWybankState extends State<AdoptWybank> {
               right: 30,
             ),
             child: CardItem(
-              title: 'LA营业执照',
+              title: 'LA运营资质认证',
               onItemTap: () {
                 widget.context.forward(
                   '/viewer/licence',

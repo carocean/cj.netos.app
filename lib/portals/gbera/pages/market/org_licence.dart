@@ -109,8 +109,8 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                     alignment: Alignment.topCenter,
                     child: Text(
                       widget.type == 2
-                          ? 'ISP营业执照'
-                          : widget.type == 0 ? 'LA营业执照' : '',
+                          ? 'ISP运营资质认证'
+                          : widget.type == 0 ? 'LA运营资质认证' : '',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 30,
@@ -126,7 +126,7 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                     spacing: 8,
                     children: <Widget>[
                       Text(
-                        '统一商家信用代码',
+                        '统一商家认证代码',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -246,7 +246,7 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '授权营业区域  ',
+                              '授权经营区域  ',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -376,7 +376,7 @@ class _OrgLicenceCardState extends State<OrgLicenceCard> {
                         children: <Widget>[
                           Text.rich(
                             TextSpan(
-                              text: '授权营业期限   ',
+                              text: '授权经营期限   ',
                               children: [
                                 TextSpan(
                                   text: '${_orgLicenceOL.operatePeriod}个月',

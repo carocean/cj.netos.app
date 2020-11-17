@@ -625,7 +625,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: '输入营业执照上的公司名',
+                    hintText: '输入运营证书上的公司名',
                     border: InputBorder.none,
                   ),
                 ),
@@ -675,7 +675,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
             children: <Widget>[
               Padding(
                 child: Text(
-                  '统一社会信用代码:',
+                  '统一社会认证代码:',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                   ),
@@ -691,7 +691,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: '输入营业执照上的信用代码',
+                    hintText: '输入运营证书上的认证代码',
                     border: InputBorder.none,
                   ),
                 ),
@@ -799,7 +799,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                             right: 5,
                           ),
                           child: Text(
-                            '营业执照:',
+                            '运营证书:',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -1270,7 +1270,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                   setState(() {});
                 },
               ),
-              Text('地商(LA)营业执照许可协议条款')
+              Text('地商(LA)运营证书许可协议条款')
             ],
           ),
         ),
