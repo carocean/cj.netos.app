@@ -38,16 +38,14 @@ public class BuddyPushPlugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         if (call.method.equals("currentPushDriver")) {
             try {
-                Log.d("-----1---a",context.getClass().getName());
                 Field field = context.getClass().getDeclaredField("__currentPusherDriver");
                 field.setAccessible(true);
                 Map<String, String> pushDriver = (Map<String, String>) field.get(context);
-                Log.d("--------d", pushDriver.toString());
                 result.success(pushDriver);
             } catch (NoSuchFieldException e) {
-                Log.d("--------d", e.toString());
+                Log.d("buddyPushPlugin", e.toString());
             } catch (IllegalAccessException e) {
-                Log.d("--------d", e.toString());
+                Log.d("buddyPushPlugin", e.toString());
             }
         } else {
             result.notImplemented();

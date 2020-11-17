@@ -34,7 +34,6 @@ public class MicrogeoApplication extends FlutterApplication {
     public void onCreate() {
         super.onCreate();
         __currentPusherDriver = new HashMap<>();
-        Log.d("------1---1","--33333");
         if (isBrandHuawei()) {
             huawei();
         }
@@ -44,7 +43,6 @@ public class MicrogeoApplication extends FlutterApplication {
         if (isBrandOppo()) {
             oppo();
         }
-        Log.d("------1---3","--33333");
         if (isBrandXiaomi()) {
             xiaomi();
         }
@@ -66,14 +64,11 @@ public class MicrogeoApplication extends FlutterApplication {
     }
 
     private boolean shouldInit() {
-        Log.d("------1---3","--33333");
         ActivityManager am = ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE));
         List<ActivityManager.RunningAppProcessInfo> processInfos = am.getRunningAppProcesses();
         String mainProcessName = getApplicationInfo().processName;
         int myPid = android.os.Process.myPid();
-        Log.d("------1---3",myPid+"");
         for (ActivityManager.RunningAppProcessInfo info : processInfos) {
-            Log.d("------2---3",String.format("%s %s %s",info.pid,mainProcessName,info.processName));
             if (info.pid == myPid && mainProcessName.equals(info.processName)) {
                 return true;
             }
