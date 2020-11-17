@@ -987,7 +987,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
     var items = await receptorRemote.searchAroundLocation(
-        _location, 2000, null, 2 /*各类取2个*/, 0);
+        _location, 2000, null, 20 /*各类取2个*/, 0);
     for (var poi in items) {
       if (poi.creator == null ||
           poi.receptor.creator == widget.context.principal.person) {

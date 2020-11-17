@@ -23,7 +23,7 @@ class _GeoRegionState extends State<GeoRegion> {
   LatLng _location;
   bool _isSearching = false;
   List<GeoPOI> _pois = [];
-  int _limit = 4, _offset = 0;
+  int _limit = 20, _offset = 0;
   String _geoType;
   GeoCategoryOR _selectCategory;
   EasyRefreshController _controller;
@@ -164,12 +164,16 @@ class _GeoRegionState extends State<GeoRegion> {
                             child: Slider(
                               label: '${getFriendlyDistance(_radius * 1.0)}',
                               value: _radius * 1.0,
-                              min: 200.0,
+                              min: 50.0,
                               max: 25000.0,
-                              divisions: ((25000 - 200) / 200).floor(),
+                              divisions: ((25000 - 50) / 50).floor(),
                               onChanged: (v) {
                                 setState(() {
                                   _radius = v.floor();
+                                });
+                              },
+                              onChangeEnd: (v){
+                                setState(() {
                                   _onRefresh();
                                 });
                               },

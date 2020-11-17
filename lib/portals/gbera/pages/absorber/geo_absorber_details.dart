@@ -481,10 +481,10 @@ class __HeaderCardState extends State<_HeaderCard> {
           ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: (){
-              widget.context.forward('/robot/createSlices',arguments: {'originAbsorber':_absorberResultOR.absorber,}).then((value){
-
-              });
+            onTap: () {
+              widget.context.forward('/robot/createSlices', arguments: {
+                'originAbsorber': _absorberResultOR.absorber,
+              }).then((value) {});
             },
             child: Icon(
               Icons.share,
@@ -570,8 +570,14 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
       recipients = await robotRemote.pageRecipients(
           _absorberResultOR.absorber.id, _limit, _offset);
     } else {
+      _recipients.clear();
       recipients = await robotRemote.pageRecipientsOnlyMe(
-          _absorberResultOR.absorber.id, _limit, _offset);
+          _absorberResultOR.absorber.id, 500, 0);
+      _recipients.addAll(recipients);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
     }
     if (recipients.isEmpty) {
       _controller.finishLoad(noMore: true, success: true);
@@ -652,8 +658,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                               right: 10,
                             ),
                             child: FutureBuilder<Person>(
-                              future: _getPerson(
-                                  widget.context.site, item.person),
+                              future:
+                                  _getPerson(widget.context.site, item.person),
                               builder: (ctx, snapshot) {
                                 if (snapshot.connectionState !=
                                     ConnectionState.done) {
@@ -687,9 +693,9 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
                                 }
                                 return FadeInImage.assetNetwork(
                                   placeholder:
-                                  'lib/portals/gbera/images/default_watting.gif',
+                                      'lib/portals/gbera/images/default_watting.gif',
                                   image:
-                                  '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
+                                      '${person.avatar}?accessToken=${widget.context.principal.accessToken}',
                                   width: 40,
                                   height: 40,
                                 );
@@ -717,17 +723,17 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
 //                                    ),
 //                                  ),
                                 _absorberResultOR.absorber.type == 0 ||
-                                    item.distance == null
+                                        item.distance == null
                                     ? SizedBox(
-                                  height: 0,
-                                  width: 0,
-                                )
+                                        height: 0,
+                                        width: 0,
+                                      )
                                     : Text(
-                                  '距中心: ${item.distance?.toStringAsFixed(2)}米',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                        '距中心: ${item.distance?.toStringAsFixed(2)}米',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                 Text(
                                   '激励原因: ${item.encourageCause ?? ''}',
                                   style: TextStyle(
