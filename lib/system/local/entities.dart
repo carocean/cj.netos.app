@@ -483,7 +483,7 @@ class RoomMember {
   String nickName;
   String isShowNick;
   String leading;//供非person类型的成员使用，如wybank
-  String type;//成员类型，有person,wybank(纹银银行)等，默认是person
+  String type;//成员类型，有person,wybank(福利中心)等，默认是person
   int atime;
   String sandbox;
 

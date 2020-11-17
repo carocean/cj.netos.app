@@ -200,7 +200,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
         LogicPage(
-          title: '纹银银行',
+          title: '福利中心',
           subtitle: '',
           icon: Icons.business,
           url: '/wenybank',
@@ -281,7 +281,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
         LogicPage(
-          title: '纹银银行已阅',
+          title: '福利中心已阅',
           subtitle: '',
           icon: Icons.business,
           url: '/adopt/wenybank',
@@ -500,7 +500,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
         LogicPage(
-          title: '查看纹银银行信息',
+          title: '查看福利中心信息',
           subtitle: '',
           icon: Icons.business,
           url: '/weny/bank/info',

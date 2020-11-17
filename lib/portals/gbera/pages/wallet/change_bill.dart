@@ -143,7 +143,7 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'transProfit': profit, 'bank': wenybank},
         );
         break;
-      case 12: //纹银银行账金转入
+      case 12: //福利中心账金转入
         var shunter = await recordRemote.getTransShunter(bill.refsn);
         var wenybank;
         for (var bank in _wallet.banks) {

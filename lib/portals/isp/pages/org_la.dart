@@ -247,7 +247,7 @@ class _OrgLAPageState extends State<OrgLAPage> {
                     indent: 20,
                   ),
                   CardItem(
-                    title: '纹银银行',
+                    title: '福利中心',
                     paddingLeft: 20,
                     paddingRight: 20,
                     tipsText: _tipsText,

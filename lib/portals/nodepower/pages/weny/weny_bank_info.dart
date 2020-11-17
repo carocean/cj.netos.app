@@ -30,7 +30,7 @@ class _PlatformWenyBankInfoPageState extends State<PlatformWenyBankInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('纹银银行'),
+        title: Text('福利中心'),
         elevation: 0,
       ),
       body: Column(

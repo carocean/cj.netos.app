@@ -1583,7 +1583,7 @@ class __MyGoUPOrderOnHomeCardState extends State<_MyGoUPOrderOnHomeCard> {
                                     ),
                                     children: [
                                       TextSpan(
-                                        text: '旺生堂纹银银行',
+                                        text: '旺生堂福利中心',
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.w500,

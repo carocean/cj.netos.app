@@ -360,7 +360,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     });
     var sender;
     if (info.order == 0) {
-      sender = info.bankid; //添加纹银银行成员
+      sender = info.bankid; //添加福利中心成员
       if (!(await chatRoomService.existsMember(room, sender))) {
         IWyBankRemote wyBankRemote =
             widget.context.site.getService('/remote/wybank');

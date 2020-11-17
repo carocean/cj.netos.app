@@ -119,7 +119,7 @@ class _AdoptWybankState extends State<AdoptWybank> {
       inst.id,
       'platformChecked',
       false,
-      '纹银银行已通过审批，并已可营业',
+      '福利中心已通过审批，并已可营业',
       form.toMap(),
       true,
       recipients,

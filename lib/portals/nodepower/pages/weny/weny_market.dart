@@ -122,7 +122,7 @@ class _PlatformWenyMarketState extends State<PlatformWenyMarket> {
       if (_banks.isEmpty) {
         items.add(
           Center(
-            child: Text('没有纹银银行'),
+            child: Text('没有福利中心'),
           ),
         );
       }

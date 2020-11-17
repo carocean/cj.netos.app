@@ -129,7 +129,7 @@ class _LandagentDesktopState extends State<LandagentDesktop>
                                   size: 16,
                                   color: Colors.grey[500],
                                 ),
-                                Text("申请纹银银行"),
+                                Text("申请福利中心"),
                               ],
                             ),
                             onPressed: () {

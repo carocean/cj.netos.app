@@ -157,7 +157,7 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
-            title: Text('申请纹银银行'),
+            title: Text('申请福利中心'),
             elevation: 0,
             pinned: true,
             actions: <Widget>[
@@ -229,7 +229,7 @@ class _ApplyWyBankState extends State<ApplyWyBank> {
                             )
                           : _existsBank != null
                               ? CardItem(
-                                  title: '本地区已有纹银银行！',
+                                  title: '本地区已有福利中心！',
                                   titleColor: Colors.amber,
                                   paddingRight: 20,
                                   paddingLeft: 50,
