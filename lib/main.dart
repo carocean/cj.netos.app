@@ -434,16 +434,18 @@ class _WindowState extends State<Window> {
     var forceUpgrade = _upgradeInfo.productVersion?.forceUpgrade ?? 0;
     if (forceUpgrade == 0) {
       items.add(
-        RaisedButton(
-          color: Colors.grey,
-          textColor: Colors.white,
-          onPressed: () {
-            _upgradeInfo.isHide = true;
-            if (mounted) {
-              setState(() {});
-            }
-          },
-          child: Text('下次再说'),
+        Expanded(
+          child: RaisedButton(
+            color: Colors.grey,
+            textColor: Colors.white,
+            onPressed: () {
+              _upgradeInfo.isHide = true;
+              if (mounted) {
+                setState(() {});
+              }
+            },
+            child: Text('下次再说'),
+          ),
         ),
       );
       items.add(
@@ -453,15 +455,17 @@ class _WindowState extends State<Window> {
       );
     }
     items.add(
-      RaisedButton(
-        color: _isInstalling == 0 ? Colors.green : Colors.grey,
-        textColor: Colors.white,
-        onPressed: _isInstalling > 0
-            ? null
-            : () {
-                _installApp();
-              },
-        child: Text('${_rendProgressTips()}'),
+      Expanded(
+        child: RaisedButton(
+          color: _isInstalling == 0 ? Colors.green : Colors.grey,
+          textColor: Colors.white,
+          onPressed: _isInstalling > 0
+              ? null
+              : () {
+                  _installApp();
+                },
+          child: Text('${_rendProgressTips()}'),
+        ),
       ),
     );
     return items;
