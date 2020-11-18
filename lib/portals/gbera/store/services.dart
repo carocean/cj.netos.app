@@ -103,8 +103,7 @@ mixin IChannelService {
   Future<List<Person>> pageInputPersonOf(
       String channel, String person, int limit, int offset) {}
 
- Future<void> updateUtime(String channel) {}
-
+  Future<void> updateUtime(String channel) {}
 }
 mixin IInsiteMessageService {
   Future<void> empty();
@@ -353,6 +352,8 @@ mixin IChatRoomService {
       String query, String room, int limit, int offset) {}
 
   Future<void> updateRoomUtime(String room) {}
+
+  Future<List<ChatRoom>> findChatroomByMembers(List<String> members) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,
@@ -430,8 +431,7 @@ mixin IGeoReceptorService {
 
   Future<bool> existsLocal(String receptor) {}
 
- Future<void> updateUtime(String receptor) {}
-
+  Future<void> updateUtime(String receptor) {}
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();

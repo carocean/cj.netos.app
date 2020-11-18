@@ -4,11 +4,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 
 import 'medias_widget.dart';
@@ -34,7 +37,9 @@ class _MediaWatcherState extends State<MediaWatcher> {
   Decoration _backgroundDecoration;
   int _initialIndex;
   Axis _scrollDirection;
-
+  bool _isSaving = false;
+  double _baifenbi = 0.0;
+  GlobalKey<ScaffoldState> _globalKey=GlobalKey();
   @override
   void initState() {
     var _content = widget.pageContext;
@@ -64,9 +69,39 @@ class _MediaWatcherState extends State<MediaWatcher> {
     });
   }
 
+  Future<void> _saveMedia(MediaSrc src) async {
+    if (_isSaving) {
+      return;
+    }
+    _isSaving = true;
+    setState(() {
+    });
+    var file = src.src;
+    if (!file.startsWith('/')) {
+      var dir = await getExternalStorageDirectory();
+      var localFile =
+          '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
+      await widget.pageContext.ports.download(file, localFile,
+          onReceiveProgress: (i, j) {
+        _baifenbi =( (i * 1.0) / j)*100.00;
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+    var result = await ImageGallerySaver.saveFile(file);
+    _globalKey.currentState.showSnackBar(SnackBar(content: Text('已保存到相册'),),);
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _globalKey,
       body: Container(
         decoration: _backgroundDecoration,
         constraints: BoxConstraints.expand(
@@ -83,6 +118,18 @@ class _MediaWatcherState extends State<MediaWatcher> {
               pageController: _pageController,
               onPageChanged: onPageChanged,
               scrollDirection: _scrollDirection,
+            ),
+            Positioned(
+              top: 40,
+              right: 15,
+              child: GestureDetector(
+                onTap: _isSaving
+                    ? null
+                    : () {
+                        _saveMedia(_thumbGalleryItems[currentIndex]);
+                      },
+                child: _renderSaveButton(),
+              ),
             ),
             Positioned(
               bottom: 20,
@@ -142,7 +189,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
           minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
           maxScale: PhotoViewComputedScale.covered * 1.1,
           heroAttributes: PhotoViewHeroAttributes(tag: item),
-          child: _renderVideo(widget.pageContext,item),
+          child: _renderVideo(widget.pageContext, item),
         );
       case 'audio':
         return MyPhotoViewGalleryPageOptions.customChild(
@@ -169,7 +216,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
     }
   }
 
-  Widget _renderVideo(PageContext pageContext,src) {
+  Widget _renderVideo(PageContext pageContext, src) {
     if (src.startsWith('/')) {
       return _VideoWatcher(
         autoPlay: true,
@@ -196,6 +243,30 @@ class _MediaWatcherState extends State<MediaWatcher> {
         },
       );
     }
+  }
+
+  Widget _renderSaveButton() {
+    if (!_isSaving) {
+      return Icon(
+        Icons.save_alt,
+        size: 20,
+        color: Colors.white,
+      );
+    }
+    if (_baifenbi == 0) {
+      return Text(
+        '正在保存...',
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      );
+    }
+    return Text(
+      '正在下载 ${_baifenbi.toStringAsFixed(2)}',
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    );
   }
 }
 

@@ -2721,6 +2721,16 @@ class _$IChatRoomDAO extends IChatRoomDAO {
   }
 
   @override
+  Future<List<ChatRoom>> findChatroomByMembers(
+      List<String> members, int memberCount, String sandbox) async {
+    final valueList1 = members.map((value) => "'$value'").join(', ');
+    return _queryAdapter.queryList(
+        'select * from ChatRoom where id in (select n.room from (select room, count(person) memberCount from RoomMember where room in (select room from RoomMember where person in ($valueList1) group by room) group by room) as n where n.memberCount=?) and sandbox=?',
+        arguments: <dynamic>[memberCount, sandbox],
+        mapper: _chatRoomMapper);
+  }
+
+  @override
   Future<void> updateRoomLeading(
       String path, String sandbox, String roomid) async {
     await _queryAdapter.queryNoReturn(

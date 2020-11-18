@@ -26,7 +26,7 @@ class _AroundFriendsPageState extends State<AroundFriendsPage> {
   bool _isSearching = false;
   List<GeoPOI> _pois = [];
   Map<String, bool> _hasPersons = {};
-  int _limit = 4, _offset = 0;
+  int _limit = 20, _offset = 0;
   String _geoType = 'mobiles';
   EasyRefreshController _controller;
   int _radius = 100;
@@ -242,8 +242,10 @@ class _AroundFriendsPageState extends State<AroundFriendsPage> {
                                   onChanged: (v) {
                                     setState(() {
                                       _radius = v.floor();
-                                      _onRefresh();
                                     });
+                                  },
+                                  onChangeEnd: (v){
+                                    _onRefresh();
                                   },
                                 ),
                               ),

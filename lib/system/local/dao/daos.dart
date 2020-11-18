@@ -521,6 +521,10 @@ abstract class IChatRoomDAO {
     String sandbox,
   ) {}
 
+  @Query("select * from ChatRoom where id in (select n.room from (select room, count(person) memberCount from RoomMember where room in (select room from RoomMember where person in (:members) group by room) group by room) as n where n.memberCount=:memberCount) and sandbox=:sandbox")
+  Future<List<ChatRoom>> findChatroomByMembers(
+      List<String> members, int memberCount, String sandbox) {}
+
   @Query(
       'UPDATE ChatRoom SET leading = :path WHERE sandbox=:sandbox and id = :roomid')
   Future<void> updateRoomLeading(
@@ -734,7 +738,6 @@ abstract class IGeoReceptorDAO {
   @Query(
       'UPDATE GeoReceptor SET utime=:utime WHERE id=:receptor and sandbox=:sandbox')
   Future<void> updateUtime(int utime, String receptor, String sandbox) {}
-
 }
 
 @dao

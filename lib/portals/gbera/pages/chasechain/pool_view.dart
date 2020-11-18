@@ -808,6 +808,9 @@ class __ContentProviderListPanelState extends State<_ContentProviderListPanel> {
       controller: _controller,
       onLoad: _load,
       slivers: _providers.map((provider) {
+        if(provider==null){
+          return SliverToBoxAdapter(child: SizedBox(height: 0,width: 0,),);
+        }
         return SliverToBoxAdapter(
           child: Column(
             children: <Widget>[

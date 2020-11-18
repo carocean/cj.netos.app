@@ -20,6 +20,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/receptor_handler.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -183,7 +184,7 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor,message.id);
+        await mediaService.listMedia(message.receptor, message.id);
     Person creator =
         await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
@@ -225,8 +226,8 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(wrapper.message.receptor,
-      wrapper.message.id);
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -544,7 +545,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadCategoryAllApps().then((v) {
       setState(() {});
     });
-    Stream _notify = widget.context.parameters['notify'];
+    Stream _notify = receptorNotifyStreamController.stream;
     _streamSubscription = _notify.listen((cmd) async {
       GeosphereMessageOL message = cmd['message'];
       if (cmd['receptor'] != widget.receptorInfo.id) {
@@ -924,9 +925,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                       //     setState(() {});
                       //   });
                       // } else {
-                        _filterMessages(filter).then((v) {
-                          setState(() {});
-                        });
+                      _filterMessages(filter).then((v) {
+                        setState(() {});
+                      });
                       // }
                     });
                   },
@@ -1101,13 +1102,11 @@ class __MessageCardState extends State<_MessageCard> {
     }
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    _upstreamReceptor =
-        await receptorService.get( upstreamReceptor);
+    _upstreamReceptor = await receptorService.get(upstreamReceptor);
     if (_upstreamReceptor == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      _upstreamReceptor =
-          await receptorRemote.getReceptor(upstreamReceptor);
+      _upstreamReceptor = await receptorRemote.getReceptor(upstreamReceptor);
     }
     if (!StringUtil.isEmpty(upstreamPerson)) {
       // IPersonService personService =
@@ -2248,8 +2247,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorbabler =
-        'geo.receptor/${widget.receptorInfo.id}';
+    var absorbabler = 'geo.receptor/${widget.receptorInfo.id}';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {

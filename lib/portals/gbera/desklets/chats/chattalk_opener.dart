@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -8,24 +9,70 @@ import 'chat_rooms.dart';
 
 final IChatTalkOpener messageSender = _DefaultChatTalkOpener();
 mixin IChatTalkOpener {
-  Future<void> open(PageContext context, {List<String> members});
+  Future<void> open(PageContext context,
+      {List<String> members, Future<void> Function(bool isNewRoom) callback});
 }
 
 class _DefaultChatTalkOpener implements IChatTalkOpener {
   @override
-  Future<void> open(PageContext context, {List<String> members}) async {
-    var model = await _createChatroom(context, members);
-
-    context.forward('/portlet/chat/talk', arguments: {
+  Future<void> open(PageContext context,
+      {List<String> members,
+      Future<void> Function(bool isNewRoom) callback}) async {
+    var model = await _getChatroom(context, members);
+    bool isNewRoom = false;
+    if (model == null) {
+      isNewRoom = true;
+      model = await _createChatroom(context, members);
+    }
+    if (callback != null && isNewRoom) {
+      await callback(isNewRoom);
+      return;
+    }
+    context.forward('/portlet/chat/talk',clearHistoryByPagePath: '/', arguments: {
       'model': model,
-      'notify': chatroomNotifyStreamController?.stream?.asBroadcastStream(),
     }).then((value) {
-      context.forward(
-        "/",
-        clearHistoryByPagePath: '/public/',
-        scene: context.principal.portal ?? 'gbera',
-      );
+      // context.forward(
+      //   "/",
+      //   clearHistoryByPagePath: '/',
+      //   scene: context.principal.portal ?? 'gbera',
+      // );
     });
+  }
+
+  Future<ChatRoomModel> _getChatroom(
+      PageContext context, List<String> members) async {
+    IChatRoomService chatRoomService = context.site.getService('/chat/rooms');
+    var chatrooms = await chatRoomService.findChatroomByMembers(members);
+    if (chatrooms.isEmpty) {
+      return null;
+    }
+    IFriendService friendService = context.site.getService("/gbera/friends");
+    for (var chatroom in chatrooms) {
+      List<RoomMember> memberList =
+          await chatRoomService.listMember(chatroom.id);
+      int count = 0;
+      for (var member in memberList) {
+        if (members.contains(member.person)) {
+          count++;
+        }
+      }
+      if (memberList.length == count + 1) {
+        //+1是因为members中少了个当前我
+        List<Friend> friends = [];
+        for (var member in memberList) {
+          var f = await friendService.getFriend(member.person);
+          if (f == null) {
+            continue;
+          }
+          friends.add(f);
+        }
+        return ChatRoomModel(
+          chatRoom: chatroom,
+          members: friends,
+        );
+      }
+    }
+    return null;
   }
 
   Future<ChatRoomModel> _createChatroom(
@@ -67,11 +114,11 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
         context.principal.person,
       );
       try {
-        var exists=await  chatRoomService.existsMember(roomCode, official);
-       if(!exists){
-         await chatRoomService.addMember(rmember);
-       }
-      }catch(e){
+        var exists = await chatRoomService.existsMember(roomCode, official);
+        if (!exists) {
+          await chatRoomService.addMember(rmember);
+        }
+      } catch (e) {
         print('创建聊天室：添加成员时报错。$e');
       }
       roomMembers.add(rmember);

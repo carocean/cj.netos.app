@@ -330,6 +330,13 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
+  Future<List<ChatRoom>> findChatroomByMembers(List<String> members) async{
+    //加1的原因是因为：参数members不包括自己，所以算是自已。
+    //下面是成员在的聊天室且成员数为所求传入成员+1的聊天室
+    return await chatRoomDAO.findChatroomByMembers(members,members.length+1,principal.person);
+  }
+
+  @override
   Future<Function> addMember(RoomMember roomMember,
       {bool isOnlySaveLocal = false}) async {
     await roomMemberDAO.addMember(roomMember);

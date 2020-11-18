@@ -31,6 +31,7 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
 
 import 'article_entities.dart';
+import 'channel_handler.dart';
 
 class ChannelPage extends StatefulWidget {
   PageContext context;
@@ -438,7 +439,7 @@ class _HeaderState extends State<Header> {
 
   @override
   void initState() {
-    Stream<ChannelEventArgs> _events = widget.context.parameters['stream'];
+    Stream<ChannelEventArgs> _events = channelNotifyStreamController.stream;
     _streamSubscription = _events.listen((event) {
       var command = event.command;
       var channel = event.channel;

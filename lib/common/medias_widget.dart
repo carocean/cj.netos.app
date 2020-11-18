@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -436,7 +437,6 @@ class _MediaWithLoader extends StatelessWidget {
   final String accessToken;
   final BoxFit fit;
   final double loaderSize;
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -444,7 +444,7 @@ class _MediaWithLoader extends StatelessWidget {
       alignment: Alignment.center,
       children: <Widget>[
         Container(
-          color: Colors.grey,
+          // color: Colors.grey,
           child: Center(
             child: SizedBox(
               width: loaderSize,
@@ -457,67 +457,68 @@ class _MediaWithLoader extends StatelessWidget {
       ],
     );
   }
-}
 
-CircularProgressIndicator _buildCircularProgressIndicator() {
-  return CircularProgressIndicator(
-    backgroundColor: Colors.white,
-    strokeWidth: 3,
-    valueColor: AlwaysStoppedAnimation<Color>(Colors.tealAccent),
-  );
-}
-
-Widget _getMediaRender(
-    MediaSrc media, String accessToken, PageContext pageContext) {
-  var mediaRender;
-  var src = media?.src;
-  switch (media.type) {
-    case 'image':
-      mediaRender = src.startsWith('/')
-          ? Image.file(
-              File(src),
-              fit: BoxFit.cover,
-            )
-          : FadeInImage.memoryNetwork(
-              image: '$src?accessToken=$accessToken',
-              fit: BoxFit.cover,
-              placeholder: kTransparentImage,
-            );
-      break;
-    case 'video':
-      if (src.startsWith('/')) {
-        mediaRender = VideoView(
-          src: File(src),
-        );
-      } else {
-        mediaRender = FutureBuilder<String>(
-          future: checkUrlAndDownload(pageContext, src),
-          builder: (ctx, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            var srcLocal = snapshot.data;
-            return VideoView(
-              src: File(srcLocal),
-            );
-          },
-        );
-      }
-      break;
-    case 'audio':
-      mediaRender = MyAudioWidget(
-        audioFile: src,
-      );
-      break;
-    default:
-      print('unknown media type');
-      break;
+  CircularProgressIndicator _buildCircularProgressIndicator() {
+    return CircularProgressIndicator(
+      backgroundColor: Colors.white,
+      strokeWidth: 3,
+      valueColor: AlwaysStoppedAnimation<Color>(Colors.tealAccent),
+    );
   }
-  return mediaRender;
+
+  Widget _getMediaRender(
+      MediaSrc media, String accessToken, PageContext pageContext) {
+    var mediaRender;
+    var src = media?.src;
+    switch (media.type) {
+      case 'image':
+        mediaRender = src.startsWith('/')
+            ? Image.file(
+          File(src),
+          fit: BoxFit.contain,
+        )
+            : FadeInImage.memoryNetwork(
+          image: '$src?accessToken=$accessToken',
+          fit: BoxFit.contain,
+          placeholder: kTransparentImage,
+        );
+        break;
+      case 'video':
+        if (src.startsWith('/')) {
+          mediaRender = VideoView(
+            src: File(src),
+          );
+        } else {
+          mediaRender = FutureBuilder<String>(
+            future: checkUrlAndDownload(pageContext, src),
+            builder: (ctx, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              var srcLocal = snapshot.data;
+              return VideoView(
+                src: File(srcLocal),
+              );
+            },
+          );
+        }
+        break;
+      case 'audio':
+        mediaRender = MyAudioWidget(
+          audioFile: src,
+        );
+        break;
+      default:
+        print('unknown media type');
+        break;
+    }
+    return mediaRender;
+  }
+
 }

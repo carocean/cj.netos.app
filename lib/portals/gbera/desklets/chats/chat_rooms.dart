@@ -11,6 +11,7 @@ import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
@@ -24,9 +25,8 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../main.dart';
+import 'chatroom_handler.dart';
 import 'friend_page.dart';
-
-StreamController<dynamic> chatroomNotifyStreamController;
 
 class ChatRoomsPortlet extends StatefulWidget {
   Portlet portlet;
@@ -41,7 +41,6 @@ class ChatRoomsPortlet extends StatefulWidget {
 
 class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   bool _isloaded = false;
-  StreamController<dynamic> _notifyStreamController;
   List<ChatRoomModel> _models = [];
   ProgressTaskBar taskbarProgress;
   Lock _lock;
@@ -50,8 +49,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   void initState() {
     _lock = Lock();
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
-    _notifyStreamController = StreamController.broadcast();
-    chatroomNotifyStreamController = _notifyStreamController;
     if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
       widget.context.listenMessage(_onmessage, matchPath: '/chat/room/message');
     }
@@ -80,9 +77,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   void dispose() {
     qrcodeScanner.actions.remove('chatroom');
     taskbarProgress = null;
-    _notifyStreamController.close();
+    // _notifyStreamController.close();
     _models.clear();
-    widget.context.unlistenMessage(matchPath: '/chat/room/message');
+    // widget.context.unlistenMessage(matchPath: '/chat/room/message');
     super.dispose();
   }
 
@@ -347,8 +344,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         print('$e');
       }
     }
-    await chatRoomService.updateRoomUtime(room);
-    await _refresh();
+
     var msgcontext = jsonEncode({
       'sn': record['sn'],
       'amount': record['realAmount'],
@@ -418,8 +414,14 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       widget.context.principal.person,
     );
     await messageService.addMessage(sender, message, isOnlySaveLocal: true);
-    _notifyStreamController
+    chatroomNotifyStreamController
         .add({'action': 'arrivePushMessageCommand', 'message': message});
+
+    await chatRoomService.updateRoomUtime(room);
+    await _topChatroom(room);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _arrivePushMessageCommand(Frame frame) async {
@@ -494,8 +496,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       //消息已存在
       return;
     }
-    await chatRoomService.updateRoomUtime(room);
-    await _refresh();
+
     switch (contentType ?? '') {
       case '':
       case 'text':
@@ -515,7 +516,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           widget.context.principal.person,
         );
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
-        _notifyStreamController
+        chatroomNotifyStreamController
             .add({'action': 'arrivePushMessageCommand', 'message': message});
         break;
       case 'audio':
@@ -595,12 +596,31 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           widget.context.principal.person,
         );
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
-        _notifyStreamController
+        chatroomNotifyStreamController
             .add({'action': 'arrivePushMessageCommand', 'message': message});
         break;
       default:
         print('收到未知的消息类型：$contentType');
         break;
+    }
+    await chatRoomService.updateRoomUtime(room);
+    await _topChatroom(room);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _topChatroom(room) async {
+    var current;
+    for (var model in _models) {
+      if (model.chatRoom.id == room) {
+        current = model;
+        break;
+      }
+    }
+    if (current != null) {
+      _models.removeWhere((element) => element.chatRoom.id == room);
+      _models.insert(0, current);
     }
   }
 
@@ -639,7 +659,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
             widget.context.site.getService('/chat/p2p/messages');
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
         try {
-          _notifyStreamController
+          chatroomNotifyStreamController
               .add({'action': 'arrivePushMessageCommand', 'message': message});
         } catch (e) {
           print('流已关闭:$e');
@@ -696,67 +716,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
-  Future<void> _createChatroom(List<String> members) async {
-    IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
-    var roomCode = MD5Util.MD5(Uuid().v1());
-    await chatRoomService.addRoom(
-      ChatRoom(
-        roomCode,
-        null,
-        null,
-        widget.context.principal.person,
-        DateTime.now().millisecondsSinceEpoch,
-        DateTime.now().millisecondsSinceEpoch,
-        null,
-        null,
-        'false',
-        'false',
-        null,
-        widget.context.principal.person,
-      ),
-    );
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    bool hasCreator = false;
-    for (var i = 0; i < members.length; i++) {
-      var official = members[i];
-      var person = await personService.getPerson(official);
-      await chatRoomService.addMember(
-        RoomMember(
-          roomCode,
-          official,
-          person?.nickName,
-          'false',
-          null,
-          'person',
-          DateTime.now().millisecondsSinceEpoch,
-          widget.context.principal.person,
-        ),
-      );
-      if (official == widget.context.principal.person) {
-        hasCreator = true;
-      }
-    }
-    if (!hasCreator) {
-      //自己为创建者也应加入
-      await chatRoomService.addMember(
-        RoomMember(
-          roomCode,
-          widget.context.principal.person,
-          null,
-          'false',
-          null,
-          'person',
-          DateTime.now().millisecondsSinceEpoch,
-          widget.context.principal.person,
-        ),
-        isOnlySaveLocal: true,
-      );
-    }
-    return;
-  }
-
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
@@ -801,7 +760,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                       if (result == null || result.isEmpty) {
                         return;
                       }
-                      _createChatroom(result).then((v) {
+                      messageSender.open(widget.context, members: result,
+                          callback: (isNewRoom) async {
                         _models.clear();
                         _loadChatrooms().then((v) {
                           if (mounted) {
@@ -833,7 +793,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
             context: widget.context,
             model: model,
             isBottom: index == _models.length,
-            notify: _notifyStreamController.stream,
             onDelete: () {
               _removeChatRoom(model.chatRoom).then((v) {
                 _models.removeWhere((m) {
@@ -888,7 +847,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                   if (result == null || result.isEmpty) {
                     return;
                   }
-                  _createChatroom(result).then((v) {
+                  messageSender.open(widget.context, members: result,
+                      callback: (isNewRoom) async {
                     _models.clear();
                     _loadChatrooms().then((v) {
                       if (mounted) {
@@ -934,12 +894,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 class _ChatroomItem extends StatefulWidget {
   PageContext context;
   ChatRoomModel model;
-  Stream notify;
   Function() onDelete;
   bool isBottom;
 
-  _ChatroomItem(
-      {this.context, this.model, this.notify, this.onDelete, this.isBottom});
+  _ChatroomItem({this.context, this.model, this.onDelete, this.isBottom});
 
   @override
   __ChatroomItemState createState() => __ChatroomItemState();
@@ -948,59 +906,41 @@ class _ChatroomItem extends StatefulWidget {
 class __ChatroomItemState extends State<_ChatroomItem> {
   double _percentage = 0.0;
   _ChatroomItemStateBar _stateBar;
-  StreamSubscription<dynamic> _streamSubscription;
+  bool _isLoading = false;
 
   @override
   void initState() {
     _stateBar = _ChatroomItemStateBar();
-    _streamSubscription = widget.notify.listen((command) {
-      ChatMessage message = command['message'];
-      if (message == null || message.room != widget.model.chatRoom.id) {
-        return;
-      }
-      switch (command['action']) {
-        case 'arrivePushMessageCommand':
-          _loadUnreadMessage().then((v) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-          break;
-        default:
-          print('不支持指令：${command['action']}');
-          break;
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    _loadUnreadMessage().then((v) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _load();
     super.initState();
   }
 
   @override
   void dispose() {
-    _streamSubscription.cancel();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(_ChatroomItem oldWidget) {
-    if (oldWidget.model != widget.model) {
+    if (oldWidget.model?.chatRoom?.id != widget.model?.chatRoom?.id) {
       oldWidget.model = widget.model;
       oldWidget.isBottom = widget.isBottom;
       oldWidget.onDelete = widget.onDelete;
-      _loadUnreadMessage().then((v) {
-        if (mounted) {
-          setState(() {});
-        }
+    }
+    _load();
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _load() async {
+    if (_isLoading) {
+      return;
+    }
+    await _loadUnreadMessage();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
       });
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   Future<void> _loadUnreadMessage() async {
@@ -1073,9 +1013,9 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         var infoText = map['recordInfo'];
         var info = jsonDecode(infoText);
         var order = info['order'];
-        whois = order == 0 ? member?.nickName??'' : whois;
+        whois = order == 0 ? member?.nickName ?? '' : whois;
         _stateBar.tips =
-            '$whois: 通过招财猫[$title]发洇金给我\r\n¥${(amount/100.00).toStringAsFixed(14)}';
+            '$whois: 通过招财猫[$title]发洇金给我\r\n¥${(amount / 100.00).toStringAsFixed(14)}';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
@@ -1314,7 +1254,6 @@ class __ChatroomItemState extends State<_ChatroomItem> {
           //打开聊天室
           widget.context.forward('/portlet/chat/talk', arguments: {
             'model': widget.model,
-            'notify': widget.notify.asBroadcastStream(),
           }).then((v) {
             if (v == 'remove') {
               _NotifyRoomListRefresh().dispatch(context);

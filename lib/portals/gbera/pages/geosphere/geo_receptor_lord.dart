@@ -20,6 +20,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/receptor_handler.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -605,7 +606,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadCategoryAllApps().then((v) {
       setState(() {});
     });
-    Stream _notify = widget.context.parameters['notify'];
+    Stream _notify = receptorNotifyStreamController.stream;
     _streamSubscription = _notify.listen((cmd) async {
       GeosphereMessageOL message = cmd['message'];
       if (cmd['receptor'] != widget.receptorInfo.id) {

@@ -34,6 +34,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
 import 'netflow/cat_widget.dart';
+import 'netflow/channel_handler.dart';
 
 class Netflow extends StatefulWidget {
   PageContext context;
@@ -51,7 +52,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   final _channelStateBars = <String, _ChannelStateBar>{};
   EasyRefreshController _controller;
   List<Channel> _items = [];
-  StreamController<ChannelEventArgs> _streamController;
   StreamSubscription _streamSubscription;
 
   @override
@@ -61,8 +61,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
-    _streamController = StreamController.broadcast();
-    _streamSubscription = _streamController.stream.listen((event) {
+    _streamSubscription = channelNotifyStreamController.stream.listen((event) {
       ChannelEventArgs e = event;
       //将活动的管道调到最前
       _items.clear();
@@ -92,7 +91,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   @override
   void dispose() {
     _streamSubscription?.cancel();
-    _streamController?.close();
     _items.clear();
     _controller.dispose();
     _channelStateBars.clear();
@@ -529,7 +527,6 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                   },
                   child: _InsiteMessagesRegion(
                     context: widget.context,
-                    sink: _streamController.sink,
                   ),
                 ),
               ),
@@ -567,17 +564,14 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                       owner: ch.owner,
                       leading: ch.leading,
                       upstreamPerson: ch.upstreamPerson,
-                      events: _streamController.stream.asBroadcastStream(),
                       openChannel: () {
                         widget.context.forward(
                           '/netflow/channel',
                           arguments: {
                             'channel': ch,
-                            'stream':
-                                _streamController.stream.asBroadcastStream(),
                           },
                         ).then((v) {
-                          _streamController.add(
+                          channelNotifyStreamController.add(
                             ChannelEventArgs(
                               command: 'doChannelPageBack',
                               channel: ch.id,
@@ -611,9 +605,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
 class _InsiteMessagesRegion extends StatefulWidget {
   PageContext context;
-  StreamSink sink;
 
-  _InsiteMessagesRegion({this.context, this.sink});
+  _InsiteMessagesRegion({this.context,});
 
   @override
   _InsiteMessagesRegionState createState() => _InsiteMessagesRegionState();
@@ -735,7 +728,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         await personService.getPerson(unliker, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    widget.sink.add(
+    channelNotifyStreamController.sink.add(
       ChannelEventArgs(
         command: 'unlikeDocumentCommand',
         channel: docMap['channel'],
@@ -791,7 +784,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    widget.sink.add(
+    channelNotifyStreamController.sink.add(
       ChannelEventArgs(
         command: 'likeDocumentCommand',
         channel: docMap['channel'],
@@ -862,7 +855,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
           //通知当前工作的管道有新消息到
           //网流的管道列表中的每个管道的显示消息提醒的状态栏
-          widget.sink.add(
+          channelNotifyStreamController.sink.add(
             ChannelEventArgs(
               command: 'mediaDocumentCommand',
               channel: channel,
@@ -961,7 +954,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    widget.sink.add(
+    channelNotifyStreamController.sink.add(
       ChannelEventArgs(
         command: 'commentDocumentCommand',
         channel: docMap['channel'],
@@ -1008,7 +1001,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         await personService.getPerson(uncommenter, isDownloadAvatar: true);
     //通知当前工作的管道有新消息到
     //网流的管道列表中的每个管道的显示消息提醒的状态栏
-    widget.sink.add(
+    channelNotifyStreamController.sink.add(
       ChannelEventArgs(
         command: 'uncommentDocumentCommand',
         channel: docMap['channel'],
@@ -1170,7 +1163,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      widget.sink.add(
+      channelNotifyStreamController.sink.add(
         ChannelEventArgs(
           command: 'pushDocumentCommand',
           channel: docMap['channel'],
@@ -1504,7 +1497,6 @@ class _ChannelItem extends StatefulWidget {
   String owner;
   var openChannel;
   bool isSystemChannel;
-  Stream<ChannelEventArgs> events;
   Function(String channelid) removeChannels;
 
   _ChannelItem({
@@ -1516,7 +1508,6 @@ class _ChannelItem extends StatefulWidget {
     this.openChannel,
     this.isSystemChannel,
     this.removeChannels,
-    this.events,
     this.upstreamPerson,
   });
 
@@ -1532,7 +1523,7 @@ class __ChannelItemState extends State<_ChannelItem> {
 
   @override
   void initState() {
-    _streamSubscription = widget.events.listen(_doEvent);
+    _streamSubscription = channelNotifyStreamController.stream.listen(_doEvent);
     _initBar();
     super.initState();
   }
@@ -1548,13 +1539,12 @@ class __ChannelItemState extends State<_ChannelItem> {
         oldWidget.title != widget.title ||
         oldWidget.leading != widget.leading) {
       oldWidget.channelid = widget.channelid;
-      oldWidget.events = widget.events;
       oldWidget.owner = widget.owner;
       oldWidget.title = widget.title;
       oldWidget.leading = widget.leading;
       oldWidget.isSystemChannel = widget.isSystemChannel;
       oldWidget.openChannel = widget.openChannel;
-      _streamSubscription = widget.events.listen(_doEvent);
+      _streamSubscription = channelNotifyStreamController.stream.listen(_doEvent);
       _initBar();
     }
     super.didUpdateWidget(oldWidget);
@@ -2016,13 +2006,6 @@ class __ChannelItemState extends State<_ChannelItem> {
   }
 }
 
-class ChannelEventArgs {
-  String command;
-  String channel;
-  dynamic args;
-
-  ChannelEventArgs({this.command, this.channel, this.args});
-}
 
 class _ChannelStateBar {
   String brackets; //括号

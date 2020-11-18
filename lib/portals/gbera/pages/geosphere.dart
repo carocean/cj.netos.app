@@ -35,6 +35,7 @@ import 'package:uuid/uuid.dart';
 import '../../../main.dart';
 import 'geosphere/geo_entities.dart';
 import 'geosphere/geo_utils.dart';
+import 'geosphere/receptor_handler.dart';
 import 'netflow/article_entities.dart';
 import 'netflow/channel.dart';
 
@@ -72,7 +73,6 @@ class _GeosphereState extends State<Geosphere>
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
   StreamController _receptorStreamController;
-  StreamController _notifyStreamController;
   int _limit = 15, _offset = 0;
   Lock _lock;
 
@@ -85,7 +85,6 @@ class _GeosphereState extends State<Geosphere>
   void initState() {
     _lock = Lock();
     _receptorStreamController = StreamController();
-    _notifyStreamController = StreamController.broadcast();
     geoLocation.start();
 
     _refreshController = EasyRefreshController();
@@ -182,7 +181,6 @@ class _GeosphereState extends State<Geosphere>
     _refreshController.dispose();
     geoLocation.stop();
     _receptorStreamController.close();
-    _notifyStreamController.close();
     geosphereEvents.listeners.clear();
     super.dispose();
   }
@@ -267,7 +265,7 @@ class _GeosphereState extends State<Geosphere>
 
           //通知当前工作的管道有新消息到
           //网流的管道列表中的每个管道的显示消息提醒的状态栏
-          _notifyStreamController.add({
+          receptorNotifyStreamController.add({
             'command': 'mediaDocumentCommand',
             'sender': creator,
             'receptor': receptor,
@@ -372,7 +370,7 @@ class _GeosphereState extends State<Geosphere>
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      _notifyStreamController.add({
+      receptorNotifyStreamController.add({
         'command': 'likeDocumentCommand',
         'sender': frame.head('sender-person'),
         'receptor': receptor,
@@ -421,7 +419,7 @@ class _GeosphereState extends State<Geosphere>
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      _notifyStreamController.add({
+      receptorNotifyStreamController.add({
         'command': 'unlikeDocumentCommand',
         'sender': frame.head('sender-person'),
         'receptor': receptor,
@@ -482,7 +480,7 @@ class _GeosphereState extends State<Geosphere>
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      _notifyStreamController.add({
+      receptorNotifyStreamController.add({
         'command': 'commentDocumentCommand',
         'sender': frame.head('sender-person'),
         'receptor': receptor,
@@ -533,7 +531,7 @@ class _GeosphereState extends State<Geosphere>
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      _notifyStreamController.add({
+      receptorNotifyStreamController.add({
         'command': 'uncommentDocumentCommand',
         'sender': sender,
         'receptor': receptor,
@@ -602,7 +600,7 @@ class _GeosphereState extends State<Geosphere>
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏
-      _notifyStreamController.add({
+      receptorNotifyStreamController.add({
         'command': 'pushDocumentCommand',
         'sender': frame.head('sender-person'),
         'receptor': message.receptor,
@@ -873,7 +871,6 @@ class _GeosphereState extends State<Geosphere>
                 child: _GeoReceptors(
                   context: widget.context,
                   stream: _receptorStreamController.stream,
-                  notify: _notifyStreamController.stream,
                   onTapMarchant: (value) {
                     widget.context.forward('/site/personal');
                   },
@@ -1342,7 +1339,6 @@ class _GeoDistrictState extends State<_GeoDistrict> {
 class _GeoReceptors extends StatefulWidget {
   PageContext context;
   Stream stream;
-  Stream notify;
   Function() onTapFilter;
   Function() onTapGeoCircle;
   Function(Object args) onTapMarchant;
@@ -1350,7 +1346,6 @@ class _GeoReceptors extends StatefulWidget {
   _GeoReceptors({
     this.context,
     this.stream,
-    this.notify,
     this.onTapFilter,
     this.onTapMarchant,
     this.onTapGeoCircle,
@@ -1595,7 +1590,6 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
                   foregroundMode: foregroundMode,
                   origin: receptor,
                 ),
-                notify: widget.notify,
               );
             }).toList(),
           ),
@@ -1608,14 +1602,12 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
 class _ReceptorItem extends StatefulWidget {
   PageContext context;
   ReceptorInfo receptor;
-  Stream notify;
   Function() onDelete;
 
   _ReceptorItem({
     this.context,
     this.receptor,
     this.onDelete,
-    this.notify,
   });
 
   @override
@@ -1632,7 +1624,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     _stateBar = _ReceptorItemStateBar(isShow: false);
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    _streamSubscription = widget.notify.listen((cmd) async {
+    _streamSubscription = receptorNotifyStreamController.stream.listen((cmd) async {
       if (cmd['receptor'] != widget.receptor.id) {
         return;
       }
@@ -2053,7 +2045,6 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         }
         widget.context.forward(url, arguments: {
           'receptor': widget.receptor,
-          'notify': widget.notify,
         }).then((v) {
           _loadUnreadMessage().then((v) {
             if (mounted) {

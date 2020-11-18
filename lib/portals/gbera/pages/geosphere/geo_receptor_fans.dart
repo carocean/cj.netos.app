@@ -35,6 +35,8 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
+import 'receptor_handler.dart';
+
 class GeoReceptorFansWidget extends StatefulWidget {
   PageContext context;
 
@@ -683,7 +685,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     _loadCategoryAllApps().then((v) {
       setState(() {});
     });
-    Stream _notify = widget.context.parameters['notify'];
+    Stream _notify = receptorNotifyStreamController.stream;
     _streamSubscription = _notify.listen((cmd) async {
       GeosphereMessageOL message = cmd['message'];
       if (cmd['receptor'] != widget.receptorInfo.id) {

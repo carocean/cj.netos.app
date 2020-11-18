@@ -12,8 +12,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
@@ -21,6 +23,8 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+
+import 'chatroom_handler.dart';
 
 class ChatTalk extends StatefulWidget {
   PageContext context;
@@ -71,7 +75,7 @@ class _ChatTalkState extends State<ChatTalk> {
         }
       });
     });
-    Stream notify = widget.context.parameters['notify'];
+    Stream notify = chatroomNotifyStreamController.stream.asBroadcastStream();
     _streamSubscription = notify.listen((command) {
       ChatMessage message = command['message'];
       if (message == null ||
@@ -644,12 +648,13 @@ class _PlusPannelState extends State<_PlusPannel> {
         );
         break;
       case 'video':
+        // ImagePicker的这个返回的不是视频，而是一个jpg的图片地址，因此导致Api闪退
         var image = await ImagePicker().getVideo(
           source: ImageSource.gallery,
           maxDuration: Duration(seconds: 15),
         );
         if (image == null) {
-          break;
+          return;
         }
         widget.pluginTap(
           _ChatCommand(
@@ -662,7 +667,7 @@ class _PlusPannelState extends State<_PlusPannel> {
           image.path,
           quality: VideoQuality.MediumQuality,
           // 默认(VideoQuality.DefaultQuality)
-          deleteOrigin: true, // 默认(false)
+          deleteOrigin: false, // 默认(false)
           // frameRate: 10,
         );
         widget.pluginTap(
@@ -1275,9 +1280,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMemberOfPerson(
         _chatRoom.creator, _chatRoom.id, widget.p2pMessage.sender);
-    if(_member==null){
+    if (_member == null) {
       _sender = await friendService.getFriend(widget.p2pMessage.sender);
-      isShowNick =false;
+      isShowNick = false;
       return;
     }
 
@@ -1312,9 +1317,11 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () async {
-              if(_member!=null&&_member.type=='wybank') {
+              if (_member != null && _member.type == 'wybank') {
                 widget.context
-                    .forward('/portlet/chat/room/view_licence', arguments: {'bankid': _member.person,});
+                    .forward('/portlet/chat/room/view_licence', arguments: {
+                  'bankid': _member.person,
+                });
                 return;
               }
               IPersonService personService =
@@ -1429,15 +1436,27 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child: file.startsWith('/')
-              ? Image.file(
-                  File(file),
-                  fit: BoxFit.fitWidth,
-                )
-              : Image.network(
-                  '$file?accessToken=${widget.context.principal.accessToken}',
-                  fit: BoxFit.fitWidth,
-                ),
+          // child: file.startsWith('/')
+          //     ? Image.file(
+          //         File(file),
+          //         fit: BoxFit.fitWidth,
+          //       )
+          //     : Image.network(
+          //         '$file?accessToken=${widget.context.principal.accessToken}',
+          //         fit: BoxFit.fitWidth,
+          //       ),
+          child: MediaWidget(
+            [
+              MediaSrc(
+                sourceType: 'image',
+                msgid: 'xx',
+                id: 'xxx',
+                src: file,
+                type: 'image',
+              )
+            ],
+            widget.context,
+          ),
         );
       case 'video':
         var json = widget.p2pMessage.content;
@@ -1450,8 +1469,20 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child: VideoView(
-            src: File(file),
+          // child: VideoView(
+          //   src: File(file),
+          // ),
+          child: MediaWidget(
+            [
+              MediaSrc(
+                sourceType: 'video',
+                msgid: 'xx',
+                id: 'xxx',
+                src: file,
+                type: 'video',
+              )
+            ],
+            widget.context,
           ),
         );
       case 'transTo':
@@ -1507,10 +1538,15 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           ),
         );
       case '/pay/absorbs':
-        var colors=[Color(0xFFccffff),Color(0xFFCDCDB4),Color(0xFFF5F5DC),Color(0xFFCAE1FF),];
+        var colors = [
+          Color(0xFFccffff),
+          Color(0xFFCDCDB4),
+          Color(0xFFF5F5DC),
+          Color(0xFFCAE1FF),
+        ];
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
-        double amount = obj['amount']/100.00;
+        double amount = obj['amount'] / 100.00;
         var title = obj['title'];
         var encourageCause = obj['encourageCause'];
         return Container(
@@ -1521,7 +1557,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             bottom: 15,
           ),
           decoration: BoxDecoration(
-            color: colors[(title.hashCode.abs()%colors.length)],
+            color: colors[(title.hashCode.abs() % colors.length)],
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1825,9 +1861,21 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child: Image.file(
-            File(file),
-            fit: BoxFit.fitWidth,
+          // child: Image.file(
+          //   File(file),
+          //   fit: BoxFit.fitWidth,
+          // ),
+          child: MediaWidget(
+            [
+              MediaSrc(
+                sourceType: 'image',
+                msgid: 'xx',
+                id: 'xxx',
+                src: file,
+                type: 'image',
+              )
+            ],
+            widget.context,
           ),
         );
         break;
@@ -1842,8 +1890,20 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           constraints: BoxConstraints.tightForFinite(
             width: double.maxFinite,
           ),
-          child: VideoView(
-            src: File(file),
+          // child: VideoView(
+          //   src: File(file),
+          // ),
+          child: MediaWidget(
+            [
+              MediaSrc(
+                sourceType: 'image',
+                msgid: 'xx',
+                id: 'xxx',
+                src: file,
+                type: 'image',
+              )
+            ],
+            widget.context,
           ),
         );
         break;
@@ -1902,10 +1962,10 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       case '/pay/absorbs':
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
-        double amount = obj['amount']/100.00;
+        double amount = obj['amount'] / 100.00;
         var title = obj['title'];
         var encourageCause = obj['encourageCause'];
-        display= Container(
+        display = Container(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,

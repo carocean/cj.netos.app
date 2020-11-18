@@ -257,6 +257,9 @@ class PageContext {
     if (StringUtil.isEmpty(name)) {
       return false;
     }
+    if(name=='/'){//保留桌面不被清除
+      return true;
+    }
     return !name.startsWith(url);
   }
 
