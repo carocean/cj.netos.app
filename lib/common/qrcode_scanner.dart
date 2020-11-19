@@ -87,6 +87,9 @@ class QrcodeScanner {
         );
       },
     );
+    if(v==null) {
+      return null;
+    }
     var selected = v[0];
     QrcodeAction qraction = v[1];
     switch (selected) {

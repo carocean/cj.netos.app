@@ -101,6 +101,19 @@ class BalanceBillOR {
       this.ctime,
       this.note,
       this.bankid});
+
+  BalanceBillOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.accountid = obj['accountid'];
+    this.title = obj['title'];
+    this.order = obj['order'];
+    this.amount = obj['amount'];
+    this.balance = obj['balance'];
+    this.refsn = obj['refsn'];
+    this.ctime = obj['ctime'];
+    this.note = obj['note'];
+    this.bankid = obj['bankid'];
+  }
 }
 
 class OnorderBillOR {
@@ -167,6 +180,9 @@ mixin IWalletBillRemote {
   Future<List<OnorderBillOR>> pageOnorderBill(int limit, int offset) {}
 
   Future<List<AbsorbBillOR>> pageAbsorbBill(int limit, int offset) {}
+
+  Future<List<BalanceBillOR>> pageBalanceBillByOrder(
+      int order, int limit, int offset) {}
 }
 
 class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
@@ -301,6 +317,38 @@ class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
       walletBalanceBillPorts,
       'pageBill',
       parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<BalanceBillOR> bills = [];
+    for (var obj in list) {
+      bills.add(
+        BalanceBillOR(
+          ctime: obj['ctime'],
+          amount: (obj['amount'] as double).floor(),
+          refsn: obj['refsn'],
+          order: (obj['order'] as double).floor(),
+          title: obj['title'],
+          bankid: obj['bankid'],
+          note: obj['note'],
+          sn: obj['sn'],
+          accountid: obj['accountid'],
+          balance: (obj['balance'] as double).floor(),
+        ),
+      );
+    }
+    return bills;
+  }
+
+  @override
+  Future<List<BalanceBillOR>> pageBalanceBillByOrder(
+      int order, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      walletBalanceBillPorts,
+      'pageBillByOrder',
+      parameters: {
+        'order': order,
         'limit': limit,
         'offset': offset,
       },

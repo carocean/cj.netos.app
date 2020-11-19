@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -25,9 +28,12 @@ class _PayablesState extends State<Payables> {
   PayChannel _selectedChannel;
   Map<String, dynamic> _qrcodeData;
   _PayerInfo __payerInfo;
+  MyWallet _myWallet;
+  Timer _timer;
 
   @override
   void initState() {
+    _myWallet = widget.context.parameters['wallet'];
     _qrcodeData = {
       'itis': 'wallet.payables',
       'data': null,
@@ -39,7 +45,7 @@ class _PayablesState extends State<Payables> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -54,6 +60,25 @@ class _PayablesState extends State<Payables> {
     if (mounted) {
       setState(() {});
     }
+    await _watchAction(evidence);
+  }
+
+  Future<void> _watchAction(evidence) async {
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService('/wallet/records');
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      var record = await recordRemote.getP2PRecordByEvidence(evidence);
+      if (record != null && record.state == 1) {
+        //已完成，但不一定正确
+        _timer.cancel();
+        if (mounted) {
+          widget.context.forward(
+            '/wallet/p2p/details',
+            arguments: {'p2p': record, 'wallet': _myWallet},
+          );
+        }
+      }
+    });
   }
 
   _loadPayChannels() async {
@@ -124,29 +149,34 @@ class _PayablesState extends State<Payables> {
                 ),
               ],
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: 5,
-                  ),
-                  child: Text(
-                    '其它付款方式',
-                    style: widget.context.style(
-                        '/wallet/change/deposit/method/arrow-label.text'),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_right,
-                  size: 20,
-                  color: widget.context
-                      .style('/wallet/change/deposit/method/arrow.icon'),
-                ),
-              ],
+            Text(
+              '付款到对方零钱',
+              style: widget.context
+                  .style('/wallet/change/deposit/method/arrow-label.text'),
             ),
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.center,
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   mainAxisSize: MainAxisSize.min,
+            //   children: <Widget>[
+            //     Padding(
+            //       padding: EdgeInsets.only(
+            //         right: 5,
+            //       ),
+            //       child: Text(
+            //         '其它付款方式',
+            //         style: widget.context.style(
+            //             '/wallet/change/deposit/method/arrow-label.text'),
+            //       ),
+            //     ),
+            //     Icon(
+            //       Icons.keyboard_arrow_right,
+            //       size: 20,
+            //       color: widget.context
+            //           .style('/wallet/change/deposit/method/arrow.icon'),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
@@ -544,17 +574,22 @@ void registerQrcodeAction(PageContext context) {
           }
           await tradeRemote.receiveFromEvidence(info.props['evidence'],
               info.props['amount'], info.props['type'], info.props['note']);
+
           WidgetsBinding.instance.addPostFrameCallback((d) {
             context.forward(
               '/payables/result',
-              arguments: {'result': '收款成功！'},
+              arguments: {'evidence': info.props['evidence']},
             );
           });
         } catch (e) {
           WidgetsBinding.instance.addPostFrameCallback((d) {
             context.forward(
               '/payables/result',
-              arguments: {'result': e},
+              arguments: {
+                'status': 500,
+                'message': e,
+                'evidence': info.props['evidence']
+              },
             );
           });
         }
@@ -648,19 +683,18 @@ void registerQrcodeAction(PageContext context) {
                     child: img,
                   ),
                 ),
-                Wrap(
-                  direction: Axis.vertical,
-                  spacing: 10,
-                  children: <Widget>[
-                    Text(
-                      '${person.nickName}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        '${person.nickName}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 200,
-                      child: TextField(
+                      TextField(
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: '输入金额,单位元。如:2.35',
@@ -679,9 +713,9 @@ void registerQrcodeAction(PageContext context) {
                           props['amount'] = amount * 100;
                         },
                       ),
-                    )
-                  ],
-                )
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -708,17 +742,66 @@ class PayableResultPage extends StatefulWidget {
 }
 
 class _PayableResultPageState extends State<PayableResultPage> {
+  bool _isProcessing = true;
+  String message;
+  int status;
+  Timer _timer;
+
+  @override
+  void initState() {
+    var evidence = widget.context.parameters['evidence'];
+    var message = widget.context.parameters['message'];
+    message = message ?? 'ok';
+    var status = widget.context.parameters['status'];
+    status = status ?? 200;
+    _watchAction(evidence);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _watchAction(evidence) async {
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService('/wallet/records');
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      var record = await recordRemote.getP2PRecordByEvidence(evidence);
+      if (record != null && record.state == 1) {
+        //已完成，但不一定正确
+        _timer.cancel();
+        message = record.message;
+        status = record.status;
+        _isProcessing = false;
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var error = widget.context.parameters['result'];
     return Scaffold(
       appBar: AppBar(
         title: Text('收款结果'),
         elevation: 0,
       ),
       body: Center(
-        child: Text('$error'),
+        child: Text('${_getResultText()}',style: TextStyle(color: Colors.red),),
       ),
     );
+  }
+
+  _getResultText() {
+    if (_isProcessing) {
+      return '处理中...';
+    }
+    if (status == 200) {
+      return '交易成功';
+    }
+    return '交易失败: $status $message';
   }
 }

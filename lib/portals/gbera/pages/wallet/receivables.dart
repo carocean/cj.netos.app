@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -8,6 +9,8 @@ import 'package:framework/framework.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -30,14 +33,23 @@ class _ReceivablesState extends State<Receivables> {
   var qrcodeKey = GlobalKey();
   Map<String, dynamic> _qrcodeData;
   GlobalKey<ScaffoldState> __globalKey = GlobalKey();
+  Timer _timer;
+  MyWallet _myWallet;
 
   @override
   void initState() {
+    _myWallet = widget.context.parameters['wallet'];
     _qrcodeData = {
       'itis': 'wallet.receivables',
       'data': null,
     };
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _setQrcode(Map v) async {
@@ -46,8 +58,7 @@ class _ReceivablesState extends State<Receivables> {
     setState(() {});
     IWalletTradeRemote tradeRemote =
         widget.context.site.getService('/wallet/trades');
-    String evidence =
-        await tradeRemote.genReceivableEvidence(1 * 60 * 1000, 1);
+    String evidence = await tradeRemote.genReceivableEvidence(1 * 60 * 1000, 1);
     this._payeeInfo = _PayeeInfo(
       evidence: evidence,
       note: v['memo'],
@@ -57,6 +68,25 @@ class _ReceivablesState extends State<Receivables> {
     if (mounted) {
       setState(() {});
     }
+    await _watchAction(evidence);
+  }
+
+  Future<void> _watchAction(evidence) async {
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService('/wallet/records');
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      var record = await recordRemote.getP2PRecordByEvidence(evidence);
+      if (record != null && record.state == 1) {
+        //已完成，但不一定正确
+        _timer.cancel();
+        if (mounted) {
+          widget.context.forward(
+            '/wallet/p2p/details',
+            arguments: {'p2p': record, 'wallet': _myWallet},
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -270,7 +300,10 @@ class _ReceivablesState extends State<Receivables> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
-                  widget.context.forward('/wallet/receivables/record');
+                  widget.context.forward('/wallet/receivables/record',
+                      arguments: {
+                        'wallet': widget.context.parameters['wallet']
+                      });
                 },
                 child: Padding(
                   padding: EdgeInsets.only(
@@ -366,15 +399,19 @@ void registerQrcodeAction(PageContext context) {
               info.props['amount'], info.props['type'], info.props['note']);
           WidgetsBinding.instance.addPostFrameCallback((d) {
             context.forward(
-              '/receivables/result',
-              arguments: {'result': '付款成功！'},
+              '/payables/result',
+              arguments: {'evidence': info.props['evidence']},
             );
           });
         } catch (e) {
           WidgetsBinding.instance.addPostFrameCallback((d) {
             context.forward(
-              '/receivables/result',
-              arguments: {'result': e},
+              '/payables/result',
+              arguments: {
+                'status': 500,
+                'message': e,
+                'evidence': info.props['evidence']
+              },
             );
           });
         }
@@ -513,17 +550,66 @@ class ReceivableResultPage extends StatefulWidget {
 }
 
 class _ReceivableResultPageState extends State<ReceivableResultPage> {
+  bool _isProcessing = true;
+  String message;
+  int status;
+  Timer _timer;
+
+  @override
+  void initState() {
+    var evidence = widget.context.parameters['evidence'];
+    var message = widget.context.parameters['message'];
+    message = message ?? 'ok';
+    var status = widget.context.parameters['status'];
+    status = status ?? 200;
+    _watchAction(evidence);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _watchAction(evidence) async {
+    IWalletRecordRemote recordRemote =
+    widget.context.site.getService('/wallet/records');
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      var record = await recordRemote.getP2PRecordByEvidence(evidence);
+      if (record != null && record.state == 1) {
+        //已完成，但不一定正确
+        _timer.cancel();
+        message = record.message;
+        status = record.status;
+        _isProcessing = false;
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var error = widget.context.parameters['result'];
     return Scaffold(
       appBar: AppBar(
         title: Text('付款结果'),
         elevation: 0,
       ),
       body: Center(
-        child: Text('$error'),
+        child: Text('${_getResultText()}',style: TextStyle(color: Colors.red),),
       ),
     );
+  }
+
+  _getResultText() {
+    if (_isProcessing) {
+      return '处理中...';
+    }
+    if (status == 200) {
+      return '交易成功';
+    }
+    return '交易失败: $status $message';
   }
 }

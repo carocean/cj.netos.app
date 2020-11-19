@@ -729,6 +729,9 @@ mixin IWalletRecordRemote {
   Future<P2PRecordOR> getP2PRecord(String sn) {}
 
   Future<List<P2PActivityOR>> getP2PActivities(sn) {}
+
+
+  Future<P2PRecordOR>  getP2PRecordByEvidence(String evidence) {}
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -1562,6 +1565,36 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       'getP2PRecord',
       parameters: {
         'record_sn': sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return P2PRecordOR(
+      payeeName: obj['payeeName'],
+      amount: obj['amount'],
+      ctime: obj['ctime'],
+      sn: obj['sn'],
+      message: obj['message'],
+      status: obj['status'],
+      state: obj['state'],
+      type: obj['type'],
+      currency: obj['currency'],
+      direct: obj['direct'],
+      lutime: obj['lutime'],
+      payee: obj['payee'],
+      payer: obj['payer'],
+      payerName: obj['payerName'],
+    );
+  }
+
+  @override
+  Future<P2PRecordOR> getP2PRecordByEvidence(String evidence) async{
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getP2PRecordByEvidence',
+      parameters: {
+        'evidence': evidence,
       },
     );
     if (obj == null) {
