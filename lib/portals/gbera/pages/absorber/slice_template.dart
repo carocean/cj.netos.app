@@ -117,6 +117,9 @@ class _SliceTemplatePageState extends State<SliceTemplatePage> {
       case 'normal':
         return widget.context.part('/robot/slice/template/normal', context,
             arguments: {'sliceTemplate': _selectSliceTemplate});
+      case 'official':
+        return widget.context.part('/robot/slice/template/official', context,
+            arguments: {'sliceTemplate': _selectSliceTemplate});
       case 'happiness':
         return widget.context.part('/robot/slice/template/happiness', context,
             arguments: {'sliceTemplate': _selectSliceTemplate});

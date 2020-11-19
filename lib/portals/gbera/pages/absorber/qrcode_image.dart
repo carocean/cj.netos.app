@@ -62,25 +62,30 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
           Duration(
             seconds: 1,
           ), () async {
-        int i = 0;
+        int i = 1;
         do {
           if (mounted) {
             setState(() {
-              _progressTips = '准备导出第${i + 1}张...';
+              _progressTips = '准备导出第$i张...';
             });
           }
           await _exportSlice();
           if (mounted) {
             setState(() {
-              _progressTips = '第${i + 1}张已导出';
+              _progressTips = '第$i张已导出';
             });
+          }
+          if(i >= _slices.length) {
+            break;
           }
           _qrcodeSliceOR = _slices[i];
           i++;
-        } while (i < _slices.length);
+        } while (true);
         widget.context.backward();
       });
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {});
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        print('--------------ss----');
+      });
     }();
     super.initState();
   }
@@ -158,7 +163,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
   }
 
   _renderSlice() {
-    if (_templateOR == null) {
+    if (_qrcodeSliceOR == null||_templateOR==null) {
       return SizedBox(
         height: 0,
         width: 0,
@@ -168,6 +173,10 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     switch (_qrcodeSliceOR.template) {
       case 'normal':
         slice = widget.context.part('/robot/slice/image/normal', context,
+            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        break;
+      case 'official':
+        slice = widget.context.part('/robot/slice/image/official', context,
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
       case 'happiness':
