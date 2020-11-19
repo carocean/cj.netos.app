@@ -17,13 +17,12 @@ class _ChijiTemplateState extends State<ChijiTemplate> {
 
   @override
   void initState() {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
+    _sliceTemplate = widget.context.partArgs['sliceTemplate'];
     super.initState();
   }
 
   @override
   void didUpdateWidget(ChijiTemplate oldWidget) {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
 

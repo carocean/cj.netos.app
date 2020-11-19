@@ -29,62 +29,28 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
   bool _isAutoExport = false;
   String _progressTips = '';
   SliceTemplateOR _templateOR;
-  List<QrcodeSliceOR> _slices = [];
 
   @override
   void initState() {
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _isShowAction = widget.context.page.parameters['isShowAction'];
-    if (_qrcodeSliceOR == null) {
-      _qrcodeSliceOR = widget.context.parameters['slice'];
-    }
+    _qrcodeSliceOR = widget.context.parameters['slice'];
+    _isShowAction = widget.context.partArgs['isShowAction'];
     if (_isShowAction == null) {
       _isShowAction = widget.context.parameters['isShowAction'];
     }
     _isShowAction = _isShowAction ?? false;
-    _slices = widget.context.parameters['slices'];
     _isAutoExport = widget.context.parameters['isAutoExport'];
     _isAutoExport = _isAutoExport ?? false;
-    if (_isAutoExport && _slices != null && _slices.isNotEmpty) {
-      _qrcodeSliceOR = _slices[0];
-    }
     () async {
       await _loadTemplate();
       if (!_isAutoExport) {
         return;
       }
-      if (mounted) {
-        setState(() {
-          _progressTips = '开始导出码片到相册...';
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        _exportSlice().then((value) {
+          if(mounted) {
+            widget.context.backward();
+          }
         });
-      }
-      Future.delayed(
-          Duration(
-            seconds: 1,
-          ), () async {
-        int i = 1;
-        do {
-          if (mounted) {
-            setState(() {
-              _progressTips = '准备导出第$i张...';
-            });
-          }
-          await _exportSlice();
-          if (mounted) {
-            setState(() {
-              _progressTips = '第$i张已导出';
-            });
-          }
-          if(i >= _slices.length) {
-            break;
-          }
-          _qrcodeSliceOR = _slices[i];
-          i++;
-        } while (true);
-        widget.context.backward();
-      });
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-        print('--------------ss----');
       });
     }();
     super.initState();
@@ -98,8 +64,6 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
 
   @override
   void didUpdateWidget(QrcodeSliceImagePage oldWidget) {
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _slices = widget.context.parameters['slices'];
     super.didUpdateWidget(oldWidget);
   }
 
@@ -131,6 +95,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     await ImageGallerySaver.saveFile(f);
     if (mounted) {
       setState(() {
+        _progressTips = '码片:${_qrcodeSliceOR.id}已导出';
         _isExporting = 2;
       });
     }
@@ -163,7 +128,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
   }
 
   _renderSlice() {
-    if (_qrcodeSliceOR == null||_templateOR==null) {
+    if (_qrcodeSliceOR == null || _templateOR == null) {
       return SizedBox(
         height: 0,
         width: 0,
@@ -176,8 +141,11 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
       case 'official':
-        slice = widget.context.part('/robot/slice/image/official', context,
-            arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
+        slice = widget.context
+            .part('/robot/slice/image/official', context, arguments: {
+          'slice': _qrcodeSliceOR,
+          'template': _templateOR,
+        });
         break;
       case 'happiness':
         slice = widget.context.part('/robot/slice/image/happiness', context,
@@ -200,7 +168,8 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
       case 'wangzherongyao':
-        slice = widget.context.part('/robot/slice/image/wangzherongyao', context,
+        slice = widget.context.part(
+            '/robot/slice/image/wangzherongyao', context,
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});
         break;
       case 'love':
@@ -216,7 +185,7 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
     return FittedBox(
       fit: BoxFit.cover,
       child: SizedBox(
-        height: Adapt.screenH()-60,
+        height: Adapt.screenH() - 60,
         width: Adapt.screenW(),
         child: slice,
       ),

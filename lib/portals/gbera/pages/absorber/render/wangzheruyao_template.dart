@@ -18,13 +18,12 @@ class _WangzheruyaoTemplateState extends State<WangzheruyaoTemplate> {
 
   @override
   void initState() {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
+    _sliceTemplate = widget.context.partArgs['sliceTemplate'];
     super.initState();
   }
 
   @override
   void didUpdateWidget(WangzheruyaoTemplate oldWidget) {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
   @override

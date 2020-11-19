@@ -19,13 +19,12 @@ class _HappinessTemplateState extends State<HappinessTemplate> {
 
   @override
   void initState() {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
+    _sliceTemplate = widget.context.partArgs['sliceTemplate'];
     super.initState();
   }
 
   @override
   void didUpdateWidget(HappinessTemplate oldWidget) {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
 

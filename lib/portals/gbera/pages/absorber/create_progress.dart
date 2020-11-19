@@ -93,17 +93,29 @@ class _CreateSlicesProgressPageState extends State<CreateSlicesProgressPage> {
         _progressTips += '开始导出码片...\r\n';
       });
     }
-    widget.context.forward('/robot/slice/image', arguments: {
-      'slices': slices,
-      'isShowAction': false,
-      'isAutoExport': true,
-    }).then((value) {
+    for (var slice in slices) {
       if (mounted) {
         setState(() {
-          _progressTips += '码片已全部导出到相册\r\n';
+          _progressTips += '准备导出码片:${slice.id}\r\n';
         });
       }
-    });
+      await widget.context.forward('/robot/slice/image', arguments: {
+        'slice': slice,
+        'isShowAction': false,
+        'isAutoExport': true,
+      });
+      if (mounted) {
+        setState(() {
+          _progressTips += '完成导出码片:${slice.id}\r\n';
+        });
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _progressTips += '码片已全部导出到相册\r\n';
+      });
+      widget.context.backward();
+    }
   }
 
   @override

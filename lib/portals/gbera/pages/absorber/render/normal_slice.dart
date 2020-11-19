@@ -21,14 +21,12 @@ class _NormalSliceImageState extends State<NormalSliceImage> {
   @override
   void initState() {
     super.initState();
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _templateOR = widget.context.page.parameters['template'];
+    _qrcodeSliceOR = widget.context.partArgs['slice'];
+    _templateOR = widget.context.partArgs['template'];
   }
 
   @override
   void didUpdateWidget(NormalSliceImage oldWidget) {
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _templateOR = widget.context.page.parameters['template'];
     super.didUpdateWidget(oldWidget);
   }
 

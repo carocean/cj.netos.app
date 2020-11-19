@@ -21,14 +21,12 @@ class _HappnissSliceState extends State<HappinessSliceImage> {
   @override
   void initState() {
     super.initState();
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _sliceTemplateOR = widget.context.page.parameters['template'];
+    _qrcodeSliceOR = widget.context.partArgs['slice'];
+    _sliceTemplateOR = widget.context.partArgs['template'];
   }
 
   @override
   void didUpdateWidget(HappinessSliceImage oldWidget) {
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _sliceTemplateOR = widget.context.page.parameters['template'];
     super.didUpdateWidget(oldWidget);
   }
   @override

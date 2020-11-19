@@ -17,13 +17,12 @@ class _XibaoSliceTemplateState extends State<XibaoSliceTemplate> {
 
   @override
   void initState() {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
+    _sliceTemplate = widget.context.partArgs['sliceTemplate'];
     super.initState();
   }
 
   @override
   void didUpdateWidget(XibaoSliceTemplate oldWidget) {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
 

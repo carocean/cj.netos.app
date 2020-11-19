@@ -17,13 +17,12 @@ class _MinXinPianTemplateState extends State<MinXinPianTemplate> {
 
   @override
   void initState() {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
+    _sliceTemplate = widget.context.partArgs['sliceTemplate'];
     super.initState();
   }
 
   @override
   void didUpdateWidget(MinXinPianTemplate oldWidget) {
-    _sliceTemplate = widget.context.page.parameters['sliceTemplate'];
     super.didUpdateWidget(oldWidget);
   }
 

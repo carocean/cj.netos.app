@@ -19,14 +19,12 @@ class _XibaoSliceImageState extends State<XibaoSliceImage> {
   @override
   void initState() {
     super.initState();
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _sliceTemplate = widget.context.page.parameters['template'];
+    _qrcodeSliceOR = widget.context.partArgs['slice'];
+    _sliceTemplate = widget.context.partArgs['template'];
   }
 
   @override
   void didUpdateWidget(XibaoSliceImage oldWidget) {
-    _qrcodeSliceOR = widget.context.page.parameters['slice'];
-    _sliceTemplate = widget.context.page.parameters['template'];
     super.didUpdateWidget(oldWidget);
   }
 
