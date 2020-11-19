@@ -648,7 +648,6 @@ class _PlusPannelState extends State<_PlusPannel> {
         );
         break;
       case 'video':
-        // ImagePicker的这个返回的不是视频，而是一个jpg的图片地址，因此导致Api闪退
         var image = await ImagePicker().getVideo(
           source: ImageSource.gallery,
           maxDuration: Duration(seconds: 15),
@@ -662,14 +661,14 @@ class _PlusPannelState extends State<_PlusPannel> {
             message: 'beginVideoCompressing',
           ),
         );
-        var videoCompress = FlutterVideoCompress();
-        var info = await videoCompress.compressVideo(
-          image.path,
-          quality: VideoQuality.MediumQuality,
-          // 默认(VideoQuality.DefaultQuality)
-          deleteOrigin: false, // 默认(false)
-          // frameRate: 10,
-        );
+        // var videoCompress = FlutterVideoCompress();
+        // var info = await videoCompress.compressVideo(
+        //   image.path,
+        //   quality: VideoQuality.MediumQuality,
+        //   // 默认(VideoQuality.DefaultQuality)
+        //   deleteOrigin: false, // 默认(false)
+        //   // frameRate: 10,
+        // );
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
@@ -679,7 +678,7 @@ class _PlusPannelState extends State<_PlusPannel> {
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
-            message: info.file.path,
+            message: image.path,
           ),
         );
         break;

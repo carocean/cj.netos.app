@@ -490,14 +490,14 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var videoCompress = FlutterVideoCompress();
-                              var info = await videoCompress.compressVideo(
-                                image.path,
-                                quality: VideoQuality.MediumQuality,
-                                // 默认(VideoQuality.DefaultQuality)
-                                deleteOrigin: true, // 默认(false)
-                                // frameRate: 10,
-                              );
+                              // var videoCompress = FlutterVideoCompress();
+                              // var info = await videoCompress.compressVideo(
+                              //   image.path,
+                              //   quality: VideoQuality.MediumQuality,
+                              //   // 默认(VideoQuality.DefaultQuality)
+                              //   deleteOrigin: true, // 默认(false)
+                              //   // frameRate: 10,
+                              // );
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;
@@ -505,7 +505,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               }
                               shower_key.currentState.addImage(
                                 MediaFile(
-                                  src: info.file,
+                                  src: File(image.path),
                                   type: MediaFileType.video,
                                 ),
                               );

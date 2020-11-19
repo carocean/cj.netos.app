@@ -494,21 +494,21 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var videoCompress = FlutterVideoCompress();
-                              var info = await videoCompress.compressVideo(
-                                image.path,
-                                quality: VideoQuality.MediumQuality,
-                                // 默认(VideoQuality.DefaultQuality)
-                                deleteOrigin: true, // 默认(false)
-                                // frameRate: 10,
-                              );
+                              // var videoCompress = FlutterVideoCompress();
+                              // var info = await videoCompress.compressVideo(
+                              //   image.path,
+                              //   quality: VideoQuality.MediumQuality,
+                              //   // 默认(VideoQuality.DefaultQuality)
+                              //   deleteOrigin: true, // 默认(false)
+                              //   // frameRate: 10,
+                              // );
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;
                                 });
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: info.file, type: MediaFileType.video));
+                                  src: File(image.path), type: MediaFileType.video));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(
