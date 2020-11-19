@@ -1896,11 +1896,11 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           child: MediaWidget(
             [
               MediaSrc(
-                sourceType: 'image',
+                sourceType: 'video',
                 msgid: 'xx',
                 id: 'xxx',
                 src: file,
-                type: 'image',
+                type: 'video',
               )
             ],
             widget.context,
