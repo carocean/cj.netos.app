@@ -125,7 +125,8 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       return;
     }
     for (var map in rooms) {
-      ChatRoom chatRoom = ChatRoom.fromMap(map, context.principal.person);
+      var cr = ChatRoomOR.parse(map);
+      ChatRoom chatRoom =cr.toLocal(context.principal.person);
       var exists = await chatRoomService.get(chatRoom.id, isOnlyLocal: true);
       if (exists != null) {
         continue;
@@ -488,7 +489,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       if (exists.nickName != member.nickName ||
           exists.isShowNick != member.isShowNick) {
         await chatRoomService.removeMember(room, sender, isOnlySaveLocal: true);
-        await chatRoomService.addMember(member, isOnlySaveLocal: true);
+        await chatRoomService.addMember(
+            member.toLocal(widget.context.principal.person),
+            isOnlySaveLocal: true);
       }
     }
 
@@ -613,7 +616,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         print('收到未知的消息类型：$contentType');
         break;
     }
-
   }
 
   Future<void> _topChatroom(room) async {
@@ -671,7 +673,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           print('流已关闭:$e');
         }
         IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
+            widget.context.site.getService('/chat/rooms');
         await chatRoomService.updateRoomUtime(room);
         await _topChatroom(room);
         if (mounted) {

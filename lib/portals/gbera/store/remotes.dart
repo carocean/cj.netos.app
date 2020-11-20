@@ -26,24 +26,38 @@ class ChannelMessageOR {
     this.purchaseSn,
   });
 
-  ChannelMessageOR.parse(obj){
-    this.id=obj['id'];
-    this.channel=obj['channel'];
-    this.creator=obj['creator'];
-    this.content=obj['content'];
-    this.location=obj['location'] == null ? null : LatLng.fromJson(obj['location']);
-    this.ctime=obj['ctime'];
-    this.purchaseSn=obj['purchaseSn'];
+  ChannelMessageOR.parse(obj) {
+    this.id = obj['id'];
+    this.channel = obj['channel'];
+    this.creator = obj['creator'];
+    this.content = obj['content'];
+    this.location =
+        obj['location'] == null ? null : LatLng.fromJson(obj['location']);
+    this.ctime = obj['ctime'];
+    this.purchaseSn = obj['purchaseSn'];
   }
 
-  InsiteMessage toInsiteMessage(upstreamPerson,sandbox) {
+  InsiteMessage toInsiteMessage(upstreamPerson, sandbox) {
     var str;
-    if(location!=null) {
-      str=jsonEncode(location.toJson());
+    if (location != null) {
+      str = jsonEncode(location.toJson());
     }
-    return InsiteMessage('${MD5Util.MD5(Uuid().v1())}', id, upstreamPerson, channel, null, null, creator, ctime, null, content, purchaseSn, str, null, sandbox);
+    return InsiteMessage(
+        '${MD5Util.MD5(Uuid().v1())}',
+        id,
+        upstreamPerson,
+        channel,
+        null,
+        null,
+        creator,
+        ctime,
+        null,
+        content,
+        purchaseSn,
+        str,
+        null,
+        sandbox);
   }
-
 }
 
 class ChannelMediaOR {
@@ -66,6 +80,7 @@ class ChannelMediaOR {
     this.channel,
     this.ctime,
   });
+
   MediaSrc toMediaSrc() {
     return MediaSrc(
         sourceType: 'channel',
@@ -78,12 +93,87 @@ class ChannelMediaOR {
   }
 }
 
+class ChatRoomOR {
+  String room;
+  String title;
+  String creator;
+  String leading;
+  String microsite;
+  String background;
+  int flag; //0为可用；1为已被删除
+  bool isForegroundWhite;
+  int ctime;
+
+  ChatRoomOR({
+    this.room,
+    this.title,
+    this.creator,
+    this.leading,
+    this.microsite,
+    this.background,
+    this.flag,
+    this.isForegroundWhite,
+    this.ctime,
+  });
+
+  ChatRoomOR.parse(obj) {
+    this.room = obj['room'];
+    this.title = obj['title'];
+    this.creator = obj['creator'];
+    this.leading = obj['leading'];
+    this.microsite = obj['microsite'];
+    this.background = obj['background'];
+    this.flag = obj['flag'];
+    this.isForegroundWhite = obj['isForegroundWhite'] ??false;
+    this.ctime = obj['ctime'];
+  }
+
+ ChatRoom toLocal(String sandbox) {
+    return ChatRoom(room, title, leading, creator, ctime, ctime, null, null, isForegroundWhite?'true':'false', 'false', microsite, sandbox);
+ }
+
+}
+
+class RoomMemberOR {
+  String room;
+  String person;
+  String actor; //创建者(creator)管理员(admin)，客服(servicer)，普通成员(user)
+  String nickName;
+  int flag; //0为可用；1为已被删除
+  bool isShowNick;
+  int atime;
+
+  RoomMemberOR(
+      {this.room,
+      this.person,
+      this.actor,
+      this.nickName,
+      this.flag,
+      this.isShowNick,
+      this.atime}); //加入时间
+  RoomMemberOR.parse(obj) {
+    this.room = obj['room'];
+    this.person = obj['person'];
+    this.actor = obj['actor'];
+    this.nickName = obj['nickName'];
+    this.flag = obj['flag'];
+    this.isShowNick = obj['isShowNick']??false;
+    this.atime = obj['atime'];
+  }
+
+  RoomMember toLocal(String sandbox) {
+    return RoomMember(room, person, nickName, isShowNick?'true':'false', null, 'person', atime, sandbox);
+  }
+
+}
+
 mixin IChannelRemote {
   Future<void> createChannel(
     String channel, {
     @required String title,
     @required String leading,
-        @required String upstreamPerson,
+    @required String upstreamPerson,
+
     ///only_select, all_excep
     @required String outPersonSelector,
     @required bool outGeoSelector,
@@ -168,11 +258,11 @@ mixin IChannelRemote {
   Future<List<ChannelOutputPerson>> getAllOutputPerson(
       String channel, int atime) {}
 
-  Future<List<ChannelMessageOR>> pageDocument(String official, String id, int limit, int offset) {}
+  Future<List<ChannelMessageOR>> pageDocument(
+      String official, String id, int limit, int offset) {}
 
-  Future<void>addOutputPersonBy(String channelCreator, String person, String channel) {}
-
-
+  Future<void> addOutputPersonBy(
+      String channelCreator, String person, String channel) {}
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}
@@ -182,13 +272,14 @@ mixin IChatRoomRemote {
   Future<void> addMember(RoomMember roomMember) {}
 
   Future<void> addMemberToOwner(String chatroomOwner, RoomMember roomMember) {}
+
   Future<void> removeChatRoom(String code) {}
 
   Future<void> pushMessage(String creator, ChatMessage message) {}
 
-  Future<ChatRoom> getRoom(String creator, String room) {}
+  Future<ChatRoomOR> getRoom(String creator, String room) {}
 
-  Future<List<RoomMember>> pageRoomMember(
+  Future<List<RoomMemberOR>> pageRoomMember(
       String creator, String room, int i, int j) {}
 
   Future<void> updateRoomLeading(String roomid, String file) {}
@@ -198,14 +289,14 @@ mixin IChatRoomRemote {
   Future<void> updateRoomNickname(
       String creator, String room, String nickName) {}
 
-  Future<RoomMember> getMember(
+  Future<RoomMemberOR> getMember(
     String creator,
     String room,
   ) {}
 
   Future<void> switchNick(String creator, String room, bool showNick) {}
 
-  Future<RoomMember> getMemberOfPerson(
+  Future<RoomMemberOR> getMemberOfPerson(
       String creator, String room, String member) {}
 
   Future<void> updateRoomBackground(String room, path) {}
@@ -220,6 +311,4 @@ mixin IChatRoomRemote {
   Future<ChatRoomNotice> getNewestNotice(ChatRoom chatRoom) {}
 
   Future<void> updateRoomForeground(String id, bool isForegroundWhite) {}
-
-
 }

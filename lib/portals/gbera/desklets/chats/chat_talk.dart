@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
@@ -60,6 +61,7 @@ class _ChatTalkState extends State<ChatTalk> {
 
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
+    _syncRoomMembers();
     if (!StringUtil.isEmpty(_chatRoom.p2pBackground) &&
         _chatRoom.p2pBackground.startsWith('http')) {
       _updateRoomBackground().then((v) {
@@ -105,6 +107,11 @@ class _ChatTalkState extends State<ChatTalk> {
     _scrollController?.dispose();
     _isloaded = false;
     super.dispose();
+  }
+
+  Future<void> _syncRoomMembers() async {
+    //返回被标记移除的群或成员，如果为移除群，则只将本地成员移除，群仍留下
+
   }
 
   void _goEnd([int milliseconds = 10]) {

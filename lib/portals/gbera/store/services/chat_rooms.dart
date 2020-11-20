@@ -237,7 +237,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     var member =
         await roomMemberDAO.getMember(room, official, principal.person);
     if (member == null) {
-      member = await chatRoomRemote.getMemberOfPerson(creator, room, official);
+      var m = await chatRoomRemote.getMemberOfPerson(creator, room, official);
+      if(m==null) {
+        return null;
+      }
+      member=m.toLocal(principal.person);
     }
     return member;
   }
@@ -265,13 +269,15 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     if (cr == null) {
       throw FlutterError('$creator不存在聊天室$room');
     }
-    await chatRoomDAO.addRoom(cr);
-    return cr;
+    var local=cr.toLocal(principal.person);
+    await chatRoomDAO.addRoom(local);
+    return local;
   }
 
   @override
   Future<ChatRoom> fetchRoom(String creator, String room) async {
-    return await this.chatRoomRemote.getRoom(creator, room);
+    var cr= await this.chatRoomRemote.getRoom(creator, room);
+    return cr.toLocal(principal.person);
   }
 
   @override
@@ -292,7 +298,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
         if (added.contains(m.person)) {
           continue;
         }
-        await roomMemberDAO.addMember(m);
+        await roomMemberDAO.addMember(m.toLocal(principal.person));
         added.add(m.person);
       }
     }
@@ -317,7 +323,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
         if (added.contains(m.person)) {
           continue;
         }
-        members.add(m);
+        members.add(m.toLocal(principal.person));
         added.add(m.person);
       }
     }
@@ -375,13 +381,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
     await messageDAO.emptyRoomMessages(room.id, principal.person);
-    if (room.creator != principal.person) {
-      await chatRoomRemote.removeMember(room.id, principal.person);
-    }
     if (!isOnlySaveLocal) {
       await chatRoomRemote.removeChatRoom(room.id);
     }
   }
+
 }
 
 class P2PMessageService implements IP2PMessageService, IServiceBuilder {

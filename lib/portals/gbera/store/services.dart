@@ -354,6 +354,8 @@ mixin IChatRoomService {
   Future<void> updateRoomUtime(String room) {}
 
   Future<List<ChatRoom>> findChatroomByMembers(List<String> members) {}
+
+
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

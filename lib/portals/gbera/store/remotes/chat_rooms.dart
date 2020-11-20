@@ -70,7 +70,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<ChatRoom> getRoom(String creator, String room) async {
+  Future<ChatRoomOR> getRoom(String creator, String room) async {
     var map = await remotePorts.portGET(
       chatPortsUrl,
       'getRoomOfPerson',
@@ -82,11 +82,11 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return ChatRoom.fromMap(map, principal.person);
+    return ChatRoomOR.parse(map);
   }
 
   @override
-  Future<List<RoomMember>> pageRoomMember(
+  Future<List<RoomMemberOR>> pageRoomMember(
       String creator, String room, int i, int j) async {
     var list = await remotePorts.portGET(
       chatPortsUrl,
@@ -98,9 +98,9 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'offset': j,
       },
     );
-    List<RoomMember> members = [];
+    List<RoomMemberOR> members = [];
     for (var obj in list) {
-      members.add(RoomMember.formMap(obj, principal.person));
+      members.add(RoomMemberOR.parse(obj));
     }
     return members;
   }
@@ -227,7 +227,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<RoomMember> getMember(String creator, String room) async {
+  Future<RoomMemberOR> getMember(String creator, String room) async {
     var map = await remotePorts.portGET(
       chatPortsUrl,
       'getRoomMember',
@@ -236,11 +236,11 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'room': room,
       },
     );
-    return RoomMember.formMap(map, principal.person);
+    return RoomMemberOR.parse(map);
   }
 
   @override
-  Future<RoomMember> getMemberOfPerson(
+  Future<RoomMemberOR> getMemberOfPerson(
       String creator, String room, String member) async {
     var map = await remotePorts.portGET(
       chatPortsUrl,
@@ -254,7 +254,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
     if(map==null) {
       return null;
     }
-    return RoomMember.formMap(map, principal.person);
+    return RoomMemberOR.parse(map);
   }
 
   @override

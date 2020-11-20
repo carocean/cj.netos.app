@@ -460,20 +460,6 @@ class ChatRoom {
     this.sandbox,
   );
 
-  ChatRoom.fromMap(map, sandbox) {
-    this.id = map['room'];
-    this.title = map['title'];
-    this.leading = map['leading'];
-    this.creator = map['creator'];
-    this.ctime = map['ctime'];
-    this.utime=map['utime'];
-    this.notice = map['notice'];
-    this.p2pBackground = map['background'];
-    this.isDisplayNick = map['isDisplayNick'];
-    this.isForegoundWhite = map['isForegroundWhite'] == true ? 'true' : 'false';
-    this.microsite = map['microsite'];
-    this.sandbox = sandbox;
-  }
 }
 
 @Entity(primaryKeys: ['person', 'room', 'sandbox'])
@@ -498,16 +484,6 @@ class RoomMember {
     this.sandbox,
   );
 
-  RoomMember.formMap(map, String sandbox) {
-    this.room = map['room'];
-    this.person = map['person'];
-    this.nickName = map['nickName'];
-    this.isShowNick = map['isShowNick'] == true ? 'true' : 'false';
-    this.leading=map['leading'];
-    this.type=map['type'];
-    this.atime = map['atime'];
-    this.sandbox = sandbox;
-  }
 }
 
 @entity
