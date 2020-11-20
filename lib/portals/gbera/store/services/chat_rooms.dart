@@ -372,8 +372,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
 
   @transaction
   @override
-  Future<Function> removeChatRoom(String id,
-      {bool isOnlySaveLocal = false}) async {
+  Future<Function> removeChatRoom(String id) async {
     var room = await chatRoomDAO.getChatRoomById(id, principal.person);
     if (room == null) {
       return null;
@@ -381,7 +380,9 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     await chatRoomDAO.removeChatRoomById(id, principal.person);
     await roomMemberDAO.emptyRoomMembers(room.id, principal.person);
     await messageDAO.emptyRoomMessages(room.id, principal.person);
-    if (!isOnlySaveLocal) {
+    if (room.creator != principal.person) {
+      await chatRoomRemote.removeMember(room.id, room.creator);
+    }else{
       await chatRoomRemote.removeChatRoom(room.id);
     }
   }

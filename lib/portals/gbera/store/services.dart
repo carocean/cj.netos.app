@@ -301,7 +301,7 @@ mixin IChatRoomService {
 
   Future<List<RoomMember>> topMember10(String code) {}
 
-  Future<void> removeChatRoom(String id, {bool isOnlySaveLocal = false}) {}
+  Future<void> removeChatRoom(String id) {}
 
   Future<List<RoomMember>> listMember(String id) {}
 

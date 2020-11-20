@@ -199,7 +199,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   Future<void> _removeChatRoom() async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(_chatRoom.id, isOnlySaveLocal: false);
+    await chatRoomService.removeChatRoom(_chatRoom.id);
   }
 
   Future<void> _loadNewestNotice() async {

@@ -734,7 +734,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Future<void> _removeChatRoom(ChatRoom room) async {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
-    await chatRoomService.removeChatRoom(room.id, isOnlySaveLocal: false);
+    await chatRoomService.removeChatRoom(room.id);
     return;
   }
 

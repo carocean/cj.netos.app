@@ -118,13 +118,13 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> removeMember(String code, official) async {
+  Future<void> removeMember(String code, roomCreator) async {
     remotePorts.portTask.addPortGETTask(
       chatPortsUrl,
       'removeMember',
       parameters: {
         'room': code,
-        'person': official,
+        'roomCreator': roomCreator,
       },
     );
   }
