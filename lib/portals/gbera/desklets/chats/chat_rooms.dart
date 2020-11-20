@@ -518,6 +518,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
         chatroomNotifyStreamController
             .add({'action': 'arrivePushMessageCommand', 'message': message});
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
+        }
         break;
       case 'audio':
         var contentmap = jsonDecode(content);
@@ -598,16 +603,17 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         await messageService.addMessage(sender, message, isOnlySaveLocal: true);
         chatroomNotifyStreamController
             .add({'action': 'arrivePushMessageCommand', 'message': message});
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
+        }
         break;
       default:
         print('收到未知的消息类型：$contentType');
         break;
     }
-    await chatRoomService.updateRoomUtime(room);
-    await _topChatroom(room);
-    if (mounted) {
-      setState(() {});
-    }
+
   }
 
   Future<void> _topChatroom(room) async {
@@ -663,6 +669,13 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
               .add({'action': 'arrivePushMessageCommand', 'message': message});
         } catch (e) {
           print('流已关闭:$e');
+        }
+        IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
         }
         break;
       case 'error':
