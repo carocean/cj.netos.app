@@ -61,7 +61,7 @@ class _ChatTalkState extends State<ChatTalk> {
 
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
-    _syncRoomMembers();
+
     if (!StringUtil.isEmpty(_chatRoom.p2pBackground) &&
         _chatRoom.p2pBackground.startsWith('http')) {
       _updateRoomBackground().then((v) {
@@ -94,6 +94,13 @@ class _ChatTalkState extends State<ChatTalk> {
           break;
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      try {
+        _syncRoomMembers();
+      }catch(e){
+        print('chat_talk error: $e');
+      }
+    });
     super.initState();
   }
 
@@ -111,7 +118,18 @@ class _ChatTalkState extends State<ChatTalk> {
 
   Future<void> _syncRoomMembers() async {
     //返回被标记移除的群或成员，如果为移除群，则只将本地成员移除，群仍留下
-
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    var chatroom =
+        await chatRoomService.fetchRoom(_chatRoom.creator, _chatRoom.id);
+    if (chatroom == null || (chatroom.flag != null && chatroom.flag == 1)) {
+      //如果聊为标记已删除
+      await chatRoomService.emptyChatMembersOnLocal(_chatRoom.id);
+      return;
+    }
+    List<String> members = await chatRoomService.listFlagRoomMember(
+        _chatRoom.creator, _chatRoom.id);
+    await chatRoomService.removeChatMembersOnLocal(_chatRoom.id, members);
   }
 
   void _goEnd([int milliseconds = 10]) {
@@ -1702,6 +1720,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         widget.context.site.getService('/chat/rooms');
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
+    if(_member==null) {
+      return;
+    }
     isShowNick = _member.isShowNick == 'true' ? true : false;
   }
 

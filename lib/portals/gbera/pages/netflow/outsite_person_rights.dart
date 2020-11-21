@@ -102,6 +102,9 @@ class _OutsitePersonsRightsPageState extends State<OutsitePersonsRightsPage> {
     IPersonService personService =
     widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
+    if(person==null) {
+      return false;
+    }
     if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
       return false;
     }
@@ -112,6 +115,9 @@ class _OutsitePersonsRightsPageState extends State<OutsitePersonsRightsPage> {
     IPersonService personService =
     widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
+    if(person==null) {
+      return false;
+    }
     if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
       return false;
     }

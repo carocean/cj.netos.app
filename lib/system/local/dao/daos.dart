@@ -521,7 +521,8 @@ abstract class IChatRoomDAO {
     String sandbox,
   ) {}
 
-  @Query("select * from ChatRoom where id in (select n.room from (select room, count(person) memberCount from RoomMember where room in (select room from RoomMember where person in (:members) group by room) group by room) as n where n.memberCount=:memberCount) and sandbox=:sandbox")
+  @Query(
+      "select * from ChatRoom where id in (select n.room from (select room, count(person) memberCount from RoomMember where room in (select room from RoomMember where person in (:members) group by room) group by room) as n where n.memberCount=:memberCount) and sandbox=:sandbox")
   Future<List<ChatRoom>> findChatroomByMembers(
       List<String> members, int memberCount, String sandbox) {}
 
@@ -604,6 +605,14 @@ abstract class IRoomMemberDAO {
       'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room and (person LIKE :person or nickName LIKE :nickName) LIMIT :limit OFFSET :offset')
   Future<List<RoomMember>> pageMemberLike(String sandbox, String room,
       String person, String nickName, int limit, int offset) {}
+
+  @Query(
+      'delete FROM RoomMember WHERE room = :room and person in (:members) AND sandbox=:sandbox')
+  Future<void> removeChatMembersOnLocal(
+      String room, List<String> members, String sandbox) {}
+
+  @Query('delete FROM RoomMember WHERE room = :room AND sandbox=:sandbox')
+  Future<void> emptyChatMembersOnLocal(String room, String sandbox) {}
 }
 
 @dao

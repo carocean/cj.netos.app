@@ -42,12 +42,12 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
 
   @override
   Future<Function> addMemberToOwner(
-      String chatroomOwner, RoomMember roomMember) async{
+      String chatroomOwner, RoomMember roomMember) async {
     await remotePorts.portGET(
       chatPortsUrl,
       'addMemberToOwner',
       parameters: {
-        'roomOwner':chatroomOwner,
+        'roomOwner': chatroomOwner,
         'room': roomMember.room,
         'person': roomMember.person,
         'actor': 'user',
@@ -251,10 +251,23 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
         'person': member,
       },
     );
-    if(map==null) {
+    if (map == null) {
       return null;
     }
     return RoomMemberOR.parse(map);
+  }
+
+  @override
+  Future<List<String>> listFlagRoomMember(String creator, String id) async {
+    var list= await remotePorts.portGET(
+      chatPortsUrl,
+      'listFlagRoomMember',
+      parameters: {
+        'creator': creator,
+        'room': id,
+      },
+    );
+    return (list as List).cast<String>();
   }
 
   @override

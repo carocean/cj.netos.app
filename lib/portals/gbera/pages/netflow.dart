@@ -53,7 +53,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   EasyRefreshController _controller;
   List<Channel> _items = [];
   StreamSubscription _streamSubscription;
-
+  StreamSubscription _refresh_streamSubscription;
   @override
   bool get wantKeepAlive {
     return true;
@@ -61,6 +61,17 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
+    _refresh_streamSubscription=netflowRefresherController.stream.listen((event) {
+      if(mounted){
+        _items.clear();
+        _channelStateBars.clear();
+        _loadChannels().then((v) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
+    });
     _streamSubscription = channelNotifyStreamController.stream.listen((event) {
       ChannelEventArgs e = event;
       //将活动的管道调到最前
@@ -90,6 +101,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    _refresh_streamSubscription?.cancel();
     _streamSubscription?.cancel();
     _items.clear();
     _controller.dispose();
@@ -618,7 +630,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   Queue<InsiteMessage> _messages = Queue();
   StreamSubscription _streamSubscription;
   Lock _lock;
-
+  StreamSubscription _refresh_streamSubscription;
   @override
   void initState() {
     _lock = Lock();
@@ -681,12 +693,18 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         }
       }, matchPath: '/netflow/channel');
     }
+    _refresh_streamSubscription=netflowRefresherController.stream.listen((event) {
+      if(mounted){
+        _refresh();
+      }
+    });
     _loadMessages();
     super.initState();
   }
 
   @override
   void dispose() {
+    _refresh_streamSubscription?.cancel();
     _unlistenMeidaFileDownload();
     _streamSubscription?.cancel();
     widget.context.unlistenMessage(matchPath: '/netflow/channel');

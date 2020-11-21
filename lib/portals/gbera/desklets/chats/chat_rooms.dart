@@ -197,10 +197,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       );
     }
     //添加聊天室
-    chatRoom = await chatRoomService.fetchRoom(
+    var roomOL = await chatRoomService.fetchRoom(
       creator,
       room,
     );
+    chatRoom=roomOL.toLocal(widget.context.principal.person);
     List<RoomMember> members =
         await chatRoomService.fetchMembers(room, creator);
     List<Friend> friends = [];

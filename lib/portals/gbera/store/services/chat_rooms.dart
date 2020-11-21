@@ -275,9 +275,8 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<ChatRoom> fetchRoom(String creator, String room) async {
-    var cr= await this.chatRoomRemote.getRoom(creator, room);
-    return cr.toLocal(principal.person);
+  Future<ChatRoomOR> fetchRoom(String creator, String room) async {
+    return await this.chatRoomRemote.getRoom(creator, room);
   }
 
   @override
@@ -342,6 +341,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     return await chatRoomDAO.findChatroomByMembers(members,members.length+1,principal.person);
   }
 
+
   @override
   Future<Function> addMember(RoomMember roomMember,
       {bool isOnlySaveLocal = false}) async {
@@ -387,6 +387,20 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     }
   }
 
+  @override
+  Future<List<String>> listFlagRoomMember(String creator, String id)async {
+    return await chatRoomRemote.listFlagRoomMember(creator,id);
+  }
+
+  @override
+  Future<Function> removeChatMembersOnLocal(String id, List<String> members) async{
+    await roomMemberDAO.removeChatMembersOnLocal(id,members, principal.person);
+  }
+
+  @override
+  Future<Function> emptyChatMembersOnLocal(String id) async{
+    await roomMemberDAO.emptyChatMembersOnLocal(id, principal.person);
+  }
 }
 
 class P2PMessageService implements IP2PMessageService, IServiceBuilder {

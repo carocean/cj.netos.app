@@ -204,6 +204,9 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
+    if(person==null){
+      return false;
+    }
     if (person.rights == 'denyDownstream' || person.rights == 'denyBoth') {
       return false;
     }

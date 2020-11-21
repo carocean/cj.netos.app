@@ -5,10 +5,12 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel_handler.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 
+import '../netflow.dart';
 import 'cat_widget.dart';
 import 'message_views.dart';
 
@@ -205,7 +207,16 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                   'channel': channel,
                   'person': person,
                 });
-              }).then((refresh) {});
+              }).then((result) {
+            if (result != null && (result['refresh'] ?? false)) {
+              messageViews
+                  .removeWhere((element) => element.channelis == channel);
+              if (mounted) {
+                setState(() {});
+              }
+              netflowRefresherController.sink.add({});
+            }
+          });
         },
       );
       messageViews.add(view);
@@ -309,16 +320,16 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                                 : TextSpan(text: ''),
                                             !StringUtil.isEmpty(v.money)
                                                 ? TextSpan(
-                                              text: '  ¥',
-                                              children: [
-                                                TextSpan(
-                                                  text: '${v.money}',
-                                                  style: TextStyle(
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
+                                                    text: '  ¥',
+                                                    children: [
+                                                      TextSpan(
+                                                        text: '${v.money}',
+                                                        style: TextStyle(
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
                                                 : TextSpan(text: ''),
                                             // TextSpan(
                                             //   text: '  来自:',
@@ -332,20 +343,20 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                             // ),
                                             !StringUtil.isEmpty(v.channel)
                                                 ? TextSpan(
-                                              text: '',
-                                              children: [
-                                                TextSpan(
-                                                  text: '  ${v.channel}',
-                                                  style: TextStyle(
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
+                                                    text: '',
+                                                    children: [
+                                                      TextSpan(
+                                                        text: '  ${v.channel}',
+                                                        style: TextStyle(
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
                                                 : TextSpan(text: ''),
                                             v.picCount > 0
                                                 ? TextSpan(
-                                                text: '  图片${v.picCount}个')
+                                                    text: '  图片${v.picCount}个')
                                                 : TextSpan(text: ''),
                                           ],
                                           style: TextStyle(
@@ -354,7 +365,9 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 5,),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
                                       CatWidget(
                                         context: widget.context,
                                         channelId: v.channelis?.id,

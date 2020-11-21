@@ -92,6 +92,9 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
+    if(_member==null) {
+      return;
+    }
     _showNickName = _member.isShowNick == 'true';
   }
 

@@ -2913,6 +2913,22 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   }
 
   @override
+  Future<void> removeChatMembersOnLocal(
+      String room, List<String> members, String sandbox) async {
+    final valueList1 = members.map((value) => "'$value'").join(', ');
+    await _queryAdapter.queryNoReturn(
+        'delete FROM RoomMember WHERE room = ? and person in ($valueList1) AND sandbox=?',
+        arguments: <dynamic>[room, sandbox]);
+  }
+
+  @override
+  Future<void> emptyChatMembersOnLocal(String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM RoomMember WHERE room = ? AND sandbox=?',
+        arguments: <dynamic>[room, sandbox]);
+  }
+
+  @override
   Future<void> addMember(RoomMember roomMember) async {
     await _roomMemberInsertionAdapter.insert(
         roomMember, sqflite.ConflictAlgorithm.abort);

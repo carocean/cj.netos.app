@@ -1,6 +1,7 @@
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
+import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/remote/persons.dart';
 
 import '../../../system/local/entities.dart';
@@ -339,7 +340,7 @@ mixin IChatRoomService {
   Future<void> updateRoomBackground(ChatRoom chatRoom, path,
       {bool isOnlyLocal = false}) {}
 
-  Future<ChatRoom> fetchRoom(String creator, String room) {}
+  Future<ChatRoomOR> fetchRoom(String creator, String room) {}
 
   Future<List<RoomMember>> fetchMembers(String room, String creator) {}
 
@@ -355,7 +356,11 @@ mixin IChatRoomService {
 
   Future<List<ChatRoom>> findChatroomByMembers(List<String> members) {}
 
+  Future<void> emptyChatMembersOnLocal(String id) {}
 
+  Future<List<String>> listFlagRoomMember(String creator, String id) {}
+
+  Future<void> removeChatMembersOnLocal(String id, List<String> members) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

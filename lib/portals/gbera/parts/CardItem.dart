@@ -113,10 +113,7 @@ class CardItemState extends State<CardItem> {
                             padding: EdgeInsets.only(
                               top: 3,
                             ),
-                            child: Flexible(
-                              fit: FlexFit.loose,
-                              child: widget.subtitle,
-                            ),
+                            child:widget.subtitle,
                           ),
                   ],
                 ),

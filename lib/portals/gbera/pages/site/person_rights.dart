@@ -24,7 +24,7 @@ class _PersonRightsState extends State<PersonRights> {
       IPersonService personService =
           widget.context.site.getService('/gbera/persons');
       var p = await personService.getPerson(person.official);
-      var _rights = p.rights;
+      var _rights = p?.rights;
       switch (_rights) {
         case 'denyUpstream':
           _denyUpstream = true;
