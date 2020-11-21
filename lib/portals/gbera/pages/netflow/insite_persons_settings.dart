@@ -101,6 +101,9 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
+    if(person==null) {
+      return false;
+    }
     if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
       return false;
     }
@@ -111,6 +114,9 @@ class _InsitePersonsSettingsState extends State<InsitePersonsSettings> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     var person = await personService.getPerson(official);
+    if(person==null) {
+      return false;
+    }
     if (person.rights == 'denyUpstream' || person.rights == 'denyBoth') {
       return false;
     }

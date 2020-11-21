@@ -217,6 +217,9 @@ class PersonService implements IPersonService, IServiceBuilder {
 
   @override
   Future<void> addPerson(Person person, {bool isOnlyLocal = false}) async {
+    if(person==null) {
+      return;
+    }
     await personDAO.addPerson(person);
     if (!isOnlyLocal) {
       await personRemote.addPerson(person);
