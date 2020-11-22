@@ -202,7 +202,7 @@ class _DocumentPathState extends State<DocumentPath> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: getAvatarWidget(
-                                    _channel.leading, widget.context),
+                                    _channel.leading, widget.context,'lib/portals/gbera/images/netflow.png'),
                               ),
                             ),
                           ),
