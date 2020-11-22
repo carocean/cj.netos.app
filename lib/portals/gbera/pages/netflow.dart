@@ -1641,6 +1641,7 @@ class __ChannelItemState extends State<_ChannelItem> {
           brackets: '[赞]',
           atime: likePerson.ctime,
           tips: '${liker.nickName}:${message.text}',
+          count: 1,
           isShow: true,
         );
         break;
@@ -1652,6 +1653,7 @@ class __ChannelItemState extends State<_ChannelItem> {
           brackets: '[撤消赞]',
           atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${unliker.nickName}:${message.text}',
+          count: 1,
           isShow: true,
         );
         break;
@@ -1662,6 +1664,7 @@ class __ChannelItemState extends State<_ChannelItem> {
           brackets: '[评论]',
           atime: comment.ctime,
           tips: '${commenter.nickName}:${comment.text}',
+          count: 1,
           isShow: true,
         );
         break;
@@ -1672,6 +1675,7 @@ class __ChannelItemState extends State<_ChannelItem> {
           brackets: '[撤消评论]',
           atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${uncommenter.nickName}:${message.text}',
+          count: 1,
           isShow: true,
         );
         break;
@@ -1698,6 +1702,7 @@ class __ChannelItemState extends State<_ChannelItem> {
           brackets: brackets,
           atime: DateTime.now().millisecondsSinceEpoch,
           tips: '${mediaer.nickName}:${message.text}',
+          count: 1,
           isShow: true,
         );
         break;
