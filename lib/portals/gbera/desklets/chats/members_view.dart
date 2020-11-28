@@ -22,7 +22,7 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
   TextEditingController _controller;
   String _query;
   FocusNode _focusNode;
-  int _limit = 20, _offset = 0;
+  int _limit = 50, _offset = 0;
   ChatRoom _chatRoom;
 
   @override
@@ -50,8 +50,8 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
     _offset = 0;
     _memberModels.clear();
     await _load();
-    var parentRefresh=widget.context.parameters['refresh'];
-    if(parentRefresh!=null) {
+    var parentRefresh = widget.context.parameters['refresh'];
+    if (parentRefresh != null) {
       parentRefresh();
     }
   }
@@ -86,15 +86,17 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
 
   Future<void> _addMembers(members) async {
     IChatRoomService chatRoomService =
-    widget.context.site.getService('/chat/rooms');
+        widget.context.site.getService('/chat/rooms');
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     for (var official in members) {
       if (await chatRoomService.existsMember(_chatRoom.id, official)) {
         continue;
       }
-      var person = await personService.getPerson(official, isDownloadAvatar: false);
-      await chatRoomService.addMember(
+      var person =
+          await personService.getPerson(official, isDownloadAvatar: false);
+      await chatRoomService.addMemberToOwner(
+        _chatRoom.creator,
         RoomMember(
           _chatRoom.id,
           official,
@@ -108,6 +110,7 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
       );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,29 +183,30 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
     }
     var items = <Widget>[];
     for (var model in _memberModels) {
-      var member=model.member;
+      var member = model.member;
       var leading;
       var title;
-      if(member.type=='wybank'){
-        leading=member.leading;
-        title=member.nickName;
-      }else{
-        var person=model.person;
-        leading=person.avatar;
-        title=person.nickName;
+      if (member.type == 'wybank') {
+        leading = member.leading;
+        title = member.nickName;
+      } else {
+        var person = model.person;
+        leading = person.avatar;
+        title = person.nickName;
       }
       items.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            if(member.type=='wybank') {
+            if (member.type == 'wybank') {
               widget.context
-                  .forward('/portlet/chat/room/view_licence', arguments: {'bankid': member.person,});
+                  .forward('/portlet/chat/room/view_licence', arguments: {
+                'bankid': member.person,
+              });
               return;
             }
             widget.context
                 .forward('/person/view', arguments: {'person': model.person});
-
           },
           child: Padding(
             padding: EdgeInsets.all(10),

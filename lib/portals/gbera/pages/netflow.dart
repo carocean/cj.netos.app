@@ -54,6 +54,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   List<Channel> _items = [];
   StreamSubscription _streamSubscription;
   StreamSubscription _refresh_streamSubscription;
+
   @override
   bool get wantKeepAlive {
     return true;
@@ -61,8 +62,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
-    _refresh_streamSubscription=netflowRefresherController.stream.listen((event) {
-      if(mounted){
+    _refresh_streamSubscription =
+        netflowRefresherController.stream.listen((event) {
+      if (mounted) {
         _items.clear();
         _channelStateBars.clear();
         _loadChannels().then((v) {
@@ -201,10 +203,10 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
     List<Channel> list = await channelService.getAllChannel();
-    if (list.isEmpty) {
-      await channelService.initSystemChannel(widget.context.principal);
-      list = await channelService.getAllChannel();
-    }
+    // if (list.isEmpty) {
+    //   await channelService.initSystemChannel(widget.context.principal);
+    //   list = await channelService.getAllChannel();
+    // }
     _items.addAll(list);
     _controller.finishLoad(success: true, noMore: true);
   }
@@ -564,50 +566,96 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                 ),
               ),
               SliverToBoxAdapter(
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.all(0),
-                  physics: NeverScrollableScrollPhysics(),
-                  children: _items.map((ch) {
-                    return _ChannelItem(
-                      context: widget.context,
-                      channelid: ch.id,
-                      title: ch.name,
-                      owner: ch.owner,
-                      leading: ch.leading,
-                      upstreamPerson: ch.upstreamPerson,
-                      openChannel: () {
-                        widget.context.forward(
-                          '/netflow/channel',
-                          arguments: {
-                            'channel': ch,
-                          },
-                        ).then((v) {
-                          channelNotifyStreamController.add(
-                            ChannelEventArgs(
-                              command: 'doChannelPageBack',
-                              channel: ch.id,
-                              args: {},
-                            ),
+                child: _items.isEmpty
+                    ? _renderEmptyPanel()
+                    : ListView(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.all(0),
+                        physics: NeverScrollableScrollPhysics(),
+                        children: _items.map((ch) {
+                          return _ChannelItem(
+                            context: widget.context,
+                            channelid: ch.id,
+                            title: ch.name,
+                            owner: ch.owner,
+                            leading: ch.leading,
+                            upstreamPerson: ch.upstreamPerson,
+                            openChannel: () {
+                              widget.context.forward(
+                                '/netflow/channel',
+                                arguments: {
+                                  'channel': ch,
+                                },
+                              ).then((v) {
+                                channelNotifyStreamController.add(
+                                  ChannelEventArgs(
+                                    command: 'doChannelPageBack',
+                                    channel: ch.id,
+                                    args: {},
+                                  ),
+                                );
+                              });
+                            },
+                            isSystemChannel: widget.context.site
+                                .getService('/netflow/channels')
+                                ?.isSystemChannel(ch.id),
+                            removeChannels: (channelid) {
+                              _items.removeWhere((element) {
+                                return channelid == element.id;
+                              });
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
                           );
-                        });
-                      },
-                      isSystemChannel: widget.context.site
-                          .getService('/netflow/channels')
-                          ?.isSystemChannel(ch.id),
-                      removeChannels: (channelid) {
-                        _items.removeWhere((element) {
-                          return channelid == element.id;
-                        });
+                        }).toList(),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _renderEmptyPanel() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        SizedBox(
+          height: 40,
+        ),
+        Text.rich(
+          TextSpan(
+            text: '没有管道，',
+            children: [
+              TextSpan(
+                text: '新建管道',
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    widget.context
+                        .forward(
+                      '/netflow/manager/create_channel',
+                    )
+                        .then((v) {
+                      _items.clear();
+                      _loadChannels().then((v) {
                         if (mounted) {
                           setState(() {});
                         }
-                      },
-                    );
-                  }).toList(),
+                      });
+                    });
+                  },
+                style: TextStyle(
+                  color: Colors.blueGrey,
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ],
+          ),
+          style: TextStyle(
+            color: Colors.grey,
           ),
         ),
       ],
@@ -618,7 +666,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
 class _InsiteMessagesRegion extends StatefulWidget {
   PageContext context;
 
-  _InsiteMessagesRegion({this.context,});
+  _InsiteMessagesRegion({
+    this.context,
+  });
 
   @override
   _InsiteMessagesRegionState createState() => _InsiteMessagesRegionState();
@@ -631,6 +681,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   StreamSubscription _streamSubscription;
   Lock _lock;
   StreamSubscription _refresh_streamSubscription;
+
   @override
   void initState() {
     _lock = Lock();
@@ -693,8 +744,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         }
       }, matchPath: '/netflow/channel');
     }
-    _refresh_streamSubscription=netflowRefresherController.stream.listen((event) {
-      if(mounted){
+    _refresh_streamSubscription =
+        netflowRefresherController.stream.listen((event) {
+      if (mounted) {
         _refresh();
       }
     });
@@ -1562,7 +1614,8 @@ class __ChannelItemState extends State<_ChannelItem> {
       oldWidget.leading = widget.leading;
       oldWidget.isSystemChannel = widget.isSystemChannel;
       oldWidget.openChannel = widget.openChannel;
-      _streamSubscription = channelNotifyStreamController.stream.listen(_doEvent);
+      _streamSubscription =
+          channelNotifyStreamController.stream.listen(_doEvent);
       _initBar();
     }
     super.didUpdateWidget(oldWidget);
@@ -2028,7 +2081,6 @@ class __ChannelItemState extends State<_ChannelItem> {
     );
   }
 }
-
 
 class _ChannelStateBar {
   String brackets; //括号

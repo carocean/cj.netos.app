@@ -52,9 +52,9 @@ dependencies:
   transparent_image: ^1.0.0
   #截图
   image_crop: ^0.3.2
-  webview_flutter: ^0.3.18+1
-  video_player: ^0.10.5
-  awsome_video_player: ^1.0.8+1
+  webview_flutter: ^1.0.7
+  video_player: ^1.0.1
+#  awsome_video_player: ^1.0.8+1
   flutter_k_chart:
     path: flutter_k_chart
   #  k_chart: ^0.1.1

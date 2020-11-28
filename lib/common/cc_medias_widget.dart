@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:awsome_video_player/awsome_video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';

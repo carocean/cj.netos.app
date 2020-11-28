@@ -146,6 +146,9 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
       ));
     } else {
       for (var item in _poiList) {
+        if(item==null) {
+          continue;
+        }
         items.add(
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -166,7 +169,7 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${item.title}',
+                              '${item.title??''}',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -176,13 +179,13 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
                               height: 5,
                             ),
                             StringUtil.isEmpty(item.address)
-                                ? null
+                                ? SizedBox(width: 0,height: 0,)
                                 : Padding(
                                     padding: EdgeInsets.only(
                                       left: 0,
                                     ),
                                     child: Text(
-                                      item.address,
+                                      '${item.address??''}',
                                       style: TextStyle(
                                         color: Colors.grey[500],
                                         fontSize: 12,
@@ -198,7 +201,7 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
                       Row(
                         children: [
                           Text(
-                            '${getFriendlyDistance(item.distance*1.0)}',
+                            '${getFriendlyDistance((item.distance??0.00)*1.0)}',
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 12,

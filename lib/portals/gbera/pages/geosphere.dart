@@ -657,16 +657,20 @@ class _GeosphereState extends State<Geosphere>
         widget.context.site.getService('/geosphere/receptors');
     bool isInited = false;
     geoLocation.listen('checkMobileReceptor', 0, (location) async {
-      if (!isInited) {
-        isInited = true;
-        if (await receptorService.init(location)) {
-          _offset = 0;
-          _receptorStreamController.add('refresh');
-          _loadReceptors().then((v) {
-            setState(() {});
-          });
+      await _lock.synchronized(() async {
+        if (!isInited) {
+          isInited = true;
+          if (await receptorService.init(location)) {
+            _offset = 0;
+            _receptorStreamController.add('refresh');
+            _loadReceptors().then((v) {
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          }
         }
-      }
+      });
       geoLocation.unlisten('checkMobileReceptor');
     });
   }
@@ -685,6 +689,9 @@ class _GeosphereState extends State<Geosphere>
     }
     _offset += receptors.length;
     _receptorStreamController.add(receptors);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -1535,67 +1542,128 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
             ],
           ),
           ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.all(0),
-            physics: NeverScrollableScrollPhysics(),
-            children: _receptors.map((receptor) {
-              var latlng = receptor.getLocationLatLng();
-              double offset = 0.0;
-              if (_currentLatLng != null) {
-                offset = getDistance(start: _currentLatLng, end: latlng);
-              }
-              var backgroundMode;
-              switch (receptor.backgroundMode) {
-                case 'vertical':
-                  backgroundMode = BackgroundMode.vertical;
-                  break;
-                case 'horizontal':
-                  backgroundMode = BackgroundMode.horizontal;
-                  break;
-                case 'none':
-                  backgroundMode = BackgroundMode.none;
-                  break;
-              }
-              var foregroundMode;
-              switch (receptor.foregroundMode) {
-                case 'original':
-                  foregroundMode = ForegroundMode.original;
-                  break;
-                case 'white':
-                  foregroundMode = ForegroundMode.white;
-                  break;
-              }
-              return _ReceptorItem(
-                context: widget.context,
-                onDelete: () {
-                  _deleteReceptor(receptor).then((v) {
-                    setState(() {});
-                  });
-                },
-                receptor: ReceptorInfo(
-                  title: receptor.title,
-                  id: receptor.id,
-                  leading: receptor.leading,
-                  creator: receptor.creator,
-                  isMobileReceptor: receptor.category == 'mobiles',
-                  offset: offset,
-                  category: receptor.category,
-                  radius: receptor.radius,
-                  isAutoScrollMessage:
-                      receptor.isAutoScrollMessage == 'true' ? true : false,
-                  latLng: LatLng.fromJson(jsonDecode(receptor.location)),
-                  uDistance: receptor.uDistance,
-                  background: receptor.background,
-                  backgroundMode: backgroundMode,
-                  foregroundMode: foregroundMode,
-                  origin: receptor,
+                  shrinkWrap: true,
+                  padding: EdgeInsets.all(0),
+                  physics: NeverScrollableScrollPhysics(),
+                  children: _receptors.map((receptor) {
+                    var latlng = receptor.getLocationLatLng();
+                    double offset = 0.0;
+                    if (_currentLatLng != null) {
+                      offset = getDistance(start: _currentLatLng, end: latlng);
+                    }
+                    var backgroundMode;
+                    switch (receptor.backgroundMode) {
+                      case 'vertical':
+                        backgroundMode = BackgroundMode.vertical;
+                        break;
+                      case 'horizontal':
+                        backgroundMode = BackgroundMode.horizontal;
+                        break;
+                      case 'none':
+                        backgroundMode = BackgroundMode.none;
+                        break;
+                    }
+                    var foregroundMode;
+                    switch (receptor.foregroundMode) {
+                      case 'original':
+                        foregroundMode = ForegroundMode.original;
+                        break;
+                      case 'white':
+                        foregroundMode = ForegroundMode.white;
+                        break;
+                    }
+                    return _ReceptorItem(
+                      context: widget.context,
+                      onDelete: () {
+                        _deleteReceptor(receptor).then((v) {
+                          setState(() {});
+                        });
+                      },
+                      receptor: ReceptorInfo(
+                        title: receptor.title,
+                        id: receptor.id,
+                        leading: receptor.leading,
+                        creator: receptor.creator,
+                        isMobileReceptor: receptor.category == 'mobiles',
+                        offset: offset,
+                        category: receptor.category,
+                        radius: receptor.radius,
+                        isAutoScrollMessage:
+                            receptor.isAutoScrollMessage == 'true'
+                                ? true
+                                : false,
+                        latLng: LatLng.fromJson(jsonDecode(receptor.location)),
+                        uDistance: receptor.uDistance,
+                        background: receptor.background,
+                        backgroundMode: backgroundMode,
+                        foregroundMode: foregroundMode,
+                        origin: receptor,
+                      ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
-          ),
         ],
       ),
     );
+  }
+
+  Widget _renderEmptyPanel() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        SizedBox(
+          height: 40,
+        ),
+        Text.rich(
+          TextSpan(
+            text: '没有感知器，请',
+            children: [
+              TextSpan(
+                text: '新建地理感知器',
+                recognizer: TapGestureRecognizer()..onTap=(){
+                  widget.context
+                      .forward(
+                    '/geosphere/category/select',
+                  )
+                      .then((result) {
+                    _offset = 0;
+                    _receptors.clear();
+                    _loadReceptors();
+                  });
+                },
+                style: TextStyle(
+                  color: Colors.blueGrey,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
+          style: TextStyle(
+            color: Colors.blueGrey,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _loadReceptors() async {
+    IGeoReceptorService receptorService =
+    widget.context.site.getService('/geosphere/receptors');
+
+    var receptors = await receptorService.page(10, 0);
+    if (receptors.isEmpty) {
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _offset += receptors.length;
+    _receptors.addAll(receptors);
+    if (mounted) {
+      setState(() {});
+    }
   }
 }
 
@@ -1624,7 +1692,8 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     _stateBar = _ReceptorItemStateBar(isShow: false);
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    _streamSubscription = receptorNotifyStreamController.stream.listen((cmd) async {
+    _streamSubscription =
+        receptorNotifyStreamController.stream.listen((cmd) async {
       if (cmd['receptor'] != widget.receptor.id) {
         return;
       }
