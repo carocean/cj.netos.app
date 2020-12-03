@@ -214,7 +214,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: '例如：狗丢儿',
+                            hintText: '例如：天空之城',
                             hintStyle: TextStyle(
                               fontSize: 16,
                             ),
@@ -230,6 +230,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   onAfterUpload: (removeAvatarFile, localAvatarFile) {
                     _avatarRemoteFile = removeAvatarFile;
                     _localAvatarFile = localAvatarFile;
+                    _buttonEnabled = _checkRegister();
+                    if(mounted) {
+                      setState(() {});
+                    }
                   },
                   anonymousAccessToken: _anonymousAccessToken,
                 ),
