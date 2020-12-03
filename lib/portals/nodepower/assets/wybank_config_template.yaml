@@ -1,6 +1,18 @@
-
 -
   template: 模板一
+  serviceFeeRatio: 0.3400
+  reserveRatio: 0.1400
+  platformRatio: 0.2000
+  ispRatio: 0.2000
+  laRatio: 0.3000
+  absorbRatio: 0.3000
+  ttmConfig:
+    -
+      ttm: 1.2000
+      minAmount: 100
+      maxAmount: 19999999
+-
+  template: 模板二
   serviceFeeRatio: 0.3400
   reserveRatio: 0.1400
   platformRatio: 0.1000
@@ -33,7 +45,7 @@
       minAmount: 1200
       maxAmount: 19999999
 -
-  template: 模板二
+  template: 模板三
   serviceFeeRatio: 0.3000
   reserveRatio: 0.1000
   platformRatio: 0.1000
