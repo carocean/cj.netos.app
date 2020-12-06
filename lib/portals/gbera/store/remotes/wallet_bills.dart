@@ -166,6 +166,48 @@ class AbsorbBillOR {
       this.bankid});
 }
 
+class TrialBillOR {
+  String sn;
+  String accountid;
+  String title;
+  int order;
+  int amount;
+  int balance;
+  String refsn;
+  String ctime;
+  String note;
+
+  TrialBillOR({
+    this.sn,
+    this.accountid,
+    this.title,
+    this.order,
+    this.amount,
+    this.balance,
+    this.refsn,
+    this.ctime,
+    this.note,
+  });
+
+  TrialBillOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.accountid = obj['accountid'];
+    this.title = obj['title'];
+    this.order = obj['order'] is double
+        ? (obj['order'] as double).floor()
+        : obj['order'];
+    this.amount = obj['amount'] is double
+        ? (obj['amount'] as double).floor()
+        : obj['amount'];
+    this.balance = obj['balance'] is double
+        ? (obj['balance'] as double).floor()
+        : obj['balance'];
+    this.refsn = obj['refsn'];
+    this.ctime = obj['ctime'];
+    this.note = obj['note'];
+  }
+}
+
 mixin IWalletBillRemote {
   Future<List<StockBillOR>> pageStockBill(String bank, int limit, int offset) {}
 
@@ -183,6 +225,8 @@ mixin IWalletBillRemote {
 
   Future<List<BalanceBillOR>> pageBalanceBillByOrder(
       int order, int limit, int offset) {}
+
+  Future<List<TrialBillOR>> pageTrialBill(int limit, int offset) {}
 }
 
 class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
@@ -208,6 +252,8 @@ class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
 
   get walletAbsorbBillPorts =>
       site.getService('@.prop.ports.wallet.bill.absorb');
+
+  get walletTrialBillPorts => site.getService('@.prop.ports.wallet.bill.trial');
 
   @override
   Future<void> builder(IServiceProvider site) {
@@ -428,6 +474,25 @@ class WalletBillRemote implements IWalletBillRemote, IServiceBuilder {
           accountid: obj['accountid'],
           balance: (obj['balance'] as double).floor(),
         ),
+      );
+    }
+    return bills;
+  }
+
+  @override
+  Future<List<TrialBillOR>> pageTrialBill(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      walletTrialBillPorts,
+      'pageBill',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<TrialBillOR> bills = [];
+    for (var obj in list) {
+      bills.add(
+        TrialBillOR.parse(obj),
       );
     }
     return bills;

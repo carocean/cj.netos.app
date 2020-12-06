@@ -316,7 +316,90 @@ class DepositAbsorbOR {
     this.sourceTitle,
   });
 }
+class DepositTrialOR {
+   String sn;
+   String payer;
+   String payerName;
+   String payee;
+   String payeeName;
+   String currency;
+   int amount;
+   int state;
+   String ctime;
+   String lutime;
+   int status;
+   String message;
+   String qrsliceId;
+   String qrsliceConsumer;
+   String qrsliceCname;
+   String note;
 
+   DepositTrialOR(
+      {this.sn,
+      this.payer,
+      this.payerName,
+      this.payee,
+      this.payeeName,
+      this.currency,
+      this.amount,
+      this.state,
+      this.ctime,
+      this.lutime,
+      this.status,
+      this.message,
+      this.qrsliceId,
+      this.qrsliceConsumer,
+      this.qrsliceCname,
+      this.note});
+
+   DepositTrialOR.parse(obj){
+     this.sn=obj['sn'];
+     this.payer=obj['payer'];
+     this.payerName=obj['payerName'];
+     this.payee=obj['payee'];
+     this.payeeName=obj['payeeName'];
+     this.currency=obj['currency'];
+     this.amount=obj['amount'];
+     this.state=obj['state'];
+     this.ctime=obj['ctime'];
+     this.lutime=obj['lutime'];
+     this.status=obj['status'];
+     this.message=obj['message'];
+     this.qrsliceId=obj['qrsliceId'];
+     this.qrsliceConsumer=obj['qrsliceConsumer'];
+     this.qrsliceCname=obj['qrsliceCname'];
+     this.note=obj['note'];
+   }
+}
+
+class DepositTrialActivityOR {
+  int activityNo;
+  String activityName;
+  String record_sn;
+  int status;
+  String message;
+  String ctime;
+  String id;
+
+  DepositTrialActivityOR(
+      {this.activityNo,
+        this.activityName,
+        this.record_sn,
+        this.status,
+        this.message,
+        this.ctime,
+        this.id});
+
+  DepositTrialActivityOR.parse(obj){
+    this.activityNo=obj['activityNo'];
+    this.activityName=obj['activityName'];
+    this.record_sn=obj['record_sn'];
+    this.status=obj['status'];
+    this.message=obj['message'];
+    this.ctime=obj['ctime'];
+    this.id=obj['id'];
+  }
+}
 class TransProfitOR {
   String sn;
   String person;
@@ -732,6 +815,11 @@ mixin IWalletRecordRemote {
 
 
   Future<P2PRecordOR>  getP2PRecordByEvidence(String evidence) {}
+
+ Future<DepositTrialOR> getDepositTrial(String refsn) {}
+
+ Future<List<DepositTrialActivityOR>> getDepositTrialActivies(String sn) {}
+
 }
 
 class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
@@ -1294,6 +1382,41 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           activityNo: obj['activityNo'],
           record_sn: obj['recordSn'],
         ),
+      );
+    }
+    return activities;
+  }
+
+  @override
+  Future<DepositTrialOR> getDepositTrial(String sn) async{
+    var obj = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositTrialRecord',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return DepositTrialOR.parse(
+      obj
+    );
+  }
+
+  @override
+  Future<List<DepositTrialActivityOR>> getDepositTrialActivies(String sn) async{
+    var list = await remotePorts.portGET(
+      walletRecordPorts,
+      'getDepositTrialActivities',
+      parameters: {
+        'record_sn': sn,
+      },
+    );
+    List<DepositTrialActivityOR> activities = [];
+    for (var obj in list) {
+      activities.add(
+        DepositTrialActivityOR.parse(obj),
       );
     }
     return activities;

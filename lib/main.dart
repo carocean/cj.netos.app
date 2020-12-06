@@ -102,6 +102,8 @@ void main() => platformRun(
                 'http://47.105.165.186/wallet/bill/onorder.ports',
             '@.prop.ports.wallet.bill.absorb':
                 'http://47.105.165.186/wallet/bill/absorb.ports',
+            '@.prop.ports.wallet.bill.trial':
+            'http://47.105.165.186/wallet/bill/trial.ports',
             '@.prop.ports.wybank': 'http://47.105.165.186/wybank/bank.ports',
             '@.prop.ports.wybank.balance':
                 'http://47.105.165.186/wybank/balance.ports',

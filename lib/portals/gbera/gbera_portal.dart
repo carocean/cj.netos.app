@@ -186,6 +186,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/change_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
@@ -200,6 +201,8 @@ import 'package:netos_app/portals/gbera/pages/wallet/recharge_result.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_absorb_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_profit_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/trans_shunter_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/trial.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/trial_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/ty.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/weny_account_freezen.dart';
@@ -1725,6 +1728,15 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '体验金',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/trial',
+          buildPage: (PageContext pageContext) => TrialPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '在订单',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1842,6 +1854,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/absorb/bill',
           buildPage: (PageContext pageContext) => AbsorbBill(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '体验金明细',
+          subtitle: '',
+          desc: '在订单账单',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/trial/bill',
+          buildPage: (PageContext pageContext) => TrialBill(
             context: pageContext,
           ),
         ),
@@ -1982,6 +2004,16 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/deposit_absorb/details',
           buildPage: (PageContext pageContext) => DepositAbsorbDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '',
+          subtitle: '',
+          desc: '存入体验金单明细',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/deposit_trial/details',
+          buildPage: (PageContext pageContext) => DepositTrialDetails(
             context: pageContext,
           ),
         ),

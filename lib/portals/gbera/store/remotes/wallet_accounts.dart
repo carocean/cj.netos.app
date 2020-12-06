@@ -6,6 +6,7 @@ import 'wallet_trades.dart';
 class MyWallet {
   int total;
   int change;
+  int trial;
   double absorb;
   int onorder;
   List<WenyBank> banks;
@@ -14,12 +15,14 @@ class MyWallet {
 
   String get changeYan => ((change ?? 0) / 100.00).toStringAsFixed(2);
 
+  String get trialYan => ((trial ?? 0) / 100.00).toStringAsFixed(2);
+
   String get absorbYan => ((absorb ?? 0) / 100.00).toStringAsFixed(14);
 
   String get onorderYan => ((onorder ?? 0) / 100.00).toStringAsFixed(2);
 
-  MyWallet({this.change, this.absorb, this.onorder, this.banks}) {
-    var total = change + (absorb.floor()) + onorder;
+  MyWallet({this.change, this.absorb,this.trial, this.onorder, this.banks}) {
+    var total = change + (absorb.floor())+trial + onorder;
     for (WenyBank bank in banks) {
       total += bank.freezen + bank.profit;
     }
@@ -84,19 +87,20 @@ class BankInfo {
     this.principalRatio,
     this.freeRatio,
   });
-  BankInfo.parse(obj){
-    this.creator=obj['creator'];
-    this.ctime=obj['ctime'];
-    this.id=obj['id'];
-    this.state=obj['state'];
-    this.title=obj['title'];
-    this.icon=obj['icon'];
-    this.districtCode=obj['districtCode'];
-    this.districtTitle=obj['districtTitle'];
-    this.licence=obj['licence'];
-    this.reserveRatio=obj['reserveRatio'];
-    this.principalRatio=obj['principalRatio'];
-    this.freeRatio=obj['freeRatio'];
+
+  BankInfo.parse(obj) {
+    this.creator = obj['creator'];
+    this.ctime = obj['ctime'];
+    this.id = obj['id'];
+    this.state = obj['state'];
+    this.title = obj['title'];
+    this.icon = obj['icon'];
+    this.districtCode = obj['districtCode'];
+    this.districtTitle = obj['districtTitle'];
+    this.licence = obj['licence'];
+    this.reserveRatio = obj['reserveRatio'];
+    this.principalRatio = obj['principalRatio'];
+    this.freeRatio = obj['freeRatio'];
   }
 }
 
@@ -668,10 +672,15 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         ),
       );
     }
+    int trial= 0;
+    if(all['trialAccount']!=null) {
+      trial= (all['trialAccount']['amount'] as double).floor();
+    }
     return MyWallet(
       onorder: (root['onorderAmount'] as double).floor(),
       absorb: (all['absorbAccount']['amount'] as double),
       change: (all['balanceAccount']['amount'] as double).floor(),
+      trial: trial,
       banks: banks,
     );
   }
