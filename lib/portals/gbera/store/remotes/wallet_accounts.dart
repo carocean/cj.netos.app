@@ -21,12 +21,36 @@ class MyWallet {
 
   String get onorderYan => ((onorder ?? 0) / 100.00).toStringAsFixed(2);
 
-  MyWallet({this.change, this.absorb,this.trial, this.onorder, this.banks}) {
-    var total = change + (absorb.floor())+trial + onorder;
+  MyWallet({this.change, this.absorb, this.trial, this.onorder, this.banks}) {
+    var total = change + (absorb.floor()) + trial + onorder;
     for (WenyBank bank in banks) {
       total += bank.freezen + bank.profit;
     }
     this.total = total;
+  }
+}
+
+class TrialFundsConfigOR {
+  String id;
+  int state;
+  String remitAccount;
+  String remitName;
+  int trialAmount;
+
+  TrialFundsConfigOR({
+    this.id,
+    this.state,
+    this.remitAccount,
+    this.remitName,
+    this.trialAmount,
+  });
+
+  TrialFundsConfigOR.parse(obj) {
+    this.id=obj['id'];
+    this.state=obj['state'];
+    this.remitAccount=obj['remitAccount'];
+    this.remitName=obj['remitName'];
+    this.trialAmount=obj['trialAmount'];
   }
 }
 
@@ -207,6 +231,8 @@ mixin IWalletAccountRemote {
   Future<WenyBank> getWenyBankAcount(String bank) {}
 
   Future<BulletinBoard> getBulletinBoard(bank, DateTime today);
+
+  Future<TrialFundsConfigOR> getTrialConfig() {}
 }
 
 class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
@@ -571,6 +597,18 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
   }
 
   @override
+  Future<TrialFundsConfigOR> getTrialConfig() async {
+    var obj = await remotePorts.portGET(
+      walletPorts,
+      'getTrialConfig',
+    );
+    if (obj == null) {
+      return null;
+    }
+    return TrialFundsConfigOR.parse(obj);
+  }
+
+  @override
   Future<WenyBank> getWenyBankAcount(String bank) async {
     var stockAccount = await remotePorts.portGET(
       walletBalancePorts,
@@ -672,9 +710,9 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
         ),
       );
     }
-    int trial= 0;
-    if(all['trialAccount']!=null) {
-      trial= (all['trialAccount']['amount'] as double).floor();
+    int trial = 0;
+    if (all['trialAccount'] != null) {
+      trial = (all['trialAccount']['amount'] as double).floor();
     }
     return MyWallet(
       onorder: (root['onorderAmount'] as double).floor(),
