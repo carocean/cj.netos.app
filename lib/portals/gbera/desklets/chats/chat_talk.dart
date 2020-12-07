@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
@@ -97,7 +98,7 @@ class _ChatTalkState extends State<ChatTalk> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       try {
         _syncRoomMembers();
-      }catch(e){
+      } catch (e) {
         print('chat_talk error: $e');
       }
     });
@@ -1656,6 +1657,67 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ],
           ),
         );
+      case '/pay/trials':
+        var json = widget.p2pMessage.content;
+        var obj = jsonDecode(json);
+        var record = DepositTrialOR.parse(obj);
+        double amount = record.amount / 100.00;
+        return Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 15,
+            bottom: 15,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('体验金到账！',style: TextStyle(fontSize: 12,color: Colors.grey,),),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  left: 25,
+                  right: 15,
+                ),
+                child: Text('¥$amount元',style: TextStyle(fontSize: 30,color: Colors.red,),),
+              ),
+              SizedBox(height: 10,),
+              Text('发放原因:',style: TextStyle(fontSize: 12,color: Colors.black,),),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 5,
+                  bottom: 10,
+                ),
+                child: Text.rich(TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '- 您的码片被"${record.payeeName}"初次消费，故而得到奖励\r\n',
+                    ),
+                    TextSpan(
+                      text: '- 体验金可在钱包->体验金账户中查看\r\n',
+                    ),
+                    TextSpan(
+                      text: '- 如想得到更多体验金，请多',
+                    ),
+                    TextSpan(
+                      text: '发码',
+                      style: TextStyle(fontSize: 14,color: Colors.blueGrey,),
+                      recognizer: TapGestureRecognizer()..onTap=(){
+                        widget.context.forward('/robot/createSlices').then((value) {
+                        });
+                      },
+                    ),
+                  ],
+                ),style: TextStyle(fontSize: 10,color: Colors.grey,),),
+              ),
+            ],
+          ),
+        );
       default:
         print('不支持的消息类型:${widget.p2pMessage.contentType}');
         return Container(
@@ -1720,7 +1782,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         widget.context.site.getService('/chat/rooms');
     ChatRoom _chatRoom = _model.chatRoom;
     _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
-    if(_member==null) {
+    if (_member == null) {
       return;
     }
     isShowNick = _member.isShowNick == 'true' ? true : false;

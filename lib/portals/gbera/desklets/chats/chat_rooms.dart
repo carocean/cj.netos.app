@@ -14,6 +14,7 @@ import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/sync_tasks.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
@@ -126,7 +127,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
     for (var map in rooms) {
       var cr = ChatRoomOR.parse(map);
-      ChatRoom chatRoom =cr.toLocal(context.principal.person);
+      ChatRoom chatRoom = cr.toLocal(context.principal.person);
       var exists = await chatRoomService.get(chatRoom.id, isOnlyLocal: true);
       if (exists != null) {
         continue;
@@ -201,7 +202,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       creator,
       room,
     );
-    chatRoom=roomOL.toLocal(widget.context.principal.person);
+    chatRoom = roomOL.toLocal(widget.context.principal.person);
     List<RoomMember> members =
         await chatRoomService.fetchMembers(room, creator);
     List<Friend> friends = [];
@@ -426,6 +427,102 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
+  //体验金到账通知
+  Future<void> _arriveTrialMessage(frame, content) async {
+    var room = frame.parameter('room');
+    var msgid = frame.parameter('msgid');
+    var ctime = frame.parameter('ctime');
+    var roomCreator = frame.parameter('roomCreator');
+    var sender = frame.head('sender-person');
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+
+    if (await messageService.existsMessage(msgid)) {
+      //消息已存在
+      return;
+    }
+    var obj = jsonDecode(content);
+    var record = DepositTrialOR.parse(obj);
+
+    var chatRoom = await chatRoomService.get(room);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = ChatRoom(
+        room,
+        '体验金',
+        'http://47.105.165.186:7100/app/trials/trial.png',
+        widget.context.principal.person,
+        int.parse(ctime),
+        DateTime.now().millisecondsSinceEpoch,
+        null,
+        null,
+        'false',
+        'false',
+        null,
+        widget.context.principal.person,
+      );
+      var existOnRemote = await chatRoomService.fetchRoom(
+          widget.context.principal.person, room);
+      try {
+        await chatRoomService.addRoom(
+          chatRoom,
+          isOnlySaveLocal: existOnRemote != null,
+        );
+      } catch (e) {
+        print('$e');
+      }
+    }
+
+    if (!(await chatRoomService.existsMember(room, sender))) {
+      var person = await personService.fetchPerson(sender);
+      try {
+        await chatRoomService.addMember(
+            RoomMember(
+              room,
+              sender,
+              person.nickName,
+              'false',
+              person?.avatar,
+              'person',
+              DateTime.now().millisecondsSinceEpoch,
+              widget.context.principal.person,
+            ),
+            isOnlySaveLocal: true);
+       await _refresh();
+      } catch (e) {
+        print('$e');
+      }
+    }
+    var message = ChatMessage(
+      msgid,
+      sender,
+      room,
+      '/pay/trials',
+      content,
+      'arrived',
+      StringUtil.isEmpty(ctime)
+          ? DateTime.now().millisecondsSinceEpoch
+          : int.parse(ctime),
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      widget.context.principal.person,
+    );
+    await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+    chatroomNotifyStreamController
+        .add({'action': 'arrivePushMessageCommand', 'message': message});
+
+    await chatRoomService.updateRoomUtime(room);
+    await _topChatroom(room);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<void> _arrivePushMessageCommand(Frame frame) async {
     var content = frame.contentText;
     if (StringUtil.isEmpty(content)) {
@@ -441,6 +538,10 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
 
     if (!StringUtil.isEmpty(contentType) && contentType == '/pay/absorbs') {
       await _arriveAbsorbMessage(frame, content);
+      return null;
+    }
+    if (!StringUtil.isEmpty(contentType) && contentType == '/pay/trials') {
+      await _arriveTrialMessage(frame, content);
       return null;
     }
     if (frame.head('sender-person') == widget.context.principal.person) {
@@ -1032,6 +1133,14 @@ class __ChatroomItemState extends State<_ChatroomItem> {
         whois = order == 0 ? member?.nickName ?? '' : whois;
         _stateBar.tips =
             '$whois: 通过招财猫[$title]发洇金给我\r\n¥${(amount / 100.00).toStringAsFixed(14)}';
+        break;
+      case '/pay/trials':
+        var cnt = message?.content;
+        var map = jsonDecode(cnt);
+        var record=DepositTrialOR.parse(map);
+        whois = record.payerName;
+        _stateBar.tips =
+        '$whois: 发体验金给我: ¥${(record.amount / 100.00).toStringAsFixed(2)}元';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
