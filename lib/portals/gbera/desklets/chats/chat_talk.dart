@@ -1696,7 +1696,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                 child: Text.rich(TextSpan(
                   children: [
                     TextSpan(
-                      text: '- 您的码片被"${record.payeeName}"初次消费，故而得到奖励\r\n',
+                      text: '- 您的码片被"${record.qrsliceCname}"初次消费，故而得到奖励\r\n',
                     ),
                     TextSpan(
                       text: '- 体验金可在钱包->体验金账户中查看\r\n',
