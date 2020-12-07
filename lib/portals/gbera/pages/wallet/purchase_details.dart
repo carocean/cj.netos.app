@@ -526,6 +526,33 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                       minWidth: minWidth,
                     ),
                     child: Text(
+                      '付款方式:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text('${purch.payMethod==1?'体验金':'零钱'}'),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 40,
+                right: 40,
+                top: 10,
+                bottom: 10,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: minWidth,
+                    ),
+                    child: Text(
                       '服务费:',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -568,7 +595,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                         children: [
                           TextSpan(
                             text:
-                            ' (在${purch.personName}的冻结账户余额中，成功承兑后自动解冻并转入${purch.personName}的收益金账户中)',
+                            ' (在${purch.personName}的冻结账户余额中，成功承兑后自动解冻并转入${purch.personName}的零钱账户中)',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[500],

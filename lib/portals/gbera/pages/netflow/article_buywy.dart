@@ -15,13 +15,14 @@ class BuyWYArticle extends StatefulWidget {
 
 class _BuyWYArticleState extends State<BuyWYArticle> {
   int _amount = 100;
+  int _method = 0; //0零钱；1体验金
   PurchaseInfo _purchaseInfo;
 
   @override
   void initState() {
     _purchaseInfo = widget.context.parameters['purchaseInfo'];
     _amount = widget.context.parameters['purchaseAmount'];
-
+    _method = widget.context.parameters['purchaseMethod'];
     super.initState();
   }
 
@@ -30,7 +31,12 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
     // TODO: implement dispose
     super.dispose();
   }
-
+  bool _invalid(){
+    if(_method==0) {
+      return _purchaseInfo.myWallet.change < _amount;
+    }
+    return _purchaseInfo.myWallet.trial < _amount;
+  }
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -47,10 +53,13 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
             icon: Icon(
               Icons.check,
             ),
-            color:(_purchaseInfo.myWallet.change < _amount)?null:  Colors.green,
-            onPressed:(_purchaseInfo.myWallet.change < _amount)?null: () {
-              widget.context.backward(result: _amount);
-            },
+            color:
+            _invalid() ? null : Colors.green,
+            onPressed:  _invalid()
+                ? null
+                : () {
+                    widget.context.backward(result: {'amount':_amount,'method':_method});
+                  },
           ),
         ],
       ),
@@ -141,6 +150,7 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                             '${_purchaseInfo.bankInfo.title}',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
+                              fontSize: 16,
                             ),
                           ),
                           SizedBox(
@@ -171,144 +181,147 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                     ],
                   ),
                   SizedBox(
-                    height: 30,
+                    height: 40,
                   ),
-                  Row(
-                    children: [
-                      Text(
-                        '钱包零钱:',
-                        style: TextStyle(
-                          color: Colors.grey,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                      border: Border.all(
+                        color: Colors.grey[300],
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                      top: 10,
+                      bottom: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: '申购金: ',
+                            children: [
+                              TextSpan(
+                                text:
+                                    '¥${(_amount / 100.00).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontSize: 25,
+                                ),
+                              ),
+                            ],
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        '¥${_purchaseInfo.myWallet.changeYan}元',
-                        style: TextStyle(
-                          color: Colors.grey,
+                        Container(
+                          constraints: BoxConstraints.tightForFinite(
+                              width: double.maxFinite),
+                          child: SliderTheme(
+                            data: theme.sliderTheme.copyWith(
+                              activeTrackColor: Colors.greenAccent,
+                              inactiveTrackColor:
+                                  theme.colorScheme.onSurface.withOpacity(0.5),
+                              activeTickMarkColor:
+                                  theme.colorScheme.onSurface.withOpacity(0.7),
+                              inactiveTickMarkColor:
+                                  theme.colorScheme.surface.withOpacity(0.7),
+                              overlayColor:
+                                  theme.colorScheme.onSurface.withOpacity(0.12),
+                              thumbColor: Colors.redAccent,
+                              valueIndicatorColor: Colors.deepPurpleAccent,
+                              thumbShape: _CustomThumbShape(),
+                              valueIndicatorShape: _CustomValueIndicatorShape(),
+                              valueIndicatorTextStyle: theme
+                                  .accentTextTheme.body2
+                                  .copyWith(color: theme.colorScheme.onSurface),
+                            ),
+                            child: Slider(
+                              label: '${(_amount / 100.00).toStringAsFixed(2)}',
+                              value: _amount / 100.00,
+                              min: 1.0,
+                              max: 20.00,
+                              divisions: 19,
+                              onChanged: (v) {
+                                setState(() {
+                                  _amount = (v * 100).floor();
+                                });
+                              },
+                              onChangeEnd: (v) {},
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: 20,
+                            right: 20,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text.rich(
+                                TextSpan(
+                                  text: '扣除服务费: ',
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          '¥${(((_purchaseInfo.bankInfo.freeRatio + _purchaseInfo.bankInfo.reserveRatio) * _amount) / 100.00).toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text.rich(
+                                TextSpan(
+                                  text: '冻结本金: ',
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          '¥${((_purchaseInfo.bankInfo.principalRatio * _amount) / 100.00).toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(
-                    height: 20,
+                    height: 30,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          text: '申购金: ',
-                          children: [
-                            TextSpan(
-                              text: '¥${(_amount / 100.00).toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 25,
-                              ),
-                            ),
-                          ],
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        constraints: BoxConstraints.tightForFinite(
-                            width: double.maxFinite),
-                        child: SliderTheme(
-                          data: theme.sliderTheme.copyWith(
-                            activeTrackColor: Colors.greenAccent,
-                            inactiveTrackColor:
-                                theme.colorScheme.onSurface.withOpacity(0.5),
-                            activeTickMarkColor:
-                                theme.colorScheme.onSurface.withOpacity(0.7),
-                            inactiveTickMarkColor:
-                                theme.colorScheme.surface.withOpacity(0.7),
-                            overlayColor:
-                                theme.colorScheme.onSurface.withOpacity(0.12),
-                            thumbColor: Colors.redAccent,
-                            valueIndicatorColor: Colors.deepPurpleAccent,
-                            thumbShape: _CustomThumbShape(),
-                            valueIndicatorShape: _CustomValueIndicatorShape(),
-                            valueIndicatorTextStyle: theme.accentTextTheme.body2
-                                .copyWith(color: theme.colorScheme.onSurface),
-                          ),
-                          child: Slider(
-                            label: '${(_amount / 100.00).toStringAsFixed(2)}',
-                            value: _amount / 100.00,
-                            min: 1.0,
-                            max: 20.00,
-                            divisions: 19,
-                            onChanged: (v) {
-                              setState(() {
-                                _amount = (v * 100).floor();
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text.rich(
-                              TextSpan(
-                                text: '扣除服务费: ',
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        '¥${(((_purchaseInfo.bankInfo.freeRatio + _purchaseInfo.bankInfo.reserveRatio) * _amount) / 100.00).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Text.rich(
-                              TextSpan(
-                                text: '冻结本金: ',
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        '¥${((_purchaseInfo.bankInfo.principalRatio * _amount) / 100.00).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  _renderSelectPayMethod(),
+                  Expanded(
+                    child: Column(
+                      children: _rendTips(),
+                    ),
                   ),
-                  Expanded(child: Column(
-                    children:_rendTips(),
-                  ),),
                 ],
               ),
             ),
@@ -362,14 +375,14 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                     ),
                     children: [
                       TextSpan(
-                        text: '\t\t\t\t\t\t\t\t1.发布到网流管道\r\n',
+                        text: '\t\t\t\t\t\t\t\t1.发布到网流管道或地理感知器\r\n',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
                       TextSpan(
-                        text: '\t\t\t\t\t\t\t\t2.发布到流量中国',
+                        text: '\t\t\t\t\t\t\t\t2.发布到追链',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.normal,
@@ -388,23 +401,324 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
 
   List<Widget> _rendTips() {
     var items = <Widget>[];
-    if (_purchaseInfo.myWallet.change < _amount) {
-      items.add(SizedBox(height: 20,),);
+    if (_invalid()) {
       items.add(
-        Expanded(child: Align(
-          alignment: Alignment.center,
-          child:  Text(
-            '申购金超出余额！',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.red,
+        SizedBox(
+          height: 20,
+        ),
+      );
+      items.add(
+        Expanded(
+          child: Align(
+            alignment: Alignment.center,
+            child: Text(
+              '申购金超出余额！',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.red,
+              ),
             ),
           ),
-        ),),
+        ),
       );
     }
 
     return items;
+  }
+
+  _selectPayMethods() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('选择付款方式'),
+            elevation: 0.0,
+            titleSpacing: 0,
+          ),
+          body: Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(
+              left: 15,
+              right: 15,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Column(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.backward(result: 0);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.wallet_travel,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '零钱',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                '¥${_purchaseInfo.myWallet.changeYan}元',
+                                style: TextStyle(
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              _method==0?Icons.check: Icons.arrow_forward_ios,
+                              size: 18,
+                              color:_method==0?Colors.red: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                  child: Divider(
+                    height: 1,
+                    indent: 40,
+                  ),
+                ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.context.backward(result: 1);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.wb_auto,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '体验金',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                '¥${_purchaseInfo.myWallet.trialYan}元',
+                                style: TextStyle(
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                             _method==1?Icons.check: Icons.arrow_forward_ios,
+                              size: 18,
+                              color:_method==1?Colors.red: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                  child: Divider(
+                    height: 1,
+                    indent: 40,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).then((value) {
+      if (value == null) {
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _method = value;
+        });
+      }
+    });
+  }
+
+  Widget _renderSelectPayMethod() {
+    switch (_method) {
+      case 0:
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _selectPayMethods();
+          },
+          child: Row(
+            children: [
+              Icon(
+                Icons.wallet_travel,
+                size: 30,
+                color: Colors.grey,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '零钱',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      '¥${_purchaseInfo.myWallet.changeYan}元',
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '其它付款方式',
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      case 1:
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _selectPayMethods();
+          },
+          child: Row(
+            children: [
+              Icon(
+                Icons.wb_auto,
+                size: 30,
+                color: Colors.grey,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '体验金',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      '¥${_purchaseInfo.myWallet.trialYan}元',
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '其它付款方式',
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      default:
+        return SizedBox(
+          width: 0,
+          height: 0,
+        );
+    }
   }
 }
 

@@ -41,6 +41,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   String _districtCode;
   String _districtTitle;
   int _purchse_amount = 100; //单位为分
+  int _purchase_method=0;//0是零钱；1为体验金
   String _label = '';
   PurchaseInfo _purchaseInfo;
   bool _canPublish = false;
@@ -101,6 +102,17 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       return;
     }
     _purchaseInfo = purchaseInfo;
+    if(_purchaseInfo.myWallet.trial>=100) {
+      _purchase_method=1;
+      _label = '体验金  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+      _canPublish = true;
+      _isLoaded = true;
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _purchase_method=0;
     if (purchaseInfo.myWallet.change < _purchse_amount) {
       _isEnoughMoney = false;
       var balance =
@@ -113,7 +125,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       }
       return;
     }
-    _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
+    _label = '零钱  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
     _canPublish = true;
     _isLoaded = true;
     if (mounted) {
@@ -151,29 +163,49 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     }
     widget.context.forward('/channel/article/buywy', arguments: {
       'purchaseInfo': _purchaseInfo,
-      'purchaseAmount': _purchse_amount
+      'purchaseAmount': _purchse_amount,
+      'purchaseMethod':_purchase_method,
     }).then((value) async {
       if (value == null) {
         return;
       }
-
+      if(mounted) {
+        setState(() {
+          _label='正在检查申购服务，请稍候...';
+        });
+      }
       var purchaseInfo = await _getPurchaseInfo();
       if (purchaseInfo.bankInfo == null) {
         return;
       }
-      if (purchaseInfo.myWallet.change < value) {
+      var result=value as Map;
+      var amount=result['amount'];
+      var method=result['method'];
+      if (method==0&&purchaseInfo.myWallet.change < amount) {
         _isEnoughMoney = false;
-        var v = value as int;
+        var v = amount;
         var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
         _label =
-            '欲购金额:$labelV元 大于 现有余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
+            '欲购金额:$labelV元 大于 现有零钱余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
         if (mounted) {
           setState(() {});
         }
         return;
       }
-      _purchse_amount = value;
-      _label = '¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+      if (method==1&&purchaseInfo.myWallet.trial < amount) {
+        _isEnoughMoney = false;
+        var v = amount;
+        var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
+        _label =
+        '欲购金额:$labelV元 大于 现有体验金余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
+        if (mounted) {
+          setState(() {});
+        }
+        return;
+      }
+      _purchase_method=method;
+      _purchse_amount = amount;
+      _label = '${method==0?'零钱':'体验金'}  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
       if (mounted) {
         setState(() {});
       }
@@ -245,6 +277,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     var purchaseOR = await purchaserRemote.doPurchase(
         _purchaseInfo.bankInfo.id,
         _purchse_amount,
+        _purchase_method,
         'receptor',
         'geo.receptor/$msgid',
         '在地理感知器${_receptorObj.title}');

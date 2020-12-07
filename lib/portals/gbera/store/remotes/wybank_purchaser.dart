@@ -20,7 +20,7 @@ class PurchaseInfo {
 mixin IWyBankPurchaserRemote {
   Future<PurchaseInfo> getPurchaseInfo(String distinct);
 
-  Future<PurchaseOR> doPurchase(String bank, int amount, String outTradeType,
+  Future<PurchaseOR> doPurchase(String bank, int amount,int payMethod, String outTradeType,
       String outTradeSn, String note);
 
   Future<PurchaseOR> getPurchaseRecordPerson(String owner, String record_sn);
@@ -68,10 +68,10 @@ class DefaultWyBankPurchaserRemote
   }
 
   @override
-  Future<PurchaseOR> doPurchase(String bank, int amount, String outTradeType,
+  Future<PurchaseOR> doPurchase(String bank, int amount,int payMethod, String outTradeType,
       String outTradeSn, String note) async {
     return await walletTradeRemote.purchaseWeny(
-        bank, amount, outTradeType, outTradeSn, note);
+        bank, amount,payMethod, outTradeType, outTradeSn, note);
   }
 
   @override

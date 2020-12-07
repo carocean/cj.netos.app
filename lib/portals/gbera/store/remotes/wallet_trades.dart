@@ -254,7 +254,7 @@ mixin IWalletTradeRemote {
 
   Future<P2PEvidence> checkEvidence(String evidence) {}
 
-  Future<PurchaseOR> purchaseWeny(String bank, int amount, String outTradeType,
+  Future<PurchaseOR> purchaseWeny(String bank, int amount,int payMethod, String outTradeType,
       String outTradeSn, String note) {}
 
   Future<String> recharge(
@@ -523,14 +523,15 @@ class WalletTradeRemote implements IWalletTradeRemote, IServiceBuilder {
   }
 
   @override
-  Future<PurchaseOR> purchaseWeny(String bank, int amount, String outTradeType,
+  Future<PurchaseOR> purchaseWeny(String bank, int amount,int payMethod, String outTradeType,
       String outTradeSn, String note) async {
     var obj = await remotePorts.portGET(
       walletTradePorts,
-      'purchaseWeny',
+      'purchaseWeny2',
       parameters: {
         'wenyBankID': bank,
         'amount': amount,
+        'payMethod':payMethod,
         'outTradeType': outTradeType,
         'outTradeSn': outTradeSn,
         'note': note,

@@ -23,7 +23,7 @@ class PurchaseOR {
   String outTradeType;
   String person;
   String personName;
-
+  int payMethod;
   PurchaseOR({
     this.sn,
     this.purchAmount,
@@ -45,6 +45,7 @@ class PurchaseOR {
     this.outTradeType,
     this.person,
     this.personName,
+    this.payMethod,
   });
 }
 
@@ -925,6 +926,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           outTradeType: obj['outTradeType'],
           person: obj['person'],
           personName: obj['personName'],
+          payMethod: obj['payMethod'],
         ),
       );
     }
@@ -967,6 +969,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           outTradeType: obj['outTradeType'],
           person: obj['person'],
           personName: obj['personName'],
+          payMethod: obj['payMethod'],
         ),
       );
     }
@@ -1009,6 +1012,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
           outTradeType: obj['outTradeType'],
           person: obj['person'],
           personName: obj['personName'],
+          payMethod: obj['payMethod'],
         ),
       );
     }
@@ -1085,6 +1089,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       outTradeType: obj['outTradeType'],
       person: obj['person'],
       personName: obj['personName'],
+      payMethod: obj['payMethod'],
     );
   }
 
@@ -1123,6 +1128,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
       outTradeType: obj['outTradeType'],
       person: obj['person'],
       personName: obj['personName'],
+      payMethod: obj['payMethod'],
     );
   }
 

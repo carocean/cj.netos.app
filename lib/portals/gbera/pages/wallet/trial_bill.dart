@@ -42,8 +42,7 @@ class _TrialBillState extends State<TrialBill> {
   Future<void> _loadBills() async {
     IWalletBillRemote billRemote =
         widget.context.site.getService('/wallet/bills');
-    List<TrialBillOR> list =
-        await billRemote.pageTrialBill(_limit, _offset);
+    List<TrialBillOR> list = await billRemote.pageTrialBill(_limit, _offset);
     if (list.isEmpty) {
       return;
     }
@@ -59,20 +58,29 @@ class _TrialBillState extends State<TrialBill> {
         widget.context.site.getService('/wallet/records');
 
     switch (bill.order) {
-      case 1://存入
-        var trial =await recordRemote.getDepositTrial(bill.refsn);
+      case 1: //存入
+        var trial = await recordRemote.getDepositTrial(bill.refsn);
         widget.context.forward(
           '/wallet/deposit_trial/details',
           arguments: {'depositTrial': trial, 'wallet': _wallet},
         );
         break;
-      // case 2://转出
-      //   var absorb =await recordRemote.getTransAbsorb(bill.refsn);
-      //   widget.context.forward(
-      //     '/wallet/trans_absorb/details',
-      //     arguments: {'transAbsorb': absorb, 'wallet': _wallet},
-      //   );
-      //   break;
+      case 2: //转出
+        var purchaseOR = await recordRemote.getPurchaseRecord(bill.refsn);
+        var bank;
+        for (var b in _wallet.banks) {
+          if (b.bank == purchaseOR.bankid) {
+            bank = b;
+          }
+        }
+        widget.context.forward(
+          '/wybank/purchase/details',
+          arguments: {
+            'purch': purchaseOR,
+            'bank': bank,
+          },
+        );
+        break;
       default:
         throw FlutterError('onorderBill:未知的订单类型');
     }
