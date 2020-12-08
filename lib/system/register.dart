@@ -361,7 +361,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     setState(() {});
                   },
                 ),
-                Text.rich(
+                Expanded(child: Text.rich(
                   TextSpan(
                     text: '已阅读并同意',
                     style: TextStyle(
@@ -369,7 +369,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     children: [
                       TextSpan(
-                        text: '《软件许可及服务协议》',
+                        text: '《地微用户协议》',
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             widget.context.forward('/system/user/contract');
@@ -379,9 +379,20 @@ class _RegisterPageState extends State<RegisterPage> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+                      TextSpan(
+                        text: '《地微隐私政策》',
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            widget.context.forward('/system/privacy');
+                          },
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ),),
               ],
             ),
           ),

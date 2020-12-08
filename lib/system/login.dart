@@ -109,23 +109,23 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 10,
-                  ),
-                  child: Text.rich(
-                    TextSpan(
-                      text: '节点动力',
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          widget.context.forward('/system/about');
-                        },
-                    ),
-                  ),
-                ),
+                // Padding(
+                //   padding: EdgeInsets.only(
+                //     bottom: 10,
+                //   ),
+                //   child: Text.rich(
+                //     TextSpan(
+                //       text: '节点动力',
+                //       style: TextStyle(
+                //         color: Colors.blueGrey,
+                //       ),
+                //       recognizer: TapGestureRecognizer()
+                //         ..onTap = () {
+                //           widget.context.forward('/system/about');
+                //         },
+                //     ),
+                //   ),
+                // ),
                 /*
                 FlatButton(
                   child: Text('找回密码'),

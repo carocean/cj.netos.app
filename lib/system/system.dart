@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
+import 'package:netos_app/portals/gbera/pages/system/contract.dart';
+import 'package:netos_app/portals/gbera/pages/system/privacy.dart';
 import 'package:netos_app/system/local/app_upgrade.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
+import 'package:netos_app/portals/gbera/pages/system/about.dart';
 import 'package:netos_app/system/pages/person_card.dart';
 import 'package:netos_app/system/remote/persons.dart';
 
@@ -148,6 +151,33 @@ List<LogicPage> buildPages(site) {
       icon: null,
       url: '/public/card/basicPerson',
       buildPage: (PageContext pageContext) => PersonCard(
+        context: pageContext,
+      ),
+    ),
+    LogicPage(
+      title: '用户协议',
+      subtitle: '',
+      icon: null,
+      url: '/system/user/contract',
+      buildPage: (PageContext pageContext) => UserContract(
+        context: pageContext,
+      ),
+    ),
+    LogicPage(
+      title: '隐私政策',
+      subtitle: '',
+      icon: Icons.info_outline,
+      url: '/system/privacy',
+      buildPage: (PageContext pageContext) => PrivacyPolicy(
+        context: pageContext,
+      ),
+    ),
+    LogicPage(
+      title: '关于',
+      subtitle: '',
+      icon: Icons.info_outline,
+      url: '/system/about',
+      buildPage: (PageContext pageContext) => About(
         context: pageContext,
       ),
     ),

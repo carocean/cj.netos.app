@@ -163,6 +163,7 @@ import 'package:netos_app/portals/gbera/pages/site/personal_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/site_channelsite.dart';
 import 'package:netos_app/portals/gbera/pages/system/about.dart';
 import 'package:netos_app/portals/gbera/pages/system/contract.dart';
+import 'package:netos_app/portals/gbera/pages/system/privacy.dart';
 import 'package:netos_app/portals/gbera/pages/system/themes.dart';
 import 'package:netos_app/portals/gbera/pages/users/account_login.dart';
 import 'package:netos_app/portals/gbera/pages/users/accounts.dart';
@@ -2118,6 +2119,15 @@ class GberaPortal {
           icon: FontAwesomeIcons.fileContract,
           url: '/system/user/contract',
           buildPage: (PageContext pageContext) => UserContract(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '隐私政策',
+          subtitle: '',
+          icon: Icons.privacy_tip,
+          url: '/system/privacy',
+          buildPage: (PageContext pageContext) => PrivacyPolicy(
             context: pageContext,
           ),
         ),

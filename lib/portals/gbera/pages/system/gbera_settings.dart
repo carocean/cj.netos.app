@@ -97,7 +97,7 @@ class GberaSettings extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 this.context.forward(
-                  '/system/about',
+                  '/system/privacy',
                   arguments: {'back_button': true},
                 );
               },
@@ -111,7 +111,7 @@ class GberaSettings extends StatelessWidget {
                       right: 10,
                     ),
                     child: Icon(
-                      this.context.findPage('/system/about')?.icon,
+                      this.context.findPage('/system/privacy')?.icon,
                       size: 30,
                       color:
                           this.context.style('/profile/list/item-icon.color'),
@@ -124,7 +124,7 @@ class GberaSettings extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Text(
-                          this.context.findPage('/system/about')?.title,
+                          this.context.findPage('/system/privacy')?.title,
                           style: this
                               .context
                               .style('/profile/list/item-title.text'),
