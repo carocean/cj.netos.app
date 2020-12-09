@@ -33,7 +33,7 @@ class _GberaErrorState extends State<GberaError> {
           widget.context.page?.title,
         ),
         titleSpacing: 0,
-        elevation: 1.0,
+        elevation: 0.0,
         automaticallyImplyLeading: true,
       ),
       body: Container(
@@ -41,30 +41,10 @@ class _GberaErrorState extends State<GberaError> {
         constraints: BoxConstraints.expand(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text('${status} ${massage}'),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 10,
-              ),
-              child: Text(
-                'Cause By At：',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 2,
-              ),
-              child: Text(
-                '$cause',
-                softWrap: true,
-                maxLines: 30,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            Text('$status $massage',style: TextStyle(fontSize: 16,color: Colors.red,),),
           ],
         ),
       ),
