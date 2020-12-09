@@ -60,15 +60,15 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
-      if(mounted) {
+      if (mounted) {
         setState(() {});
       }
     });
     _onloadMessages().then((v) {
       _isLoadedMessages = true;
-     if(mounted) {
-       setState(() {});
-     }
+      if (mounted) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -102,31 +102,48 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
       return;
     }
     _offset += messages.length;
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    var persons=<String,Person>{};
     List<_GeosphereMessageWrapper> wrappers = [];
-    for (var message in messages) {
-      await _fillMessageWrapper(message, wrappers);
+    for (var pod in messages) {
+      var c=pod.message.creator;
+      Person creator =persons[c];
+      if(creator==null) {
+        creator =
+        await personService.fetchPerson(c);
+        if(creator==null) {
+          continue;
+        }
+        persons[c]=creator;
+      }
+      var u=pod.message.upstreamPerson;
+      Person upstreamPerson =persons[u];
+      if(upstreamPerson==null) {
+        upstreamPerson =
+        await personService.fetchPerson(u);
+        if(upstreamPerson==null) {
+          upstreamPerson=creator;
+        }else{
+          persons[u]=upstreamPerson;
+        }
+      }
+      await _fillMessageWrapper(pod, wrappers,creator,upstreamPerson);
     }
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(GeoPOD pod, wrappers) async {
-    IGeosphereMediaService mediaService =
-        widget.context.site.getService('/geosphere/receptor/messages/medias');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
+  Future<void> _fillMessageWrapper(GeoPOD pod, wrappers,Person creator,Person upstreamPerson) async {
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+
     var message = pod.message;
-    List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor,message.id);
-    Person creator =
-        await personService.getPerson(message.creator, isDownloadAvatar: true);
-    Person upstreamPerson;
-    if (!StringUtil.isEmpty(message.upstreamPerson)) {
-      upstreamPerson = await personService.getPerson(message.creator,
-          isDownloadAvatar: true);
-    }
+    List<GeosphereMediaOR> medias =
+        await receptorRemote.listExtraMedia(message.id);
+
     List<MediaSrc> _medias = [];
-    for (GeosphereMediaOL mediaOL in medias) {
-      _medias.add(mediaOL.toMedia());
+    for (GeosphereMediaOR mediaOR in medias) {
+      _medias.add(mediaOR.toMedia());
     }
 
     IWyBankPurchaserRemote purchaserRemote =
@@ -149,8 +166,8 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(wrapper.message.receptor,
-         wrapper.message.id);
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -212,7 +229,7 @@ class _GeosphereHistoriesState extends State<GeosphereHistories> {
               _offset = 0;
               _messageList.clear();
               if (filter != null) {
-                var category=filter[1];
+                var category = filter[1];
                 _selectedGeoType = category?.id;
               } else {
                 _selectedGeoType = null;
@@ -795,9 +812,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                       //     setState(() {});
                       //   });
                       // } else {
-                        _filterMessages(filter).then((v) {
-                          setState(() {});
-                        });
+                      _filterMessages(filter).then((v) {
+                        setState(() {});
+                      });
                       // }
                     });
                   },
@@ -842,6 +859,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       ),
     );
   }
+
   _getCategoryTitile() {
     if (_filter == null) {
       return '筛选';
@@ -851,6 +869,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     return _filter[1].title;
   }
+
   List<Widget> _geoCategoryApps() {
     List<Widget> apps = [];
     for (var i = 0; i < _apps.length; i++) {
@@ -963,11 +982,11 @@ class __MessageCardState extends State<_MessageCard> {
     var msg = widget.messageWrapper.message;
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    _receptor = await receptorService.get( msg.receptor);
+    _receptor = await receptorService.get(msg.receptor);
     if (_receptor == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      _receptor = await receptorRemote.getReceptor( msg.receptor);
+      _receptor = await receptorRemote.getReceptor(msg.receptor);
     }
 //    _upstreamPerson = widget.messageWrapper.creator;
   }
@@ -1349,7 +1368,8 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<bool> _isLiked() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    return await geoMessageService.isLiked(widget.messageWrapper.message.receptor,
+    return await geoMessageService.isLiked(
+        widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id,
         widget.context.principal.person);
   }
@@ -1409,81 +1429,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ),
               size: 22,
             ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.thumbsUp,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    rights['isLiked'] ? '取消点赞' : '点赞',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                      top: 2,
-                    ),
-                    child: Icon(
-                      Icons.comment,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                  Text(
-                    '评论',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              rights['canDelete']
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 2,
-                            top: 1,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                        Text(
-                          '删除',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      width: 0,
-                      height: 0,
-                    ),
-            ],
+            actions: _renderActions(rights),
             pressType: PressType.singleClick,
             onValueChanged: (index) {
               switch (index) {
@@ -1521,6 +1467,84 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       },
     );
   }
+
+  List<Widget> _renderActions(rights) {
+    var items = <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              right: 2,
+            ),
+            child: Icon(
+              FontAwesomeIcons.thumbsUp,
+              color: Colors.white,
+              size: 12,
+            ),
+          ),
+          Text(
+            rights['isLiked'] ? '取消点赞' : '点赞',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              right: 2,
+              top: 2,
+            ),
+            child: Icon(
+              Icons.comment,
+              color: Colors.white,
+              size: 12,
+            ),
+          ),
+          Text(
+            '评论',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    ];
+    if (rights['canDelete']) {
+      items.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(
+                right: 2,
+                top: 1,
+              ),
+              child: Icon(
+                Icons.remove,
+                color: Colors.white,
+                size: 12,
+              ),
+            ),
+            Text(
+              '删除',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return items;
+  }
 }
 
 class _InteractiveRegion extends StatefulWidget {
@@ -1545,13 +1569,28 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   void initState() {
     if (widget.interactiveRegionRefreshAdapter != null) {
       widget.interactiveRegionRefreshAdapter.handler = (cause) {
-        print(cause);
         switch (cause) {
           case 'comment':
             _isShowCommentEditor = true;
+            if(mounted) {
+              setState(() {});
+            }
+            break;
+          case 'liked':
+          case 'unliked':
+            Future.delayed(Duration(seconds: 1), (){
+              if(mounted) {
+                setState(() {});
+              }
+            });
+            break;
+          default:
+            if(mounted) {
+              setState(() {});
+            }
             break;
         }
-        setState(() {});
+
       };
     }
     super.initState();
@@ -1565,19 +1604,67 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   }
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
-    List<GeosphereLikePersonOL> likes = await geoMessageService.pageLikePersons(
-        widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id,
-        10,
-        0);
-    List<GeosphereCommentOL> comments = await geoMessageService.pageComments(
-        widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id,
-        20,
-        0);
-    return <String, List<dynamic>>{"likePersons": likes, "comments": comments};
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var persons = <String, Person>{};
+
+    List<GeosphereLikeOR> likes =
+        await receptorRemote.pageLike(widget.messageWrapper.message.id, 10, 0);
+    List<GeosphereLikePersonOL> likesLocal = [];
+    for (var like in likes) {
+      var person = persons[like.person];
+      if (person == null) {
+        person = await personService.fetchPerson(like.person);
+        if (person == null) {
+          continue;
+        }
+        persons[like.person] = person;
+      }
+      likesLocal.add(
+        GeosphereLikePersonOL(
+          MD5Util.MD5(Uuid().v1()),
+          person.official,
+          person.avatar,
+          like.docid,
+          like.ctime,
+          person.nickName,
+          like.receptor,
+          widget.context.principal.person,
+        ),
+      );
+    }
+    List<GeosphereCommentOR> comments = await receptorRemote.pageComment(
+        widget.messageWrapper.message.id, 20, 0);
+    List<GeosphereCommentOL> commentsLocal = [];
+    for (var comment in comments) {
+      var person = persons[comment.person];
+      if (person == null) {
+        person = await personService.fetchPerson(comment.person);
+        if (person == null) {
+          continue;
+        }
+        persons[comment.person] = person;
+      }
+      commentsLocal.add(
+        GeosphereCommentOL(
+          comment.id,
+          person.official,
+          person.avatar,
+          comment.docid,
+          comment.content,
+          comment.ctime,
+          person.nickName,
+          comment.receptor,
+          widget.context.principal.person,
+        ),
+      );
+    }
+    return <String, List<dynamic>>{
+      "likePersons": likesLocal,
+      "comments": commentsLocal
+    };
   }
 
   _appendComment(String content) async {

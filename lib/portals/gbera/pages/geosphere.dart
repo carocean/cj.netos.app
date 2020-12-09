@@ -1383,11 +1383,18 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         if (receptors['action'] == 'removeReceptor') {
           var the = receptors['args'] as GeoReceptor;
           bool isDel = false;
-          _receptors.removeWhere((receptor) {
-            isDel = receptor.id == the.id;
-            return isDel;
-          });
-          if (isDel && mounted) {
+          for(var i=0;i<_receptors.length;i++){
+            var receptor = _receptors[i];
+            if(receptor==null) {
+              continue;
+            }
+            if(receptor.id == the.id) {
+              isDel=true;
+              _receptors.removeAt(i);
+              break;
+            }
+          }
+          if (isDel&&mounted) {
             setState(() {});
           }
         }

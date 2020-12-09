@@ -1997,13 +1997,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    widget.context.forward(
-                      '/geosphere/portal.person',
-                      arguments: {
-                        'receptor': widget.receptor,
-                        'person': comment.person,
-                      },
-                    );
+                    widget.context
+                        .forward('/person/view', arguments: {'official': comment.person});
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -2111,13 +2106,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      widget.context.forward(
-                                        '/geosphere/portal.person',
-                                        arguments: {
-                                          'receptor': widget.receptor,
-                                          'person': like.person,
-                                        },
-                                      );
+                                      widget.context
+                                          .forward('/person/view', arguments: {'official': like.person});
                                     },
                                   children: [
                                     TextSpan(

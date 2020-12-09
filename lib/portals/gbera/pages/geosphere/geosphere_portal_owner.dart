@@ -24,6 +24,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
@@ -92,30 +93,46 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
       return;
     }
     _offset += messages.length;
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    var persons=<String,Person>{};
     List<_GeosphereMessageWrapper> wrappers = [];
     for (var message in messages) {
-      await _fillMessageWrapper(message, wrappers);
+      var c=message.creator;
+      Person creator =persons[c];
+      if(creator==null) {
+        creator =
+        await personService.fetchPerson(c);
+        if(creator==null) {
+          continue;
+        }
+        persons[c]=creator;
+      }
+      var u=message.upstreamPerson;
+      Person upstreamPerson =persons[u];
+      if(upstreamPerson==null) {
+        upstreamPerson =
+        await personService.fetchPerson(u);
+        if(upstreamPerson==null) {
+          upstreamPerson=creator;
+        }else{
+          persons[u]=upstreamPerson;
+        }
+      }
+      await _fillMessageWrapper(message, wrappers,creator,upstreamPerson);
     }
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(message, wrappers) async {
-    IGeosphereMediaService mediaService =
-        widget.context.site.getService('/geosphere/receptor/messages/medias');
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor,message.id);
-    Person creator =
-        await personService.getPerson(message.creator, isDownloadAvatar: true);
-    Person upstreamPerson;
-    if (!StringUtil.isEmpty(message.upstreamPerson)) {
-      upstreamPerson = await personService.getPerson(message.upstreamPerson,
-          isDownloadAvatar: true);
-    }
+  Future<void> _fillMessageWrapper(message, wrappers,Person creator,Person upstreamPerson) async {
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+    List<GeosphereMediaOR> medias =
+    await receptorRemote.listExtraMedia(message.id);
+
     List<MediaSrc> _medias = [];
-    for (GeosphereMediaOL mediaOL in medias) {
-      _medias.add(mediaOL.toMedia());
+    for (GeosphereMediaOR mediaOR in medias) {
+      _medias.add(mediaOR.toMedia());
     }
 
     IWyBankPurchaserRemote purchaserRemote =
@@ -298,6 +315,7 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
             paddingContentLeft: 42,
             content: _MessageCard(
               context: widget.context,
+              receptor: _receptorInfo,
               messageWrapper: msg,
               onDeleted: _deleteMessage,
             ),
@@ -754,6 +772,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
 //                      widget.context.forward('/site/marchant');
+                      widget.context
+                          .forward('/person/view', arguments: {'person': _owner});
                     },
                     child: Row(
                       children: <Widget>[
@@ -861,11 +881,13 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
 class _MessageCard extends StatefulWidget {
   PageContext context;
+  ReceptorInfo receptor;
   _GeosphereMessageWrapper messageWrapper;
   void Function(_GeosphereMessageWrapper message) onDeleted;
 
   _MessageCard({
     this.context,
+    this.receptor,
     this.messageWrapper,
     this.onDeleted,
   });
@@ -892,7 +914,6 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   Widget build(BuildContext context) {
-    AmapPoi poi = widget.messageWrapper.poi;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -982,6 +1003,7 @@ class __MessageCardState extends State<_MessageCard> {
                   _InteractiveRegion(
                     messageWrapper: widget.messageWrapper,
                     context: widget.context,
+                    receptor: widget.receptor,
                     interactiveRegionRefreshAdapter:
                         _interactiveRegionRefreshAdapter,
                   ),
@@ -1316,11 +1338,13 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
 class _InteractiveRegion extends StatefulWidget {
   _GeosphereMessageWrapper messageWrapper;
   PageContext context;
+  ReceptorInfo receptor;
   _InteractiveRegionRefreshAdapter interactiveRegionRefreshAdapter;
 
   _InteractiveRegion({
     this.messageWrapper,
     this.context,
+    this.receptor,
     this.interactiveRegionRefreshAdapter,
   });
 
@@ -1335,13 +1359,28 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   void initState() {
     if (widget.interactiveRegionRefreshAdapter != null) {
       widget.interactiveRegionRefreshAdapter.handler = (cause) {
-        print(cause);
         switch (cause) {
           case 'comment':
             _isShowCommentEditor = true;
+            if(mounted) {
+              setState(() {});
+            }
+            break;
+          case 'liked':
+          case 'unliked':
+            Future.delayed(Duration(seconds: 1), (){
+              if(mounted) {
+                setState(() {});
+              }
+            });
+            break;
+          default:
+            if(mounted) {
+              setState(() {});
+            }
             break;
         }
-        setState(() {});
+
       };
     }
     super.initState();
@@ -1355,19 +1394,67 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   }
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
-    List<GeosphereLikePersonOL> likes = await geoMessageService.pageLikePersons(
-        widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id,
-        10,
-        0);
-    List<GeosphereCommentOL> comments = await geoMessageService.pageComments(
-        widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id,
-        20,
-        0);
-    return <String, List<dynamic>>{"likePersons": likes, "comments": comments};
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    var persons = <String, Person>{};
+
+    List<GeosphereLikeOR> likes =
+    await receptorRemote.pageLike(widget.messageWrapper.message.id, 10, 0);
+    List<GeosphereLikePersonOL> likesLocal = [];
+    for (var like in likes) {
+      var person = persons[like.person];
+      if (person == null) {
+        person = await personService.fetchPerson(like.person);
+        if (person == null) {
+          continue;
+        }
+        persons[like.person] = person;
+      }
+      likesLocal.add(
+        GeosphereLikePersonOL(
+          MD5Util.MD5(Uuid().v1()),
+          person.official,
+          person.avatar,
+          like.docid,
+          like.ctime,
+          person.nickName,
+          like.receptor,
+          widget.context.principal.person,
+        ),
+      );
+    }
+    List<GeosphereCommentOR> comments = await receptorRemote.pageComment(
+        widget.messageWrapper.message.id, 20, 0);
+    List<GeosphereCommentOL> commentsLocal = [];
+    for (var comment in comments) {
+      var person = persons[comment.person];
+      if (person == null) {
+        person = await personService.fetchPerson(comment.person);
+        if (person == null) {
+          continue;
+        }
+        persons[comment.person] = person;
+      }
+      commentsLocal.add(
+        GeosphereCommentOL(
+          comment.id,
+          person.official,
+          person.avatar,
+          comment.docid,
+          comment.content,
+          comment.ctime,
+          person.nickName,
+          comment.receptor,
+          widget.context.principal.person,
+        ),
+      );
+    }
+    return <String, List<dynamic>>{
+      "likePersons": likesLocal,
+      "comments": commentsLocal
+    };
   }
 
   _appendComment(String content) async {
@@ -1443,11 +1530,12 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    IPersonService personService =
-                        widget.context.site.getService('/gbera/persons');
-                    var person = await personService.getPerson(comment.person);
-                    widget.context.forward("/site/personal",
-                        arguments: {'person': person});
+                    widget.context.forward(
+                      '/person/view',
+                      arguments: {
+                        'official': comment.person,
+                      },
+                    );
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -1555,13 +1643,9 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      IPersonService personService = widget
-                                          .context.site
-                                          .getService('/gbera/persons');
-                                      var person = await personService
-                                          .getPerson(like.official);
-                                      widget.context.forward("/site/personal",
-                                          arguments: {'person': person});
+
+                                      widget.context
+                                          .forward('/person/view', arguments: {'official': like.person});
                                     },
                                   children: [
                                     TextSpan(

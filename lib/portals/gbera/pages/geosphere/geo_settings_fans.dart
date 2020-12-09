@@ -8,7 +8,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
-
+import 'dart:math' as math;
 class GeoSettingsFans extends StatefulWidget {
   PageContext context;
 
@@ -92,6 +92,7 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -140,38 +141,58 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
                         ),
                         CardItem(
                           title: '位置',
+                          tipsText: '${_poiTitle ?? ''}附近',
                           leading: Icon(
                             Icons.location_on,
                             color: Colors.grey,
                             size: 25,
                           ),
-                          tipsText:  '${_poiTitle ?? ''}附近',
                           onItemTap: () {
-                            widget.context.forward('/gbera/location',
-                                arguments: {
-                                  'location': _receptor.latLng,
-                                  'label': '半径:${getFriendlyDistance(_receptor.radius)}'
-                                });
+                            widget.context
+                                .forward('/gbera/location', arguments: {
+                              'location': _receptor.latLng,
+                              'label':
+                              '半径:${getFriendlyDistance(_receptor.radius)}'
+                            });
                           },
                         ),
-                        Divider(
-                          height: 1,
-                          indent: 35,
+                        SizedBox(
+                          height: 15,
                         ),
-                        CardItem(
-                          title: '半径',
-                          leading: Icon(
-                            FontAwesomeIcons.streetView,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
-                          tail: Text(
-                            '${getFriendlyDistance(_receptor.radius)}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    right: 18,
+                                    bottom: 10,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.my_location,
+                                        size: 14,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(
+                                        width: 2,
+                                      ),
+                                      Text(
+                                        '半径:${getFriendlyDistance(_receptor.radius * 1.0)}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),

@@ -92,12 +92,10 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_fa
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_receptor_netflow.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_settings_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_mobile.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_person.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_view_receptor.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_yuanbao.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_histories.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_owner.dart';
-import 'package:netos_app/portals/gbera/pages/geosphere/geosphere_portal_person.dart';
 import 'package:netos_app/portals/gbera/pages/market.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_gogo.dart';
 import 'package:netos_app/portals/gbera/pages/market/go_shopping_cart.dart';
@@ -1384,15 +1382,6 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '地理用户查看器',
-          subtitle: '',
-          icon: GalleryIcons.shrine,
-          url: '/geosphere/view/person',
-          buildPage: (PageContext pageContext) => GeoViewPerson(
-            context: pageContext,
-          ),
-        ),
-        LogicPage(
           title: '选择地理感知器分类',
           subtitle: '',
           icon: GalleryIcons.shrine,
@@ -1489,15 +1478,6 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/geosphere/portal.owner',
           buildPage: (PageContext pageContext) => GeospherePortalOfOwner(
-            context: pageContext,
-          ),
-        ),
-        LogicPage(
-          title: '地圈动态门户',
-          subtitle: '指定用户',
-          icon: Icons.art_track,
-          url: '/geosphere/portal.person',
-          buildPage: (PageContext pageContext) => GeospherePortalOfPerson(
             context: pageContext,
           ),
         ),

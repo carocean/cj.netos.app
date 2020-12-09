@@ -49,7 +49,7 @@ class PrivacyPolicy extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: 10,),
                   alignment: Alignment.bottomCenter,
                   child: Text(
-                    '节点动力',
+                    '郑州节点动力信息科技有限公司',
                     style: TextStyle(color: Colors.grey[400]),
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
@@ -117,10 +118,7 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
           child: Column(
             children: <Widget>[
               CardItem(
-                leading: Icon(
-                  Icons.person,
-                  size: 40,
-                ),
+                leading: SizedBox(height: 40,width: 40,child: getAvatarWidget(follow.person?.avatar,widget.context,),),
                 title: '${follow.person.nickName}',
                 subtitle: Text(
                   '${follow.person.signature??''}',
@@ -130,6 +128,10 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
                   ),
                 ),
                 tipsText: '距中心：${getFriendlyDistance(follow.distance)}',
+                onItemTap: (){
+                  widget.context
+                      .forward('/person/view', arguments: {'person': follow.person});
+                },
               ),
               Divider(
                 height: 1,

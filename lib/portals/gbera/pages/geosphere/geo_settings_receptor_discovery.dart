@@ -246,65 +246,76 @@ class _GeosphereReceptorDiscoveryState
           color: Colors.white,
           child: Column(
             children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(
-                  top: 15,
-                  bottom: 15,
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 40,height: 40,child: leadingImg,),
-                    SizedBox(width: 10,),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: (){
+                  widget.context.forward(
+                    '/geosphere/view/receptor',
+                    arguments: {
+                      'receptor': poi.receptor,
+                    },
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: 15,
+                    bottom: 15,
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 40,height: 40,child: leadingImg,),
+                      SizedBox(width: 10,),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${title}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              subtitle,
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Row(
                         children: [
                           Text(
-                            '${title}',
+                            poi.receptor.id == _receptor.id
+                                ? '感知器中心'
+                                : '距中心：${getFriendlyDistance(poi.distance)}',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey,
                               fontSize: 12,
                             ),
                           ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+
                         ],
                       ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          poi.receptor.id == _receptor.id
-                              ? '感知器中心'
-                              : '距中心：${getFriendlyDistance(poi.distance)}',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 18,
-                          color: Colors.grey,
-                        ),
-
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Divider(

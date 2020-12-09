@@ -35,6 +35,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
+import '../geosphere.dart';
 import 'receptor_handler.dart';
 
 class GeoReceptorFansWidget extends StatefulWidget {
@@ -241,7 +242,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     GeosphereMessageOL messageOL =
-        await geoMessageService.getMessage(_receptorInfo.id,msgid);
+        await geoMessageService.getMessage(_receptorInfo.id, msgid);
     List<_GeosphereMessageWrapper> wrappers = [];
     await _fillMessageWrapper(messageOL, wrappers);
     _messageList.insertAll(0, wrappers);
@@ -250,8 +251,8 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage( wrapper.message.receptor,
-        wrapper.message.id);
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -314,7 +315,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
               _offset = 0;
               _messageList.clear();
               if (filter != null) {
-                var category=filter[1];
+                var category = filter[1];
                 _filterCategory = category?.id;
               } else {
                 _filterCategory = null;
@@ -547,85 +548,6 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         context: widget.context,
         receptorInfo: _receptorInfo,
       ),
-      GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: () {
-          widget.context.forward('/geosphere/publish_article',
-              arguments: <String, dynamic>{
-                'type': 'text',
-                'category': _category.id,
-                'receptor': _receptorInfo.id,
-              }).then((v) {
-            if (v == null) {
-              return;
-            }
-            _loadMessageAndPutTop(v).then((s) {
-              setState(() {});
-            });
-          });
-        },
-        child: IconButton(
-          icon: Icon(
-            Icons.camera_enhance,
-            size: 20,
-            color: color,
-          ),
-          onPressed: () {
-            showDialog<Map<String, Object>>(
-              context: context,
-              builder: (BuildContext context) => SimpleDialog(
-                title: Text('请选择'),
-                children: <Widget>[
-                  DialogItem(
-                    text: '文本',
-                    subtext: '注：长按窗口右上角按钮便可不弹出该对话框直接发文',
-                    icon: Icons.font_download,
-                    color: Colors.grey[500],
-                    onPressed: () {
-                      widget.context.backward(result: <String, dynamic>{
-                        'type': 'text',
-                        'category': _category.id,
-                        'receptor': _receptorInfo.id,
-                      });
-                    },
-                  ),
-                  DialogItem(
-                    text: '从相册选择',
-                    icon: Icons.image,
-                    color: Colors.grey[500],
-                    onPressed: () async {
-                      var image = await ImagePicker().getImage(
-                          source: ImageSource.gallery,imageQuality: 80,maxHeight: Adapt.screenH(),);
-                      if(image==null) {
-                        return;
-                      }
-                      widget.context.backward(result: <String, dynamic>{
-                        'type': 'gallery',
-                        'category': _category.id,
-                        'receptor': _receptorInfo.id,
-                        'mediaFile':
-                            MediaFile(type: MediaFileType.image, src: File(image.path)),
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ).then<void>((value) {
-              // The value passed to Navigator.pop() or null.
-              widget.context
-                  .forward('/geosphere/publish_article', arguments: value)
-                  .then((v) {
-                if (v == null) {
-                  return;
-                }
-                _loadMessageAndPutTop(v).then((s) {
-                  setState(() {});
-                });
-              });
-            });
-          },
-        ),
-      ),
     ];
   }
 }
@@ -658,22 +580,24 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   var _workingChannel;
   String _poiTitle;
   LatLng _currentLatLng;
-  List<GeoCategoryAppOR> _apps = [];
-  Map<String, String> _selectCategory;
   StreamSubscription _streamSubscription;
   List<List<ThirdPartyService>> _serviceMenu = [];
   TabController _controller;
   List _filter; //0为channel;1为category;2为brand
+  var _isFollowed = false;
+  var _followCount = 0;
+  var _followLabel = '关注';
+
   @override
   void initState() {
     _controller = DefaultTabController.of(context);
-    _loadServiceMenu().then((v) {
+    _loadLocation().then((v) {
+      setState(() {});
+    });
+    _loadFollow().then((v) {
       if (mounted) {
         setState(() {});
       }
-    });
-    _loadLocation().then((v) {
-      setState(() {});
     });
     geoLocation.listen('receptor.header',
         (widget.receptorInfo.uDistance ?? 10) * 1.0, _updateLocation);
@@ -682,9 +606,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 //      _arrivedMessageCount++;
 //      setState(() {});
 //    };
-    _loadCategoryAllApps().then((v) {
-      setState(() {});
-    });
     Stream _notify = receptorNotifyStreamController.stream;
     _streamSubscription = _notify.listen((cmd) async {
       GeosphereMessageOL message = cmd['message'];
@@ -748,113 +669,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  _loadServiceMenu() async {
-    var services_page1 = <ThirdPartyService>[];
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1410704196,754504588&fm=26&gp=0.jpg',
-      title: '费用｜积分',
-      onTap: () {
-        widget.context.forward('/micro/app', arguments: {'selected': '费用'});
-      },
-    ));
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3461514539,795423572&fm=26&gp=0.jpg',
-      title: '在用产品',
-      onTap: () {
-        widget.context.forward('/micro/app', arguments: {'selected': '在用产品'});
-      },
-    ));
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3399756601,3876810634&fm=26&gp=0.jpg',
-      title: '流量｜通话',
-      onTap: () {
-        widget.context.forward('/micro/app', arguments: {'selected': '流量｜通话'});
-      },
-    ));
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1368553957,2392681342&fm=26&gp=0.jpg',
-      title: '装机修障进度',
-    ));
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=150135425,1929992673&fm=26&gp=0.jpg',
-      title: '充值交费',
-    ));
-    services_page1.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=276772382,2920623207&fm=26&gp=0.jpg',
-      title: '5G专区',
-    ));
-
-    var services_page2 = <ThirdPartyService>[];
-    services_page2.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2265008670,1770423049&fm=26&gp=0.jpg',
-      title: '附近营业厅',
-    ));
-    services_page2.add(ThirdPartyService(
-      iconUrl:
-          'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=144715234,836389000&fm=26&gp=0.jpg',
-      title: '服务大厅',
-    ));
-    services_page2.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=108446868,1406702903&fm=26&gp=0.jpg',
-      title: '优惠活动',
-    ));
-    services_page2.add(ThirdPartyService(
-      iconUrl:
-          'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=4035533329,1566894074&fm=26&gp=0.jpg',
-      title: '在线客服',
-    ));
-    _serviceMenu.add(services_page1);
-    _serviceMenu.add(services_page2);
-  }
-
   Future<void> _loadUnreadMessage() async {
     IGeosphereMessageService messageService =
         widget.context.site.getService('/geosphere/receptor/messages');
     _arrivedMessageCount =
         await messageService.countUnreadMessage(widget.receptorInfo.id);
-  }
-
-  Future<void> _loadCategoryAllApps() async {
-    if (widget.categoryOL == null ||
-        widget.receptorInfo.creator != widget.context.principal.person) {
-      return;
-    }
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on;
-    if (widget.categoryOL.moveMode == 'moveableSelf') {
-      on = 'onserved';
-    } else {
-      on = 'onservice';
-    }
-    _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
-  }
-
-  Future<void> _loadAppsOfCategory(categroyMap) async {
-    _selectCategory = categroyMap.cast<String, String>();
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on = 'onserved';
-    _apps = await categoryRemote.getApps(categroyMap['category'], on);
-    await _filterMessages(categroyMap);
-  }
-
-  Future<void> _clearSelectCategory() async {
-    _selectCategory = null;
-    await _loadCategoryAllApps();
-    _filterMessages(null);
-  }
-
-  Future<void> _filterMessages(filter) async {
-    await widget.filterMessages(filter);
   }
 
   Future<void> _loadLocation() async {
@@ -883,6 +702,48 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  _loadFollow() async {
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    var exists = await receptorService.existsLocal(widget.receptorInfo.id);
+    _followCount =
+        await receptorRemote.countReceptorFans(widget.receptorInfo.id);
+    _isFollowed = exists;
+    _followLabel = exists ? '不再关注' : '关注';
+  }
+
+  Future<void> _follow() async {
+    _followLabel = '处理中...';
+    setState(() {});
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    if (_isFollowed) {
+      //取消
+      await receptorService.remove(widget.receptorInfo.id);
+      await receptorRemote.unfollow(widget.receptorInfo.id);
+      await _loadFollow();
+      geosphereEvents.onRemoveReceptor(widget.receptorInfo.origin);
+      _isFollowed = false;
+      _followLabel = '关注';
+      widget.context.backward();
+      return;
+    }
+    var recobj = await receptorRemote.getReceptor(widget.receptorInfo.id);
+    if (recobj == null) {
+      recobj = widget.receptorInfo.origin;
+    }
+    await receptorService.add(recobj, isOnlySaveLocal: true);
+    await receptorRemote.follow(recobj.id);
+    await _loadFollow();
+    geosphereEvents.onAddReceptor(recobj);
+    _isFollowed = true;
+    _followLabel = '不再关注';
   }
 
   @override
@@ -969,21 +830,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-//                            Text.rich(
-//                              TextSpan(
-//                                text: '${widget.receptorInfo.title}',
-//                                children: [],
-//                              ),
-//                              softWrap: true,
-//                              textAlign: TextAlign.left,
-//                              style: TextStyle(
-//                                fontSize: 25,
-//                                fontWeight: FontWeight.w500,
-//                                color: widget.isShowWhite
-//                                    ? Colors.white
-//                                    : Colors.black,
-//                              ),
-//                            ),
                             Flex(
                               direction: Axis.vertical,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1031,7 +877,60 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                   ),
                                 ),
                               ],
-                            )
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: 10,
+                              ),
+                              child: Flex(
+                                direction: Axis.horizontal,
+                                children: <Widget>[
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      widget.context.forward(
+                                        '/geosphere/receptor/settings/links/fans',
+                                        arguments: {
+                                          'receptor': widget.receptorInfo,
+                                        },
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        right: 10,
+                                      ),
+                                      child: Text(
+                                        '粉丝($_followCount)',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      _follow().then((v) {
+                                        setState(() {});
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 10,
+                                      ),
+                                      child: Text(
+                                        '${_followLabel}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -1041,23 +940,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
               ],
             ),
           ),
-          _apps.isEmpty
-              ? Container(
-                  width: 0,
-                  height: 0,
-                )
-              : Container(
-                  height: 60,
-                  alignment: Alignment.center,
-                  child: ListView(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.all(0),
-                    children: _geoCategoryApps(),
-                  ),
-                ),
 //          _renderServiceMenu(),
-        SizedBox(height: 10,),
+          SizedBox(
+            height: 10,
+          ),
           Padding(
             padding: EdgeInsets.only(
               top: 15,
@@ -1070,13 +956,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context.forward(
-                        '/geosphere/portal.person',
-                        arguments: {
-                          'receptor': widget.receptorInfo,
-                          'person': widget.context.principal.person,
-                        },
-                      );
+                      widget.context
+                          .forward('/person/view', arguments: {'official': widget.context.principal.person});
                     },
                     child: Row(
                       children: <Widget>[
@@ -1258,6 +1139,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       ),
     );
   }
+
   _getCategoryTitile() {
     if (_filter == null) {
       return '筛选';
@@ -1267,6 +1149,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     }
     return _filter[1].title;
   }
+
   Widget _renderServiceMenu() {
     if (_serviceMenu.isEmpty) {
       return Container(
@@ -1359,41 +1242,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       ),
     );
   }
-
-  List<Widget> _geoCategoryApps() {
-    List<Widget> apps = [];
-    for (var i = 0; i < _apps.length; i++) {
-      var app = _apps[i];
-      apps.add(
-        Padding(
-          padding: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Image.network(
-                '${app.leading}?accessToken=${widget.context.principal.accessToken}',
-                width: 35,
-                height: 35,
-                color: widget.isShowWhite ? Colors.white : Colors.grey[600],
-              ),
-              Text(
-                '${app.title}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: widget.isShowWhite ? Colors.white : Colors.black54,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return apps;
-  }
 }
 
 class _MessageCard extends StatefulWidget {
@@ -1479,13 +1327,11 @@ class __MessageCardState extends State<_MessageCard> {
     }
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
-    _upstreamReceptor =
-        await receptorService.get( upstreamReceptor);
+    _upstreamReceptor = await receptorService.get(upstreamReceptor);
     if (_upstreamReceptor == null) {
       IGeoReceptorRemote receptorRemote =
           widget.context.site.getService('/remote/geo/receptors');
-      _upstreamReceptor =
-          await receptorRemote.getReceptor(upstreamReceptor);
+      _upstreamReceptor = await receptorRemote.getReceptor(upstreamReceptor);
     }
     if (!StringUtil.isEmpty(upstreamPerson)) {
       IPersonService personService =
@@ -1514,139 +1360,77 @@ class __MessageCardState extends State<_MessageCard> {
         color: Colors.white,
 //        borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              if (!_isMine) {
-                widget.context.forward(
-                  '/geosphere/view/receptor',
-                  arguments: {
-                    'receptor': ReceptorInfo.create(_upstreamReceptor),
-                  },
-                );
-                return;
-              }
-              widget.context.forward(
-                '/geosphere/portal.person',
-                arguments: {
-                  'receptor': widget.receptor,
-                  'person': widget.context.principal.person,
-                },
-              );
-            },
-            child: Padding(
-              padding: EdgeInsets.only(top: 5, right: 5),
-              child: ClipOval(
-                child: _getleadingImg(),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: () {
-                        if (!_isMine) {
-                          widget.context.forward(
-                            '/geosphere/view/receptor',
-                            arguments: {
-                              'receptor':
-                                  ReceptorInfo.create(_upstreamReceptor),
-                            },
-                          );
-                          return;
-                        }
-                        widget.context.forward(
-                          '/geosphere/portal.person',
-                          arguments: {
-                            'receptor': widget.receptor,
-                            'person': widget.context.principal.person,
-                          },
-                        );
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        '${_titleLabel ?? ''}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              widget.receptor.creator ==
+                          widget.messageWrapper.message.creator ||
+                      _upstreamReceptor == null
+                  ? Container(
+                      height: 0,
+                      width: 0,
+                    )
+                  : SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.all(0),
+                        onPressed: () {
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return widget.context.part(
+                                    '/netflow/channel/serviceMenu', context);
+                              }).then((value) {
+                            print('-----$value');
+                            if (value == null) return;
+                            widget.context
+                                .forward('/micro/app', arguments: value);
+                          });
+                        },
+                        icon: Icon(
+                          Icons.art_track,
+                          size: 20,
                           color: Colors.grey[700],
                         ),
                       ),
                     ),
-                    widget.receptor.creator ==
-                                widget.messageWrapper.message.creator ||
-                            _upstreamReceptor == null
-                        ? Container(
-                            height: 0,
-                            width: 0,
-                          )
-                        : SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: IconButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (context) {
-                                      return widget.context.part(
-                                          '/netflow/channel/serviceMenu',
-                                          context);
-                                    }).then((value) {
-                                  print('-----$value');
-                                  if (value == null) return;
-                                  widget.context
-                                      .forward('/micro/app', arguments: value);
-                                });
-                              },
-                              icon: Icon(
-                                Icons.art_track,
-                                size: 20,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ),
-                  ],
+            ],
+          ),
+          Container(
+            //内容区
+            padding: EdgeInsets.only(top: 5, bottom: 10),
+            alignment: Alignment.topLeft,
+            child: Text.rich(
+              TextSpan(
+                text: '${widget.messageWrapper.message.text}',
+                style: TextStyle(
+                  fontSize: 15,
                 ),
-                Container(
-                  //内容区
-                  padding: EdgeInsets.only(top: 5, bottom: 10),
-                  alignment: Alignment.topLeft,
-                  child: Text.rich(
-                    TextSpan(
-                      text: '${widget.messageWrapper.message.text}',
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          setState(() {
-                            if (maxLines == 4) {
-                              maxLines = 100;
-                            } else {
-                              maxLines = 4;
-                            }
-                          });
-                        },
-                    ),
-                    maxLines: maxLines,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                MediaWidget(
-                  widget.messageWrapper.medias,
-                  widget.context,
-                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    setState(() {
+                      if (maxLines == 4) {
+                        maxLines = 100;
+                      } else {
+                        maxLines = 4;
+                      }
+                    });
+                  },
+              ),
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          MediaWidget(
+            widget.messageWrapper.medias,
+            widget.context,
+          ),
 //                DefaultTabController(
 //                  length: widget.messageWrapper.medias.length,
 //                  child: PageSelector(
@@ -1664,49 +1448,45 @@ class __MessageCardState extends State<_MessageCard> {
 //                    },
 //                  ),
 //                ),
-                Container(
-                  height: 7,
-                ),
-                Row(
-                  //内容坠
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    _MessageOperatesPopupMenu(
-                      messageWrapper: widget.messageWrapper,
-                      context: widget.context,
-                      onDeleted: () {
-                        if (widget.onDeleted != null) {
-                          widget.onDeleted(widget.messageWrapper);
-                        }
-                        setState(() {});
-                      },
-                      onComment: () {
-                        _interactiveRegionRefreshAdapter.refresh('comment');
-                      },
-                      onliked: () {
-                        _interactiveRegionRefreshAdapter.refresh('liked');
-                      },
-                      onUnliked: () {
-                        _interactiveRegionRefreshAdapter.refresh('unliked');
-                      },
-                    ),
-                  ],
-                ),
-                Container(
-                  height: 7,
-                ),
+          Container(
+            height: 7,
+          ),
+          Row(
+            //内容坠
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _MessageOperatesPopupMenu(
+                messageWrapper: widget.messageWrapper,
+                context: widget.context,
+                onDeleted: () {
+                  if (widget.onDeleted != null) {
+                    widget.onDeleted(widget.messageWrapper);
+                  }
+                  setState(() {});
+                },
+                onComment: () {
+                  _interactiveRegionRefreshAdapter.refresh('comment');
+                },
+                onliked: () {
+                  _interactiveRegionRefreshAdapter.refresh('liked');
+                },
+                onUnliked: () {
+                  _interactiveRegionRefreshAdapter.refresh('unliked');
+                },
+              ),
+            ],
+          ),
+          Container(
+            height: 7,
+          ),
 
-                ///相关交互区
-                _InteractiveRegion(
-                  messageWrapper: widget.messageWrapper,
-                  context: widget.context,
-                  receptor: widget.receptor,
-                  interactiveRegionRefreshAdapter:
-                      _interactiveRegionRefreshAdapter,
-                ),
-              ],
-            ),
+          ///相关交互区
+          _InteractiveRegion(
+            messageWrapper: widget.messageWrapper,
+            context: widget.context,
+            receptor: widget.receptor,
+            interactiveRegionRefreshAdapter: _interactiveRegionRefreshAdapter,
           ),
         ],
       ),
@@ -1920,7 +1700,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<void> _unlike() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.unlike( widget.messageWrapper.message.receptor,
+    await geoMessageService.unlike(widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id, widget.context.principal.person);
   }
 
@@ -2202,13 +1982,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    widget.context.forward(
-                      '/geosphere/portal.person',
-                      arguments: {
-                        'receptor': widget.receptor,
-                        'person': comment.person,
-                      },
-                    );
+                    widget.context
+                        .forward('/person/view', arguments: {'official': comment.person});
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -2316,13 +2091,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      widget.context.forward(
-                                        '/geosphere/portal.person',
-                                        arguments: {
-                                          'receptor': widget.receptor,
-                                          'person': like.person,
-                                        },
-                                      );
+                                      widget.context
+                                          .forward('/person/view', arguments: {'official': like.person});
                                     },
                                   children: [
                                     TextSpan(
@@ -2454,6 +2224,9 @@ class __AbsorberActionState extends State<_AbsorberAction> {
       }
     }).listen((event) async {
       var v = await event;
+      if(v==null) {
+        return;
+      }
       if (v && !_streamController.isClosed) {
         _streamController
             .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
@@ -2485,15 +2258,14 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorbabler =
-        'geo.receptor/${widget.receptorInfo.id}';
+    var absorbabler = 'geo.receptor/${widget.receptorInfo.id}';
     var absorberResultOR =
-    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
       return false;
     }
     var bulletin =
-    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
     bool diff = (_absorberResultOR == null ||
         (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
         (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
@@ -2510,8 +2282,8 @@ class __AbsorberActionState extends State<_AbsorberAction> {
         width: 0,
       );
     }
-    if(widget.receptorInfo.creator!=widget.context.principal.person){
-      if (_absorberResultOR == null){
+    if (widget.receptorInfo.creator != widget.context.principal.person) {
+      if (_absorberResultOR == null) {
         return SizedBox(
           height: 0,
           width: 0,

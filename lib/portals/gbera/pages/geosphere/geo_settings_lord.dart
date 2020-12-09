@@ -301,33 +301,33 @@ class _GeoSettingsLordState extends State<GeoSettingsLord> {
                             );
                           },
                         ),
-                        _moveMode != GeoCategoryMoveableMode.moveableSelf
-                            ? Container(
-                                width: 0,
-                                height: 0,
-                              )
-                            : Divider(
-                                height: 1,
-                                indent: 35,
-                              ),
-                        _moveMode != GeoCategoryMoveableMode.moveableSelf
-                            ? Container(
-                                width: 0,
-                                height: 0,
-                              )
-                            : CardItem(
-                                title: '网流消息接收网关',
-                                tipsText: '能接收网流消息到感知器',
-                                leading: Icon(
-                                  Icons.security,
-                                  color: Colors.grey,
-                                  size: 23,
-                                ),
-                                onItemTap: () {
-                                  widget.context.forward(
-                                      '/geosphere/receptor/settings/links/netflow_gateway');
-                                },
-                              ),
+                        // _moveMode != GeoCategoryMoveableMode.moveableSelf
+                        //     ? Container(
+                        //         width: 0,
+                        //         height: 0,
+                        //       )
+                        //     : Divider(
+                        //         height: 1,
+                        //         indent: 35,
+                        //       ),
+                        // _moveMode != GeoCategoryMoveableMode.moveableSelf
+                        //     ? Container(
+                        //         width: 0,
+                        //         height: 0,
+                        //       )
+                        //     : CardItem(
+                        //         title: '网流消息接收网关',
+                        //         tipsText: '能接收网流消息到感知器',
+                        //         leading: Icon(
+                        //           Icons.security,
+                        //           color: Colors.grey,
+                        //           size: 23,
+                        //         ),
+                        //         onItemTap: () {
+                        //           widget.context.forward(
+                        //               '/geosphere/receptor/settings/links/netflow_gateway');
+                        //         },
+                        //       ),
                       ],
                     ),
                   ),

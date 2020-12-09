@@ -924,7 +924,6 @@ class ChasechainRecommenderRemote
     category = category.substring(0, category.lastIndexOf('.'));
     category = category.substring(category.lastIndexOf('.') + 1);
     var medias = await geoReceptorRemote.listExtraMedia(
-      category,
       message.id,
     );
     var items = <RecommenderMediaOR>[];

@@ -48,6 +48,12 @@ class _PoolPageState extends State<PersonViewPage> {
   }
 
   Future<void> _load() async {
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    var official = widget.context.parameters['official'];
+    if(_person==null&&!StringUtil.isEmpty(official)) {
+      _person=await personService.fetchPerson(official);
+    }
     _isAdded = await _isAddedPerson();
   }
 
@@ -194,31 +200,38 @@ class _PoolPageState extends State<PersonViewPage> {
           ),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.only(
-              left: 15,
-              right: 15,
-              top: 10,
-            ),
-            child: Column(
-              children: <Widget>[
-                _renderProviderInfoPanel(),
-                SizedBox(
-                  height: 40,
-                ),
+      body: _renderBody(),
+    );
+  }
+  Widget _renderBody(){
+    if(_person==null) {
+      return SizedBox(width: 0,height: 0,);
+    }
+    return Column(
+      children: <Widget>[
+        Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(
+            left: 15,
+            right: 15,
+            top: 10,
+          ),
+          child: Column(
+            children: <Widget>[
+              _renderProviderInfoPanel(),
+              SizedBox(
+                height: 40,
+              ),
 //              CardItem(
 //                title: '权限',
 //                tipsText: '',
 //              ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
+              Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
 //                        Icon(
 //                          Icons.add,
 //                          size: 12,
@@ -227,72 +240,70 @@ class _PoolPageState extends State<PersonViewPage> {
 //                        SizedBox(
 //                          width: 2,
 //                        ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _isSaving ||
-                                _person.official ==
-                                    widget.context.principal.person
-                            ? null
-                            : () {
-                                if (_isAdded) {
-                                  _removePerson();
-                                } else {
-                                  _addPerson();
-                                }
-                              },
-                        child: Text(
-                          '${_getActionLabel()}',
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.underline,
-                          ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _isSaving ||
+                          _person.official ==
+                              widget.context.principal.person
+                          ? null
+                          : () {
+                        if (_isAdded) {
+                          _removePerson();
+                        } else {
+                          _addPerson();
+                        }
+                      },
+                      child: Text(
+                        '${_getActionLabel()}',
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-              ],
-            ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+            ],
           ),
-          SizedBox(
-            height: 10,
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(
+            top: 15,
+            bottom: 15,
           ),
-          Container(
-            color: Colors.white,
+          alignment: Alignment.center,
+          child: Column(
+            children: _renderActionPanel(),
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Expanded(
+          child: Container(
             padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
+              top: 10,
             ),
-            alignment: Alignment.center,
-            child: Column(
-              children: _renderActionPanel(),
-            ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.only(
-                top: 10,
-              ),
-              color: Colors.white,
-              constraints: BoxConstraints.expand(),
-              child: _ContentBoxListPanel(
-                context: widget.context,
-              ),
+            color: Colors.white,
+            constraints: BoxConstraints.expand(),
+            child: _ContentBoxListPanel(
+              context: widget.context,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-
   Widget _renderProviderInfoPanel() {
     return Container(
       child: Row(
@@ -478,6 +489,12 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
       return;
     }
     _isLoading = true;
+    var official = widget.context.parameters['official'];
+    if(_person==null&&!StringUtil.isEmpty(official)){
+      IPersonService personService =
+      widget.context.site.getService('/gbera/persons');
+      _person=await personService.fetchPerson(official);
+    }
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     List<ContentBoxOR> boxList = await recommender.pageContentBoxByAssigner(

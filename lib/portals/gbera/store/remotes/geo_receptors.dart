@@ -48,6 +48,54 @@ class GeosphereMediaOR {
   }
 }
 
+class GeosphereLikeOR {
+  String person;
+  int ctime;
+  String receptor;
+  String docid;
+
+  GeosphereLikeOR({
+    this.person,
+    this.ctime,
+    this.receptor,
+    this.docid,
+  });
+
+  GeosphereLikeOR.parse(obj) {
+    this.person = obj['person'];
+    this.ctime = obj['ctime'];
+    this.receptor = obj['receptor'];
+    this.docid = obj['docid'];
+  }
+}
+
+class GeosphereCommentOR {
+  String id;
+  String person;
+  int ctime;
+  String receptor;
+  String docid;
+  String content;
+
+  GeosphereCommentOR({
+    this.id,
+    this.person,
+    this.ctime,
+    this.receptor,
+    this.docid,
+    this.content,
+  });
+
+  GeosphereCommentOR.parse(obj) {
+    this.id=obj['id'];
+    this.person=obj['person'];
+    this.ctime=obj['ctime'];
+    this.receptor=obj['receptor'];
+    this.docid=obj['docid'];
+    this.content=obj['content'];
+  }
+}
+
 mixin IGeoReceptorRemote {
   Future<void> addReceptor(GeoReceptor receptor);
 
@@ -109,7 +157,13 @@ mixin IGeoReceptorRemote {
 
   Future<void> updateLocation(String receptor, String json) {}
 
-  Future<List<GeosphereMediaOR>> listExtraMedia(String type, String id) {}
+  Future<List<GeosphereMediaOR>> listExtraMedia(String docid) {}
+
+  Future<List<GeosphereLikeOR>> pageLike(
+      String docid, int limit, int offset) {}
+
+  Future<List<GeosphereCommentOR>> pageComment(
+      docid, int limit, int offset) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -760,13 +814,11 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<GeosphereMediaOR>> listExtraMedia(
-      String category, String docid) async {
+  Future<List<GeosphereMediaOR>> listExtraMedia(String docid) async {
     var list = await remotePorts.portGET(
       _receptorPortsUrl,
       'listExtraMedia',
       parameters: {
-        'category': category,
         'docid': docid,
       },
     );
@@ -782,6 +834,48 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           receptor: obj['receptor'],
           docid: obj['docid'],
         ),
+      );
+    }
+    return items;
+  }
+
+  @override
+  Future<List<GeosphereCommentOR>> pageComment(
+      docid, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'pageComment',
+      parameters: {
+        'docid': docid,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var items = <GeosphereCommentOR>[];
+    for (var obj in list) {
+      items.add(
+        GeosphereCommentOR.parse(obj),
+      );
+    }
+    return items;
+  }
+
+  @override
+  Future<List<GeosphereLikeOR>> pageLike(
+       String docid, int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'pageLike',
+      parameters: {
+        'docid': docid,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    var items = <GeosphereLikeOR>[];
+    for (var obj in list) {
+      items.add(
+        GeosphereLikeOR.parse(obj),
       );
     }
     return items;
