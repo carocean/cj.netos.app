@@ -150,6 +150,9 @@ class ChannelLikeService implements IChannelLikeService, IServiceBuilder {
       return null;
     }
     ChannelMessage message = await messageService.getChannelMessage(like.msgid);
+    if(message==null) {
+      return null;
+    }
     await channelRemote.like(message.id, message.onChannel, message.creator);
   }
 }

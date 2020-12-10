@@ -161,8 +161,18 @@ import 'package:netos_app/portals/gbera/pages/site/personal_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/site_channelsite.dart';
 import 'package:netos_app/portals/gbera/pages/system/about.dart';
 import 'package:netos_app/portals/gbera/pages/system/contract.dart';
+import 'package:netos_app/portals/gbera/pages/system/copy_rights.dart';
+import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
+import 'package:netos_app/portals/gbera/pages/system/help_feedback.dart';
 import 'package:netos_app/portals/gbera/pages/system/privacy.dart';
 import 'package:netos_app/portals/gbera/pages/system/themes.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_form.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_list.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_mines.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_view.dart';
 import 'package:netos_app/portals/gbera/pages/users/account_login.dart';
 import 'package:netos_app/portals/gbera/pages/users/accounts.dart';
 import 'package:netos_app/portals/gbera/pages/users/add_account.dart';
@@ -2117,6 +2127,96 @@ class GberaPortal {
           icon: Icons.info_outline,
           url: '/system/about',
           buildPage: (PageContext pageContext) => About(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '帮助与反馈',
+          subtitle: '',
+          icon: null,
+          url: '/system/help_feedback',
+          buildPage: (PageContext pageContext) => HelpFeedback(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '问答',
+          subtitle: '',
+          icon: null,
+          url: '/system/fq/view',
+          buildPage: (PageContext pageContext) => FQView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '提交工单',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/form',
+          buildPage: (PageContext pageContext) => WOForm(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '我的工单',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/mines',
+          buildPage: (PageContext pageContext) => WOMines(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '问题类型下的工单',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/list',
+          buildPage: (PageContext pageContext) => WOList(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '处理进度',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/flow',
+          buildPage: (PageContext pageContext) => WOFlow(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '问题详情',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/view',
+          buildPage: (PageContext pageContext) => WOView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '举报',
+          subtitle: '',
+          icon: null,
+          url: '/system/tip_off',
+          buildPage: (PageContext pageContext) => TipOff(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '举报项',
+          subtitle: '',
+          icon: null,
+          url: '/system/tip_off/item',
+          buildPage: (PageContext pageContext) => TipOffItem(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '版本保护指引',
+          subtitle: '',
+          icon: null,
+          url: '/system/copyrights',
+          buildPage: (PageContext pageContext) => CopyRights(
             context: pageContext,
           ),
         ),

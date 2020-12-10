@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:common_utils/common_utils.dart';
+import 'package:custom_pop_up_menu/custom_pop_up_menu.dart';
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -12,7 +13,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/util.dart';
-import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -815,6 +816,27 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     messageService.removeMessage(widget.message.id);
   }
 
+  Future<void> _tipoffItem() async {
+    showDialog(
+        context: context,
+        child: widget.context.part('/system/tip_off/item', context, arguments: {
+          'item': TipOffItemArgs(
+            id: widget.message.id,
+            type: 'netflow',
+            desc: widget.message.text,
+          )
+        })).then((value) {
+      if (value == null) {
+        return;
+      }
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('举报事项已提交'),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -834,128 +856,227 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
         }
         var rights = snapshot.data;
 
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 4,
-            bottom: 4,
-          ),
-          child: WPopupMenu(
-            child: Icon(
-              IconData(
-                0xe79d,
-                fontFamily: 'ellipse',
-              ),
-              size: 22,
+        var actions = <Widget>[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              if (rights['isLiked']) {
+                _unlike().whenComplete(() {
+                  setState(() {});
+                  if (widget.onUnliked != null) {
+                    widget.onUnliked();
+                  }
+                });
+              } else {
+                _like().whenComplete(() {
+                  setState(() {});
+                  if (widget.onliked != null) {
+                    widget.onliked();
+                  }
+                });
+              }
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 2,
+                    left: 2,
+                  ),
+                  child: Icon(
+                    FontAwesomeIcons.thumbsUp,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  rights['isLiked'] ? '取消点赞' : '点赞',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.thumbsUp,
-                      color: Colors.white,
-                      size: 12,
-                    ),
+          ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              if (widget.onComment != null) {
+                widget.onComment();
+              }
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 2,
+                    top: 2,
                   ),
-                  Text(
-                    rights['isLiked'] ? '取消点赞' : '点赞',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 12,
                   ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 2,
-                      top: 2,
-                    ),
-                    child: Icon(
-                      Icons.comment,
-                      color: Colors.white,
-                      size: 12,
-                    ),
+                ),
+                Text(
+                  '评论',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
                   ),
-                  Text(
-                    '评论',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              rights['canDelete']
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 2,
-                            top: 1,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                        Text(
-                          '删除',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      width: 0,
-                      height: 0,
-                    ),
-            ],
-            pressType: PressType.singleClick,
-            onValueChanged: (index) {
-              switch (index) {
-                case 0: //点赞或取消
-                  if (rights['isLiked']) {
-                    _unlike().whenComplete(() {
-                      setState(() {});
-                      if (widget.onUnliked != null) {
-                        widget.onUnliked();
-                      }
-                    });
-                  } else {
-                    _like().whenComplete(() {
-                      setState(() {});
-                      if (widget.onliked != null) {
-                        widget.onliked();
-                      }
-                    });
-                  }
-                  break;
-                case 1: //评论
-                  if (widget.onComment != null) {
-                    widget.onComment();
-                  }
-                  break;
-                case 2: //删除
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+        ];
+        if (rights['canDelete']) {
+          actions.add(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (mounted) {
+                  setState(() {});
+                }
+                if (rights['canDelete']) {
+                  //如果有删除按钮
                   _deleteMessage().whenComplete(() {
                     if (widget.onDeleted != null) {
                       widget.onDeleted();
                     }
                   });
-                  break;
-              }
+                } else {
+                  //没有删除按钮即为举报
+                  _tipoffItem();
+                }
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 2,
+                      top: 1,
+                    ),
+                    child: Icon(
+                      Icons.remove,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                  ),
+                  Text(
+                    '删除',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+          actions.add(
+            SizedBox(
+              width: 10,
+              height: 14,
+              child: VerticalDivider(
+                color: Colors.white,
+                width: 1,
+              ),
+            ),
+          );
+        }
+        actions.add(GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (mounted) {
+              setState(() {});
+            }
+            _tipoffItem();
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(
+                  right: 2,
+                  top: 1,
+                ),
+                child: Icon(
+                  Icons.privacy_tip_outlined,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '举报',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ));
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 6,
+            bottom: 4,
+          ),
+          child: CustomPopupMenu(
+            child: Icon(
+              Icons.more_horiz,
+              size: 18,
+            ),
+            menuBuilder: () {
+              return Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4C4C4C),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Wrap(
+                  direction: Axis.horizontal,
+                  spacing: 10,
+                  runSpacing: 15,
+                  children: actions,
+                ),
+              );
             },
+            barrierColor: Colors.transparent,
+            pressType: PressType.singleClick,
           ),
         );
       },

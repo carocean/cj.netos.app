@@ -393,11 +393,7 @@ class __ActivityCardState extends State<_ActivityCard> {
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
                                 widget.activityInfo?.channel != null
-                                    ? Image.network(
-                                        '${widget.activityInfo.channel.leading}?accessToken=${widget.context.principal.accessToken}',
-                                        width: 14,
-                                        height: 14,
-                                      )
+                                    ? SizedBox(width: 14,height: 14,child: getAvatarWidget(widget.activityInfo.channel.leading, widget.context,'lib/portals/gbera/images/netflow.png'),)
                                     : Container(
                                         width: 0,
                                         height: 0,

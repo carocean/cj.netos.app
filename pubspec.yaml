@@ -108,6 +108,7 @@ dependencies:
   flutter_contact: ^0.5.1
   flutter_sms: ^2.1.1
   url_launcher: ^5.7.8
+  custom_pop_up_menu: ^1.1.0
 #  buddy_push:
 #    path: buddy_push
 dev_dependencies:
@@ -169,8 +170,10 @@ flutter:
     - lib/portals/gbera/images/avatar.png
     - lib/portals/gbera/images/default_avatar.png
     - lib/portals/gbera/images/default_image.png
+    - lib/portals/gbera/images/feedback.jpg
     - lib/portals/gbera/data/user_constract
     - lib/portals/gbera/data/privacy_policy
+    - lib/portals/gbera/data/copyrights
     - lib/portals/gbera/data/portlets.json
     - lib/portals/gbera/data/portlet_defaults.json
     - lib/portals/gbera/wallpapers/wallpapper.yaml

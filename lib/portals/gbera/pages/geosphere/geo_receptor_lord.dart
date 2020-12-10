@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:common_utils/common_utils.dart';
+import 'package:custom_pop_up_menu/custom_pop_up_menu.dart';
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +18,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/util.dart';
-import 'package:netos_app/common/wpopup_menu/w_popup_menu.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/receptor_handler.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -224,7 +225,8 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
         widget.context.site.getService('/geosphere/receptor/messages/medias');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    List<GeosphereMediaOL> medias = await mediaService.listMedia(message.receptor,message.id);
+    List<GeosphereMediaOL> medias =
+        await mediaService.listMedia(message.receptor, message.id);
     Person creator =
         await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
@@ -256,7 +258,8 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   Future<void> _loadMessageAndPutTop(msgid) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    GeosphereMessageOL messageOL = await geoMessageService.getMessage( _receptorInfo.id,msgid);
+    GeosphereMessageOL messageOL =
+        await geoMessageService.getMessage(_receptorInfo.id, msgid);
     List<_GeosphereMessageWrapper> wrappers = [];
     await _fillMessageWrapper(messageOL, wrappers);
     _messageList.insertAll(0, wrappers);
@@ -265,7 +268,8 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(wrapper.message.receptor,wrapper.message.id);
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -328,7 +332,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
               _offset = 0;
               _messageList.clear();
               if (filter != null) {
-                var category=filter[1];
+                var category = filter[1];
                 _filterCategory = category?.id;
               } else {
                 _filterCategory = null;
@@ -968,9 +972,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                       //     setState(() {});
                       //   });
                       // } else {
-                        _filterMessages(filter).then((v) {
-                          setState(() {});
-                        });
+                      _filterMessages(filter).then((v) {
+                        setState(() {});
+                      });
                       // }
                     });
                   },
@@ -1670,7 +1674,8 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
         widget.context.site.getService('/geosphere/receptor/messages');
     return await geoMessageService.isLiked(
         widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id, widget.context.principal.person);
+        widget.messageWrapper.message.id,
+        widget.context.principal.person);
   }
 
   Future<void> _like() async {
@@ -1692,11 +1697,30 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<void> _unlike() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.unlike(
-        widget.messageWrapper.message.receptor,
+    await geoMessageService.unlike(widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id, widget.context.principal.person);
   }
 
+  Future<void> _tipoffItem() async {
+    showDialog(
+        context: context,
+        child: widget.context.part('/system/tip_off/item', context, arguments: {
+          'item': TipOffItemArgs(
+            id: widget.messageWrapper.message.id,
+            type: 'geosphere',
+            desc: widget.messageWrapper.message.text,
+          )
+        })).then((value) {
+      if (value == null) {
+        return;
+      }
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('举报事项已提交'),
+        ),
+      );
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -1717,143 +1741,263 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
         var rights = snapshot.data;
 
         var actions = <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
-                child: Icon(
-                  FontAwesomeIcons.thumbsUp,
-                  color: Colors.white,
-                  size: 12,
-                ),
-              ),
-              Text(
-                rights['isLiked'] ? '取消点赞' : '点赞',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
-                child: Icon(
-                  Icons.comment,
-                  color: Colors.white,
-                  size: 12,
-                ),
-              ),
-              Text(
-                '评论',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
-                child: Icon(
-                  Icons.comment,
-                  color: Colors.white,
-                  size: 12,
-                ),
-              ),
-              Text(
-                '分享',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ];
-        if (rights['canDelete']) {
-          actions.add(
-            Row(
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (rights['isLiked']) {
+                _unlike().whenComplete(() {
+                  if (mounted) {
+                    setState(() {});
+                  }
+                  if (widget.onUnliked != null) {
+                    widget.onUnliked();
+                  }
+                });
+              } else {
+                _like().whenComplete(() {
+                  if (mounted) {
+                    setState(() {});
+                  }
+                  if (widget.onliked != null) {
+                    widget.onliked();
+                  }
+                });
+              }
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Padding(
-                  padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                  padding: EdgeInsets.only(
+                    right: 2,
+                    left: 2,
+                  ),
                   child: Icon(
-                    Icons.remove,
+                    FontAwesomeIcons.thumbsUp,
                     color: Colors.white,
                     size: 12,
                   ),
                 ),
                 Text(
-                  '删除',
+                  rights['isLiked'] ? '取消点赞' : '点赞',
                   style: TextStyle(
                     color: Colors.white,
                   ),
                 ),
               ],
             ),
+          ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              if (widget.onComment != null) {
+                widget.onComment();
+              }
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: 2,
+                    left: 2,
+                  ),
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '评论',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              Share.share(
+                widget.messageWrapper.message.text ?? '',
+                subject: widget.titleLabel,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '分享',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ];
+        actions.add(
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+        );
+        if (rights['canDelete']) {
+          actions.add(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (mounted) {
+                  setState(() {});
+                }
+                if (widget.onDeleted != null) {
+                  widget.onDeleted();
+                }
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 2,
+                      left: 2,
+                    ),
+                    child: Icon(
+                      Icons.remove,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                  ),
+                  Text(
+                    '删除',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+          actions.add(
+            SizedBox(
+              width: 10,
+              height: 14,
+              child: VerticalDivider(
+                color: Colors.white,
+                width: 1,
+              ),
+            ),
           );
         }
+
+        actions.add(GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (mounted) {
+              setState(() {});
+            }
+            _tipoffItem();
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(
+                  right: 2,
+                  left: 2,
+                ),
+                child: Icon(
+                  Icons.privacy_tip_outlined,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+              Text(
+                '举报',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ));
         return Padding(
           padding: EdgeInsets.only(
             top: 4,
             bottom: 4,
           ),
-          child: WPopupMenu(
-            child: Icon(
-              IconData(
-                0xe79d,
-                fontFamily: 'ellipse',
+          child: SizedBox(
+            height: 18,
+            child: CustomPopupMenu(
+              child: Icon(
+                Icons.more_horiz,
+                size: 18,
               ),
-              size: 22,
+              menuBuilder: () {
+                return Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4C4C4C),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 10,
+                    runSpacing: 15,
+                    children: actions,
+                  ),
+                );
+              },
+              barrierColor: Colors.transparent,
+              pressType: PressType.singleClick,
             ),
-            actions: actions,
-            pressType: PressType.singleClick,
-            onValueChanged: (index) {
-              switch (index) {
-                case 0: //点赞或取消
-                  if (rights['isLiked']) {
-                    _unlike().whenComplete(() {
-                      setState(() {});
-                      if (widget.onUnliked != null) {
-                        widget.onUnliked();
-                      }
-                    });
-                  } else {
-                    _like().whenComplete(() {
-                      setState(() {});
-                      if (widget.onliked != null) {
-                        widget.onliked();
-                      }
-                    });
-                  }
-                  break;
-                case 1: //评论
-                  if (widget.onComment != null) {
-                    widget.onComment();
-                  }
-                  break;
-                case 2: //分享
-                  Share.share(
-                    widget.messageWrapper.message.text ?? '',
-                    subject: widget.titleLabel,
-                  );
-                  break;
-                case 3: //删除
-                  if (widget.onDeleted != null) {
-                    widget.onDeleted();
-                  }
-                  break;
-              }
-            },
           ),
         );
       },
@@ -1917,10 +2061,14 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
         widget.context.site.getService('/geosphere/receptor/messages');
     List<GeosphereLikePersonOL> likes = await geoMessageService.pageLikePersons(
         widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id, 10, 0);
+        widget.messageWrapper.message.id,
+        10,
+        0);
     List<GeosphereCommentOL> comments = await geoMessageService.pageComments(
         widget.messageWrapper.message.receptor,
-        widget.messageWrapper.message.id, 20, 0);
+        widget.messageWrapper.message.id,
+        20,
+        0);
     return <String, List<dynamic>>{"likePersons": likes, "comments": comments};
   }
 
@@ -1997,8 +2145,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                 text: '${comment.nickName ?? ''}:',
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
-                    widget.context
-                        .forward('/person/view', arguments: {'official': comment.person});
+                    widget.context.forward('/person/view',
+                        arguments: {'official': comment.person});
                   },
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -2106,8 +2254,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      widget.context
-                                          .forward('/person/view', arguments: {'official': like.person});
+                                      widget.context.forward('/person/view',
+                                          arguments: {'official': like.person});
                                     },
                                   children: [
                                     TextSpan(
@@ -2270,8 +2418,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorbabler =
-        'geo.receptor/${widget.receptorInfo.id}';
+    var absorbabler = 'geo.receptor/${widget.receptorInfo.id}';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
