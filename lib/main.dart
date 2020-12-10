@@ -103,7 +103,7 @@ void main() => platformRun(
             '@.prop.ports.wallet.bill.absorb':
                 'http://47.105.165.186/wallet/bill/absorb.ports',
             '@.prop.ports.wallet.bill.trial':
-            'http://47.105.165.186/wallet/bill/trial.ports',
+                'http://47.105.165.186/wallet/bill/trial.ports',
             '@.prop.ports.wybank': 'http://47.105.165.186/wybank/bank.ports',
             '@.prop.ports.wybank.balance':
                 'http://47.105.165.186/wybank/balance.ports',
@@ -496,7 +496,9 @@ class _StatusBarState extends State<StatusBar> {
   void initState() {
     super.initState();
     _deviceStatus.refresh = () {
-      setState(() {});
+     if(mounted) {
+       setState(() {});
+     }
     };
   }
 
@@ -543,20 +545,31 @@ class _StatusBarState extends State<StatusBar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                '${_deviceStatus.unreadCount}',
-                style: TextStyle(
-                  fontSize: 7,
-                  color: Colors.black54,
-                  decoration: TextDecoration.none,
-                ),
-              ),
-              Text(
                 stateText,
                 style: TextStyle(
                   fontSize: 6,
                   color: Colors.black54,
                   decoration: TextDecoration.none,
                 ),
+              ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.mark_chat_unread_outlined,
+                    size: 7,
+                  ),
+                  SizedBox(
+                    width: 1,
+                  ),
+                  Text(
+                    '${_deviceStatus.unreadCount}',
+                    style: TextStyle(
+                      fontSize: 7,
+                      color: Colors.black54,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

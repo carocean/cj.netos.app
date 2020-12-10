@@ -828,6 +828,9 @@ class ChasechainRecommenderRemote
       return await _getDocumentFromLocal(item);
     }
     var doc = await _getDocumentFromRemote(item);
+    if(doc==null) {
+      return null;
+    }
     await _cacheDocument(doc);
     return doc;
   }

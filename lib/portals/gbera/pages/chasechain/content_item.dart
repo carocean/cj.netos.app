@@ -79,6 +79,9 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _doc = await recommender.getDocument(widget.item);
+    if(_doc==null) {
+      return;
+    }
     _future_getPool = _getPool();
     _future_getPerson = _getPerson(widget.context.site, _doc.message.creator);
     _future_getContentBox = _getContentBox();
