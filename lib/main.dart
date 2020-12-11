@@ -140,6 +140,14 @@ void main() => platformRun(
                 'http://47.105.165.186/chasechain.recommender/recommender.ports',
             '@.prop.ports.chasechain.trafficPool':
                 'http://47.105.165.186/chasechain.recommender/trafficPool.ports',
+            '@.prop.ports.feedback.helper':
+                'http://47.105.165.186/feedback/helper.ports',
+            '@.prop.ports.feedback.helper':
+                'http://47.105.165.186/feedback/helper.ports',
+            '@.prop.ports.feedback.tipoff':
+                'http://47.105.165.186/feedback/tipoff.ports',
+            '@.prop.ports.feedback.woflow':
+                'http://47.105.165.186/feedback/wo/flow.ports',
           },
           buildServices: (site) async {
             final callback = Callback(
@@ -496,9 +504,9 @@ class _StatusBarState extends State<StatusBar> {
   void initState() {
     super.initState();
     _deviceStatus.refresh = () {
-     if(mounted) {
-       setState(() {});
-     }
+      if (mounted) {
+        setState(() {});
+      }
     };
   }
 
