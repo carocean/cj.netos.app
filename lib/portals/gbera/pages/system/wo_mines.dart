@@ -1,7 +1,10 @@
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
+import 'package:intl/intl.dart' as intl;
 
 class WOMines extends StatefulWidget {
   PageContext context;
@@ -14,10 +17,13 @@ class WOMines extends StatefulWidget {
 
 class _WOMinesState extends State<WOMines> {
   EasyRefreshController _controller;
+  List<WOFormOR> _forms = [];
+  int _limit = 30, _offset = 0;
 
   @override
   void initState() {
     _controller = EasyRefreshController();
+    _load();
     super.initState();
   }
 
@@ -27,7 +33,19 @@ class _WOMinesState extends State<WOMines> {
     super.dispose();
   }
 
-  Future<void> _load() async {}
+  Future<void> _load() async {
+    IWOFlowRemote flowRemote =
+        await widget.context.site.getService('/feedback/woflow');
+    var forms = await flowRemote.pageMyForm(_limit, _offset);
+    if (forms.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      setState(() {});
+      return;
+    }
+    _offset += forms.length;
+    _forms.addAll(forms);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,53 +129,69 @@ class _WOMinesState extends State<WOMines> {
 
   List<Widget> _renderItems() {
     var items = <Widget>[];
-    for (var i = 0; i < 10; i++) {
+    if (_forms.isEmpty) {
       items.add(
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: (){
-            widget.context.forward('/system/wo/flow');
-          },
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 15,
-              right: 15,
-              top: 10,
-              bottom: 10,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text('系统问题'),
-                ),
-                Expanded(
-                  child: Text('处理中'),
-                ),
-                Expanded(
-                  child: Text(
-                    '2020/12/10 17:47',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                ),
-              ],
+        SizedBox(
+          height: 20,
+        ),
+      );
+      items.add(
+        Center(
+          child: Text(
+            '你还没有提交过问题',
+            style: TextStyle(
+              color: Colors.grey,
             ),
           ),
-        )
+        ),
       );
+      return items;
+    }
+    for (var form in _forms) {
+      items.add(GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          widget.context.forward('/system/wo/flow',arguments: {'form':form});
+        },
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 15,
+            right: 15,
+            top: 10,
+            bottom: 10,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text('${form.typeTitle ?? ''}'),
+              ),
+              Expanded(
+                child: Text('${_getState(form)}'),
+              ),
+              Expanded(
+                child: Text(
+                  '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(form.ctime))}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ));
       items.add(
         Divider(
           height: 1,
@@ -166,5 +200,18 @@ class _WOMinesState extends State<WOMines> {
       );
     }
     return items;
+  }
+
+  _getState(WOFormOR form) {
+    switch (form.state) {
+      case 0:
+        return '已提交';
+      case 1:
+        return '处理中';
+      case -1:
+        return '已关闭';
+      default:
+        return '';
+    }
   }
 }

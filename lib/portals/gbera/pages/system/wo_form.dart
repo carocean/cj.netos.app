@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/medias_widget.dart';
+import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
+import 'package:uuid/uuid.dart';
 
 class WOForm extends StatefulWidget {
   PageContext context;
@@ -11,6 +18,56 @@ class WOForm extends StatefulWidget {
 }
 
 class _WOFormState extends State<WOForm> {
+  List<WOTypeOR> _types = [];
+  String _selectWoTypeId;
+  TextEditingController _phoneController;
+  TextEditingController _contentController;
+  String _phoneErrorText;
+  String _attachRemote;
+  String _attachLocal;
+  double _progress = 0.00;
+
+  @override
+  void initState() {
+    _phoneController = TextEditingController();
+    _contentController = TextEditingController();
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _phoneController?.dispose();
+    _contentController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    IWOFlowRemote flowRemote =
+        await widget.context.site.getService('/feedback/woflow');
+    var types = await flowRemote.listWOTypes();
+    for (var type in types) {
+      _types.add(type);
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  bool _checkButton() {
+    return !StringUtil.isEmpty(_selectWoTypeId) &&
+        !StringUtil.isEmpty(_phoneController.text) &&
+        !StringUtil.isEmpty(_contentController.text);
+  }
+
+  Future<void> _createWOForm() async {
+    IWOFlowRemote flowRemote =
+        await widget.context.site.getService('/feedback/woflow');
+    await flowRemote.createWOForm(_selectWoTypeId, _phoneController.text,
+        _contentController.text, _attachRemote);
+    widget.context.backward();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,19 +127,44 @@ class _WOFormState extends State<WOForm> {
                               right: 10,
                             ),
                             child: TextField(
+                              controller: _phoneController,
                               decoration: InputDecoration(
                                 hintText: '请输入电话',
                                 hintStyle: TextStyle(
                                   fontSize: 14,
                                 ),
+                                errorText: _phoneErrorText,
                               ),
                               style: TextStyle(
                                 fontSize: 14,
                               ),
-                              onChanged: (value) {},
+                              onChanged: (value) {
+                                if (StringUtil.isEmpty(value)) {
+                                  setState(() {
+                                    _phoneErrorText = '手机号为空';
+                                  });
+                                  return;
+                                }
+                                if (value.length != 11) {
+                                  setState(() {
+                                    _phoneErrorText = '号码长度不对';
+                                  });
+                                  return;
+                                }
+                                try {
+                                  int.parse(value);
+                                } catch (e) {
+                                  setState(() {
+                                    _phoneErrorText = '不是数字';
+                                  });
+                                  return;
+                                }
+                                setState(() {
+                                  _phoneErrorText = null;
+                                });
+                              },
                             ),
                           ),
-
                         ],
                       ),
                     ),
@@ -134,6 +216,7 @@ class _WOFormState extends State<WOForm> {
                               ),
                             ),
                             child: TextField(
+                              controller: _contentController,
                               decoration: InputDecoration(
                                 hintText: '留下你的意见和建议，我们会及时处理',
                                 hintStyle: TextStyle(
@@ -145,7 +228,9 @@ class _WOFormState extends State<WOForm> {
                               style: TextStyle(
                                 fontSize: 14,
                               ),
-                              onChanged: (value) {},
+                              onChanged: (value) {
+                                setState(() {});
+                              },
                             ),
                           ),
                         ],
@@ -173,19 +258,77 @@ class _WOFormState extends State<WOForm> {
                             padding: EdgeInsets.only(
                               left: 10,
                               right: 10,
+                              top: 10,
                             ),
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Text('1.jpg'),
-                                ),
+                                    child: StringUtil.isEmpty(_attachLocal)
+                                        ? Text('无')
+                                        : Column(
+                                            children: [
+                                              MediaWidget(
+                                                [
+                                                  MediaSrc(
+                                                    id: Uuid().v1(),
+                                                    type: 'image',
+                                                    text: '',
+                                                    sourceType: 'image',
+                                                    src: _attachLocal,
+                                                  ),
+                                                ],
+                                                widget.context,
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              _progress > 0.00
+                                                  ? Text(
+                                                      '${_progress.toStringAsFixed(2)}%')
+                                                  : StringUtil.isEmpty(
+                                                          _attachRemote)
+                                                      ? SizedBox(
+                                                          width: 0,
+                                                          height: 0,
+                                                        )
+                                                      : Text(
+                                                          '已上传',
+                                                          style: TextStyle(
+                                                            color: Colors.grey,
+                                                          ),
+                                                        )
+                                            ],
+                                          )),
                                 SizedBox(
                                   width: 10,
                                 ),
                                 RaisedButton(
                                   color: Colors.green,
                                   textColor: Colors.white,
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    var image = await ImagePicker().getImage(
+                                      source: ImageSource.gallery,
+                                      maxHeight: Adapt.screenH(),
+                                      imageQuality: 80,
+                                    );
+                                    _attachLocal = image.path;
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
+                                    var map = await widget.context.ports.upload(
+                                        '/app/feedback/', [_attachLocal],
+                                        onSendProgress: (i, j) {
+                                      _progress = ((i * 1.0) / j) * 100.00;
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    });
+                                    _attachRemote = map[_attachLocal];
+                                    _progress = 0.00;
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
+                                  },
                                   child: Text('上传'),
                                 ),
                               ],
@@ -209,13 +352,18 @@ class _WOFormState extends State<WOForm> {
                     children: [
                       Expanded(
                         child: RaisedButton(
-                          color: Colors.green,
+                          color: !_checkButton() ? Colors.grey : Colors.green,
                           textColor: Colors.white,
+                          disabledTextColor: Colors.white70,
                           padding: EdgeInsets.only(
                             top: 10,
                             bottom: 10,
                           ),
-                          onPressed: () {},
+                          onPressed: !_checkButton()
+                              ? null
+                              : () {
+                                  _createWOForm();
+                                },
                           child: Text(
                             '提交',
                             style: TextStyle(
@@ -240,7 +388,7 @@ class _WOFormState extends State<WOForm> {
 
   Widget _renderWOTypesPanel() {
     var items = <Widget>[];
-    for (var i = 0; i < 10; i++) {
+    for (var type in _types) {
       items.add(
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -249,14 +397,33 @@ class _WOFormState extends State<WOForm> {
               width: 16,
               height: 16,
               child: Checkbox(
-                value: true,
-                onChanged: (v) {},
+                value: _selectWoTypeId == type.id,
+                activeColor: Colors.green,
+                onChanged: (v) {
+                  _selectWoTypeId = v ? type.id : null;
+                  if (mounted) {
+                    setState(() {});
+                  }
+                },
               ),
             ),
             SizedBox(
               width: 5,
             ),
-            Text('类型$i'),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (_selectWoTypeId == type.id) {
+                  _selectWoTypeId = null;
+                } else {
+                  _selectWoTypeId = type.id;
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              child: Text('${type.title}'),
+            ),
           ],
         ),
       );
