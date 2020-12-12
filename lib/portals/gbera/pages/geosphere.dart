@@ -74,6 +74,7 @@ class _GeosphereState extends State<Geosphere>
   StreamController _receptorStreamController;
   int _limit = 15, _offset = 0;
   Lock _lock;
+  bool _isSyning = false;
 
   @override
   bool get wantKeepAlive {
@@ -83,7 +84,7 @@ class _GeosphereState extends State<Geosphere>
   @override
   void initState() {
     _lock = Lock();
-    _receptorStreamController = StreamController();
+    _receptorStreamController = StreamController.broadcast();
     geoLocation.start();
 
     _refreshController = EasyRefreshController();
@@ -194,18 +195,31 @@ class _GeosphereState extends State<Geosphere>
   }
 
   Future<void> _sync_task(PageContext context, Frame frame) async {
+    if (mounted) {
+      setState(() {
+        _isSyning = true;
+      });
+    }
     IGeoReceptorRemote receptorRemote =
         context.site.getService('/remote/geo/receptors');
     bool issync = await receptorRemote.syncTaskRemote(frame);
     _checkMobileReceptor();
     if (!issync) {
+      if (mounted) {
+        setState(() {
+          _isSyning = false;
+        });
+      }
       return;
     }
     _offset = 0;
     _receptorStreamController.add('refresh');
-    await _loadReceptors();
+    _isSyning = false;
     if (mounted) {
       setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        await _loadReceptors();
+      });
     }
   }
 
@@ -874,38 +888,65 @@ class _GeosphereState extends State<Geosphere>
                 ),
               ),
               SliverToBoxAdapter(
-                child: _GeoReceptors(
-                  context: widget.context,
-                  stream: _receptorStreamController.stream,
-                  onTapMarchant: (value) {
-                    widget.context.forward('/site/personal');
-                  },
-                  onTapFilter: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context
-                              .part('/geosphere/filter', context);
-                        }).then((v) {
-                      print('----$v');
-                    });
-                  },
-                  onTapGeoCircle: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return widget.context
-                              .part('/geosphere/settings.lord', context);
-                        }).then((v) {
-                      print('----$v');
-                    });
-                  },
-                ),
+                child: _renderReceptors(),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _renderReceptors() {
+    if (_isSyning) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          SizedBox(
+            height: 40,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Text(
+                    '正在从云端你的感知器，请稍候...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    return _GeoReceptors(
+      context: widget.context,
+      stream: _receptorStreamController.stream,
+      onTapMarchant: (value) {
+        widget.context.forward('/site/personal');
+      },
+      onTapFilter: () {
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return widget.context.part('/geosphere/filter', context);
+            }).then((v) {
+          print('----$v');
+        });
+      },
+      onTapGeoCircle: () {
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return widget.context.part('/geosphere/settings.lord', context);
+            }).then((v) {
+          print('----$v');
+        });
+      },
     );
   }
 }
@@ -1376,24 +1417,27 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
     _streamSubscription = widget.stream.listen((receptors) async {
       if (receptors is String && receptors == 'refresh') {
         _receptors.clear();
+        if (mounted) {
+          setState(() {});
+        }
         return;
       }
       if (receptors is Map) {
         if (receptors['action'] == 'removeReceptor') {
           var the = receptors['args'] as GeoReceptor;
           bool isDel = false;
-          for(var i=0;i<_receptors.length;i++){
+          for (var i = 0; i < _receptors.length; i++) {
             var receptor = _receptors[i];
-            if(receptor==null) {
+            if (receptor == null) {
               continue;
             }
-            if(receptor.id == the.id) {
-              isDel=true;
+            if (receptor.id == the.id) {
+              isDel = true;
               _receptors.removeAt(i);
               break;
             }
           }
-          if (isDel&&mounted) {
+          if (isDel && mounted) {
             setState(() {});
           }
         }
@@ -1548,129 +1592,111 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
             ],
           ),
           ListView(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.all(0),
-                  physics: NeverScrollableScrollPhysics(),
-                  children: _receptors.map((receptor) {
-                    var latlng = receptor.getLocationLatLng();
-                    double offset = 0.0;
-                    if (_currentLatLng != null) {
-                      offset = getDistance(start: _currentLatLng, end: latlng);
-                    }
-                    var backgroundMode;
-                    switch (receptor.backgroundMode) {
-                      case 'vertical':
-                        backgroundMode = BackgroundMode.vertical;
-                        break;
-                      case 'horizontal':
-                        backgroundMode = BackgroundMode.horizontal;
-                        break;
-                      case 'none':
-                        backgroundMode = BackgroundMode.none;
-                        break;
-                    }
-                    var foregroundMode;
-                    switch (receptor.foregroundMode) {
-                      case 'original':
-                        foregroundMode = ForegroundMode.original;
-                        break;
-                      case 'white':
-                        foregroundMode = ForegroundMode.white;
-                        break;
-                    }
-                    return _ReceptorItem(
-                      context: widget.context,
-                      onDelete: () {
-                        _deleteReceptor(receptor).then((v) {
-                          setState(() {});
-                        });
-                      },
-                      receptor: ReceptorInfo(
-                        title: receptor.title,
-                        id: receptor.id,
-                        leading: receptor.leading,
-                        creator: receptor.creator,
-                        isMobileReceptor: receptor.category == 'mobiles',
-                        offset: offset,
-                        category: receptor.category,
-                        radius: receptor.radius,
-                        isAutoScrollMessage:
-                            receptor.isAutoScrollMessage == 'true'
-                                ? true
-                                : false,
-                        latLng: LatLng.fromJson(jsonDecode(receptor.location)),
-                        uDistance: receptor.uDistance,
-                        background: receptor.background,
-                        backgroundMode: backgroundMode,
-                        foregroundMode: foregroundMode,
-                        origin: receptor,
-                      ),
-                    );
-                  }).toList(),
+            shrinkWrap: true,
+            padding: EdgeInsets.all(0),
+            physics: NeverScrollableScrollPhysics(),
+            children: _receptors.map((receptor) {
+              var latlng = receptor.getLocationLatLng();
+              double offset = 0.0;
+              if (_currentLatLng != null) {
+                offset = getDistance(start: _currentLatLng, end: latlng);
+              }
+              var backgroundMode;
+              switch (receptor.backgroundMode) {
+                case 'vertical':
+                  backgroundMode = BackgroundMode.vertical;
+                  break;
+                case 'horizontal':
+                  backgroundMode = BackgroundMode.horizontal;
+                  break;
+                case 'none':
+                  backgroundMode = BackgroundMode.none;
+                  break;
+              }
+              var foregroundMode;
+              switch (receptor.foregroundMode) {
+                case 'original':
+                  foregroundMode = ForegroundMode.original;
+                  break;
+                case 'white':
+                  foregroundMode = ForegroundMode.white;
+                  break;
+              }
+              return _ReceptorItem(
+                context: widget.context,
+                onDelete: () {
+                  _deleteReceptor(receptor).then((v) {
+                    setState(() {});
+                  });
+                },
+                receptor: ReceptorInfo(
+                  title: receptor.title,
+                  id: receptor.id,
+                  leading: receptor.leading,
+                  creator: receptor.creator,
+                  isMobileReceptor: receptor.category == 'mobiles',
+                  offset: offset,
+                  category: receptor.category,
+                  radius: receptor.radius,
+                  isAutoScrollMessage:
+                      receptor.isAutoScrollMessage == 'true' ? true : false,
+                  latLng: LatLng.fromJson(jsonDecode(receptor.location)),
+                  uDistance: receptor.uDistance,
+                  background: receptor.background,
+                  backgroundMode: backgroundMode,
+                  foregroundMode: foregroundMode,
+                  origin: receptor,
                 ),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
   }
+//
+// Widget _renderEmptyPanel() {
+//   return Column(
+//     mainAxisAlignment: MainAxisAlignment.center,
+//     mainAxisSize: MainAxisSize.max,
+//     children: [
+//       SizedBox(
+//         height: 40,
+//       ),
+//       Text.rich(
+//         TextSpan(
+//           text: '没有感知器，请',
+//           children: [
+//             TextSpan(
+//               text: '新建地理感知器',
+//               recognizer: TapGestureRecognizer()
+//                 ..onTap = () {
+//                   widget.context
+//                       .forward(
+//                     '/geosphere/category/select',
+//                   )
+//                       .then((result) {
+//                     _offset = 0;
+//                     _receptors.clear();
+//                     _loadReceptors();
+//                   });
+//                 },
+//               style: TextStyle(
+//                 color: Colors.blueGrey,
+//                 decoration: TextDecoration.underline,
+//               ),
+//             ),
+//           ],
+//         ),
+//         style: TextStyle(
+//           color: Colors.blueGrey,
+//           decoration: TextDecoration.underline,
+//         ),
+//       ),
+//     ],
+//   );
+// }
 
-  Widget _renderEmptyPanel() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        SizedBox(
-          height: 40,
-        ),
-        Text.rich(
-          TextSpan(
-            text: '没有感知器，请',
-            children: [
-              TextSpan(
-                text: '新建地理感知器',
-                recognizer: TapGestureRecognizer()..onTap=(){
-                  widget.context
-                      .forward(
-                    '/geosphere/category/select',
-                  )
-                      .then((result) {
-                    _offset = 0;
-                    _receptors.clear();
-                    _loadReceptors();
-                  });
-                },
-                style: TextStyle(
-                  color: Colors.blueGrey,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ],
-          ),
-          style: TextStyle(
-            color: Colors.blueGrey,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _loadReceptors() async {
-    IGeoReceptorService receptorService =
-    widget.context.site.getService('/geosphere/receptors');
-
-    var receptors = await receptorService.page(10, 0);
-    if (receptors.isEmpty) {
-      if (mounted) {
-        setState(() {});
-      }
-      return;
-    }
-    _offset += receptors.length;
-    _receptors.addAll(receptors);
-    if (mounted) {
-      setState(() {});
-    }
-  }
 }
 
 class _ReceptorItem extends StatefulWidget {

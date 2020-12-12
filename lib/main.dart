@@ -287,16 +287,20 @@ class _WindowState extends State<Window> {
     var items = <Widget>[
       widget.viewport,
       Positioned(
-        top: Platform.isAndroid ? 6 : 14,
-        left: Platform.isAndroid ? 90 : 30,
-        right: 0,
+        // top: Platform.isAndroid ? 6 : 14,
+        // left: Platform.isAndroid ? 90 : 30,
+        // right: 0,
+        bottom: 10,
+        left: -4,
         child: StatusBar(),
       ),
       Positioned(
-        top: Platform.isAndroid ? 23 : 31,
-        left: Platform.isAndroid ? 90 : 30,
+        // top: Platform.isAndroid ? 23 : 31,
+        // left: Platform.isAndroid ? 90 : 30,
         height: 1,
         width: 30,
+        left: 0,
+        bottom: 30,
         child: TaskBar(widget.site, _progressTaskBar),
       ),
     ];
@@ -550,14 +554,6 @@ class _StatusBarState extends State<StatusBar> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                stateText,
-                style: TextStyle(
-                  fontSize: 6,
-                  color: Colors.black54,
-                  decoration: TextDecoration.none,
-                ),
-              ),
               Row(
                 children: [
                   Icon(
@@ -576,6 +572,14 @@ class _StatusBarState extends State<StatusBar> {
                     ),
                   ),
                 ],
+              ),
+              Text(
+                stateText,
+                style: TextStyle(
+                  fontSize: 6,
+                  color: Colors.black54,
+                  decoration: TextDecoration.none,
+                ),
               ),
             ],
           ),

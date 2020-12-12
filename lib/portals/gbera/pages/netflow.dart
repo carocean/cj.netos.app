@@ -54,6 +54,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   List<Channel> _items = [];
   StreamSubscription _streamSubscription;
   StreamSubscription _refresh_streamSubscription;
+  bool _isSyning = false;
 
   @override
   bool get wantKeepAlive {
@@ -130,6 +131,11 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _sync_task(PageContext context, Frame frame) async {
+    if (mounted) {
+      setState(() {
+        _isSyning = true;
+      });
+    }
     var source = frame.contentText;
     List list = jsonDecode(source);
     IChannelService channelService =
@@ -153,7 +159,9 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     _items.clear();
     await _loadChannels();
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _isSyning = false;
+      });
     }
   }
 
@@ -619,6 +627,31 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   }
 
   Widget _renderEmptyPanel() {
+    if (_isSyning) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          SizedBox(
+            height: 40,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Text(
+                    '正在从云端同步你的管道，请稍候...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,

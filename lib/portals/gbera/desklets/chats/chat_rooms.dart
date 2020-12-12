@@ -844,8 +844,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Widget build(BuildContext context) {
     if (!_isloaded) {
       return Container(
-        height: 0,
-        width: 0,
+        height: 200,
+        alignment: Alignment.center,
+        child: Text('加载中，请稍候...',style: TextStyle(color: Colors.grey,),),
       );
     }
     var content;
@@ -953,7 +954,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                       color: Colors.grey[500],
                     ),
                   ),
-                  Text('平聊'),
+                  Text(''),
                 ],
               ),
               GestureDetector(

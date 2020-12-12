@@ -19,7 +19,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  bool _agree = true;
+  bool _agree = false;
   TextEditingController _nickNameController;
   TextEditingController _phoneController;
   TextEditingController _passwordController;
