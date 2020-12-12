@@ -44,7 +44,7 @@ class _WOFormState extends State<WOForm> {
 
   Future<void> _load() async {
     IWOFlowRemote flowRemote =
-        await widget.context.site.getService('/feedback/woflow');
+        widget.context.site.getService('/feedback/woflow');
     var types = await flowRemote.listWOTypes();
     for (var type in types) {
       _types.add(type);
@@ -62,7 +62,7 @@ class _WOFormState extends State<WOForm> {
 
   Future<void> _createWOForm() async {
     IWOFlowRemote flowRemote =
-        await widget.context.site.getService('/feedback/woflow');
+        widget.context.site.getService('/feedback/woflow');
     await flowRemote.createWOForm(_selectWoTypeId, _phoneController.text,
         _contentController.text, _attachRemote);
     widget.context.backward();
@@ -93,7 +93,7 @@ class _WOFormState extends State<WOForm> {
           ),
         ],
       ),
-      resizeToAvoidBottomPadding: false,
+      // resizeToAvoidBottomPadding: false,
       body: ConstrainedBox(
         constraints: BoxConstraints.expand(),
         child: Column(
@@ -311,6 +311,9 @@ class _WOFormState extends State<WOForm> {
                                       maxHeight: Adapt.screenH(),
                                       imageQuality: 80,
                                     );
+                                    if (image == null) {
+                                      return;
+                                    }
                                     _attachLocal = image.path;
                                     if (mounted) {
                                       setState(() {});

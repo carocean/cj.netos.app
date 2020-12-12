@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/media_watcher.dart';
+import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
+import 'package:netos_app/portals/gbera/pages/system/wo_view.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -27,6 +33,13 @@ import 'package:netos_app/portals/nodepower/pages/colleagues.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workflow.dart';
 import 'package:netos_app/portals/nodepower/pages/create_workgroup.dart';
 import 'package:netos_app/portals/nodepower/pages/desktop.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/help_create.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/help_feedback.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_direct.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_direct_flow.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_object.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_object_flow.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/wo_flows.dart';
 import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
 import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
@@ -163,6 +176,9 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/payChannels': PayChannelRemote(),
           '/wallet/accounts': WalletAccountRemote(),
+          '/feedback/woflow': WOFlowRemote(),
+          '/feedback/helper': HelperRemote(),
+          '/feedback/tipoff': TipOffRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -695,6 +711,96 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/wallet/withdraw/details',
           buildPage: (PageContext pageContext) => WithdrawDetails(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工单审核流程',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/woflow',
+          buildPage: (PageContext pageContext) => WOFlows(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '工单流程',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/wo/flow',
+          buildPage: (PageContext pageContext) => WOFlow(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '问题详情',
+          subtitle: '',
+          icon: null,
+          url: '/system/wo/view',
+          buildPage: (PageContext pageContext) => WOView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '帮助管理',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/helpers',
+          buildPage: (PageContext pageContext) => HelpFeedbackPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建帮助',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/helper/create',
+          buildPage: (PageContext pageContext) => HelperCreator(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看帮助',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/helper/view',
+          buildPage: (PageContext pageContext) => FQView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '直接举报',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tipoff/direct',
+          buildPage: (PageContext pageContext) => TipOffDirectPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '对象举报',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tipoff/object',
+          buildPage: (PageContext pageContext) => TipOffObjectPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '直接举报流程',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tipoff/direct/flow',
+          buildPage: (PageContext pageContext) => TipOffDirectFlowPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '对象举报流程',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tipoff/object/flow',
+          buildPage: (PageContext pageContext) => TipOffObjectFlowPage(
             context: pageContext,
           ),
         ),

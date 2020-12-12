@@ -226,6 +226,8 @@ import 'package:netos_app/portals/gbera/pages/wallet/withdraw_result.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -324,6 +326,8 @@ class GberaPortal {
           '/remote/chasechain/recommender': ChasechainRecommenderRemote(),
           '/remote/robot': RobotRemote(),
           '/feedback/woflow': WOFlowRemote(),
+          '/feedback/helper': HelperRemote(),
+          '/feedback/tipoff': TipOffRemote(),
         };
       },
       builderShareServices: (site) async {

@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -319,7 +320,26 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     }
     await robotRemote.addRecipients3(id, encourageCode, encourageCause, 0);
   }
-
+  Future<void> _tipoffItem() async {
+    showDialog(
+        context: context,
+        child: widget.context.part('/system/tip_off/item', context, arguments: {
+          'item': TipOffItemArgs(
+            id: widget.doc.message.id,
+            type: 'chasechain/${widget.doc.message.type}',
+            desc: widget.doc.message.content,
+          )
+        })).then((value) {
+      if (value == null) {
+        return;
+      }
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('举报事项已提交'),
+        ),
+      );
+    });
+  }
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -579,6 +599,23 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _tipoffItem();
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 15,
+                    ),
+                    child: Icon(
+                      Icons.privacy_tip_outlined,
+                      color: Colors.black54,
+                      size: 16,
+                    ),
+                  ),
+                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {

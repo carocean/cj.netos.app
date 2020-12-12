@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 
 class HelpFeedback extends StatefulWidget {
@@ -15,6 +16,9 @@ class HelpFeedback extends StatefulWidget {
 class _HelpFeedbackState extends State<HelpFeedback> {
   EasyRefreshController _controller;
   List<WOTypeOR> _types = [];
+  List<HelpFormOR> _helpForms = [];
+  int _limit = 20, _offset = 0;
+
   @override
   void initState() {
     _controller = EasyRefreshController();
@@ -27,18 +31,36 @@ class _HelpFeedbackState extends State<HelpFeedback> {
     _controller?.dispose();
     super.dispose();
   }
+
   Future<void> _load() async {
     IWOFlowRemote flowRemote =
-    await widget.context.site.getService('/feedback/woflow');
+        await widget.context.site.getService('/feedback/woflow');
     var types = await flowRemote.listWOTypes();
     for (var type in types) {
       _types.add(type);
     }
+    await _loadHelpForms();
     if (mounted) {
       setState(() {});
     }
   }
-  Future<void> _onload() async {}
+
+  Future<void> _loadHelpForms() async {
+    IHelperRemote helperRemote =
+        widget.context.site.getService('/feedback/helper');
+    var helpers = await helperRemote.pageHelpForm(_limit, _offset);
+    if (helpers.isEmpty) {
+      _controller.finishLoad(success: true, noMore: true);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+    _offset += helpers.length;
+    _helpForms.addAll(helpers);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +96,7 @@ class _HelpFeedbackState extends State<HelpFeedback> {
                 color: Colors.white,
                 child: EasyRefresh(
                   controller: _controller,
-                  onLoad: _onload,
+                  onLoad: _loadHelpForms,
                   child: ListView(
                     shrinkWrap: true,
                     children: _renderHelps(),
@@ -202,7 +224,7 @@ class _HelpFeedbackState extends State<HelpFeedback> {
       items.add(GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          widget.context.forward('/system/wo/list',arguments: {'type':type});
+          widget.context.forward('/system/wo/list', arguments: {'type': type});
         },
         child: Padding(
           padding: EdgeInsets.only(
@@ -236,23 +258,41 @@ class _HelpFeedbackState extends State<HelpFeedback> {
 
   List<Widget> _renderHelps() {
     var items = <Widget>[];
-    for (var i = 0; i < 20; i++) {
+    if (_helpForms.isEmpty) {
+      items.add(
+        SizedBox(
+          height: 20,
+        ),
+      );
+      items.add(
+        Center(
+          child: Text(
+            '没有帮助',
+            style: TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      );
+      return items;
+    }
+    for (var form in _helpForms) {
       items.add(GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          widget.context.forward('/system/fq/view');
+          widget.context.forward('/system/fq/view', arguments: {'form': form});
         },
         child: Padding(
           padding: EdgeInsets.only(
-            top: 15,
-            bottom: 15,
+            top: 10,
+            bottom: 10,
             left: 20,
             right: 20,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('vivo账号设置的密保可以删除或修改吗？'),
+              Text('${form.title}'),
               Icon(
                 Icons.arrow_forward_ios,
                 size: 18,

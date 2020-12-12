@@ -93,6 +93,15 @@ mixin IWOFlowRemote {
 
   Future<List<WOFormOR>> pageClosedFormByType(
       String typeId, int limit, int offset) {}
+
+  Future<List<WOFormOR>> pageOpenedForm(int limit, int offset) {}
+
+  Future<List<WOFormOR>> pageClosedForm(int limit, int offset) {}
+
+  Future<List<WOFormOR>> pageAllForm(int limit, int offset) {}
+
+  Future<WOFlowActivityOR> sendAndCloseFlow(
+      String formId, String content, String attachment) {}
 }
 
 class WOFlowRemote implements IWOFlowRemote, IServiceBuilder {
@@ -158,6 +167,23 @@ class WOFlowRemote implements IWOFlowRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<WOFormOR>> pageAllForm(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      woflowPortsUrl,
+      'pageAllForm',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<WOFormOR> forms = [];
+    for (var obj in list) {
+      forms.add(WOFormOR.parse(obj));
+    }
+    return forms;
+  }
+
+  @override
   Future<List<WOFormOR>> pageClosedFormByType(
       String typeId, int limit, int offset) async {
     var list = await remotePorts.portGET(
@@ -165,6 +191,40 @@ class WOFlowRemote implements IWOFlowRemote, IServiceBuilder {
       'pageClosedFormByType',
       parameters: {
         'typeId': typeId,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<WOFormOR> forms = [];
+    for (var obj in list) {
+      forms.add(WOFormOR.parse(obj));
+    }
+    return forms;
+  }
+
+  @override
+  Future<List<WOFormOR>> pageOpenedForm(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      woflowPortsUrl,
+      'pageOpenedForm',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<WOFormOR> forms = [];
+    for (var obj in list) {
+      forms.add(WOFormOR.parse(obj));
+    }
+    return forms;
+  }
+
+  @override
+  Future<List<WOFormOR>> pageClosedForm(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      woflowPortsUrl,
+      'pageClosedForm',
+      parameters: {
         'limit': limit,
         'offset': offset,
       },
@@ -197,6 +257,23 @@ class WOFlowRemote implements IWOFlowRemote, IServiceBuilder {
     var obj = await remotePorts.portPOST(
       woflowPortsUrl,
       'send',
+      parameters: {
+        'formId': formId,
+        'attachment': attachment,
+      },
+      data: {
+        'content': content,
+      },
+    );
+    return WOFlowActivityOR.parse(obj);
+  }
+
+  @override
+  Future<WOFlowActivityOR> sendAndCloseFlow(
+      String formId, String content, String attachment) async {
+    var obj = await remotePorts.portPOST(
+      woflowPortsUrl,
+      'sendAndCloseFlow',
       parameters: {
         'formId': formId,
         'attachment': attachment,

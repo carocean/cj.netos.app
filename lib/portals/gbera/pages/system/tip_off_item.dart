@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 
 class TipOffItem extends StatefulWidget {
   PageContext context;
@@ -13,17 +15,66 @@ class TipOffItem extends StatefulWidget {
 
 class _TipOffItemState extends State<TipOffItem> {
   TipOffItemArgs _args;
+  List<TipOffTypeOR> _types = [];
+  String _selectTypeId;
+  TextEditingController _contentController = TextEditingController();
 
   @override
   void initState() {
     _args = widget.context.partArgs['item'];
+    _load();
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _contentController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    ITipOffRemote tipOffRemote =
+        widget.context.site.getService('/feedback/tipoff');
+    var types = await tipOffRemote.listTipOffTypes();
+    _types.addAll(types);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  bool _checkButton() {
+    return !StringUtil.isEmpty(_selectTypeId) &&
+        !StringUtil.isEmpty(_contentController.text);
+  }
+
+  Future<void> _createForm() async {
+    ITipOffRemote tipOffRemote =
+        widget.context.site.getService('/feedback/tipoff');
+    await tipOffRemote.createObjectForm(_selectTypeId,
+        '${_args.type}/${_args.id}', _args.desc, _contentController.text);
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('提示'),
+            content: Text('举报成功！'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text(
+                  '确认',
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                onPressed: () {
+                  widget.context.backward();
+                },
+              ),
+            ],
+          );
+        }).then((value) {
+      widget.context.backward();
+    });
   }
 
   @override
@@ -45,7 +96,7 @@ class _TipOffItemState extends State<TipOffItem> {
           ),
         ],
       ),
-      resizeToAvoidBottomPadding: false,
+      // resizeToAvoidBottomPadding: false,
       body: ConstrainedBox(
         constraints: BoxConstraints.expand(),
         child: Column(
@@ -122,7 +173,9 @@ class _TipOffItemState extends State<TipOffItem> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(height: 10,),
+                          SizedBox(
+                            height: 10,
+                          ),
                           Container(
                             padding: EdgeInsets.only(
                               left: 10,
@@ -150,6 +203,7 @@ class _TipOffItemState extends State<TipOffItem> {
                               ),
                             ),
                             child: TextField(
+                              controller: _contentController,
                               decoration: InputDecoration(
                                 hintText: '留下你的意见和建议，我们会及时处理',
                                 hintStyle: TextStyle(
@@ -161,7 +215,9 @@ class _TipOffItemState extends State<TipOffItem> {
                               style: TextStyle(
                                 fontSize: 14,
                               ),
-                              onChanged: (value) {},
+                              onChanged: (value) {
+                                setState(() {});
+                              },
                             ),
                           ),
                         ],
@@ -182,13 +238,18 @@ class _TipOffItemState extends State<TipOffItem> {
                     children: [
                       Expanded(
                         child: RaisedButton(
-                          color: Colors.green,
+                          color: !_checkButton() ? Colors.grey : Colors.green,
                           textColor: Colors.white,
+                          disabledTextColor: Colors.white70,
                           padding: EdgeInsets.only(
                             top: 10,
                             bottom: 10,
                           ),
-                          onPressed: () {},
+                          onPressed: !_checkButton()
+                              ? null
+                              : () {
+                                  _createForm();
+                                },
                           child: Text(
                             '提交',
                             style: TextStyle(
@@ -200,7 +261,6 @@ class _TipOffItemState extends State<TipOffItem> {
                     ],
                   ),
                 ),
-
                 SizedBox(
                   height: 10,
                 ),
@@ -214,7 +274,7 @@ class _TipOffItemState extends State<TipOffItem> {
 
   Widget _renderCausePanel() {
     var items = <Widget>[];
-    for (var i = 0; i < 10; i++) {
+    for (var type in _types) {
       items.add(
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -223,14 +283,33 @@ class _TipOffItemState extends State<TipOffItem> {
               width: 16,
               height: 16,
               child: Checkbox(
-                value: true,
-                onChanged: (v) {},
+                value: _selectTypeId == type.id,
+                activeColor: Colors.green,
+                onChanged: (v) {
+                  _selectTypeId = v ? type.id : null;
+                  if (mounted) {
+                    setState(() {});
+                  }
+                },
               ),
             ),
             SizedBox(
               width: 5,
             ),
-            Text('广告'),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (_selectTypeId == type.id) {
+                  _selectTypeId = null;
+                } else {
+                  _selectTypeId = type.id;
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              child: Text('${type.title}'),
+            ),
           ],
         ),
       );

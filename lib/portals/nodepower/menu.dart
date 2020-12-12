@@ -62,6 +62,46 @@ Workbench nodePowerWorkbench = Workbench(
             );
           },
         ),
+        MenuItem(
+          title: '工单审核流程',
+          id: 'feedback.woflow.manage',
+          icon: 'http://47.105.165.186:7100/app/feedback/icons/gongdan.png',
+          onTap: (context) {
+            context.forward(
+              '/feedback/woflow',
+            );
+          },
+        ),
+        MenuItem(
+          title: '帮助管理',
+          id: 'feedback.helper.manage',
+          icon: 'http://47.105.165.186:7100/app/feedback/icons/helper.png',
+          onTap: (context) {
+            context.forward(
+              '/feedback/helpers',
+            );
+          },
+        ),
+        MenuItem(
+          title: '直接举报',
+          id: 'feedback.helper.manage',
+          icon: 'http://47.105.165.186:7100/app/feedback/icons/tipoff_direct.png',
+          onTap: (context) {
+            context.forward(
+              '/feedback/tipoff/direct',
+            );
+          },
+        ),
+        MenuItem(
+          title: '对象举报',
+          id: 'feedback.helper.manage',
+          icon: 'http://47.105.165.186:7100/app/feedback/icons/tipoff_object.png',
+          onTap: (context) {
+            context.forward(
+              '/feedback/tipoff/object',
+            );
+          },
+        ),
       ],
     ),
     Menu(

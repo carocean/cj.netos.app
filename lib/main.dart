@@ -142,8 +142,6 @@ void main() => platformRun(
                 'http://47.105.165.186/chasechain.recommender/trafficPool.ports',
             '@.prop.ports.feedback.helper':
                 'http://47.105.165.186/feedback/helper.ports',
-            '@.prop.ports.feedback.helper':
-                'http://47.105.165.186/feedback/helper.ports',
             '@.prop.ports.feedback.tipoff':
                 'http://47.105.165.186/feedback/tipoff.ports',
             '@.prop.ports.feedback.woflow':

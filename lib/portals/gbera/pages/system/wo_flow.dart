@@ -57,17 +57,28 @@ class _WOFlowState extends State<WOFlow> {
     }
   }
 
-  Future<void> _send() async {
+  Future<void> _send(bool _isEnd) async {
     IWOFlowRemote flowRemote =
         await widget.context.site.getService('/feedback/woflow');
-    var activity =
-        await flowRemote.send(_form.id, _contentController.text, _attachRemote);
+    var activity;
+    if (!_isEnd) {
+      activity = await flowRemote.send(
+          _form.id, _contentController.text, _attachRemote);
+      _form.state = 1;
+    } else {
+      activity = await flowRemote.sendAndCloseFlow(
+          _form.id, _contentController.text, _attachRemote);
+      _form.state = -1;
+    }
     _activities.add(activity);
     _contentController.text = '';
     _attachRemote = null;
     _attachLocal = null;
     if (mounted) {
       setState(() {});
+    }
+    if (_isEnd) {
+      widget.context.backward(result: _form.state == -1 ? _form.id : null);
     }
   }
 
@@ -88,7 +99,8 @@ class _WOFlowState extends State<WOFlow> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                widget.context.forward('/system/wo/view',arguments: {'form':_form});
+                widget.context
+                    .forward('/system/wo/view', arguments: {'form': _form});
               },
               child: Column(
                 children: [
@@ -247,129 +259,102 @@ class _WOFlowState extends State<WOFlow> {
         ),
       );
     }
-    items.add(
-      SizedBox(
-        height: 20,
-        child: Divider(
-          height: 1,
+    if (_form.state != -1) {
+      items.add(
+        SizedBox(
+          height: 20,
+          child: Divider(
+            height: 1,
+          ),
         ),
-      ),
-    );
-    items.add(
-      Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _contentController,
-                  decoration: InputDecoration(
-                    hintText: '发表你的意见和建议',
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    fillColor: Colors.white,
-                  ),
-                  maxLines: 4,
-                  style: TextStyle(
-                    fontSize: 14,
-                  ),
-                  onChanged: (value) {
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  },
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              OutlineButton(
-                onPressed: StringUtil.isEmpty(_contentController.text)
-                    ? null
-                    : () {
-                        _send();
-                      },
-                child: Text('发送'),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Row(
-            children: [
-              Expanded(
-                  child: StringUtil.isEmpty(_attachLocal)
-                      ? Text('无')
-                      : Column(
-                          children: [
-                            MediaWidget(
-                              [
-                                MediaSrc(
-                                  id: Uuid().v1(),
-                                  type: 'image',
-                                  text: '',
-                                  sourceType: 'image',
-                                  src: _attachLocal,
-                                ),
-                              ],
-                              widget.context,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            _progress > 0.00
-                                ? Text('${_progress.toStringAsFixed(2)}%')
-                                : StringUtil.isEmpty(_attachRemote)
-                                    ? SizedBox(
-                                        width: 0,
-                                        height: 0,
-                                      )
-                                    : Text(
-                                        '已上传',
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                        ),
-                                      )
-                          ],
-                        )),
-              SizedBox(
-                width: 10,
-              ),
-              OutlineButton(
-                onPressed: () async {
-                  var image = await ImagePicker().getImage(
-                    source: ImageSource.gallery,
-                    maxHeight: Adapt.screenH(),
-                    imageQuality: 80,
-                  );
-                  _attachLocal = image.path;
+      );
+      items.add(
+        _SendButton(
+          onTap: (bool _isEnd) {
+            _send(_isEnd);
+          },
+          context: widget.context,
+          controller: _contentController,
+        ),
+      );
+      items.add(
+        SizedBox(
+          height: 10,
+        ),
+      );
+      items.add(
+        Row(
+          children: [
+            Expanded(
+                child: StringUtil.isEmpty(_attachLocal)
+                    ? Text('无')
+                    : Column(
+                        children: [
+                          MediaWidget(
+                            [
+                              MediaSrc(
+                                id: Uuid().v1(),
+                                type: 'image',
+                                text: '',
+                                sourceType: 'image',
+                                src: _attachLocal,
+                              ),
+                            ],
+                            widget.context,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          _progress > 0.00
+                              ? Text('${_progress.toStringAsFixed(2)}%')
+                              : StringUtil.isEmpty(_attachRemote)
+                                  ? SizedBox(
+                                      width: 0,
+                                      height: 0,
+                                    )
+                                  : Text(
+                                      '已上传',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                        ],
+                      )),
+            SizedBox(
+              width: 10,
+            ),
+            OutlineButton(
+              onPressed: () async {
+                var image = await ImagePicker().getImage(
+                  source: ImageSource.gallery,
+                  maxHeight: Adapt.screenH(),
+                  imageQuality: 80,
+                );
+                _attachLocal = image.path;
+                if (mounted) {
+                  setState(() {});
+                }
+                var map = await widget.context.ports.upload(
+                    '/app/feedback/', [_attachLocal], onSendProgress: (i, j) {
+                  _progress = ((i * 1.0) / j) * 100.00;
                   if (mounted) {
                     setState(() {});
                   }
-                  var map = await widget.context.ports.upload(
-                      '/app/feedback/', [_attachLocal], onSendProgress: (i, j) {
-                    _progress = ((i * 1.0) / j) * 100.00;
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  });
-                  _attachRemote = map[_attachLocal];
-                  _progress = 0.00;
-                  if (mounted) {
-                    setState(() {});
-                  }
-                  await _send();
-                },
-                child: Text('上传'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+                });
+                _attachRemote = map[_attachLocal];
+                _progress = 0.00;
+                if (mounted) {
+                  setState(() {});
+                }
+                await _send(false);
+              },
+              child: Text('上传'),
+            ),
+          ],
+        ),
+      );
+    }
+
     items.add(
       SizedBox(
         height: 20,
@@ -398,7 +383,7 @@ class _WOFlowState extends State<WOFlow> {
   Widget _renderParticipant(String participant) {
     if (widget.context.principal.person == participant) {
       return Text(
-        '${widget.context.principal.nickName} 问：',
+        '${widget.context.principal.nickName}：',
         style: TextStyle(
           fontWeight: FontWeight.w600,
         ),
@@ -415,12 +400,109 @@ class _WOFlowState extends State<WOFlow> {
           );
         }
         return Text(
-          '${snapshot.data.nickName} 答复：',
+          '${snapshot.data.nickName}：',
           style: TextStyle(
             fontWeight: FontWeight.w600,
           ),
         );
       },
+    );
+  }
+}
+
+class _SendButton extends StatefulWidget {
+  PageContext context;
+  Function(bool isEnd) onTap;
+  TextEditingController controller;
+
+  _SendButton({this.context, this.onTap, this.controller});
+
+  @override
+  __SendButtonState createState() => __SendButtonState();
+}
+
+class __SendButtonState extends State<_SendButton> {
+  bool _isEnd = false;
+
+  @override
+  Widget build(BuildContext context) {
+    var _contentController = widget.controller;
+    var items = <Widget>[];
+    if (widget.context.principal.roles.contains('platform:administrators')) {
+      items.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 16,
+              width: 28,
+              child: Checkbox(
+                value: _isEnd,
+                onChanged: (v) {
+                  _isEnd = v;
+                  setState(() {});
+                },
+              ),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                setState(() {
+                  _isEnd = !_isEnd;
+                });
+              },
+              child: Text(
+                '？是否结束该问题',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    items.add(
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _contentController,
+              decoration: InputDecoration(
+                hintText: '发表你的意见和建议',
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                fillColor: Colors.white,
+              ),
+              maxLines: 4,
+              style: TextStyle(
+                fontSize: 14,
+              ),
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+            ),
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          OutlineButton(
+            onPressed: StringUtil.isEmpty(_contentController.text)
+                ? null
+                : () {
+                    widget.onTap(_isEnd);
+                  },
+            child: Text('发送'),
+          ),
+        ],
+      ),
+    );
+    return Column(
+      children: items,
     );
   }
 }
