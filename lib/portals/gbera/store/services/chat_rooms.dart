@@ -43,6 +43,9 @@ class FriendService implements IFriendService, IServiceBuilder {
       return friend;
     }
     var person = await personService.getPerson(official);
+    if(person==null) {
+      return null;
+    }
     return Friend.formPerson(person);
   }
 
