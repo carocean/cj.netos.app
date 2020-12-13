@@ -413,7 +413,7 @@ class _TipToolPanelState extends State<TipToolPanel> {
           bottom: 20,
         ),
         child: Text(
-          '没有提示了',
+          '没有提示！',
         ),
       );
     } else {
