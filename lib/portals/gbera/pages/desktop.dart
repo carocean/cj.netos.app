@@ -14,6 +14,7 @@ import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 
 class Desktop extends StatefulWidget {
   PageContext context;
@@ -308,7 +309,9 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                         minHeight: 100,
                         minWidth: 200,
                       ),
-                      child: _renderTiptool(),
+                      child: TipToolPanel(
+                        context: widget.context,
+                      ),
                     );
                   },
                   arrowColor: Colors.black38,
@@ -355,153 +358,198 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
       ],
     );
   }
-
-  Widget _renderTiptool() {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.only(
-            left: 10,
-            right: 10,
-            top: 5,
-            bottom: 5,
-          ),
-          decoration: BoxDecoration(
-            color: Color(0xeef5f5f5),
-            // color: Colors.yellow,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 55,
-                height: 55,
-                child: getAvatarWidget(
-                  widget.context.principal.avatarOnRemote,
-                  widget.context,
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      '新冠疫苗，囚犯和胖子优先！澳大利亚网友炸锅了',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      '据环球时报援引澳大利亚媒体9NEWS新闻网12月10日报道，与老年人、孕妇、医护人员和慢性肥胖症患者一道，监狱中的囚犯和教养人员，将成为澳大利亚首批接种新冠疫苗的人群。因为该国卫生部门认为，囚犯的免疫力比大多数的普通人都要弱。',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        _CheckBoxWidget(),
-      ],
-    );
-  }
 }
 
-class _CheckBoxWidget extends StatefulWidget {
+class TipToolPanel extends StatefulWidget {
+  PageContext context;
+
+  TipToolPanel({this.context});
+
   @override
-  __CheckBoxWidgetState createState() => __CheckBoxWidgetState();
+  _TipToolPanelState createState() => _TipToolPanelState();
 }
 
-class __CheckBoxWidgetState extends State<_CheckBoxWidget> {
+class _TipToolPanelState extends State<TipToolPanel> {
   bool _isChecked = false;
+  int _offset = 0;
+  TipsDocOR _doc;
+
+  @override
+  void initState() {
+    _readNextTipsDocs();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _readNextTipsDocs() async {
+    ITipToolRemote tipToolRemote =
+        widget.context.site.getService('/feedback/tiptool');
+    var docs = await tipToolRemote.readNextTipsDocs(1, _offset);
+    if (docs.isEmpty) {
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    _offset += docs.length;
+    _doc = docs[0];
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        InkWell(
-          onTap: () {
-            setState(() {
-              _isChecked = !_isChecked;
-            });
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                    // shape: BoxShape.circle,
-                    // color: Colors.blue,
+    var content;
+    if (_doc == null) {
+      content = Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(
+          top: 20,
+          bottom: 20,
+        ),
+        child: Text(
+          '没有提示了',
+        ),
+      );
+    } else {
+      content = Container(
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+          top: 5,
+          bottom: 5,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xeef5f5f5),
+          // color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 55,
+              height: 55,
+              child: getAvatarWidget(
+                _doc.leading,
+                widget.context,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    '${_doc.title}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                     ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 10,
-                    right: 10,
                   ),
-                  child: _isChecked
-                      ? Icon(
-                          Icons.check,
-                          size: 14.0,
-                          color: Colors.green,
-                        )
-                      : Icon(
-                          Icons.check_box_outline_blank,
-                          size: 14.0,
-                          color: Colors.grey,
-                        ),
-                ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    '${_doc.summary}',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              Text(
-                '不再自动弹出',
-                style: TextStyle(
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      );
+    }
+
+    return Column(
+      children: [
+        content,
         SizedBox(
-          width: 10,
+          height: 10,
         ),
-        InkWell(
-          onTap: () {
-            setState(() {
-            });
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                '下一提示',
-                style: TextStyle(
-                  fontSize: 12,
-                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _isChecked = !_isChecked;
+                });
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                        // shape: BoxShape.circle,
+                        // color: Colors.blue,
+                        ),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: 10,
+                        right: 10,
+                      ),
+                      child: _isChecked
+                          ? Icon(
+                              Icons.check,
+                              size: 14.0,
+                              color: Colors.green,
+                            )
+                          : Icon(
+                              Icons.check_box_outline_blank,
+                              size: 14.0,
+                              color: Colors.grey,
+                            ),
+                    ),
+                  ),
+                  Text(
+                    '不再自动弹出',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(
-                width: 5,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            InkWell(
+              onTap: () {
+                setState(() {});
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '下一提示',
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Icon(
+                    Icons.skip_next,
+                    size: 14,
+                  ),
+                ],
               ),
-              Icon(
-                Icons.skip_next,
-                size: 14,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
@@ -39,6 +40,8 @@ import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_direct.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_direct_flow.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_object.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_object_flow.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tiptool_create.dart';
+import 'package:netos_app/portals/nodepower/pages/feedback/tiptool_main.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/wo_flows.dart';
 import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
@@ -179,6 +182,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/feedback/woflow': WOFlowRemote(),
           '/feedback/helper': HelperRemote(),
           '/feedback/tipoff': TipOffRemote(),
+          '/feedback/tiptool': TipToolRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -801,6 +805,24 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/feedback/tipoff/object/flow',
           buildPage: (PageContext pageContext) => TipOffObjectFlowPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '桌面提示主页',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tiptool/main',
+          buildPage: (PageContext pageContext) => TipToolMain(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建提示',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tiptool/creator',
+          buildPage: (PageContext pageContext) => TipsDocCreator(
             context: pageContext,
           ),
         ),

@@ -63,6 +63,16 @@ Workbench nodePowerWorkbench = Workbench(
           },
         ),
         MenuItem(
+          title: '桌面提示管理',
+          id: 'feedback.tiptool.manage',
+          icon: 'http://47.105.165.186:7100/app/feedback/icons/tishi.png',
+          onTap: (context) {
+            context.forward(
+              '/feedback/tiptool/main',
+            );
+          },
+        ),
+        MenuItem(
           title: '工单审核流程',
           id: 'feedback.woflow.manage',
           icon: 'http://47.105.165.186:7100/app/feedback/icons/gongdan.png',

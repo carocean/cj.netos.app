@@ -146,6 +146,8 @@ void main() => platformRun(
                 'http://47.105.165.186/feedback/tipoff.ports',
             '@.prop.ports.feedback.woflow':
                 'http://47.105.165.186/feedback/wo/flow.ports',
+            '@.prop.ports.feedback.tiptool':
+            'http://47.105.165.186/feedback/tiptool.ports',
           },
           buildServices: (site) async {
             final callback = Callback(
