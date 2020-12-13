@@ -11,6 +11,7 @@ import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
@@ -492,7 +493,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
               widget.context.principal.person,
             ),
             isOnlySaveLocal: true);
-       await _refresh();
+        await _refresh();
       } catch (e) {
         print('$e');
       }
@@ -844,9 +845,15 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   Widget build(BuildContext context) {
     if (!_isloaded) {
       return Container(
-        height: 200,
         alignment: Alignment.center,
-        child: Text('加载中，请稍候...',style: TextStyle(color: Colors.grey,),),
+        height:Adapt.screenH()- 250,
+        child: Container(
+          height: 50,
+          width: 150,
+          child: LinearProgressIndicator(
+            backgroundColor: Colors.green,
+          ),
+        ),
       );
     }
     var content;
@@ -1138,10 +1145,10 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       case '/pay/trials':
         var cnt = message?.content;
         var map = jsonDecode(cnt);
-        var record=DepositTrialOR.parse(map);
+        var record = DepositTrialOR.parse(map);
         whois = record.payerName;
         _stateBar.tips =
-        '$whois: 发体验金给我: ¥${(record.amount / 100.00).toStringAsFixed(2)}元';
+            '$whois: 发体验金给我: ¥${(record.amount / 100.00).toStringAsFixed(2)}元';
         break;
       default:
         print('收到不支持的消息类型:${message.contentType}');
