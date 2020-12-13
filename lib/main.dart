@@ -536,6 +536,9 @@ class _StatusBarState extends State<StatusBar> {
         stateText = '重试${_deviceStatus.reconnectTrytimes}次';
         break;
     }
+    if(_deviceStatus.state==_State.online&&_deviceStatus.unreadCount<1){
+      return SizedBox(width: 0,height: 0,);
+    }
     return Container(
       alignment: Alignment.topLeft,
       child: Row(
@@ -551,6 +554,7 @@ class _StatusBarState extends State<StatusBar> {
               fit: BoxFit.cover,
             ),
           ),
+
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -563,6 +567,7 @@ class _StatusBarState extends State<StatusBar> {
                   SizedBox(
                     width: 1,
                   ),
+
                   Text(
                     '${_deviceStatus.unreadCount}',
                     style: TextStyle(
