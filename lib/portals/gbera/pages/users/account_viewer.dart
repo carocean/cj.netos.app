@@ -27,19 +27,21 @@ class _AccountViewerState extends State<AccountViewer> {
       headers: {
         'cjtoken': widget.context.principal.accessToken,
       },
-      onsucceed: ({rc, response}) {},
+      onsucceed: ({rc, response}) async{
+        //删除本地历史
+        lp.IPlatformLocalPrincipalManager manager =
+        widget.context.site.getService('/local/principals');
+        var account = widget.context.parameters['account'];
+        await manager.remove(account['person']);
+        widget.context.forward('/public/entrypoint',scene: '/');
+      },
       onerror: ({e, stack}) {
         print(e);
         _buttonLabel = '删除账户';
         setState(() {});
       },
     );
-    //删除本地历史
-    lp.IPlatformLocalPrincipalManager manager =
-        widget.context.site.getService('/local/principals');
-    var account = widget.context.parameters['account'];
-    await manager.remove(account['person']);
-    widget.context.forward('/public/entrypoint');
+
   }
 
   @override
