@@ -8,6 +8,7 @@ import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:uuid/uuid.dart';
+
 class FQView extends StatefulWidget {
   PageContext context;
 
@@ -69,7 +70,7 @@ class _FQViewState extends State<FQView> {
           return widget.context
               .part('/feedback/tiptool/previewAndcreate', context, arguments: {
             'title': _form.title,
-            'leading':path,
+            'leading': path,
             'summary': _form.content,
             'href': 'help://${_form.id}',
           });
@@ -81,20 +82,25 @@ class _FQViewState extends State<FQView> {
 
   @override
   Widget build(BuildContext context) {
+    var actions = <Widget>[];
+    if (widget.context.principal.roles.contains('platform:administrators') ||
+        widget.context.principal.roles.contains('tenant:administrators')) {
+      actions.add(
+        IconButton(
+          icon: Icon(
+            Icons.share,
+          ),
+          onPressed: () {
+            _share();
+          },
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.share,
-            ),
-            onPressed: () {
-              _share();
-            },
-          ),
-        ],
+        actions: actions,
       ),
       // resizeToAvoidBottomPadding: false,
       body: SingleChildScrollView(

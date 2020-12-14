@@ -11,6 +11,7 @@ import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
+import 'package:netos_app/portals/gbera/pages/system/tiptool_opener.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
@@ -336,8 +337,21 @@ class _TipToolButtonState extends State<TipToolButton> {
     ITipToolRemote tipToolRemote =
         widget.context.site.getService('/feedback/tiptool');
     _canReadableTipDocs = await tipToolRemote.totalReadableTipDocs() > 0;
+    if (_canReadableTipDocs) {
+      await _checkAutoShowTiptoolPanel();
+    }
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  Future<void> _checkAutoShowTiptoolPanel() async {
+    var isShow = widget.context
+        .sharedPreferences()
+        .getString('tiptool.isShow', person: widget.context.principal.person);
+    if (StringUtil.isEmpty(isShow) || isShow == 'true') {
+      _customPopupMenuController.showMenu();
+      return;
     }
   }
 
@@ -378,7 +392,8 @@ class _TipToolButtonState extends State<TipToolButton> {
               right: 10,
             ),
             decoration: BoxDecoration(
-              color: Color(0xefFFFFFF),
+              // color: Color(0xefFFFFFF),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(4),
               boxShadow: [
                 BoxShadow(
@@ -397,10 +412,11 @@ class _TipToolButtonState extends State<TipToolButton> {
             ),
             child: TipToolPanel(
               context: widget.context,
+              controller: _customPopupMenuController,
             ),
           );
         },
-        arrowColor: Colors.black38,
+        arrowColor: Colors.white,
         barrierColor: Colors.transparent,
         pressType: PressType.singleClick,
       ),
@@ -410,8 +426,9 @@ class _TipToolButtonState extends State<TipToolButton> {
 
 class TipToolPanel extends StatefulWidget {
   PageContext context;
+  CustomPopupMenuController controller;
 
-  TipToolPanel({this.context});
+  TipToolPanel({this.context, this.controller});
 
   @override
   _TipToolPanelState createState() => _TipToolPanelState();
@@ -427,6 +444,7 @@ class _TipToolPanelState extends State<TipToolPanel> {
     () async {
       _isLoading = true;
       _readNextTipsDocs();
+      await _checkAutoShowTiptoolPanel();
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -462,6 +480,23 @@ class _TipToolPanelState extends State<TipToolPanel> {
     }
   }
 
+  Future<void> _checkAutoShowTiptoolPanel() async {
+    var isShow = widget.context
+        .sharedPreferences()
+        .getString('tiptool.isShow', person: widget.context.principal.person);
+    if (StringUtil.isEmpty(isShow) || isShow == 'true') {
+      _isChecked = false;
+    } else {
+      _isChecked = true;
+    }
+  }
+
+  Future<void> _setAutoShowTiptoolPanel() async {
+    widget.context.sharedPreferences().setString(
+        'tiptool.isShow', _isChecked ? 'false' : 'true',
+        person: widget.context.principal.person);
+  }
+
   @override
   Widget build(BuildContext context) {
     var content;
@@ -488,8 +523,8 @@ class _TipToolPanelState extends State<TipToolPanel> {
             bottom: 5,
           ),
           decoration: BoxDecoration(
-            // color: Color(0xeef5f5f5),
-            color: Colors.yellow,
+            color: Color(0xeef5f5f5),
+            // color: Colors.yellow,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -535,6 +570,13 @@ class _TipToolPanelState extends State<TipToolPanel> {
             ],
           ),
         );
+        content = InkWell(
+          onTap: () {
+            tiptoolOpener.open(_doc.id,
+                context: widget.context, controller: widget.controller);
+          },
+          child: content,
+        );
       }
     }
 
@@ -544,6 +586,7 @@ class _TipToolPanelState extends State<TipToolPanel> {
         onTap: () {
           setState(() {
             _isChecked = !_isChecked;
+            _setAutoShowTiptoolPanel();
           });
         },
         child: Row(
@@ -554,23 +597,20 @@ class _TipToolPanelState extends State<TipToolPanel> {
                   // shape: BoxShape.circle,
                   // color: Colors.blue,
                   ),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                ),
-                child: _isChecked
-                    ? Icon(
-                        Icons.check,
-                        size: 14.0,
-                        color: Colors.green,
-                      )
-                    : Icon(
-                        Icons.check_box_outline_blank,
-                        size: 14.0,
-                        color: Colors.grey,
-                      ),
-              ),
+              child: _isChecked
+                  ? Icon(
+                      Icons.check,
+                      size: 14.0,
+                      color: Colors.green,
+                    )
+                  : Icon(
+                      Icons.check_box_outline_blank,
+                      size: 14.0,
+                      color: Colors.grey,
+                    ),
+            ),
+            SizedBox(
+              width: 5,
             ),
             Text(
               '不再自动弹出',
@@ -587,31 +627,67 @@ class _TipToolPanelState extends State<TipToolPanel> {
         width: 10,
       ),
     );
+    actions.add(
+      InkWell(
+        onTap: () {
+          widget.controller.hideMenu();
+          widget.context.forward('/system/help_feedback');
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.help_center_outlined,
+              size: 14,
+            ),
+            SizedBox(
+              width: 5,
+            ),
+            Text(
+              '帮助',
+              style: TextStyle(
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     if (_doc != null) {
+      // actions.add(
+      //   SizedBox(
+      //     width: 10,
+      //   ),
+      // );
+      // actions.add(
+      //   InkWell(
+      //     onTap: () {},
+      //     child: Row(
+      //       mainAxisSize: MainAxisSize.min,
+      //       crossAxisAlignment: CrossAxisAlignment.center,
+      //       children: [
+      //         Icon(
+      //           Icons.star_border,
+      //           size: 14,
+      //         ),
+      //         SizedBox(
+      //           width: 5,
+      //         ),
+      //         Text(
+      //           '收藏',
+      //           style: TextStyle(
+      //             fontSize: 12,
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      // );
       actions.add(
-        InkWell(
-          onTap: () {
-            _readNextTipsDocs();
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.star_border,
-                size: 14,
-              ),
-              SizedBox(
-                width: 5,
-              ),
-              Text(
-                '收藏',
-                style: TextStyle(
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+        SizedBox(
+          width: 10,
         ),
       );
       actions.add(

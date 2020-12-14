@@ -41,8 +41,7 @@ class _TipsDocCreatorState extends State<TipsDocCreator> {
   }
 
   bool _checkButton() {
-    return !StringUtil.isEmpty(_hrefController.text) &&
-        !StringUtil.isEmpty(_titleController.text) &&
+    return !StringUtil.isEmpty(_titleController.text) &&
         !StringUtil.isEmpty(_summaryController.text);
   }
 
@@ -184,7 +183,8 @@ class _TipsDocCreatorState extends State<TipsDocCreator> {
                       child: TextField(
                         controller: _hrefController,
                         decoration: InputDecoration(
-                          hintText: '请输入链接地址。如：http://xx;help://xx',
+                          hintText:
+                              '请输入链接地址。如：http://xx;help://xx;tiptool://xxxx，如果为空默认为:tiptool://xx',
                           hintStyle: TextStyle(
                             fontSize: 14,
                           ),

@@ -756,6 +756,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           ),
         ),
         LogicPage(
+          title: '帮助',
+          subtitle: '',
+          icon: null,
+          url: '/system/fq/view',
+          buildPage: (PageContext pageContext) => FQView(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '创建帮助',
           subtitle: '',
           icon: null,

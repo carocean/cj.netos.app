@@ -95,6 +95,8 @@ mixin IHelperRemote {
   Future<void> setHelpless(String formId) {}
 
   Future<void> removeHelpForm(String id) {}
+
+  Future<HelpFormOR> getHelpForm(String helpId) {}
 }
 
 class HelperRemote implements IHelperRemote, IServiceBuilder {
@@ -218,5 +220,20 @@ class HelperRemote implements IHelperRemote, IServiceBuilder {
         'id': id,
       },
     );
+  }
+
+  @override
+  Future<HelpFormOR> getHelpForm(String helpId) async {
+    var obj=await remotePorts.portGET(
+      helperPortsUrl,
+      'getHelpForm',
+      parameters: {
+        'id': helpId,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return HelpFormOR.parse(obj);
   }
 }

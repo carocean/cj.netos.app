@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
+import 'package:netos_app/portals/gbera/pages/system/tiptool_opener.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 
 class TipToolMain extends StatefulWidget {
@@ -284,6 +285,8 @@ class _TipToolMainState extends State<TipToolMain> {
           behavior: HitTestBehavior.opaque,
           onTap: () {
             //doc.href的协议头判断：http://|https://是打开网页;help://为打开帮助
+            tiptoolOpener.open(doc.id,
+                context: widget.context,);
           },
           child: Column(
             children: [

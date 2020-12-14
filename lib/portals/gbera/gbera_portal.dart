@@ -2148,7 +2148,7 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '问答',
+          title: '帮助',
           subtitle: '',
           icon: null,
           url: '/system/fq/view',
