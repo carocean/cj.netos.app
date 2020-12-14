@@ -521,7 +521,7 @@ class _TipToolPanelState extends State<TipToolPanel> {
                     SizedBox(
                       height: 5,
                     ),
-                    Text(''
+                    Text(
                       '${_doc.summary}',
                       style: TextStyle(
                         color: Colors.grey[700],
