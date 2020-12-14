@@ -93,6 +93,8 @@ mixin IHelperRemote {
   Future<void> setHelpfull(String formId) {}
 
   Future<void> setHelpless(String formId) {}
+
+  Future<void> removeHelpForm(String id) {}
 }
 
 class HelperRemote implements IHelperRemote, IServiceBuilder {
@@ -164,8 +166,8 @@ class HelperRemote implements IHelperRemote, IServiceBuilder {
   }
 
   @override
-  Future<bool> isHelpful(String helpId)async {
-   return await remotePorts.portGET(
+  Future<bool> isHelpful(String helpId) async {
+    return await remotePorts.portGET(
       helperPortsUrl,
       'isHelpful',
       parameters: {
@@ -175,7 +177,7 @@ class HelperRemote implements IHelperRemote, IServiceBuilder {
   }
 
   @override
-  Future<bool> isHelpless(String helpId) async{
+  Future<bool> isHelpless(String helpId) async {
     return await remotePorts.portGET(
       helperPortsUrl,
       'isHelpless',
@@ -186,7 +188,7 @@ class HelperRemote implements IHelperRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> setHelpfull(String helpId) async{
+  Future<void> setHelpfull(String helpId) async {
     await remotePorts.portGET(
       helperPortsUrl,
       'setHelpful',
@@ -197,12 +199,23 @@ class HelperRemote implements IHelperRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> setHelpless(String helpId) async{
+  Future<void> setHelpless(String helpId) async {
     await remotePorts.portGET(
       helperPortsUrl,
       'setHelpless',
       parameters: {
         'helpId': helpId,
+      },
+    );
+  }
+
+  @override
+  Future<void> removeHelpForm(String id) async {
+    await remotePorts.portGET(
+      helperPortsUrl,
+      'removeHelpForm',
+      parameters: {
+        'id': id,
       },
     );
   }

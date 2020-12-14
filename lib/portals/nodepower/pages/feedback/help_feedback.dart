@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
@@ -48,6 +49,16 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
     }
   }
 
+  Future<void> _removeHelpForm(HelpFormOR form) async {
+    IHelperRemote helperRemote =
+        widget.context.site.getService('/feedback/helper');
+    await helperRemote.removeHelpForm(form.id);
+    _helpForms.removeWhere((element) => element.id == form.id);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +70,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           FlatButton(
             onPressed: () {
               widget.context.forward('/feedback/helper/create').then((value) {
-                _offset=0;
+                _offset = 0;
                 _helpForms.clear();
                 _load();
               });
@@ -111,31 +122,46 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       return items;
     }
     for (var form in _helpForms) {
-      items.add(GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          widget.context.forward('/feedback/helper/view', arguments: {'form': form});
-        },
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: 15,
-            bottom: 15,
-            left: 20,
-            right: 20,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('${form.title}'),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 18,
-                color: Colors.grey[400],
+      items.add(
+        Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          secondaryActions: <Widget>[
+            IconSlideAction(
+              caption: '删除',
+              icon: Icons.delete,
+              onTap: () {
+                _removeHelpForm(form);
+              },
+            ),
+          ],
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context
+                  .forward('/feedback/helper/view', arguments: {'form': form});
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: 15,
+                bottom: 15,
+                left: 20,
+                right: 20,
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${form.title}'),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-      ));
+      );
       items.add(
         Divider(
           height: 1,

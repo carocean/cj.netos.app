@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
+import 'package:native_screenshot/native_screenshot.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
+import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:uuid/uuid.dart';
-
 class FQView extends StatefulWidget {
   PageContext context;
 
@@ -29,7 +31,6 @@ class _FQViewState extends State<FQView> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
@@ -57,12 +58,43 @@ class _FQViewState extends State<FQView> {
     await _load();
   }
 
+  Future<void> _share() async {
+    String path = await NativeScreenshot.takeScreenshot();
+    if (StringUtil.isEmpty(path)) {
+      return;
+    }
+    var value = await showDialog(
+        context: context,
+        builder: (ctx) {
+          return widget.context
+              .part('/feedback/tiptool/previewAndcreate', context, arguments: {
+            'title': _form.title,
+            'leading':path,
+            'summary': _form.content,
+            'href': 'help://${_form.id}',
+          });
+        });
+    if (value == null) {
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.share,
+            ),
+            onPressed: () {
+              _share();
+            },
+          ),
+        ],
       ),
       // resizeToAvoidBottomPadding: false,
       body: SingleChildScrollView(
@@ -177,7 +209,7 @@ class _FQViewState extends State<FQView> {
                             '没帮助',
                             style: TextStyle(
                               color:
-                              _isHelpless ? Colors.green : Colors.grey[700],
+                                  _isHelpless ? Colors.green : Colors.grey[700],
                             ),
                           ),
                         ],

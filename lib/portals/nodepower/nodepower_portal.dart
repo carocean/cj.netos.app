@@ -3,6 +3,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
+import 'package:netos_app/portals/gbera/pages/system/tiptool_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_view.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -823,6 +824,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/feedback/tiptool/creator',
           buildPage: (PageContext pageContext) => TipsDocCreator(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '填充并创建提示',
+          subtitle: '',
+          icon: null,
+          url: '/feedback/tiptool/previewAndcreate',
+          buildPage: (PageContext pageContext) => TipsDocPreviewAndCreate(
             context: pageContext,
           ),
         ),

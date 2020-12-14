@@ -32,8 +32,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   List<Widget> _desklets = [];
   bool _isloaded = false;
   EasyRefreshController _controller;
-  CustomPopupMenuController _customPopupMenuController =
-      CustomPopupMenuController();
+
   bool _isChecked = false;
 
   @override
@@ -57,7 +56,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   @override
   void dispose() {
     _controller.dispose();
-    _customPopupMenuController?.dispose();
     _desklets.clear();
     _isloaded = false;
     super.dispose();
@@ -257,67 +255,8 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             backgroundColor: Colors.transparent,
             toolbarOpacity: 1,
             actions: <Widget>[
-              Badge(
-                position: BadgePosition.bottomStart(
-                  bottom: 0,
-                  start: 0,
-                ),
-                elevation: 0,
-                showBadge: true,
-                badgeContent: Text(
-                  '',
-                ),
-                child: CustomPopupMenu(
-                  controller: _customPopupMenuController,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 10,
-                      right: 10,
-                    ),
-                    child: Icon(
-                      Icons.lightbulb_outline_sharp,
-                      size: 25,
-                    ),
-                  ),
-                  menuBuilder: () {
-                    return Container(
-                      padding: EdgeInsets.only(
-                        left: 10,
-                        right: 10,
-                        bottom: 10,
-                        top: 15,
-                      ),
-                      margin: EdgeInsets.only(
-                        left: 10,
-                        right: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Color(0xefFFFFFF),
-                        borderRadius: BorderRadius.circular(4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(
-                              2,
-                              2,
-                            ),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      constraints: BoxConstraints(
-                        minHeight: 100,
-                        minWidth: 200,
-                      ),
-                      child: TipToolPanel(
-                        context: widget.context,
-                      ),
-                    );
-                  },
-                  arrowColor: Colors.black38,
-                  barrierColor: Colors.transparent,
-                  pressType: PressType.singleClick,
-                ),
+              TipToolButton(
+                context: widget.context,
               ),
               IconButton(
                 // Use the FontAwesomeIcons class for the IconData
@@ -360,6 +299,115 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   }
 }
 
+Function() _tipToolReadEndNotify;
+
+class TipToolButton extends StatefulWidget {
+  PageContext context;
+
+  TipToolButton({this.context});
+
+  @override
+  _TipToolButtonState createState() => _TipToolButtonState();
+}
+
+class _TipToolButtonState extends State<TipToolButton> {
+  CustomPopupMenuController _customPopupMenuController =
+      CustomPopupMenuController();
+  bool _canReadableTipDocs = false;
+
+  @override
+  void initState() {
+    _tipToolReadEndNotify = () async {
+      if (mounted) {
+        _load();
+      }
+    };
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _customPopupMenuController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    ITipToolRemote tipToolRemote =
+        widget.context.site.getService('/feedback/tiptool');
+    _canReadableTipDocs = await tipToolRemote.totalReadableTipDocs() > 0;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Badge(
+      position: BadgePosition.bottomStart(
+        bottom: 0,
+        start: 0,
+      ),
+      elevation: 0,
+      showBadge: _canReadableTipDocs,
+      badgeContent: Text(
+        '',
+      ),
+      child: CustomPopupMenu(
+        controller: _customPopupMenuController,
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Icon(
+            Icons.lightbulb_outline_sharp,
+            size: 25,
+          ),
+        ),
+        menuBuilder: () {
+          return Container(
+            padding: EdgeInsets.only(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              top: 15,
+            ),
+            margin: EdgeInsets.only(
+              left: 10,
+              right: 10,
+            ),
+            decoration: BoxDecoration(
+              color: Color(0xefFFFFFF),
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  offset: Offset(
+                    2,
+                    2,
+                  ),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            constraints: BoxConstraints(
+              minHeight: 100,
+              minWidth: 200,
+            ),
+            child: TipToolPanel(
+              context: widget.context,
+            ),
+          );
+        },
+        arrowColor: Colors.black38,
+        barrierColor: Colors.transparent,
+        pressType: PressType.singleClick,
+      ),
+    );
+  }
+}
+
 class TipToolPanel extends StatefulWidget {
   PageContext context;
 
@@ -371,12 +419,21 @@ class TipToolPanel extends StatefulWidget {
 
 class _TipToolPanelState extends State<TipToolPanel> {
   bool _isChecked = false;
-  int _offset = 0;
   TipsDocOR _doc;
+  bool _isLoading = false;
 
   @override
   void initState() {
-    _readNextTipsDocs();
+    () async {
+      _isLoading = true;
+      _readNextTipsDocs();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }();
+
     super.initState();
   }
 
@@ -388,14 +445,17 @@ class _TipToolPanelState extends State<TipToolPanel> {
   Future<void> _readNextTipsDocs() async {
     ITipToolRemote tipToolRemote =
         widget.context.site.getService('/feedback/tiptool');
-    var docs = await tipToolRemote.readNextTipsDocs(1, _offset);
+    var docs = await tipToolRemote.readNextTipsDocs(1, 0); //每次从0开始读1个
     if (docs.isEmpty) {
+      _doc = null;
+      if (_tipToolReadEndNotify != null) {
+        _tipToolReadEndNotify();
+      }
       if (mounted) {
         setState(() {});
       }
       return;
     }
-    _offset += docs.length;
     _doc = docs[0];
     if (mounted) {
       setState(() {});
@@ -405,73 +465,182 @@ class _TipToolPanelState extends State<TipToolPanel> {
   @override
   Widget build(BuildContext context) {
     var content;
-    if (_doc == null) {
-      content = Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.only(
-          top: 20,
-          bottom: 20,
-        ),
-        child: Text(
-          '没有提示！',
-        ),
-      );
+    if (_isLoading) {
+      content = SizedBox();
     } else {
-      content = Container(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-          top: 5,
-          bottom: 5,
-        ),
-        decoration: BoxDecoration(
-          color: Color(0xeef5f5f5),
-          // color: Colors.white,
-        ),
+      if (_doc == null) {
+        content = Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.only(
+            top: 20,
+            bottom: 20,
+          ),
+          child: Text(
+            '没有提示！',
+          ),
+        );
+      } else {
+        content = Container(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+            top: 5,
+            bottom: 5,
+          ),
+          decoration: BoxDecoration(
+            // color: Color(0xeef5f5f5),
+            color: Colors.yellow,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 55,
+                height: 55,
+                child: getAvatarWidget(
+                  _doc.leading,
+                  widget.context,
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_doc.title}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '${_doc.summary}',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
+    var actions = <Widget>[];
+    actions.add(
+      InkWell(
+        onTap: () {
+          setState(() {
+            _isChecked = !_isChecked;
+          });
+        },
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 55,
-              height: 55,
-              child: getAvatarWidget(
-                _doc.leading,
-                widget.context,
+            Container(
+              decoration: BoxDecoration(
+                  // shape: BoxShape.circle,
+                  // color: Colors.blue,
+                  ),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                ),
+                child: _isChecked
+                    ? Icon(
+                        Icons.check,
+                        size: 14.0,
+                        color: Colors.green,
+                      )
+                    : Icon(
+                        Icons.check_box_outline_blank,
+                        size: 14.0,
+                        color: Colors.grey,
+                      ),
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    '${_doc.title}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    '${_doc.summary}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+            Text(
+              '不再自动弹出',
+              style: TextStyle(
+                fontSize: 12,
               ),
             ),
           ],
         ),
+      ),
+    );
+    actions.add(
+      SizedBox(
+        width: 10,
+      ),
+    );
+    if (_doc != null) {
+      actions.add(
+        InkWell(
+          onTap: () {
+            _readNextTipsDocs();
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.star_border,
+                size: 14,
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Text(
+                '收藏',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      actions.add(
+        InkWell(
+          onTap: () {
+            _readNextTipsDocs();
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                '下一提示',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Icon(
+                Icons.skip_next,
+                size: 14,
+              ),
+            ],
+          ),
+        ),
       );
     }
-
     return Column(
       children: [
         content,
@@ -480,76 +649,7 @@ class _TipToolPanelState extends State<TipToolPanel> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _isChecked = !_isChecked;
-                });
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        // shape: BoxShape.circle,
-                        // color: Colors.blue,
-                        ),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: 10,
-                        right: 10,
-                      ),
-                      child: _isChecked
-                          ? Icon(
-                              Icons.check,
-                              size: 14.0,
-                              color: Colors.green,
-                            )
-                          : Icon(
-                              Icons.check_box_outline_blank,
-                              size: 14.0,
-                              color: Colors.grey,
-                            ),
-                    ),
-                  ),
-                  Text(
-                    '不再自动弹出',
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            InkWell(
-              onTap: () {
-                setState(() {});
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '下一提示',
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Icon(
-                    Icons.skip_next,
-                    size: 14,
-                  ),
-                ],
-              ),
-            ),
-          ],
+          children: actions,
         ),
       ],
     );

@@ -319,6 +319,7 @@ class _TipToolMainState extends State<TipToolMain> {
                     ),
                     Expanded(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '${doc.title}',

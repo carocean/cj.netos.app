@@ -54,6 +54,8 @@ mixin ITipToolRemote {
   Future<List<TipsDocOR>> pageReleasedTipsDoc(int limit, int offset);
 
   Future<List<TipsDocOR>> readNextTipsDocs(int limit, int offset);
+
+  Future<int> totalReadableTipDocs() {}
 }
 
 class TipToolRemote implements ITipToolRemote, IServiceBuilder {
@@ -218,6 +220,15 @@ class TipToolRemote implements ITipToolRemote, IServiceBuilder {
       parameters: {
         'id': id,
       },
+    );
+  }
+
+  @override
+  Future<int> totalReadableTipDocs() async {
+    return await remotePorts.portGET(
+      tiptoolPortsUrl,
+      'totalReadableTipDocs',
+      parameters: {},
     );
   }
 }
