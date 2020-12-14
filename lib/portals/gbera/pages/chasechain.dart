@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:toast/toast.dart';
@@ -30,7 +31,7 @@ class _ChasechainState extends State<Chasechain> {
   void initState() {
     _controller = EasyRefreshController();
     () async {
-      var location=await AmapLocation.fetchLocation();
+      var location = await AmapLocation.fetchLocation();
       var latLng = await location.latLng;
       var recode = await AmapSearch.searchReGeocode(latLng, radius: 0);
       _towncode = await recode.townCode;
@@ -176,17 +177,32 @@ class _ChasechainState extends State<Chasechain> {
             ],
           ),
         ),
-        Expanded(
-          child: EasyRefresh.custom(
-            controller: _controller,
-            onRefresh: _onRefresh,
-            onLoad: _load,
-            header: ClassicalHeader(),
-            footer: ClassicalFooter(),
-            slivers: _getSlivers(),
+        Expanded(child: _renderContentPanel(),),
+      ],
+    );
+  }
+
+  Widget _renderContentPanel() {
+    if (_items.isEmpty) {
+      return Container(
+        alignment: Alignment.center,
+        constraints: BoxConstraints.expand(),
+        child: Container(
+          height: 50,
+          width: 150,
+          child: LinearProgressIndicator(
+            backgroundColor: Colors.green,
           ),
         ),
-      ],
+      );
+    }
+    return EasyRefresh.custom(
+      controller: _controller,
+      onRefresh: _onRefresh,
+      onLoad: _load,
+      header: ClassicalHeader(),
+      footer: ClassicalFooter(),
+      slivers: _getSlivers(),
     );
   }
 
