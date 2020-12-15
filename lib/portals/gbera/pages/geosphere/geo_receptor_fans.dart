@@ -2296,8 +2296,15 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   @override
   void didUpdateWidget(_InteractiveRegion oldWidget) {
-    if (oldWidget.messageWrapper == widget.messageWrapper) {
+    if (oldWidget.messageWrapper.message.id == widget.messageWrapper.message.id) {
       oldWidget.messageWrapper = widget.messageWrapper;
+      _likes.clear();
+      _comments.clear();
+      _load().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     super.didUpdateWidget(oldWidget);
   }
