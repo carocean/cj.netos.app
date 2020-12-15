@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
@@ -25,6 +26,7 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
   bool _isLoad = false;
   int _limit = 15, _offset = 0;
   ReceptorInfo _receptor;
+
   @override
   void initState() {
     _controller = EasyRefreshController();
@@ -37,16 +39,16 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
 
   @override
   void dispose() {
-    _receptor=null;
+    _receptor = null;
     _controller?.dispose();
     _pofList.clear();
     super.dispose();
   }
 
   Future<void> _onloadFans() async {
-    _isLoad=false;
+    _isLoad = false;
     IGeoReceptorRemote receptorRemote =
-    widget.context.site.getService('/remote/geo/receptors');
+        widget.context.site.getService('/remote/geo/receptors');
     var pofList = await receptorRemote.pageReceptorFans(
       receptor: _receptor.id,
       limit: _limit,
@@ -54,12 +56,32 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
     );
     if (pofList.isEmpty) {
       _controller.finishLoad(success: true, noMore: true);
-      _isLoad=true;
+      _isLoad = true;
       return;
     }
     _offset += pofList.length;
     _pofList.addAll(pofList);
-    _isLoad=true;
+    _isLoad = true;
+  }
+
+  Future<void> _allowFollowSpeak(GeoPOF follow) async {
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+    await receptorRemote.allowFollowSpeak(_receptor.id, follow.person);
+    follow.rights = 'allowSpeak';
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _denyFollowSpeak(GeoPOF follow) async {
+    IGeoReceptorRemote receptorRemote =
+        widget.context.site.getService('/remote/geo/receptors');
+    await receptorRemote.denyFollowSpeak(_receptor.id, follow.person);
+    follow.rights = 'denySpeak';
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -108,6 +130,49 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
       return list;
     }
     for (var follow in _pofList) {
+      dynamic card=CardItem(
+        leading: SizedBox(
+          height: 40,
+          width: 40,
+          child: getAvatarWidget(
+            follow.person?.avatar,
+            widget.context,
+          ),
+        ),
+        title: '${follow.person.nickName}',
+        subtitle: Text(
+          '${follow.person.signature ?? ''}',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        tipsText: '距中心：${getFriendlyDistance(follow.distance)}',
+        onItemTap: () {
+          widget.context.forward('/person/view',
+              arguments: {'person': follow.person});
+        },
+      );
+      if(_receptor.creator==widget.context.principal.person) {
+        card=Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          secondaryActions: <Widget>[
+            IconSlideAction(
+              caption: follow.rights == 'denySpeak' ? '不再禁止发言' : '不再充许发言',
+              foregroundColor:follow.rights == 'denySpeak' ? Colors.grey[500]:Colors.green,
+              icon: follow.rights == 'denySpeak' ?Icons.block:Icons.speaker,
+              onTap: () {
+                if (follow.rights == 'denySpeak') {
+                  _allowFollowSpeak(follow);
+                } else {
+                  _denyFollowSpeak(follow);
+                }
+              },
+            ),
+          ],
+          child: card,
+        );
+      }
       list.add(
         Container(
           padding: EdgeInsets.only(
@@ -117,22 +182,7 @@ class _GeosphereReceptorFansState extends State<GeosphereReceptorFans> {
           color: Colors.white,
           child: Column(
             children: <Widget>[
-              CardItem(
-                leading: SizedBox(height: 40,width: 40,child: getAvatarWidget(follow.person?.avatar,widget.context,),),
-                title: '${follow.person.nickName}',
-                subtitle: Text(
-                  '${follow.person.signature??''}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                tipsText: '距中心：${getFriendlyDistance(follow.distance)}',
-                onItemTap: (){
-                  widget.context
-                      .forward('/person/view', arguments: {'person': follow.person});
-                },
-              ),
+              card,
               Divider(
                 height: 1,
                 indent: 50,

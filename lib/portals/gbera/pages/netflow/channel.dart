@@ -331,13 +331,13 @@ class _ChannelPageState extends State<ChannelPage> {
                     ],
                   ),
                 ).then<void>((value) {
-                  // The value passed to Navigator.pop() or null.
-                  if (value != null) {
-                    value['channel'] = _channel;
-                    value['refreshMessages'] = _refreshMessages;
-                    widget.context.forward('/netflow/channel/publish_article',
-                        arguments: value);
+                  if(value==null) {
+                    return;
                   }
+                  value['channel'] = _channel;
+                  value['refreshMessages'] = _refreshMessages;
+                  widget.context.forward('/netflow/channel/publish_article',
+                      arguments: value);
                 });
               },
             ),

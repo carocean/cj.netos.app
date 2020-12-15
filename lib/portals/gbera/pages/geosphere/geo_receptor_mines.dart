@@ -479,7 +479,9 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
                 ],
               ),
             ).then<void>((value) {
-              // The value passed to Navigator.pop() or null.
+              if(value==null) {
+                return;
+              }
               widget.context
                   .forward('/geosphere/publish_article', arguments: value)
                   .then((v) {
@@ -1082,15 +1084,15 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   _setTitleLabel() {
-    if (_upstreamReceptor != null) {
-      _titleLabel = _upstreamReceptor.title;
-      _leading = _upstreamReceptor.leading;
-    } else {
-      _titleLabel = widget.receptor.title;
-      _leading = widget.receptor.leading;
-    }
     _isMine = widget.context.principal?.person ==
         widget.messageWrapper.creator.official;
+    if(_isMine){
+      _titleLabel=widget.context.principal.nickName;
+      _leading=widget.context.principal.avatarOnLocal;
+    }else{
+      _titleLabel=_upstreamPerson.nickName;
+      _leading=_upstreamPerson.avatar;
+    }
   }
 
   _loadUpstreamReceptor() async {
@@ -1149,19 +1151,11 @@ class __MessageCardState extends State<_MessageCard> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              if (!_isMine) {
-                widget.context.forward(
-                  '/geosphere/view/receptor',
-                  arguments: {
-                    'receptor': ReceptorInfo.create(_upstreamReceptor),
-                  },
-                );
-                return;
-              }
               widget.context.forward(
                 '/geosphere/portal.owner',
                 arguments: {
                   'receptor': widget.receptor,
+                  'personFilter':widget.messageWrapper.message.creator,
                 },
               );
             },
@@ -1183,20 +1177,11 @@ class __MessageCardState extends State<_MessageCard> {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () {
-                        if (!_isMine) {
-                          widget.context.forward(
-                            '/geosphere/view/receptor',
-                            arguments: {
-                              'receptor':
-                                  ReceptorInfo.create(_upstreamReceptor),
-                            },
-                          );
-                          return;
-                        }
                         widget.context.forward(
                           '/geosphere/portal.owner',
                           arguments: {
                             'receptor': widget.receptor,
+                            'personFilter':widget.messageWrapper.message.creator,
                           },
                         );
                       },
@@ -1209,39 +1194,6 @@ class __MessageCardState extends State<_MessageCard> {
                         ),
                       ),
                     ),
-                    // widget.messageWrapper.message.upstreamCategory ==
-                    //             'mobiles' ||
-                    //         _isMine
-                    //     ? Container(
-                    //         width: 0,
-                    //         height: 0,
-                    //       )
-                    //     : SizedBox(
-                    //         height: 20,
-                    //         width: 20,
-                    //         child: IconButton(
-                    //           padding: EdgeInsets.all(0),
-                    //           onPressed: () {
-                    //             showModalBottomSheet(
-                    //                 context: context,
-                    //                 builder: (context) {
-                    //                   return widget.context.part(
-                    //                       '/netflow/channel/serviceMenu',
-                    //                       context);
-                    //                 }).then((value) {
-                    //               print('-----$value');
-                    //               if (value == null) return;
-                    //               widget.context
-                    //                   .forward('/micro/app', arguments: value);
-                    //             });
-                    //           },
-                    //           icon: Icon(
-                    //             Icons.art_track,
-                    //             size: 20,
-                    //             color: Colors.grey[700],
-                    //           ),
-                    //         ),
-                    //       ),
                   ],
                 ),
                 Container(
@@ -1273,23 +1225,6 @@ class __MessageCardState extends State<_MessageCard> {
                   widget.messageWrapper.medias,
                   widget.context,
                 ),
-//                DefaultTabController(
-//                  length: widget.messageWrapper.medias.length,
-//                  child: PageSelector(
-//                    medias: widget.messageWrapper.medias,
-//                    context: widget.context,
-//                    onMediaLongTap: (media) {
-//                      widget.context.forward(
-//                        '/images/viewer',
-//                        arguments: {
-//                          'media': media,
-//                          'others': widget.messageWrapper.medias,
-//                          'autoPlay': true,
-//                        },
-//                      );
-//                    },
-//                  ),
-//                ),
                 Container(
                   height: 7,
                 ),

@@ -548,7 +548,9 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
                 ],
               ),
             ).then<void>((value) {
-              // The value passed to Navigator.pop() or null.
+              if(value==null) {
+                return;
+              }
               widget.context
                   .forward('/geosphere/publish_article', arguments: value)
                   .then((v) {

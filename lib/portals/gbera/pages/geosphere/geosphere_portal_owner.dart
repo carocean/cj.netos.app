@@ -17,6 +17,7 @@ import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
+import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
@@ -52,10 +53,12 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
   List<_GeosphereMessageWrapper> _messageList = [];
   bool _isLoadedMessages = false;
   AmapPoi _currentPoi;
+  String _personFilter;
 
   @override
   void initState() {
     _receptorInfo = widget.context.parameters['receptor'];
+    _personFilter = widget.context.parameters['personFilter'];
     _refreshController = EasyRefreshController();
     _loadCategory().then((v) {
       _isLoaded = true;
@@ -86,50 +89,52 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
   Future<void> _onloadMessages() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-
+    var creator = _personFilter;
+    if (StringUtil.isEmpty(creator)) {
+      creator = _receptorInfo.creator;
+    }
     List<GeosphereMessageOL> messages = await geoMessageService.pageMyMessage(
-        _receptorInfo.id, _receptorInfo.creator, _limit, _offset);
+        _receptorInfo.id, creator, _limit, _offset);
     if (messages.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
       return;
     }
     _offset += messages.length;
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
-    var persons=<String,Person>{};
+        widget.context.site.getService('/gbera/persons');
+    var persons = <String, Person>{};
     List<_GeosphereMessageWrapper> wrappers = [];
     for (var message in messages) {
-      var c=message.creator;
-      Person creator =persons[c];
-      if(creator==null) {
-        creator =
-        await personService.fetchPerson(c);
-        if(creator==null) {
+      var c = message.creator;
+      Person creator = persons[c];
+      if (creator == null) {
+        creator = await personService.fetchPerson(c);
+        if (creator == null) {
           continue;
         }
-        persons[c]=creator;
+        persons[c] = creator;
       }
-      var u=message.upstreamPerson;
-      Person upstreamPerson =persons[u];
-      if(upstreamPerson==null) {
-        upstreamPerson =
-        await personService.fetchPerson(u);
-        if(upstreamPerson==null) {
-          upstreamPerson=creator;
-        }else{
-          persons[u]=upstreamPerson;
+      var u = message.upstreamPerson;
+      Person upstreamPerson = persons[u];
+      if (upstreamPerson == null) {
+        upstreamPerson = await personService.fetchPerson(u);
+        if (upstreamPerson == null) {
+          upstreamPerson = creator;
+        } else {
+          persons[u] = upstreamPerson;
         }
       }
-      await _fillMessageWrapper(message, wrappers,creator,upstreamPerson);
+      await _fillMessageWrapper(message, wrappers, creator, upstreamPerson);
     }
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(message, wrappers,Person creator,Person upstreamPerson) async {
+  Future<void> _fillMessageWrapper(
+      message, wrappers, Person creator, Person upstreamPerson) async {
     IGeoReceptorRemote receptorRemote =
-    widget.context.site.getService('/remote/geo/receptors');
+        widget.context.site.getService('/remote/geo/receptors');
     List<GeosphereMediaOR> medias =
-    await receptorRemote.listExtraMedia(message.id);
+        await receptorRemote.listExtraMedia(message.id);
 
     List<MediaSrc> _medias = [];
     for (GeosphereMediaOR mediaOR in medias) {
@@ -155,8 +160,8 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
   _deleteMessage(_GeosphereMessageWrapper wrapper) async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    await geoMessageService.removeMessage(wrapper.message.receptor,
-       wrapper.message.id);
+    await geoMessageService.removeMessage(
+        wrapper.message.receptor, wrapper.message.id);
     _messageList.removeWhere((e) {
       return e.message.id == wrapper.message.id;
     });
@@ -214,6 +219,7 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
             receptorInfo: _receptorInfo,
             isShowWhite: _receptorInfo.foregroundMode == ForegroundMode.white,
             categoryOL: _category,
+            personFilter: _personFilter,
             refresh: () {},
           ),
         ),
@@ -471,6 +477,7 @@ class _HeaderWidget extends StatefulWidget {
   ReceptorInfo receptorInfo;
   bool isShowWhite;
   GeoCategoryOL categoryOL;
+  String personFilter;
 
   _HeaderWidget({
     this.context,
@@ -478,6 +485,7 @@ class _HeaderWidget extends StatefulWidget {
     this.receptorInfo,
     this.isShowWhite,
     this.categoryOL,
+    this.personFilter,
   });
 
   @override
@@ -490,11 +498,11 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
   LatLng _currentLatLng;
   List<GeoCategoryAppOR> _apps = [];
   Map<String, String> _selectCategory;
-  Person _owner;
+  Person _person;
 
   @override
   void initState() {
-    _loadOwner().then((v) {
+    _loadPerson().then((v) {
       if (mounted) {
         setState(() {});
       }
@@ -537,11 +545,18 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  Future<void> _loadOwner() async {
+  Future<void> _loadPerson() async {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
-    _owner = await personService.getPerson(widget.receptorInfo.creator,
-        isDownloadAvatar: true);
+    String creator = widget.personFilter;
+    if (StringUtil.isEmpty(creator)) {
+      creator = widget.receptorInfo.creator;
+    }
+    _person = await personService.getPerson(creator, isDownloadAvatar: true);
+  }
+
+  bool _isMaster() {
+    return _person?.official == widget.receptorInfo?.creator;
   }
 
   Future<void> _loadCategoryAllApps() async {
@@ -553,26 +568,6 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
     var on =
         widget.categoryOL.moveMode == 'moveableSelf' ? 'onserved' : 'onservice';
     _apps = await categoryRemote.getApps(widget.categoryOL.id, on);
-  }
-
-  Future<void> _loadAppsOfCategory(categroyMap) async {
-    _selectCategory = categroyMap.cast<String, String>();
-    IGeoCategoryRemote categoryRemote =
-        widget.context.site.getService('/remote/geo/categories');
-    var on = 'onserved';
-    _apps = await categoryRemote.getApps(categroyMap['category'], on);
-    await _filterMessages(categroyMap);
-  }
-
-  Future<void> _clearSelectCategory() async {
-    print('----清除选择');
-    _selectCategory = null;
-    await _loadCategoryAllApps();
-    _filterMessages(null);
-  }
-
-  Future<void> _filterMessages(categroyMap) async {
-    print('----过滤消息');
   }
 
   Future<void> _loadLocation() async {
@@ -601,34 +596,10 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_owner == null) {
+    if (_person == null) {
       return Container(
         height: 0,
         width: 0,
-      );
-    }
-    Widget imgSrc = null;
-    if (StringUtil.isEmpty(widget.receptorInfo.leading)) {
-      imgSrc = Icon(
-        IconData(
-          0xe604,
-          fontFamily: 'netflow2',
-        ),
-        size: 50,
-        color: Colors.grey[500],
-      );
-    } else if (widget.receptorInfo.leading.startsWith('/')) {
-      //本地存储
-      imgSrc = Image.file(
-        File(widget.receptorInfo.leading),
-        width: 50,
-        height: 50,
-      );
-    } else {
-      imgSrc = Image.network(
-        '${widget.receptorInfo.leading}?accessToken=${widget.context.principal.accessToken}',
-        width: 50,
-        height: 50,
       );
     }
 
@@ -676,7 +647,15 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          child: imgSrc,
+                          child: SizedBox(
+                            height: 50,
+                            width: 50,
+                            child: getAvatarWidget(
+                              widget.receptorInfo.leading,
+                              widget.context,
+                              'lib/portals/gbera/images/netflow.png'
+                            ),
+                          ),
                           padding: EdgeInsets.only(
                             right: 10,
                             top: 3,
@@ -773,23 +752,20 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
 //                      widget.context.forward('/site/marchant');
-                      widget.context
-                          .forward('/person/view', arguments: {'person': _owner});
+                      widget.context.forward('/person/view',
+                          arguments: {'person': _person});
                     },
                     child: Row(
                       children: <Widget>[
                         Padding(
                           padding: EdgeInsets.all(1),
-                          child: ClipOval(
-                            child: Image(
-                              image: FileImage(
-                                File(
-                                  _owner?.avatar,
-                                ),
-                              ),
-                              height: 30,
-                              width: 30,
-                              fit: BoxFit.fill,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: getAvatarWidget(
+                                  _person?.avatar, widget.context),
                             ),
                           ),
                         ),
@@ -801,7 +777,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 left: 5,
                               ),
                               child: Text(
-                                _owner.nickName,
+                                _person.nickName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: widget.receptorInfo.backgroundMode ==
@@ -817,7 +793,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                                 left: 5,
                               ),
                               child: Text(
-                                '圈主',
+                                _isMaster() ? '圈主' : '粉丝',
                                 style: TextStyle(
                                   color: widget.receptorInfo.backgroundMode ==
                                           BackgroundMode.vertical
@@ -1162,7 +1138,8 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
   Future<bool> _isLiked() async {
     IGeosphereMessageService geoMessageService =
         widget.context.site.getService('/geosphere/receptor/messages');
-    return await geoMessageService.isLiked(widget.messageWrapper.message.receptor,
+    return await geoMessageService.isLiked(
+        widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id,
         widget.context.principal.person);
   }
@@ -1189,6 +1166,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
     await geoMessageService.unlike(widget.messageWrapper.message.receptor,
         widget.messageWrapper.message.id, widget.context.principal.person);
   }
+
   Future<void> _tipoffItem() async {
     showDialog(
         context: context,
@@ -1209,6 +1187,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       );
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -1479,25 +1458,24 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
         switch (cause) {
           case 'comment':
             _isShowCommentEditor = true;
-            if(mounted) {
+            if (mounted) {
               setState(() {});
             }
             break;
           case 'liked':
           case 'unliked':
-            Future.delayed(Duration(seconds: 1), (){
-              if(mounted) {
+            Future.delayed(Duration(seconds: 1), () {
+              if (mounted) {
                 setState(() {});
               }
             });
             break;
           default:
-            if(mounted) {
+            if (mounted) {
               setState(() {});
             }
             break;
         }
-
       };
     }
     super.initState();
@@ -1512,13 +1490,13 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   Future<Map<String, List<dynamic>>> _loadInteractiveRegion() async {
     IGeoReceptorRemote receptorRemote =
-    widget.context.site.getService('/remote/geo/receptors');
+        widget.context.site.getService('/remote/geo/receptors');
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     var persons = <String, Person>{};
 
     List<GeosphereLikeOR> likes =
-    await receptorRemote.pageLike(widget.messageWrapper.message.id, 10, 0);
+        await receptorRemote.pageLike(widget.messageWrapper.message.id, 10, 0);
     List<GeosphereLikePersonOL> likesLocal = [];
     for (var like in likes) {
       var person = persons[like.person];
@@ -1760,9 +1738,8 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-
-                                      widget.context
-                                          .forward('/person/view', arguments: {'official': like.person});
+                                      widget.context.forward('/person/view',
+                                          arguments: {'official': like.person});
                                     },
                                   children: [
                                     TextSpan(

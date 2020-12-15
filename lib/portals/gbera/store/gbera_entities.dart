@@ -13,10 +13,12 @@ class GeoPOI {
 
 class GeoPOF {
   Person person;
+  String rights;
   double distance;
 
   GeoPOF({
     this.person,
+    this.rights,
     this.distance,
   });
 }

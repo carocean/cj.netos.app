@@ -149,6 +149,9 @@ mixin IGeoReceptorRemote {
   Future<List<GeosphereMessageOL>> pageMessage(
       String receptor, String creator, int limit, int offset) {}
 
+  Future<List<GeosphereMessageOL>> pageDocument(
+      String receptor, int limit, int offset) {}
+
   Future<void> follow(String receptor) {}
 
   Future<void> unfollow(String receptor) {}
@@ -162,6 +165,12 @@ mixin IGeoReceptorRemote {
   Future<List<GeosphereLikeOR>> pageLike(String docid, int limit, int offset) {}
 
   Future<List<GeosphereCommentOR>> pageComment(docid, int limit, int offset) {}
+
+  Future<void> allowFollowSpeak(String id, Person person) {}
+
+  Future<void> denyFollowSpeak(String id, Person person) {}
+
+  Future<bool> isDenyFollowSpeak(String id) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -228,7 +237,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return GeoReceptor.load(map,'true', principal.person);
+    return GeoReceptor.load(map, 'true', principal.person);
   }
 
   @override
@@ -607,6 +616,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       pofList.add(
         GeoPOF(
           person: person,
+          rights: follow['rights'],
           distance: pof['distance'],
         ),
       );
@@ -672,7 +682,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return GeoReceptor.load(map,'false', principal.person);
+    return GeoReceptor.load(map, 'false', principal.person);
   }
 
   ///远程到本地的同步任务
@@ -682,7 +692,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     var list = jsonDecode(content);
     bool issync = false;
     for (var item in list) {
-      var receptor = GeoReceptor.load(item, 'true',principal.person);
+      var receptor = GeoReceptor.load(item, 'true', principal.person);
       CountValue value =
           await receptorDAO.countReceptor(receptor.id, principal.person);
       if (value.value < 1) {
@@ -745,6 +755,27 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<GeosphereMessageOL>> pageDocument(
+      String receptor, int limit, int offset)async {
+    var list = await remotePorts.portGET(
+      _receptorPortsUrl,
+      'pageDocument2',
+      parameters: {
+        'id': receptor,
+        'limit': limit,
+        'skip': offset,
+      },
+    );
+    var msgs = <GeosphereMessageOL>[];
+    for (var item in list) {
+      msgs.add(
+        GeosphereMessageOL.from(item, principal.person),
+      );
+    }
+    return msgs;
+  }
+
+  @override
   Future<Function> unfollow(String receptor) async {
     await remotePorts.portGET(
       _geospherePortsUrl,
@@ -760,6 +791,41 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     await remotePorts.portGET(
       _geospherePortsUrl,
       'followReceptor',
+      parameters: {
+        'receptor': receptor,
+      },
+    );
+  }
+
+  @override
+  Future<Function> allowFollowSpeak(String receptor, Person fans) async {
+    await remotePorts.portGET(
+      _geospherePortsUrl,
+      'allowFollowSpeak',
+      parameters: {
+        'receptor': receptor,
+        'fans': fans.official,
+      },
+    );
+  }
+
+  @override
+  Future<Function> denyFollowSpeak(String receptor, Person fans) async {
+    await remotePorts.portGET(
+      _geospherePortsUrl,
+      'denyFollowSpeak',
+      parameters: {
+        'receptor': receptor,
+        'fans': fans.official,
+      },
+    );
+  }
+
+  @override
+  Future<bool> isDenyFollowSpeak(String receptor) async {
+    return await remotePorts.portGET(
+      _geospherePortsUrl,
+      'isDenyFollowSpeak',
       parameters: {
         'receptor': receptor,
       },
