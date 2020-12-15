@@ -1642,10 +1642,12 @@ class __MessageCardState extends State<_MessageCard> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              /*
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+
                   widget.receptor.creator ==
                               widget.messageWrapper.message.creator ||
                           _upstreamReceptor == null
@@ -1681,6 +1683,9 @@ class __MessageCardState extends State<_MessageCard> {
                         ),
                 ],
               ),
+
+
+               */
               Container(
                 //内容区
                 padding: EdgeInsets.only(top: 5, bottom: 10),
@@ -2364,22 +2369,17 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   @override
   Widget build(BuildContext context) {
-    if (_likes.isEmpty && _comments.isEmpty) {
-      return SizedBox(
-        width: 0,
-        height: 0,
-      );
-    }
-    var comments = _comments;
-    var likePersons = _likes;
     bool isHide =
-        comments.isEmpty && likePersons.isEmpty && !_isShowCommentEditor;
+        _comments.isEmpty && _likes.isEmpty && !_isShowCommentEditor;
     if (isHide) {
       return Container(
         width: 0,
         height: 0,
       );
     }
+    var comments = _comments;
+    var likePersons = _likes;
+
     var commentListWidgets = <Widget>[];
     for (GeosphereCommentOL comment in comments) {
       bool isMine = comment.person == widget.context.principal.person;
