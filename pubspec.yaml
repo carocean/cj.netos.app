@@ -111,8 +111,8 @@ dependencies:
   custom_pop_up_menu: ^1.1.0
   native_screenshot:
     path: native_screenshot
-#  buddy_push:
-#    path: buddy_push
+  buddy_push:
+    path: buddy_push
 dev_dependencies:
   flutter_test:
     sdk: flutter

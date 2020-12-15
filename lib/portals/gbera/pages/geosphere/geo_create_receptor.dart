@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
@@ -27,7 +28,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
   GeoCategoryOR _category;
   GeoBrandOR _brand;
   var _key = GlobalKey<_LocationSettingWidgetState>();
-
+  var _scaffoldKey=GlobalKey<ScaffoldState>();
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
@@ -67,30 +68,45 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         moveMode = 'moveableSelf';
         break;
     }
-    await receptorService.add(
-      GeoReceptor(
-        MD5Util.MD5(Uuid().v1()),
-        _titleController.text,
-        _channel.id,
-        _category.id,
-        _brand?.id,
-        moveMode,
-        _category.leading,
-        widget.context.principal.person,
-        jsonEncode(_geoPoi.latLng.toJson()),
-        double.parse(_radiusController.text),
-        _udistance,
-        DateTime.now().millisecondsSinceEpoch,
-        DateTime.now().millisecondsSinceEpoch,
-        'false',
-        'none',
-        null,
-        'false',
-        widget.context.principal.device,
-        'true',
-        widget.context.principal.person,
-      ),
-    );
+    var reGeocode=await AmapSearch.searchReGeocode(_geoPoi.latLng,radius: 200);
+    var townCode =await reGeocode.townCode;
+    try {
+      await receptorService.add(
+        GeoReceptor(
+          MD5Util.MD5(Uuid().v1()),
+          _titleController.text,
+          townCode,
+          _channel.id,
+          _category.id,
+          _brand?.id,
+          moveMode,
+          _category.leading,
+          widget.context.principal.person,
+          jsonEncode(_geoPoi.latLng.toJson()),
+          double.parse(_radiusController.text),
+          _udistance,
+          DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          'false',
+          'none',
+          null,
+          'false',
+          widget.context.principal.device,
+          'true',
+          widget.context.principal.person,
+        ),
+      );
+      widget.context.backward(
+          clearHistoryPageUrl: '/geosphere/',
+          result: {'refresh': true});
+    }catch(e){
+      print(e);
+      _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('错误:${e}')));
+    }
   }
 
   @override
@@ -98,6 +114,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
     GeoCategoryOR category = _category;
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(category.title),
         elevation: 0.0,
@@ -107,11 +124,7 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
             onPressed: !_enableFinishButton
                 ? null
                 : () {
-                    _saveReceptor().then((v) {
-                      widget.context.backward(
-                          clearHistoryPageUrl: '/geosphere/',
-                          result: {'refresh': true});
-                    });
+                    _saveReceptor();
                   },
             child: Text(
               '完成',
@@ -328,8 +341,9 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
     if (StringUtil.isEmpty(address)) {
       return;
     }
+    var latLng=await location.latLng;
     _geoPoi = AmapPoi(
-      latLng: await location.latLng,
+      latLng: latLng,
       address: address,
       title: await location.poiName,
     );

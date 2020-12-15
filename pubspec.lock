@@ -72,7 +72,7 @@ packages:
     source: hosted
     version: "2.1.0-nullsafety.1"
   buddy_push:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: buddy_push
       relative: true

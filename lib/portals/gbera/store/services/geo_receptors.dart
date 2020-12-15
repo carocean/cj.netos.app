@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:amap_core_fluttify/src/dart/models.dart';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:framework/core_lib/_shared_preferences.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
@@ -49,9 +50,12 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
         return true;
       }
       var latlng = await location.latLng;
+      var reGeocode=await AmapSearch.searchReGeocode(latlng,radius: 200);
+      var townCode =await reGeocode.townCode;
       var myDevice = GeoReceptor(
         MD5Util.MD5(Uuid().v1()),
         '${principal.nickName}',
+        townCode,
         'transits',
         'mobiles',
         null,
@@ -102,11 +106,14 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
           localFile);
       receptor.background = localFile;
     }
-    await this.receptorDAO.add(receptor);
+
     if (!isOnlySaveLocal) {
       receptor.leading = leading;
       await receptorRemote.addReceptor(receptor);
     }
+
+    await this.receptorDAO.add(receptor);
+
   }
 
   @override
@@ -295,6 +302,6 @@ class GeoReceptorCache implements IGeoReceptorCache, IServiceBuilder {
       return null;
     }
     var map = jsonDecode(json);
-    return GeoReceptor.load(map, principal.person);
+    return GeoReceptor.load(map,'true', principal.person);
   }
 }

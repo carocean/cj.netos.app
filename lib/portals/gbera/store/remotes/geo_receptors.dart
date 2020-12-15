@@ -87,12 +87,12 @@ class GeosphereCommentOR {
   });
 
   GeosphereCommentOR.parse(obj) {
-    this.id=obj['id'];
-    this.person=obj['person'];
-    this.ctime=obj['ctime'];
-    this.receptor=obj['receptor'];
-    this.docid=obj['docid'];
-    this.content=obj['content'];
+    this.id = obj['id'];
+    this.person = obj['person'];
+    this.ctime = obj['ctime'];
+    this.receptor = obj['receptor'];
+    this.docid = obj['docid'];
+    this.content = obj['content'];
   }
 }
 
@@ -159,11 +159,9 @@ mixin IGeoReceptorRemote {
 
   Future<List<GeosphereMediaOR>> listExtraMedia(String docid) {}
 
-  Future<List<GeosphereLikeOR>> pageLike(
-      String docid, int limit, int offset) {}
+  Future<List<GeosphereLikeOR>> pageLike(String docid, int limit, int offset) {}
 
-  Future<List<GeosphereCommentOR>> pageComment(
-      docid, int limit, int offset) {}
+  Future<List<GeosphereCommentOR>> pageComment(docid, int limit, int offset) {}
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -195,6 +193,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       parameters: {
         'id': receptor.id,
         'title': receptor.title,
+        'townCode': receptor.townCode,
         'channel': receptor.channel,
         'category': receptor.category,
         'brand': receptor.brand,
@@ -229,7 +228,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return GeoReceptor.load(map, principal.person);
+    return GeoReceptor.load(map,'true', principal.person);
   }
 
   @override
@@ -492,25 +491,8 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               isAutoScrollMessage:
                   receptor['isAutoScrollMessage'] == 'true' ? true : false,
               offset: item['distance'],
-              origin: GeoReceptor(
-                receptor['id'],
-                receptor['title'],
-                receptor['channel'],
-                receptor['category'],
-                receptor['brand'],
-                receptor['moveMode'],
-                receptor['leading'],
-                receptor['creator'],
-                jsonEncode(receptor['location']),
-                receptor['radius'],
-                receptor['uDistance'],
-                receptor['ctime'],
-                receptor['ctime'],
-                receptor['foregroundMode'],
-                receptor['backgroundMode'],
-                receptor['background'],
-                receptor['isAutoScrollMessage'],
-                receptor['device'],
+              origin: GeoReceptor.load(
+                receptor,
                 'true',
                 principal.person,
               ),
@@ -594,25 +576,8 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
               isAutoScrollMessage:
                   receptor['isAutoScrollMessage'] == 'true' ? true : false,
               offset: item['distance'],
-              origin: GeoReceptor(
-                receptor['id'],
-                receptor['title'],
-                receptor['channel'],
-                receptor['category'],
-                receptor['brand'],
-                receptor['moveMode'],
-                receptor['leading'],
-                receptor['creator'],
-                jsonEncode(receptor['location']),
-                receptor['radius'],
-                receptor['uDistance'],
-                receptor['ctime'],
-                receptor['ctime'],
-                receptor['foregroundMode'],
-                receptor['backgroundMode'],
-                receptor['background'],
-                receptor['isAutoScrollMessage'],
-                receptor['device'],
+              origin: GeoReceptor.load(
+                receptor,
                 'true',
                 principal.person,
               ),
@@ -707,7 +672,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return GeoReceptor.load(map, principal.person);
+    return GeoReceptor.load(map,'false', principal.person);
   }
 
   ///远程到本地的同步任务
@@ -717,7 +682,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     var list = jsonDecode(content);
     bool issync = false;
     for (var item in list) {
-      var receptor = GeoReceptor.load(item, principal.person);
+      var receptor = GeoReceptor.load(item, 'true',principal.person);
       CountValue value =
           await receptorDAO.countReceptor(receptor.id, principal.person);
       if (value.value < 1) {
@@ -862,7 +827,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<List<GeosphereLikeOR>> pageLike(
-       String docid, int limit, int offset) async {
+      String docid, int limit, int offset) async {
     var list = await remotePorts.portGET(
       _receptorPortsUrl,
       'pageLike',

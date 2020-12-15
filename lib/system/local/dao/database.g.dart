@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -164,7 +164,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `moveMode` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `utime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `GeoReceptor` (`id` TEXT, `title` TEXT, `townCode` TEXT, `channel` TEXT, `category` TEXT, `brand` TEXT, `moveMode` TEXT, `leading` TEXT, `creator` TEXT, `location` TEXT, `radius` REAL, `uDistance` INTEGER, `ctime` INTEGER, `utime` INTEGER, `foregroundMode` TEXT, `backgroundMode` TEXT, `background` TEXT, `isAutoScrollMessage` TEXT, `device` TEXT, `canDel` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `GeoCategoryOL` (`id` TEXT, `title` TEXT, `leading` TEXT, `sort` INTEGER, `ctime` INTEGER, `creator` TEXT, `channel` TEXT, `isHot` INTEGER, `moveMode` TEXT, `defaultRadius` REAL, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
@@ -894,6 +894,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
             (GeoReceptor item) => <String, dynamic>{
                   'id': item.id,
                   'title': item.title,
+                  'townCode': item.townCode,
                   'channel': item.channel,
                   'category': item.category,
                   'brand': item.brand,
@@ -923,6 +924,7 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   static final _geoReceptorMapper = (Map<String, dynamic> row) => GeoReceptor(
       row['id'] as String,
       row['title'] as String,
+      row['townCode'] as String,
       row['channel'] as String,
       row['category'] as String,
       row['brand'] as String,

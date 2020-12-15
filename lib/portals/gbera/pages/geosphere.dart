@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:badges/badges.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text_field/extended_text_field.dart';

@@ -38,4 +38,15 @@ final migrationsMicrogeo = <Migration>[
       print('--------database onUpgrade 从版本3迁移到版本4');
     },
   ),
+  Migration(
+    4,
+    5,
+        (db) async {
+      await db.transaction((txn) async {
+        await db.execute('ALTER TABLE GeoReceptor ADD COLUMN townCode Text');
+      });
+
+      print('--------database onUpgrade 从版本4迁移到版本5');
+    },
+  ),
 ];

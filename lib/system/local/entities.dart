@@ -553,6 +553,7 @@ class Principal implements IPrincipal {
 class GeoReceptor {
   String id;
   String title;
+  String townCode;
   String channel;
   String category;
   String brand;
@@ -580,6 +581,7 @@ class GeoReceptor {
   GeoReceptor(
       this.id,
       this.title,
+      this.townCode,
       this.channel,
       this.category,
       this.brand,
@@ -611,7 +613,7 @@ class GeoReceptor {
     this.location = jsonEncode(map);
   }
 
-  GeoReceptor.load(map, String sandbox) {
+  GeoReceptor.load(map,String canDel, String sandbox) {
     var loc = map['location'];
     var locStr;
     if (loc is String) {
@@ -621,6 +623,7 @@ class GeoReceptor {
     }
     id = map['id'];
     title = map['title'];
+    townCode=map['townCode'];
     channel=map['channel'];
     category = map['category'];
     brand=map['brand'];
@@ -637,6 +640,7 @@ class GeoReceptor {
     background = map['background'];
     isAutoScrollMessage = map['isAutoScrollMessage'];
     device = map['device'];
+    this.canDel=canDel;
     this.sandbox = sandbox;
   }
 
@@ -644,6 +648,7 @@ class GeoReceptor {
     return {
       'id': id,
       'title': title,
+      'townCode':townCode,
       'channel': channel,
       'category': category,
       'brand': brand,
