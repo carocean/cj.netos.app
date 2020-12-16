@@ -79,7 +79,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
     _doc = await recommender.getDocument(widget.item);
-    if(_doc==null) {
+    if (_doc == null) {
       return;
     }
     _future_getPool = _getPool();
@@ -271,18 +271,29 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
         print('未知布局! 消息:${_doc.message.id} ${_doc.message.content}');
         break;
     }
-    layout.add(
-      SizedBox(
-        height: 20,
-        child: Divider(
-          height: 1,
-        ),
-      ),
-    );
-    return Container(
+    // layout.add(
+    //   SizedBox(
+    //     height: 20,
+    //     child: Divider(
+    //       height: 1,
+    //     ),
+    //   ),
+    // );
+
+
+    var body=Container(
       padding: EdgeInsets.only(
-        left: 15,
-        right: 15,
+        left: 10,
+        right: 10,
+        bottom: 10,
+        top: 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(color: Colors.grey[200],spreadRadius: 4,blurRadius: 4,offset: Offset(2,2),),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,10 +302,81 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
         children: layout,
       ),
     );
+    return Container(
+      margin: EdgeInsets.only(left: 10,right: 10,),
+      child: Column(
+        children: [
+          body,
+          SizedBox(height: 5,),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${TimelineUtil.format(
+                  _doc.message.ctime,
+                  locale: 'zh',
+                  dayFormat: DayFormat.Simple,
+                )}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(
+                width: _purchaseOR == null ? 0 : 10,
+              ),
+              _purchaseOR == null
+                  ? SizedBox(
+                width: 0,
+                height: 0,
+              )
+                  : GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                child: Text(
+                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[400],
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                onTap: () async {
+                  if (_purchaseOR == null) {
+                    return;
+                  }
+                  IWyBankPurchaserRemote purchaserRemote =
+                  widget.context.site.getService('/remote/purchaser');
+                  WenyBank bank = await purchaserRemote
+                      .getWenyBank(_purchaseOR.bankid);
+                  widget.context.forward(
+                    '/wybank/purchase/details',
+                    arguments: {'purch': _purchaseOR, 'bank': bank},
+                  );
+                },
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              _AbsorberAction(
+                context: widget.context,
+                doc: _doc,
+                timerStream: _streamController.stream,
+              ),
+            ],
+          ),
+          SizedBox(height: 15,),
+        ],
+      ),
+    );
   }
 
   Widget _renderContent() {
     return Container(
+      constraints: BoxConstraints.tightForFinite(
+        width: double.maxFinite,
+      ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
@@ -331,67 +413,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${TimelineUtil.format(
-                  _doc.message.ctime,
-                  locale: 'zh',
-                  dayFormat: DayFormat.Simple,
-                )}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[400],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(
-                width: _purchaseOR == null ? 0 : 10,
-              ),
-              _purchaseOR == null
-                  ? SizedBox(
-                      width: 0,
-                      height: 0,
-                    )
-                  : GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[400],
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                      onTap: () async {
-                        if (_purchaseOR == null) {
-                          return;
-                        }
-                        IWyBankPurchaserRemote purchaserRemote =
-                            widget.context.site.getService('/remote/purchaser');
-                        WenyBank bank = await purchaserRemote
-                            .getWenyBank(_purchaseOR.bankid);
-                        widget.context.forward(
-                          '/wybank/purchase/details',
-                          arguments: {'purch': _purchaseOR, 'bank': bank},
-                        );
-                      },
-                    ),
-              SizedBox(
-                width: 10,
-              ),
-              _AbsorberAction(
-                context: widget.context,
-                doc: _doc,
-                timerStream: _streamController.stream,
-              ),
-            ],
-          ),
-         SizedBox(
-           height: 5,
-         ),
+
 //          Row(
 //            children: <Widget>[
 //              FutureBuilder<Person>(
@@ -732,7 +754,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-      absorbabler = '${pointer.type}/$pointerBoxID';
+    absorbabler = '${pointer.type}/$pointerBoxID';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
@@ -760,8 +782,8 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        var absorber=_absorberResultOR.absorber;
-        if(absorber.type==0) {
+        var absorber = _absorberResultOR.absorber;
+        if (absorber.type == 0) {
           widget.context.forward('/absorber/details/simple', arguments: {
             'absorber': _absorberResultOR.absorber.id,
             'stream': _streamController.stream.asBroadcastStream(),

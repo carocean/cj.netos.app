@@ -414,8 +414,11 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     if (!widget.usePopupLayout) {
       return Container(
         decoration: BoxDecoration(
-          color: Colors.white70,
-//          borderRadius: BorderRadius.only(topLeft: Radius.circular(8),topRight: Radius.circular(8)),
+          color: Theme.of(context).backgroundColor,
+          boxShadow: [
+            // BoxShadow(color: Theme.of(context).backgroundColor,offset: Offset(2,2),blurRadius: 6,spreadRadius: 6,),
+          ],
+         // borderRadius: BorderRadius.only(topLeft: Radius.circular(4),topRight: Radius.circular(4)),
         ),
         padding: EdgeInsets.only(
           right: 10,
