@@ -189,8 +189,8 @@ class _ChasechainState extends State<Chasechain> {
         constraints: BoxConstraints.expand(),
         child: Container(
           height: 50,
-          width: 150,
-          child: LinearProgressIndicator(
+          width: 50,
+          child: CircularProgressIndicator(
             backgroundColor: Colors.green,
           ),
         ),
