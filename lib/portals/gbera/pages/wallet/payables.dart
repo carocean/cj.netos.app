@@ -704,13 +704,11 @@ void registerQrcodeAction(PageContext context) {
                           contentPadding: EdgeInsets.all(10),
                         ),
                         onChanged: (v) {
-                          int amount = 0;
-                          if (StringUtil.isEmpty(v)) {
-                            amount = 0;
-                          } else {
-                            amount = double.parse(v).floor();
+                          double amount = 0.00;
+                          if (!StringUtil.isEmpty(v)) {
+                            amount = double.parse(v);
                           }
-                          props['amount'] = amount * 100;
+                          props['amount'] = (amount * 100).floor();
                         },
                       ),
                     ],
