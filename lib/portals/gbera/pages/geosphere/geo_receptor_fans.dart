@@ -209,7 +209,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     var messages = await receptorRemote.pageDocument(_receptorInfo.id, 20, 0);
     List<_GeosphereMessageWrapper> wrappers = [];
     for (var message in messages) {
-      await messageService.addMessage(message,isOnlySaveLocal: true);
+      await messageService.addMessage(message, isOnlySaveLocal: true);
       await _fillRemoteMessageWrapper(message, wrappers);
     }
     _messageList.addAll(wrappers);
@@ -256,7 +256,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     IGeosphereMessageService messageService =
-    widget.context.site.getService('/geosphere/receptor/messages');
+        widget.context.site.getService('/geosphere/receptor/messages');
     var persons = <String, Person>{};
 
     List<GeosphereLikeOR> likes =
@@ -280,7 +280,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         like.receptor,
         widget.context.principal.person,
       );
-      messageService.like(likeOL,isOnlySaveLocal: true);
+      messageService.like(likeOL, isOnlySaveLocal: true);
     }
     List<GeosphereCommentOR> comments =
         await receptorRemote.pageComment(message.id, 20, 0);
@@ -293,7 +293,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         }
         persons[comment.person] = person;
       }
-      var commentOL=GeosphereCommentOL(
+      var commentOL = GeosphereCommentOL(
         comment.id,
         person.official,
         person.avatar,
@@ -304,7 +304,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         comment.receptor,
         widget.context.principal.person,
       );
-      messageService.addComment(commentOL,isOnlySaveLocal: true);
+      messageService.addComment(commentOL, isOnlySaveLocal: true);
     }
   }
 
@@ -1512,8 +1512,8 @@ class __MessageCardState extends State<_MessageCard> {
 
   @override
   void didUpdateWidget(_MessageCard oldWidget) {
-    if (oldWidget.messageWrapper != widget.messageWrapper) {
-      oldWidget.receptor = widget.receptor;
+    if (oldWidget.messageWrapper.message.id !=
+        widget.messageWrapper.message.id) {
       oldWidget.messageWrapper = widget.messageWrapper;
       _loadUpstreamReceptor().then((v) {
         //检查该状态类是否已释放，如果挂在树上则可用
@@ -2259,7 +2259,6 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   bool _isShowCommentEditor = false;
   List<GeosphereCommentOL> _comments = [];
   List<GeosphereLikePersonOL> _likes = [];
-
   @override
   void initState() {
     if (widget.interactiveRegionRefreshAdapter != null) {
@@ -2284,11 +2283,6 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
         }
       };
     }
-    _load().then((value) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
     super.initState();
   }
 
@@ -2301,10 +2295,10 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   @override
   void didUpdateWidget(_InteractiveRegion oldWidget) {
-    if (oldWidget.messageWrapper.message.id == widget.messageWrapper.message.id) {
+    if (oldWidget.messageWrapper.message.id ==
+        widget.messageWrapper.message.id) {
       oldWidget.messageWrapper = widget.messageWrapper;
-      _likes.clear();
-      _comments.clear();
+      _refresh();
       _load().then((value) {
         if (mounted) {
           setState(() {});
@@ -2313,7 +2307,10 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
     }
     super.didUpdateWidget(oldWidget);
   }
-
+  _refresh(){
+    _likes.clear();
+    _comments.clear();
+  }
   Future<void> _load() async {
     await _loadLikes();
     await _loadComments();
@@ -2369,8 +2366,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
 
   @override
   Widget build(BuildContext context) {
-    bool isHide =
-        _comments.isEmpty && _likes.isEmpty && !_isShowCommentEditor;
+    bool isHide = _comments.isEmpty && _likes.isEmpty && !_isShowCommentEditor;
     if (isHide) {
       return Container(
         width: 0,
