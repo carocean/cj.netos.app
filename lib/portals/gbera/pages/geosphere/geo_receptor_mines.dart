@@ -700,7 +700,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       );
     } else {
       imgSrc = Image.network(
-        widget.receptorInfo.leading,
+        '${widget.receptorInfo.leading}?accessToken=${widget.context.principal.accessToken}',
         width: 50,
         height: 50,
       );
