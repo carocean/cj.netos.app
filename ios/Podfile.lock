@@ -1,5 +1,5 @@
 PODS:
-  - AlipaySDK-iOS (15.7.4)
+  - AlipaySDK-iOS (15.7.9)
   - AMap3DMap (6.9.0):
     - AMapFoundation (~> 1.5)
   - amap_core_fluttify (0.0.1):
@@ -22,29 +22,35 @@ PODS:
     - AMapSearch (~> 6.9.0)
     - Flutter
     - foundation_fluttify
-  - AMapFoundation (1.6.2)
-  - AMapLocation (2.6.4):
-    - AMapFoundation (~> 1.6.1)
+  - AMapFoundation (1.6.5.1)
+  - AMapLocation (2.6.7):
+    - AMapFoundation (~> 1.6.4)
   - AMapSearch (6.9.0):
     - AMapFoundation (~> 1.4)
-  - awsome_video_player (0.0.1):
+  - buddy_push (0.0.1):
     - Flutter
   - city_pickers (0.0.1):
     - Flutter
-  - connectivity (0.0.1):
-    - Flutter
-    - Reachability
-  - connectivity_for_web (0.1.0):
-    - Flutter
-  - connectivity_macos (0.0.1):
-    - Flutter
   - device_info (0.0.1):
     - Flutter
+  - devicelocale (0.0.1):
+    - Flutter
+  - easy_contact_picker (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
-  - flutter_plugin_android_lifecycle (0.0.1):
+  - flutter_contact (0.0.1):
+    - Flutter
+  - flutter_native_timezone (0.0.1):
     - Flutter
   - flutter_plugin_record (0.0.1):
     - Flutter
+  - flutter_sms (1.1.0):
+    - Flutter
+  - flutter_user_agent (1.2.2):
+    - Flutter
+  - flutter_video_compress (0.3.0):
+    - Flutter
+    - Regift
   - fluwx (0.0.1):
     - Flutter
     - WechatOpenSDK (= 1.8.7.1)
@@ -53,54 +59,50 @@ PODS:
   - FMDB/standard (2.7.5)
   - foundation_fluttify (0.0.1):
     - Flutter
+  - get_ip (0.0.1):
+    - Flutter
   - image_crop (0.0.1):
     - Flutter
-  - image_gallery_saver (0.0.1):
+  - image_gallery_saver (1.5.0):
     - Flutter
   - image_picker (0.0.1):
     - Flutter
   - just_audio (0.0.1):
     - Flutter
+  - libphonenumber (0.0.1):
+    - Flutter
+    - libPhoneNumber-iOS
+  - libPhoneNumber-iOS (0.9.15)
+  - native_screenshot (0.0.1):
+    - Flutter
   - nineold (0.0.1):
     - Flutter
-  - orientation (0.0.1):
+  - open_file (0.0.1):
+    - Flutter
+  - package_info (0.0.1):
     - Flutter
   - path_provider (0.0.1):
-    - Flutter
-  - path_provider_macos (0.0.1):
     - Flutter
   - "permission_handler (4.4.0+hotfix.4)":
     - Flutter
   - qrscan (0.0.1):
     - Flutter
-  - Reachability (3.2)
   - receive_sharing_intent (0.0.1):
     - Flutter
-  - screen (0.0.1):
-    - Flutter
+  - Regift (1.6.0)
   - share (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
-  - shared_preferences_macos (0.0.1):
+  - sqflite (0.0.2):
     - Flutter
-  - shared_preferences_web (0.0.1):
-    - Flutter
-  - sqflite (0.0.1):
-    - Flutter
-    - FMDB (~> 2.7.2)
+    - FMDB (>= 2.7.5)
   - tobias (0.0.1):
-    - AlipaySDK-iOS (~> 15.7.4)
+    - AlipaySDK-iOS (~> 15.7.9)
     - Flutter
   - url_launcher (0.0.1):
     - Flutter
-  - url_launcher_macos (0.0.1):
-    - Flutter
-  - url_launcher_web (0.0.1):
-    - Flutter
   - video_player (0.0.1):
-    - Flutter
-  - video_player_web (0.0.1):
     - Flutter
   - webview_flutter (0.0.1):
     - Flutter
@@ -111,40 +113,40 @@ DEPENDENCIES:
   - amap_location_fluttify (from `.symlinks/plugins/amap_location_fluttify/ios`)
   - amap_map_fluttify (from `.symlinks/plugins/amap_map_fluttify/ios`)
   - amap_search_fluttify (from `.symlinks/plugins/amap_search_fluttify/ios`)
-  - awsome_video_player (from `.symlinks/plugins/awsome_video_player/ios`)
+  - buddy_push (from `.symlinks/plugins/buddy_push/ios`)
   - city_pickers (from `.symlinks/plugins/city_pickers/ios`)
-  - connectivity (from `.symlinks/plugins/connectivity/ios`)
-  - connectivity_for_web (from `.symlinks/plugins/connectivity_for_web/ios`)
-  - connectivity_macos (from `.symlinks/plugins/connectivity_macos/ios`)
   - device_info (from `.symlinks/plugins/device_info/ios`)
+  - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
+  - easy_contact_picker (from `.symlinks/plugins/easy_contact_picker/ios`)
   - Flutter (from `Flutter`)
-  - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
+  - flutter_contact (from `.symlinks/plugins/flutter_contact/ios`)
+  - flutter_native_timezone (from `.symlinks/plugins/flutter_native_timezone/ios`)
   - flutter_plugin_record (from `.symlinks/plugins/flutter_plugin_record/ios`)
+  - flutter_sms (from `.symlinks/plugins/flutter_sms/ios`)
+  - flutter_user_agent (from `.symlinks/plugins/flutter_user_agent/ios`)
+  - flutter_video_compress (from `.symlinks/plugins/flutter_video_compress/ios`)
   - fluwx (from `.symlinks/plugins/fluwx/ios`)
   - foundation_fluttify (from `.symlinks/plugins/foundation_fluttify/ios`)
+  - get_ip (from `.symlinks/plugins/get_ip/ios`)
   - image_crop (from `.symlinks/plugins/image_crop/ios`)
   - image_gallery_saver (from `.symlinks/plugins/image_gallery_saver/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
+  - libphonenumber (from `.symlinks/plugins/libphonenumber/ios`)
+  - native_screenshot (from `.symlinks/plugins/native_screenshot/ios`)
   - nineold (from `.symlinks/plugins/nineold/ios`)
-  - orientation (from `.symlinks/plugins/orientation/ios`)
+  - open_file (from `.symlinks/plugins/open_file/ios`)
+  - package_info (from `.symlinks/plugins/package_info/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
-  - path_provider_macos (from `.symlinks/plugins/path_provider_macos/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
   - qrscan (from `.symlinks/plugins/qrscan/ios`)
   - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
-  - screen (from `.symlinks/plugins/screen/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
-  - shared_preferences_macos (from `.symlinks/plugins/shared_preferences_macos/ios`)
-  - shared_preferences_web (from `.symlinks/plugins/shared_preferences_web/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - tobias (from `.symlinks/plugins/tobias/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
-  - url_launcher_macos (from `.symlinks/plugins/url_launcher_macos/ios`)
-  - url_launcher_web (from `.symlinks/plugins/url_launcher_web/ios`)
   - video_player (from `.symlinks/plugins/video_player/ios`)
-  - video_player_web (from `.symlinks/plugins/video_player_web/ios`)
   - webview_flutter (from `.symlinks/plugins/webview_flutter/ios`)
 
 SPEC REPOS:
@@ -155,7 +157,8 @@ SPEC REPOS:
     - AMapLocation
     - AMapSearch
     - FMDB
-    - Reachability
+    - libPhoneNumber-iOS
+    - Regift
     - WechatOpenSDK
 
 EXTERNAL SOURCES:
@@ -167,28 +170,36 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/amap_map_fluttify/ios"
   amap_search_fluttify:
     :path: ".symlinks/plugins/amap_search_fluttify/ios"
-  awsome_video_player:
-    :path: ".symlinks/plugins/awsome_video_player/ios"
+  buddy_push:
+    :path: ".symlinks/plugins/buddy_push/ios"
   city_pickers:
     :path: ".symlinks/plugins/city_pickers/ios"
-  connectivity:
-    :path: ".symlinks/plugins/connectivity/ios"
-  connectivity_for_web:
-    :path: ".symlinks/plugins/connectivity_for_web/ios"
-  connectivity_macos:
-    :path: ".symlinks/plugins/connectivity_macos/ios"
   device_info:
     :path: ".symlinks/plugins/device_info/ios"
+  devicelocale:
+    :path: ".symlinks/plugins/devicelocale/ios"
+  easy_contact_picker:
+    :path: ".symlinks/plugins/easy_contact_picker/ios"
   Flutter:
     :path: Flutter
-  flutter_plugin_android_lifecycle:
-    :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
+  flutter_contact:
+    :path: ".symlinks/plugins/flutter_contact/ios"
+  flutter_native_timezone:
+    :path: ".symlinks/plugins/flutter_native_timezone/ios"
   flutter_plugin_record:
     :path: ".symlinks/plugins/flutter_plugin_record/ios"
+  flutter_sms:
+    :path: ".symlinks/plugins/flutter_sms/ios"
+  flutter_user_agent:
+    :path: ".symlinks/plugins/flutter_user_agent/ios"
+  flutter_video_compress:
+    :path: ".symlinks/plugins/flutter_video_compress/ios"
   fluwx:
     :path: ".symlinks/plugins/fluwx/ios"
   foundation_fluttify:
     :path: ".symlinks/plugins/foundation_fluttify/ios"
+  get_ip:
+    :path: ".symlinks/plugins/get_ip/ios"
   image_crop:
     :path: ".symlinks/plugins/image_crop/ios"
   image_gallery_saver:
@@ -197,96 +208,89 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/ios"
+  libphonenumber:
+    :path: ".symlinks/plugins/libphonenumber/ios"
+  native_screenshot:
+    :path: ".symlinks/plugins/native_screenshot/ios"
   nineold:
     :path: ".symlinks/plugins/nineold/ios"
-  orientation:
-    :path: ".symlinks/plugins/orientation/ios"
+  open_file:
+    :path: ".symlinks/plugins/open_file/ios"
+  package_info:
+    :path: ".symlinks/plugins/package_info/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
-  path_provider_macos:
-    :path: ".symlinks/plugins/path_provider_macos/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
   qrscan:
     :path: ".symlinks/plugins/qrscan/ios"
   receive_sharing_intent:
     :path: ".symlinks/plugins/receive_sharing_intent/ios"
-  screen:
-    :path: ".symlinks/plugins/screen/ios"
   share:
     :path: ".symlinks/plugins/share/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
-  shared_preferences_macos:
-    :path: ".symlinks/plugins/shared_preferences_macos/ios"
-  shared_preferences_web:
-    :path: ".symlinks/plugins/shared_preferences_web/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
   tobias:
     :path: ".symlinks/plugins/tobias/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
-  url_launcher_macos:
-    :path: ".symlinks/plugins/url_launcher_macos/ios"
-  url_launcher_web:
-    :path: ".symlinks/plugins/url_launcher_web/ios"
   video_player:
     :path: ".symlinks/plugins/video_player/ios"
-  video_player_web:
-    :path: ".symlinks/plugins/video_player_web/ios"
   webview_flutter:
     :path: ".symlinks/plugins/webview_flutter/ios"
 
 SPEC CHECKSUMS:
-  AlipaySDK-iOS: 8659cdb4403de7e5f26ad8b699864a9cbe53384c
+  AlipaySDK-iOS: 94ff4c0e17c5e7d126b8207596d5033006534c25
   AMap3DMap: c80b264f08f179d9b0949b84c65fc1a51dec9d6f
   amap_core_fluttify: f82f67cdc867f8fa2f7253bd9a58d8876c260317
   amap_location_fluttify: d11d6a1a7438da8ac6e2451ff76b8cde7966fa08
   amap_map_fluttify: 25e2e712b0834a66379a9abaee4d72635e9733a1
   amap_search_fluttify: 7e076e7ce98df37865c0bc051e862ac6995b8de2
-  AMapFoundation: 672dc3a4759cb733f447c1e1b020f7ba2729f4ab
-  AMapLocation: b4162db67f813508a14ee7e05c7ee4073785221d
+  AMapFoundation: b67560a6f21aab81c8c12f84616b55a3833b6253
+  AMapLocation: a46c30d9930d0f3a3bd21139d8f845d10ac3f01d
   AMapSearch: af02822537e55b85a4752e9df5c19e4b9da82031
-  awsome_video_player: e23e15c5583370ce56cfca18e0c2ff9af489429f
+  buddy_push: 226253d04906e8eec3e154bd54df153d34126af2
   city_pickers: b0370f4c35c201723b5b7fcce10ec29b59d5bc35
-  connectivity: c4130b2985d4ef6fd26f9702e886bd5260681467
-  connectivity_for_web: 2b8584556930d4bd490d82b836bcf45067ce345b
-  connectivity_macos: e2e9731b6b22dda39eb1b128f6969d574460e191
-  device_info: cbf09d2ec12aa7110e0b09fabe54b5bd6c8efe74
+  device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
+  devicelocale: feebbe5e7a30adb8c4f83185de1b50ff19b44f00
+  easy_contact_picker: 9ab9dc70e8ddde6e76a19ffc482d7bf899868730
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_plugin_android_lifecycle: 47de533a02850f070f5696a623995e93eddcdb9b
+  flutter_contact: d83afd11b19da4d0e7df41b254c84fbb88ef0616
+  flutter_native_timezone: e72ff1900460ff57cfd331d1758050c9269f3e99
   flutter_plugin_record: 562ded56f3a109d769e72c3ef52ef20d835493d4
+  flutter_sms: 91ce41530f55c85d6524d82307a5d555844c086a
+  flutter_user_agent: 27c45d034dc31b80948d29998cea52cd3a7bf936
+  flutter_video_compress: 641fd3e03d970d79176a59d91d7a4392923710b0
   fluwx: 07a55ed66bf3a4961e836a2a411b02dcada32902
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   foundation_fluttify: 3038fcc96aabb59c77f595964954c118af535d57
+  get_ip: c063133e0a399ae4089048c90d6a232cb2344846
   image_crop: e0a67085d3ebf3cf46ca46d61c53a082507b0bc3
-  image_gallery_saver: 73b3cd8ad9c950c739878af9c311744d1bf5405d
-  image_picker: e3eacd46b94694dde7cf2705955cece853aa1a8f
+  image_gallery_saver: 259eab68fb271cfd57d599904f7acdc7832e7ef2
+  image_picker: 9c3312491f862b28d21ecd8fdf0ee14e601b3f09
   just_audio: c695d6e7e37f9e96672dd84039d7530e7fd5c205
+  libphonenumber: bd14d5abfc5939ab0b0767234e2d8e2593af258e
+  libPhoneNumber-iOS: 0a32a9525cf8744fe02c5206eb30d571e38f7d75
+  native_screenshot: 70900984bca8d5f42acf68611b8214b32a9f0deb
   nineold: d0d68a3226a2b819ab0c25617ec667fec71797dd
-  orientation: 6c9203efe86ce4cff379756910f18b2d745628c3
-  path_provider: fb74bd0465e96b594bb3b5088ee4a4e7bb1f2a9d
-  path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
+  open_file: c99dbf763133424083d9be8d989d36ba8aeffdf2
+  package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
+  path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   permission_handler: 8278954f2382902f63f00dd8828769c0bd6d511b
   qrscan: 42f49ba37d3c423a3b140434003e821135cfc4c3
-  Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   receive_sharing_intent: c0d87310754e74c0f9542947e7cbdf3a0335a3b1
-  screen: abd91ca7bf3426e1cc3646d27e9b2358d6bf07b0
+  Regift: a7c1a7e377c60bfc34301d6f532e099e5ae109a8
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
-  shared_preferences: 430726339841afefe5142b9c1f50cb6bd7793e01
-  shared_preferences_macos: f3f29b71ccbb56bf40c9dd6396c9acf15e214087
-  shared_preferences_web: 141cce0c3ed1a1c5bf2a0e44f52d31eeb66e5ea9
-  sqflite: 4001a31ff81d210346b500c55b17f4d6c7589dd0
-  tobias: 4c0085b1d9e16ea680f99173e8fd115987b544e6
-  url_launcher: a1c0cc845906122c4784c542523d8cacbded5626
-  url_launcher_macos: fd7894421cd39320dce5f292fc99ea9270b2a313
-  url_launcher_web: e5527357f037c87560776e36436bf2b0288b965c
-  video_player: 69c5f029fac4ffe4fc8a85ea7f7b793709661549
-  video_player_web: da8cadb8274ed4f8dbee8d7171b420dedd437ce7
-  webview_flutter: bec7599de6bfbe8008a739aa3ebd7b364ea9d0cd
+  shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
+  sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
+  tobias: 6872e2198dc30e17c10513b9ee114e28d099bc70
+  url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
+  video_player: 9cc823b1d9da7e8427ee591e8438bfbcde500e6e
+  webview_flutter: d2b4d6c66968ad042ad94cbb791f5b72b4678a96
   WechatOpenSDK: 6a4d1436c15b3b5fe2a0bd383f3046010186da44
 
-PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 
 COCOAPODS: 1.8.3
