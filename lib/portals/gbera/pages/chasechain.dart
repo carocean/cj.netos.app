@@ -26,7 +26,7 @@ class _ChasechainState extends State<Chasechain> {
   List<ContentItemOR> _items = [];
   int _limit = 20;
   int _offset = 0;
-
+  bool _isLoading=true;
   @override
   void initState() {
     _controller = EasyRefreshController();
@@ -37,6 +37,11 @@ class _ChasechainState extends State<Chasechain> {
       _towncode = await recode.townCode;
       await _load();
       await _onRefresh();
+      if(mounted){
+        setState(() {
+          _isLoading=false;
+        });
+      }
     }();
     super.initState();
   }
@@ -183,7 +188,7 @@ class _ChasechainState extends State<Chasechain> {
   }
 
   Widget _renderContentPanel() {
-    if (_items.isEmpty) {
+    if (_isLoading) {
       return Container(
         alignment: Alignment.center,
         constraints: BoxConstraints.expand(),

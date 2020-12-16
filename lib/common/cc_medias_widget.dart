@@ -96,7 +96,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildThreeImages(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 139,
+        height: 142,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
