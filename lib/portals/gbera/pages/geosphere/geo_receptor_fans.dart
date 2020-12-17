@@ -220,6 +220,8 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         widget.context.site.getService('/gbera/persons');
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');
+    IGeosphereMediaService mediaService =
+        widget.context.site.getService('/geosphere/receptor/messages/medias');
     List<GeosphereMediaOR> medias =
         await receptorRemote.listExtraMedia(message.id);
     Person creator =
@@ -232,6 +234,9 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     List<MediaSrc> _medias = [];
     for (GeosphereMediaOR mediaOR in medias) {
       _medias.add(mediaOR.toMedia());
+      await mediaService.addMedia(
+          mediaOR.toLocal(widget.context.principal.person),
+          isOnlySaveLocal: true);
     }
 
     IWyBankPurchaserRemote purchaserRemote =
@@ -2259,6 +2264,7 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
   bool _isShowCommentEditor = false;
   List<GeosphereCommentOL> _comments = [];
   List<GeosphereLikePersonOL> _likes = [];
+
   @override
   void initState() {
     if (widget.interactiveRegionRefreshAdapter != null) {
@@ -2307,10 +2313,12 @@ class __InteractiveRegionState extends State<_InteractiveRegion> {
     }
     super.didUpdateWidget(oldWidget);
   }
-  _refresh(){
+
+  _refresh() {
     _likes.clear();
     _comments.clear();
   }
+
   Future<void> _load() async {
     await _loadLikes();
     await _loadComments();

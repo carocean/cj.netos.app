@@ -46,6 +46,19 @@ class GeosphereMediaOR {
       src: src,
     );
   }
+
+  GeosphereMediaOL toLocal(sandbox) {
+    return GeosphereMediaOL(
+      id,
+      type,
+      src,
+      leading,
+      docid,
+      text,
+      receptor,
+      sandbox,
+    );
+  }
 }
 
 class GeosphereLikeOR {
@@ -756,7 +769,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   Future<List<GeosphereMessageOL>> pageDocument(
-      String receptor, int limit, int offset)async {
+      String receptor, int limit, int offset) async {
     var list = await remotePorts.portGET(
       _receptorPortsUrl,
       'pageDocument2',
