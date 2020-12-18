@@ -8,6 +8,7 @@ import 'package:netos_app/system/local/app_upgrade.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/portals/gbera/pages/system/about.dart';
+import 'package:netos_app/system/pages/share_main.dart';
 import 'package:netos_app/system/pages/person_card.dart';
 import 'package:netos_app/system/remote/persons.dart';
 
@@ -133,6 +134,15 @@ List<LogicPage> buildPages(site) {
       icon: null,
       url: '/public/register',
       buildPage: (PageContext pageContext) => RegisterPage(
+        context: pageContext,
+      ),
+    ),
+    LogicPage(
+      title: '接收分享',
+      subtitle: '',
+      icon: Icons.settings,
+      url: '/system/share/main',
+      buildPage: (PageContext pageContext) => AcceptShareMain(
         context: pageContext,
       ),
     ),

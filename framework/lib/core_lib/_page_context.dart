@@ -186,6 +186,7 @@ class PageContext {
 
     ///当参数scene不为空时可以使用该参数以接受跳转的返回值。在场景切换完成时回调,参数为回调结果
     Function(T) onFinishedSwitchScene,
+        ///如果为.号，表示替换当前路径为指定页
     String clearHistoryByPagePath,
   }) {
     var pagePath = pageUrl;
@@ -227,6 +228,12 @@ class PageContext {
       arguments = Map();
     }
     if (!StringUtil.isEmpty(clearHistoryByPagePath)) {
+      if('.'==clearHistoryByPagePath) {
+        return Navigator.of(context).pushReplacementNamed(
+          pagePath,
+          arguments: arguments,
+        );
+      }
       return Navigator.of(context).pushNamedAndRemoveUntil(
         pagePath,
         _checkHistoryRoute(clearHistoryByPagePath),

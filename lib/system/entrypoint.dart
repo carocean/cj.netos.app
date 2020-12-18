@@ -64,6 +64,15 @@ class _EntryPointState extends State<EntryPoint> {
     await _localPrincipalManager.online();
     //成功则到桌面
     WidgetsBinding.instance.addPostFrameCallback((d) {
+      if(widget.context.parameters!=null&&widget.context.parameters['share']=='accept'){
+        widget.context.forward(
+          "/share/accept",
+          clearHistoryByPagePath: '.',
+          scene: widget.context.principal.portal??'gbera',
+          arguments: widget.context.parameters,
+        );
+        return;
+      }
       widget.context.forward(
         "/",
         clearHistoryByPagePath: '/public/',

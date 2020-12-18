@@ -107,4 +107,5 @@ dependencies {
     implementation files("libs/com.heytap.msp.aar")
     //小米
     implementation files("libs/MiPush_SDK_Client_3_8_5.jar")
+    project ':accept_share'
 }

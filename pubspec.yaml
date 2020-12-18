@@ -53,6 +53,7 @@ dependencies:
   #截图
   image_crop: ^0.3.2
   webview_flutter: ^1.0.7
+  flutter_inappwebview: ^4.0.0+4
   video_player: ^1.0.1
 #  awsome_video_player: ^1.0.8+1
   flutter_k_chart:
@@ -113,6 +114,8 @@ dependencies:
     path: native_screenshot
   buddy_push:
     path: buddy_push
+  accept_share:
+    path: accept_share
 dev_dependencies:
   flutter_test:
     sdk: flutter
