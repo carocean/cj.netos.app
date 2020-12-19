@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:accept_share/accept_share.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 
@@ -19,6 +20,7 @@ class _EntryPointState extends State<EntryPoint> {
   int _entrymode = 0; //0为背景；1登录主页；2为登录密码页；3为进入桌面
   @override
   void initState() {
+
     _checkEntrypoint().then((v) {
       if (mounted) {
         setState(() {});
@@ -64,15 +66,6 @@ class _EntryPointState extends State<EntryPoint> {
     await _localPrincipalManager.online();
     //成功则到桌面
     WidgetsBinding.instance.addPostFrameCallback((d) {
-      if(widget.context.parameters!=null&&widget.context.parameters['share']=='accept'){
-        widget.context.forward(
-          "/share/accept",
-          clearHistoryByPagePath: '.',
-          scene: widget.context.principal.portal??'gbera',
-          arguments: widget.context.parameters,
-        );
-        return;
-      }
       widget.context.forward(
         "/",
         clearHistoryByPagePath: '/public/',

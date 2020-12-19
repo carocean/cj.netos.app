@@ -96,6 +96,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    implementation 'com.google.code.gson:gson:2.8.6'
     //华为
     implementation 'com.huawei.hms:push:5.0.2.300'
     // 添加aar依赖到工程

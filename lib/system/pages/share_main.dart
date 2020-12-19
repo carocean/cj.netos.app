@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:accept_share/accept_share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +8,12 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:html/parser.dart' show parse;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:native_screenshot/native_screenshot.dart';
 import 'package:netos_app/common/single_media_widget.dart';
+import 'package:netos_app/portals/gbera/share/share_card.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 class AcceptShareMain extends StatefulWidget {
   PageContext context;
@@ -24,11 +30,12 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
   String _summary;
   String _leading;
   bool _isParsed = false;
+  InAppWebViewController controller;
 
   @override
   void initState() {
     AcceptShare.setCallback((MethodCall call) async {
-      if ('share' != call.method) {
+      if ('shareCapture' != call.method) {
         return;
       }
       var content = call.arguments;
@@ -36,13 +43,9 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
         return;
       }
       _parseHref(content);
-      // WidgetsBinding.instance.addPostFrameCallback((d) {
-      //   widget.context.forward(
-      //     "/public/entrypoint?share=accept",
-      //     clearHistoryByPagePath: '.',
-      //     arguments: {'content': call.arguments},
-      //   );
-      // });
+      if (controller != null) {
+        controller.loadUrl(url: _href);
+      }
     });
     super.initState();
   }
@@ -69,6 +72,7 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
   }
 
   Future<void> _parseHtml(String html) async {
+    //由于一些网站喜欢将内容放在iframe里，所以摘要还是不要了，但仍保留只是不显示
     var doc = parse(html);
     var img = doc.querySelector('body img');
     var src;
@@ -80,33 +84,22 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
     }
     _summary = doc.querySelector('body')?.text;
     if (!StringUtil.isEmpty(_summary)) {
-      if (_summary.length > 100) {
-        _summary = _summary.substring(0, 100);
-      }
       int pos = _summary.indexOf(_title);
       if (pos > -1) {
-        _summary.substring(_title.length);
+        _summary = _summary.substring(_title.length);
         while (_summary.startsWith(' ')) {
           _summary = _summary.substring(1);
         }
-        pos = _summary.indexOf(' ');
-        if (pos > 0) {
-          _summary = _summary.substring(pos + 1);
-          while (_summary.startsWith(' ')) {
-            _summary = _summary.substring(1);
-          }
-        }
-        pos = _summary.indexOf(' ');
-        if (pos > 0) {
-          _summary = _summary.substring(pos + 1);
-          while (_summary.startsWith(' ') || _summary.startsWith('　')) {
-            _summary = _summary.substring(1);
-          }
-        }
       }
-      pos = _summary.indexOf(' ');
-      if (pos > 0) {
-        _summary = _summary.substring(0, pos);
+      var list = _summary.split(' ');
+      for (var seg in list) {
+        if (StringUtil.isEmpty(seg)) {
+          continue;
+        }
+        if (seg.length > 20) {
+          _summary = seg;
+          break;
+        }
       }
     }
   }
@@ -117,6 +110,15 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
       appBar: AppBar(
         title: Text('地微'),
         elevation: 0,
+        titleSpacing: 0,
+        leading: IconButton(
+          onPressed: () async {
+            await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+          },
+          icon: Icon(
+            Icons.arrow_back,
+          ),
+        ),
       ),
       body: SafeArea(
         child: Stack(
@@ -133,8 +135,14 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                     child: InAppWebView(
                       initialUrl: _href,
                       onWebViewCreated:
-                          (InAppWebViewController controller) async {},
+                          (InAppWebViewController controller) async {
+                        this.controller = controller;
+                      },
                       onLoadStop: (controller, url) async {
+                        _isParsed = false;
+                        if(mounted) {
+                          setState(() {});
+                        }
                         var html = await controller.getHtml();
                         _title = await controller.getTitle();
                         if (!StringUtil.isEmpty(_title)) {
@@ -145,8 +153,17 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                         }
                         await _parseHtml(html);
                         if (StringUtil.isEmpty(_leading)) {
-                          var capture = await NativeScreenshot.takeScreenshot();
-                          _leading = capture;
+                          var pngBytes = await controller.takeScreenshot();
+                          Directory dir =
+                              await getApplicationDocumentsDirectory();
+                          var fn = '${dir.path}/${MD5Util.MD5(_title)}.png';
+                          var file = File(fn);
+                          if (file.existsSync()) {
+                            file.deleteSync();
+                          }
+                          file.writeAsBytesSync(pngBytes);
+                          // await ImageGallerySaver.saveFile(fn);
+                          _leading = fn;
                         }
                         _isParsed = true;
                         if (mounted) {
@@ -163,17 +180,9 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                     bottom: 0,
                     child: Container(
                       alignment: Alignment.center,
+                      color: Theme.of(context).backgroundColor,
                       constraints: BoxConstraints.expand(),
-                      child: Container(
-                        color: Colors.white24,
-                        padding: EdgeInsets.only(
-                          left: 10,
-                          right: 10,
-                          top: 20,
-                          bottom: 20,
-                        ),
-                        child: Text('正在准备，请稍候...'),
-                      ),
+                      child: Text('正在解析，请稍候...'),
                     ),
                   )
                 : Positioned(
@@ -186,45 +195,166 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 30,),
-                          Container(
-                            margin: EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                            ),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: _rendContentPanel(),
+                          SizedBox(
+                            height: 30,
                           ),
-                          SizedBox(height: 30,),
+                          renderShareCard(
+                            context: widget.context,
+                            title: _title,
+                            href: _href,
+                            leading: _leading,
+                            summary: _summary,
+                          ),
                           Expanded(
-                            child: Container(
-                              constraints: BoxConstraints.expand(),
-                              alignment: Alignment.center,
-                              child: Container(
-                                margin: EdgeInsets.only(left: 20,right: 20,),
-                                constraints: BoxConstraints.tightForFinite(
-                                  width: double.maxFinite,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(
+                                    left: 20,
+                                    right: 20,
+                                  ),
+                                  constraints: BoxConstraints.tightForFinite(
+                                    width: double.maxFinite,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '分享到',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 40,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              AcceptShare.forwardEasyTalk(
+                                                arguments: {
+                                                  'summary': _summary,
+                                                  'leading': _leading,
+                                                  'title': _title,
+                                                  'href': _href
+                                                },
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey[300],
+                                                    spreadRadius: 3,
+                                                    blurRadius: 3,
+                                                  ),
+                                                ],
+                                              ),
+                                              height: 60,
+                                              width: 60,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                '平聊',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              AcceptShare.forwardNetflow(
+                                                arguments: {
+                                                  'summary': _summary,
+                                                  'leading': _leading,
+                                                  'title': _title,
+                                                  'href': _href
+                                                },
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey[300],
+                                                    spreadRadius: 3,
+                                                    blurRadius: 3,
+                                                  ),
+                                                ],
+                                              ),
+                                              height: 60,
+                                              width: 60,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                '网流',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              AcceptShare.forwardGeosphere(
+                                                arguments: {
+                                                  'summary': _summary,
+                                                  'leading': _leading,
+                                                  'title': _title,
+                                                  'href': _href
+                                                },
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey[300],
+                                                    spreadRadius: 3,
+                                                    blurRadius: 3,
+                                                  ),
+                                                ],
+                                              ),
+                                              height: 60,
+                                              width: 60,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                '地圈',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                height: 50,
-                                child: RaisedButton(
-                                  color: Colors.green,
-                                  textColor: Colors.white,
-                                  disabledTextColor: Colors.white70,
-                                  disabledColor: Colors.grey[400],
-                                  onPressed: (){
-                                      widget.context.forward(
-                                        "/public/entrypoint?share=accept",
-                                        clearHistoryByPagePath: '.',
-                                        arguments: {'summary': _summary,'leading':_leading,'title':_title,'href':_href},
-                                      );
-                                  },
-                                  child: Text('分享'),
-                                ),
-                              ),
+                              ],
                             ),
                           ),
                         ],
@@ -234,54 +364,6 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _rendContentPanel() {
-    if (!_isParsed) {
-      return Container(
-        padding: EdgeInsets.only(top: 40, bottom: 40),
-        alignment: Alignment.center,
-        child: Text('正在解析内容...'),
-      );
-    }
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 60,
-          height: 60,
-          child: SingleMediaWidget(
-            context: widget.context,
-            image: _leading,
-          ),
-        ),
-        SizedBox(
-          width: 10,
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${_title ?? ''}',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                '${_summary ?? ''}',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

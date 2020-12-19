@@ -224,7 +224,9 @@ import 'package:netos_app/portals/gbera/pages/wallet/withdraw_cancel.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_result.dart';
 import 'package:netos_app/portals/gbera/scaffolds.dart';
-import 'package:netos_app/portals/gbera/share/accept_share.dart';
+import 'package:netos_app/portals/gbera/share/share_easytalk.dart';
+import 'package:netos_app/portals/gbera/share/share_geosphere.dart';
+import 'package:netos_app/portals/gbera/share/share_netflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
@@ -330,7 +332,7 @@ class GberaPortal {
           '/feedback/woflow': WOFlowRemote(),
           '/feedback/helper': HelperRemote(),
           '/feedback/tipoff': TipOffRemote(),
-          '/feedback/tiptool':TipToolRemote(),
+          '/feedback/tiptool': TipToolRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -2233,8 +2235,26 @@ class GberaPortal {
           title: '分享',
           subtitle: '',
           icon: null,
-          url: '/share/accept',
-          buildPage: (PageContext pageContext) => AcceptSharePage(
+          url: '/share/easyTalk',
+          buildPage: (PageContext pageContext) => EasyTalkSharePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '分享',
+          subtitle: '',
+          icon: null,
+          url: '/share/netflow',
+          buildPage: (PageContext pageContext) => NetflowSharePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '分享',
+          subtitle: '',
+          icon: null,
+          url: '/share/geosphere',
+          buildPage: (PageContext pageContext) => GeosphereSharePage(
             context: pageContext,
           ),
         ),

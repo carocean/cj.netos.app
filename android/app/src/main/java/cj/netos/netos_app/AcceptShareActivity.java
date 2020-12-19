@@ -4,7 +4,6 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -12,11 +11,10 @@ import java.util.ArrayList;
 
 import cj.netos.accept_share.AcceptSharePlugin;
 import io.flutter.embedding.android.FlutterActivity;
-import io.flutter.embedding.engine.renderer.FlutterUiDisplayListener;
 
-public class AcceptShareActivity extends FlutterActivity {
-    FlutterUiDisplayListener flutterUiDisplayListener;
-
+public class AcceptShareActivity extends FlutterActivity  {
+//    FlutterUiDisplayListener flutterUiDisplayListener;
+    Intent currentIntent;
     @NonNull
     @Override
     public String getInitialRoute() {
@@ -26,28 +24,42 @@ public class AcceptShareActivity extends FlutterActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (flutterUiDisplayListener != null) {
-            getFlutterEngine().getRenderer().removeIsDisplayingFlutterUiListener(flutterUiDisplayListener);
-        }
+//        if (flutterUiDisplayListener != null) {
+//            getFlutterEngine().getRenderer().removeIsDisplayingFlutterUiListener(flutterUiDisplayListener);
+//        }
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        //当再次从浏览器进入分享activity时，此时activity在栈中
+        currentIntent=intent;
+    }
+
+    @Override
+    public void onFlutterUiDisplayed() {
+        super.onFlutterUiDisplayed();
+        _send();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentIntent=getIntent();
         //判断界面是否显示完onFlutterUiDisplayed，因为flutter界面的initState方法执行在activity.onCreate之后。所以在界面执行完后再发送事件给flutter
-        flutterUiDisplayListener = new FlutterUiDisplayListener() {
-            @Override
-            public void onFlutterUiDisplayed() {
-                Log.i("'--------'", "onFlutterUiDisplayed");
-                _send();
-            }
-
-            @Override
-            public void onFlutterUiNoLongerDisplayed() {
-                Log.i("'--------'", "onFlutterUiNoLongerDisplayed");
-            }
-        };
-        getFlutterEngine().getRenderer().addIsDisplayingFlutterUiListener(flutterUiDisplayListener);
+//        flutterUiDisplayListener = new FlutterUiDisplayListener() {
+//            @Override
+//            public void onFlutterUiDisplayed() {
+//                Log.i("'--------'", "onFlutterUiDisplayed");
+//
+//            }
+//
+//            @Override
+//            public void onFlutterUiNoLongerDisplayed() {
+//                Log.i("'--------'", "onFlutterUiNoLongerDisplayed");
+//            }
+//        };
+//        getFlutterEngine().getRenderer().addIsDisplayingFlutterUiListener(flutterUiDisplayListener);
 
 //下面是flutter的原生跳转
         //        Intent indent =new Intent(this,MainActivity2.class);
@@ -61,7 +73,7 @@ public class AcceptShareActivity extends FlutterActivity {
     }
 
     private void _send() {
-        Intent intent = getIntent();
+        Intent intent=currentIntent;
         String action = intent.getAction();
         String type = intent.getType();
         AcceptSharePlugin testPlugin = (AcceptSharePlugin) getFlutterEngine().getPlugins().get(AcceptSharePlugin.class);
@@ -80,7 +92,7 @@ public class AcceptShareActivity extends FlutterActivity {
                     for (int i = 0; i < clipData.getItemCount(); i++) {
                         ClipData.Item item = clipData.getItemAt(i);
                         CharSequence sequence = item.getText();
-                        testPlugin.sendShare(sequence == null ? null : sequence.toString());
+                        testPlugin.sendShareCapture(sequence == null ? null : sequence.toString());
                     }
                 }
             } else if (type.startsWith("*/")) {
