@@ -31,20 +31,28 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
   String _leading;
   bool _isParsed = false;
   InAppWebViewController controller;
+  String _shareNotImpl;
 
   @override
   void initState() {
     AcceptShare.setCallback((MethodCall call) async {
-      if ('shareCapture' != call.method) {
+      if ('shareCapture' == call.method) {
+        var content = call.arguments;
+        if (StringUtil.isEmpty(content)) {
+          return;
+        }
+        _parseHref(content);
+        if (controller != null) {
+          controller.loadUrl(url: _href);
+        }
         return;
       }
-      var content = call.arguments;
-      if (StringUtil.isEmpty(content)) {
-        return;
-      }
-      _parseHref(content);
-      if (controller != null) {
-        controller.loadUrl(url: _href);
+      if ('shareNotImpl' == call.method) {
+        _isParsed = true;
+        _shareNotImpl = call.arguments;
+        if (mounted) {
+          setState(() {});
+        }
       }
     });
     super.initState();
@@ -105,7 +113,7 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
   }
 
   bool _isImage(String src) {
-    return src.indexOf('.php') < 0 &&
+    return src.startsWith('http')&& src.indexOf('.php') < 0 &&
         src.indexOf('.jsp') < 0 &&
         src.indexOf('.asp') < 0 &&
         src.indexOf('.aspx') < 0;
@@ -158,7 +166,11 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                             _title = _title.substring(1);
                           }
                         }
-                        await _parseHtml(html);
+                        try {
+                          await _parseHtml(html);
+                        }catch(e){
+                          print('share_main:$e');
+                        }
                         if (StringUtil.isEmpty(_leading)) {
                           var pngBytes = await controller.takeScreenshot();
                           Directory dir =
@@ -179,224 +191,246 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                       },
                     ),
                   ),
-            !_isParsed
-                ? Positioned(
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      alignment: Alignment.center,
-                      color: Theme.of(context).backgroundColor,
-                      constraints: BoxConstraints.expand(),
-                      child: Text('正在解析，请稍候...'),
-                    ),
-                  )
-                : Positioned(
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      color: Theme.of(context).backgroundColor,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 30,
-                          ),
-                          renderShareCard(
-                            context: widget.context,
-                            title: _title,
-                            href: _href,
-                            leading: _leading,
-                            summary: _summary,
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(
-                                    left: 20,
-                                    right: 20,
-                                  ),
-                                  constraints: BoxConstraints.tightForFinite(
-                                    width: double.maxFinite,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '分享到',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 40,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () {
-                                              AcceptShare.forwardEasyTalk(
-                                                arguments: {
-                                                  'summary': _summary,
-                                                  'leading': _leading,
-                                                  'title': _title,
-                                                  'href': _href
-                                                },
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.green,
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey[300],
-                                                    spreadRadius: 3,
-                                                    blurRadius: 3,
-                                                  ),
-                                                ],
-                                              ),
-                                              height: 60,
-                                              width: 60,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                '平聊',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () {
-                                              AcceptShare.forwardNetflow(
-                                                arguments: {
-                                                  'summary': _summary,
-                                                  'leading': _leading,
-                                                  'title': _title,
-                                                  'href': _href
-                                                },
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.green,
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey[300],
-                                                    spreadRadius: 3,
-                                                    blurRadius: 3,
-                                                  ),
-                                                ],
-                                              ),
-                                              height: 60,
-                                              width: 60,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                '网流',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () {
-                                              AcceptShare.forwardGeosphere(
-                                                arguments: {
-                                                  'summary': _summary,
-                                                  'leading': _leading,
-                                                  'title': _title,
-                                                  'href': _href
-                                                },
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.green,
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey[300],
-                                                    spreadRadius: 3,
-                                                    blurRadius: 3,
-                                                  ),
-                                                ],
-                                              ),
-                                              height: 60,
-                                              width: 60,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                '地圈',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  AcceptShare.forwardTiptool(
-                                    arguments: {
-                                      'summary': _summary,
-                                      'leading': _leading,
-                                      'title': _title,
-                                      'href': _href
-                                    },
-                                  );
-                                },
-                                child: Text(
-                                  '分享给桌面提示栏',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blueGrey,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                        ],
-                      ),
-                    ),
-                  ),
+            _renderCard(),
           ],
         ),
       ),
     );
   }
+
+ Widget _renderCard() {
+    if(!_isParsed) {
+      return Positioned(
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        child: Container(
+          alignment: Alignment.center,
+          color: Theme.of(context).backgroundColor,
+          constraints: BoxConstraints.expand(),
+          child: Text('正在解析，请稍候...'),
+        ),
+      );
+    }
+    if(!StringUtil.isEmpty(_shareNotImpl)) {
+      return Positioned(
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        child: Container(
+          alignment: Alignment.center,
+          color: Theme.of(context).backgroundColor,
+          constraints: BoxConstraints.expand(),
+          child: Text('抱歉！$_shareNotImpl'),
+        ),
+      );
+    }
+    return Positioned(
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        color: Theme.of(context).backgroundColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 30,
+            ),
+            renderShareCard(
+              context: widget.context,
+              title: _title,
+              href: _href,
+              leading: _leading,
+              summary: _summary,
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                    ),
+                    constraints: BoxConstraints.tightForFinite(
+                      width: double.maxFinite,
+                    ),
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '分享到',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceEvenly,
+                          children: [
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                AcceptShare.forwardEasyTalk(
+                                  arguments: {
+                                    'summary': _summary,
+                                    'leading': _leading,
+                                    'title': _title,
+                                    'href': _href
+                                  },
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius:
+                                  BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey[300],
+                                      spreadRadius: 3,
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                                height: 60,
+                                width: 60,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '平聊',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                AcceptShare.forwardNetflow(
+                                  arguments: {
+                                    'summary': _summary,
+                                    'leading': _leading,
+                                    'title': _title,
+                                    'href': _href
+                                  },
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius:
+                                  BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey[300],
+                                      spreadRadius: 3,
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                                height: 60,
+                                width: 60,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '网流',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                AcceptShare.forwardGeosphere(
+                                  arguments: {
+                                    'summary': _summary,
+                                    'leading': _leading,
+                                    'title': _title,
+                                    'href': _href
+                                  },
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius:
+                                  BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey[300],
+                                      spreadRadius: 3,
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                                height: 60,
+                                width: 60,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '地圈',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () {
+                    AcceptShare.forwardTiptool(
+                      arguments: {
+                        'summary': _summary,
+                        'leading': _leading,
+                        'title': _title,
+                        'href': _href
+                      },
+                    );
+                  },
+                  child: Text(
+                    '分享给桌面提示栏',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blueGrey,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            SizedBox(
+              height: 10,
+            ),
+          ],
+        ),
+      ),
+    );
+ }
+
 }

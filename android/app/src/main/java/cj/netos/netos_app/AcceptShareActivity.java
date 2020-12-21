@@ -82,9 +82,10 @@ public class AcceptShareActivity extends FlutterActivity  {
 
             if ("audio/".equals(type)) {
                 // 处理发送来音频
-//                ToastUtils.showToast(getContext(),"");
+                testPlugin.sendShareNotImpl("不支持分享音频格式");
             } else if (type.startsWith("video/")) {
                 // 处理发送来的视频
+                testPlugin.sendShareNotImpl("不支持分享视频格式");
             } else if (type.startsWith("text/plain")) {
                 //处理浏览器分享
                 ClipData clipData = intent.getClipData();
@@ -95,25 +96,37 @@ public class AcceptShareActivity extends FlutterActivity  {
                         testPlugin.sendShareCapture(sequence == null ? null : sequence.toString());
                     }
                 }
-            } else if (type.startsWith("*/")) {
-                //处理发送过来的其他文件
+            } else if (type.startsWith("text/*")){
+                //如迅雷等
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        CharSequence sequence = item.getText();
+                        testPlugin.sendShareCapture(sequence == null ? null : sequence.toString());
+                    }
+                }
             } else if (type.startsWith("image/")) {
                 //处理发送过来的其他文件
+                testPlugin.sendShareNotImpl("不支持分享图片");
+            }else{
+                testPlugin.sendShareNotImpl("不支持该分享");
             }
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-            ArrayList<Uri> arrayList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-            if ("audio/".equals(type)) {
-                // 处理发送来音频
-//                ToastUtils.showToast(getContext(),"");
-            } else if (type.startsWith("video/")) {
-                // 处理发送来的视频
-            } else if (type.startsWith("text/plain")) {
-                //处理发送过来的其他文件
-            } else if (type.startsWith("*/")) {
-                //处理发送过来的其他文件
-            } else if (type.startsWith("image/")) {
-                //处理发送过来的其他文件
-            }
+            testPlugin.sendShareNotImpl("不支持多文件分享");
+//            ArrayList<Uri> arrayList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+//            if ("audio/".equals(type)) {
+//                // 处理发送来音频
+////                ToastUtils.showToast(getContext(),"");
+//            } else if (type.startsWith("video/")) {
+//                // 处理发送来的视频
+//            } else if (type.startsWith("text/plain")) {
+//                //处理发送过来的其他文件
+//            } else if (type.startsWith("*/")) {
+//                //处理发送过来的其他文件
+//            } else if (type.startsWith("image/")) {
+//                //处理发送过来的其他文件
+//            }
         }
     }
 }

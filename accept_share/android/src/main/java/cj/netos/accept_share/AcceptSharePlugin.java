@@ -57,7 +57,25 @@ public class AcceptSharePlugin implements FlutterPlugin, MethodCallHandler {
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
     }
+    public void sendShareNotImpl(String content) {
+        channel.invokeMethod("shareNotImpl", content, new MethodChannel.Result() {
+            @Override
+            public void success(Object o) {
+                // 这里就会输出 "Hello from Flutter"
+                Log.i("--r-----", o + "");
+            }
 
+            @Override
+            public void error(String s, String s1, Object o) {
+                System.out.println("!!!" + s + "  " + s1 + " " + o);
+            }
+
+            @Override
+            public void notImplemented() {
+                System.out.println("------notImplemented");
+            }
+        });
+    }
     public void sendShareCapture(String content) {
         channel.invokeMethod("shareCapture", content, new MethodChannel.Result() {
             @Override
