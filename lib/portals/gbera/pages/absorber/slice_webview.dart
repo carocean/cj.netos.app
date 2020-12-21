@@ -56,6 +56,7 @@ class _SliceWebViewPageState extends State<SliceWebViewPage> {
             WebView(
               initialUrl: '${_qrcodeSliceOR.href}?id=${_qrcodeSliceOR.id}',
               javascriptMode: JavascriptMode.unrestricted,
+              initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
               onWebViewCreated: (WebViewController webViewController) {
                 _controller.complete(webViewController);
               },

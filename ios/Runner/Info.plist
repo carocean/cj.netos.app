@@ -37,6 +37,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>io.flutter.embedded_views_preview</key>
+    <string>YES</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

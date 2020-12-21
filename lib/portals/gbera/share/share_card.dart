@@ -193,6 +193,7 @@ class _ShareWebviewDialogState extends State<ShareWebviewDialog> {
             child: WebView(
               initialUrl: doc.href,
               javascriptMode: JavascriptMode.unrestricted,
+              initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
               onWebViewCreated: (WebViewController webViewController) {
                 controller = webViewController;
               },

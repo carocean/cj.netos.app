@@ -38,6 +38,7 @@ class _MicroAppWidgetState extends State<MicroAppWidget> {
             child: WebView(
               initialUrl: 'https://3g.163.com/touch/',
               javascriptMode: JavascriptMode.unrestricted,
+              initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
               onWebViewCreated: (WebViewController webViewController) {
                 _controller.complete(webViewController);
               },
