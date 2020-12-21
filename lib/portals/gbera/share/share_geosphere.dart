@@ -274,6 +274,10 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
         widget.context.principal.person,
       ),
     );
+    if(!StringUtil.isEmpty(_leading)&&_leading.startsWith('/')){
+      var obj= await widget.context.ports.upload('/app/share/', [_leading]);
+      _leading=obj[_leading];
+    }
     var media = GeosphereMediaOL(
       MD5Util.MD5(Uuid().v1()),
       'share',

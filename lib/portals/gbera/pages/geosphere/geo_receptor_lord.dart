@@ -220,13 +220,19 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(message, wrappers) async {
+  Future<void> _fillMessageWrapper(GeosphereMessageOL message, wrappers) async {
     IGeosphereMediaService mediaService =
         widget.context.site.getService('/geosphere/receptor/messages/medias');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
+    String receptor;
+    if(StringUtil.isEmpty(message.upstreamReceptor)){
+      receptor=message.receptor;
+    }else{
+      receptor=message.upstreamReceptor;
+    }
     List<GeosphereMediaOL> medias =
-        await mediaService.listMedia(message.receptor, message.id);
+        await mediaService.listMedia(receptor, message.id);
     Person creator =
         await personService.getPerson(message.creator, isDownloadAvatar: true);
     Person upstreamPerson;
@@ -911,7 +917,9 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           if (widget.refresh != null) {
                             await widget.refresh();
                             _arrivedMessageCount = 0;
-                            setState(() {});
+                            if(mounted){
+                              setState(() {});
+                            }
                           }
                         },
                         child: Row(
@@ -2389,6 +2397,9 @@ class __AbsorberActionState extends State<_AbsorberAction> {
       }
     }).listen((event) async {
       var v = await event;
+      if(v==null) {
+        return;
+      }
       if (v && !_streamController.isClosed) {
         _streamController
             .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
