@@ -401,7 +401,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> pushMessage(String creator, ChatMessage message) {
+  Future<Function> pushMessage(String creator, ChatMessage message) async{
     ProgressTaskBar taskbarProgress =
         site.getService('@.prop.taskbar.progress');
     switch (message.contentType ?? '') {
@@ -419,6 +419,31 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           },
           data: {
             'content': message.content,
+          },
+        );
+        break;
+      case 'share':
+        var obj=jsonDecode(message.content);
+        var leading=obj['leading'];
+        bool isChanged=false;
+        if(leading.startsWith('/')){
+          var map=await remotePorts.upload('/app/share/', [leading]);
+          var url=map[leading];
+          obj['leading']=url;
+          isChanged=true;
+        }
+        remotePorts.portTask.addPortPOSTTask(
+          chatFlowPortsUrl,
+          'pushMessage',
+          parameters: {
+            'creator': creator,
+            'room': message.room,
+            'msgid': message.id,
+            'contentType': 'share',
+            'interval': 10,
+          },
+          data: {
+            'content': isChanged?jsonEncode(obj):message.content,
           },
         );
         break;

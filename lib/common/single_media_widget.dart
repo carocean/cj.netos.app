@@ -35,7 +35,7 @@ class _SingleMediaWidgetState extends State<SingleMediaWidget> {
     if (src.startsWith('http')) {
       return FadeInImage.assetNetwork(
         placeholder: 'lib/portals/gbera/images/default_watting.gif',
-        image: src,
+        image: '$src?accessToken=${widget.context.principal.accessToken}',
         fit: BoxFit.cover,
       );
     }

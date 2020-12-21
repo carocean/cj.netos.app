@@ -12,7 +12,7 @@
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity android:name="io.flutter.embedding.android.FlutterActivity"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:theme="@style/LaunchTheme"
@@ -30,7 +30,7 @@
         android:launchMode="singleInstance"
         -->
         <activity android:name=".AcceptShareActivity"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:theme="@style/LaunchTheme"
@@ -74,7 +74,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -95,6 +95,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!--高德-->
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="74945179eaae7c6e14cdac77be5a8706"/>
 
         <!--华为-->
         <service
@@ -123,10 +128,6 @@
             android:value="105055871" />
         <!--vivo end-->
 
-
-        <meta-data
-                android:name="com.amap.api.v2.apikey"
-                android:value="74945179eaae7c6e14cdac77be5a8706"/>
         <!-- push应用定义消息receiver声明 -->
         <receiver android:name="cj.netos.netos_app.VivoPushMessageReceiverImpl">
             <intent-filter>

@@ -44,6 +44,8 @@ public class AcceptSharePlugin implements FlutterPlugin, MethodCallHandler {
             intent.putExtra("share_action",call.method);
             intent.putExtra("share_content",json);
 //            intent.setClipData(call.arguments);
+            //说明：让导向的主activity重新创建，现象：分享中的网流和地圈界面中的购买功能处理一直搜索当地服务商状态。原因是：高德导航的api如果在shareactivity消毁后而导出同一个主activity接收，则定位失败
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
             result.success(null);
         } else {

@@ -227,6 +227,7 @@ import 'package:netos_app/portals/gbera/scaffolds.dart';
 import 'package:netos_app/portals/gbera/share/share_easytalk.dart';
 import 'package:netos_app/portals/gbera/share/share_geosphere.dart';
 import 'package:netos_app/portals/gbera/share/share_netflow.dart';
+import 'package:netos_app/portals/gbera/share/share_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
@@ -2233,7 +2234,7 @@ class GberaPortal {
         ),
         LogicPage(
           title: '分享',
-          subtitle: '',
+          subtitle: '平聊',
           icon: null,
           url: '/share/easyTalk',
           buildPage: (PageContext pageContext) => EasyTalkSharePage(
@@ -2242,7 +2243,16 @@ class GberaPortal {
         ),
         LogicPage(
           title: '分享',
-          subtitle: '',
+          subtitle: '桌面提示栏',
+          icon: null,
+          url: '/share/tiptool',
+          buildPage: (PageContext pageContext) => TiptoolSharePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '分享',
+          subtitle: '网流',
           icon: null,
           url: '/share/netflow',
           buildPage: (PageContext pageContext) => NetflowSharePage(
@@ -2251,7 +2261,7 @@ class GberaPortal {
         ),
         LogicPage(
           title: '分享',
-          subtitle: '',
+          subtitle: '地圈',
           icon: null,
           url: '/share/geosphere',
           buildPage: (PageContext pageContext) => GeosphereSharePage(

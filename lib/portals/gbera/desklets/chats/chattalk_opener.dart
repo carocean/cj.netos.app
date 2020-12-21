@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
@@ -10,25 +12,58 @@ import 'chat_rooms.dart';
 final IChatTalkOpener messageSender = _DefaultChatTalkOpener();
 mixin IChatTalkOpener {
   Future<void> open(PageContext context,
-      {List<String> members, Future<void> Function(bool isNewRoom) callback});
+      {List<String> members,
+      Future<void> Function(bool isNewRoom, ChatRoomModel chatroom) callback});
+
+  Future<void> openOnly(PageContext context,
+      {Future<void> Function(bool isNewRoom, ChatRoomModel chatroom) callback,
+      String roomId});
+
+  Future<void> sendShareMessage(PageContext context, String roomCreator,
+      String roomId, String comment, Map<String, String> content) {}
 }
 
 class _DefaultChatTalkOpener implements IChatTalkOpener {
   @override
-  Future<void> open(PageContext context,
-      {List<String> members,
-      Future<void> Function(bool isNewRoom) callback}) async {
-    var model = await _getChatroom(context, members);
-    bool isNewRoom = false;
-    if (model == null) {
-      isNewRoom = true;
-      model = await _createChatroom(context, members);
+  Future<Function> sendShareMessage(PageContext context, String roomCreator,
+      String roomId, String comment, Map<String, String> content) async {
+    content['comment'] = comment;
+    var json = jsonEncode(content);
+    var message = ChatMessage(
+      MD5Util.MD5(Uuid().v1()),
+      context.principal.person,
+      roomId,
+      'share',
+      json,
+      'sended',
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      null,
+      context.principal.person,
+    );
+    IP2PMessageService messageService =
+        context.site.getService('/chat/p2p/messages');
+    await messageService.addMessage(roomCreator, message);
+  }
+
+  @override
+  Future<void> openOnly(PageContext context,
+      {Future<void> Function(bool isNewRoom, ChatRoomModel chatroom) callback,
+      String roomId}) async {
+    var model;
+    if (!StringUtil.isEmpty(roomId)) {
+      model = await _getChatroomById(context, roomId);
     }
-    if (callback != null && isNewRoom) {
-      await callback(isNewRoom);
+    if (model == null) {
       return;
     }
-    context.forward('/portlet/chat/talk',clearHistoryByPagePath: '/', arguments: {
+    if (callback != null) {
+      await callback(false, model);
+      return;
+    }
+    context
+        .forward('/portlet/chat/talk', clearHistoryByPagePath: '/', arguments: {
       'model': model,
     }).then((value) {
       // context.forward(
@@ -37,6 +72,57 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       //   scene: context.principal.portal ?? 'gbera',
       // );
     });
+  }
+
+  @override
+  Future<void> open(PageContext context,
+      {List<String> members,
+      Future<void> Function(bool isNewRoom, ChatRoomModel chatroom)
+          callback}) async {
+    var model = await _getChatroom(context, members);
+    bool isNewRoom = false;
+    if (model == null) {
+      isNewRoom = true;
+      model = await _createChatroom(context, members);
+    }
+    if (callback != null && isNewRoom) {
+      await callback(isNewRoom, model);
+      return;
+    }
+    context
+        .forward('/portlet/chat/talk', clearHistoryByPagePath: '/', arguments: {
+      'model': model,
+    }).then((value) {
+      // context.forward(
+      //   "/",
+      //   clearHistoryByPagePath: '/',
+      //   scene: context.principal.portal ?? 'gbera',
+      // );
+    });
+  }
+
+  Future<ChatRoomModel> _getChatroomById(PageContext context, String id) async {
+    IChatRoomService chatRoomService = context.site.getService('/chat/rooms');
+    var chatroom = await chatRoomService.get(id);
+    if (chatroom == null) {
+      return null;
+    }
+    IFriendService friendService = context.site.getService("/gbera/friends");
+
+    List<RoomMember> memberList = await chatRoomService.listMember(chatroom.id);
+
+    List<Friend> friends = [];
+    for (var member in memberList) {
+      var f = await friendService.getFriend(member.person);
+      if (f == null) {
+        continue;
+      }
+      friends.add(f);
+    }
+    return ChatRoomModel(
+      chatRoom: chatroom,
+      members: friends,
+    );
   }
 
   Future<ChatRoomModel> _getChatroom(

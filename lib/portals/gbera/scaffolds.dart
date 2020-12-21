@@ -30,7 +30,9 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
       if(!call.method.startsWith('forward')){
         return;
       }
-      _forwardShare(call.method,call.arguments);
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        _forwardShare(call.method,call.arguments);
+      });
     });
     super.initState();
     _pageController = PageController(initialPage: this.selectedIndex);
@@ -78,6 +80,13 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
       case 'forwardGeosphere':
         widget.context.forward(
           "/share/geosphere",
+          clearHistoryByPagePath: '.',
+          arguments: arguments.cast<String,Object>(),
+        );
+        break;
+      case 'forwardTiptool':
+        widget.context.forward(
+          "/share/tiptool",
           clearHistoryByPagePath: '.',
           arguments: arguments.cast<String,Object>(),
         );

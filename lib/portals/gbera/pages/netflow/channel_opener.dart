@@ -9,6 +9,9 @@ import 'package:uuid/uuid.dart';
 final IChannelOpener channelOpener = _DefaultChannelOpener();
 
 mixin IChannelOpener {
+  Future<void> open(PageContext context, String channel,
+      Future<bool> Function(Channel ch) beforeOpen) {}
+
   Future<void> openMyChannelAndAddToInput(
       PageContext context, String channel, String owner) {}
 
@@ -29,6 +32,30 @@ mixin IChannelOpener {
 }
 
 class _DefaultChannelOpener implements IChannelOpener {
+  @override//返回是否进入管道窗口
+  Future<void> open(PageContext context, String channel,
+      Future<bool> Function(Channel ch) beforeOpen) async {
+    IChannelService channelService =
+        context.site.getService('/netflow/channels');
+    var ch = await channelService.getChannel(channel);
+    if (ch == null) {
+      return;
+    }
+    bool entrySurface=true;
+    if (beforeOpen != null) {
+      entrySurface= await beforeOpen(ch);
+    }
+    if(!entrySurface){
+      return;
+    }
+    await context.forward(
+      '/netflow/channel',
+      arguments: {
+        'channel': ch,
+      },
+    );
+  }
+
   @override
   Future<void> openMyChannelAndAddToInput(
       PageContext context, String channel, String owner) async {
@@ -104,8 +131,10 @@ class _DefaultChannelOpener implements IChannelOpener {
           avatarUrl:
               '${ch.leading}?accessToken=${context.principal.accessToken}');
     }
-    await channelService.addChannel(ch,upstreamPerson: owner,
-        localLeading: localLeadingFile, remoteLeading: remoteLeadingUrl);
+    await channelService.addChannel(ch,
+        upstreamPerson: owner,
+        localLeading: localLeadingFile,
+        remoteLeading: remoteLeadingUrl);
   }
 
   @override

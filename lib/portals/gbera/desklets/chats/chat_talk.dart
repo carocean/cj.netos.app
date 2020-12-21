@@ -20,6 +20,7 @@ import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/share/share_card.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -1443,6 +1444,43 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             fontWeight: FontWeight.w500,
           ),
         );
+      case 'share':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var items = <Widget>[
+          renderShareCard(
+            fontSize: 14,
+            margin: EdgeInsets.only(
+              left: 0,
+              right: 0,
+            ),
+            background: Colors.grey[300],
+            context: widget.context,
+            title: map['title'],
+            href: map['href'],
+            leading: map['leading'],
+            summary: map['summary'],
+          ),
+        ];
+        if (!StringUtil.isEmpty(map['comment'])) {
+          items.add(
+            SizedBox(
+              height: 10,
+            ),
+          );
+          items.add(
+            Row(
+              children: [
+                Expanded(
+                  child: Text('${map['comment'] ?? ''}'),
+                ),
+              ],
+            ),
+          );
+        }
+        return Column(
+          children: items,
+        );
       case 'audio':
         var content = jsonDecode(widget.p2pMessage.content);
         String path = content['path'];
@@ -1676,7 +1714,13 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('体验金到账！',style: TextStyle(fontSize: 12,color: Colors.grey,),),
+              Text(
+                '体验金到账！',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.only(
                   top: 10,
@@ -1684,36 +1728,61 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                   left: 25,
                   right: 15,
                 ),
-                child: Text('¥$amount元',style: TextStyle(fontSize: 30,color: Colors.red,),),
+                child: Text(
+                  '¥$amount元',
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.red,
+                  ),
+                ),
               ),
-              SizedBox(height: 10,),
-              Text('发放原因:',style: TextStyle(fontSize: 12,color: Colors.black,),),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                '发放原因:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black,
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.only(
                   top: 5,
                   bottom: 10,
                 ),
-                child: Text.rich(TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '- 您的码片被"${record.qrsliceCname}"初次消费，故而得到奖励\r\n',
-                    ),
-                    TextSpan(
-                      text: '- 体验金可在钱包->体验金账户中查看\r\n',
-                    ),
-                    TextSpan(
-                      text: '- 如想得到更多体验金，请多',
-                    ),
-                    TextSpan(
-                      text: '发码',
-                      style: TextStyle(fontSize: 14,color: Colors.blueGrey,),
-                      recognizer: TapGestureRecognizer()..onTap=(){
-                        widget.context.forward('/robot/createSlices').then((value) {
-                        });
-                      },
-                    ),
-                  ],
-                ),style: TextStyle(fontSize: 10,color: Colors.grey,),),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '- 您的码片被"${record.qrsliceCname}"初次消费，故而得到奖励\r\n',
+                      ),
+                      TextSpan(
+                        text: '- 体验金可在钱包->体验金账户中查看\r\n',
+                      ),
+                      TextSpan(
+                        text: '- 如想得到更多体验金，请多',
+                      ),
+                      TextSpan(
+                        text: '发码',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blueGrey,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            widget.context
+                                .forward('/robot/createSlices')
+                                .then((value) {});
+                          },
+                      ),
+                    ],
+                  ),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
             ],
           ),
@@ -1929,6 +1998,44 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                 : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
+        );
+        break;
+      case 'share':
+        var json = widget.p2pMessage.content;
+        Map<String, dynamic> map = jsonDecode(json);
+        var items = <Widget>[
+          renderShareCard(
+            fontSize: 14,
+            margin: EdgeInsets.only(
+              left: 0,
+              right: 0,
+            ),
+            background: Colors.grey[300],
+            context: widget.context,
+            title: map['title'],
+            href: map['href'],
+            leading: map['leading'],
+            summary: map['summary'],
+          ),
+        ];
+        if (!StringUtil.isEmpty(map['comment'])) {
+          items.add(
+            SizedBox(
+              height: 10,
+            ),
+          );
+          items.add(
+            Row(
+              children: [
+                Expanded(
+                  child: Text('${map['comment'] ?? ''}'),
+                ),
+              ],
+            ),
+          );
+        }
+        display = Column(
+          children: items,
         );
         break;
       case 'audio':

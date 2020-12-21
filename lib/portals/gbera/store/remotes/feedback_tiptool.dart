@@ -82,9 +82,9 @@ class TipToolRemote implements ITipToolRemote, IServiceBuilder {
       parameters: {
         'title': title,
         'leading': leading,
-        'href': href,
       },
       data: {
+        'href': href,
         'summary': summary,
       },
     );

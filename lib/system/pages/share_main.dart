@@ -79,7 +79,7 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
     if (img?.attributes != null) {
       src = img?.attributes['src'];
     }
-    if (!StringUtil.isEmpty(src)) {
+    if (!StringUtil.isEmpty(src) && _isImage(src)) {
       _leading = src;
     }
     _summary = doc.querySelector('body')?.text;
@@ -102,6 +102,13 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
         }
       }
     }
+  }
+
+  bool _isImage(String src) {
+    return src.indexOf('.php') < 0 &&
+        src.indexOf('.jsp') < 0 &&
+        src.indexOf('.asp') < 0 &&
+        src.indexOf('.aspx') < 0;
   }
 
   @override
@@ -140,7 +147,7 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                       },
                       onLoadStop: (controller, url) async {
                         _isParsed = false;
-                        if(mounted) {
+                        if (mounted) {
                           setState(() {});
                         }
                         var html = await controller.getHtml();
@@ -357,6 +364,32 @@ class _AcceptShareMainState extends State<AcceptShareMain> {
                               ],
                             ),
                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  AcceptShare.forwardTiptool(
+                                    arguments: {
+                                      'summary': _summary,
+                                      'leading': _leading,
+                                      'title': _title,
+                                      'href': _href
+                                    },
+                                  );
+                                },
+                                child: Text(
+                                  '分享给桌面提示栏',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blueGrey,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(height: 10,),
                         ],
                       ),
                     ),

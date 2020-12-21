@@ -291,6 +291,20 @@ class Media {
         leading: leading,
         src: src);
   }
+
+  Map<String,dynamic> toMap() {
+    return {
+      'id':id,
+      'type':type,
+      'src':src,
+      'leading':leading,
+      'docid':msgid,
+      'text':text,
+      'channel':onChannel,
+      'sandbox':sandbox,
+    };
+  }
+
 }
 
 @entity

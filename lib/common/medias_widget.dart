@@ -8,6 +8,7 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/share/share_card.dart';
 import 'package:nineold/loader/image_with_loader.dart';
 import 'package:nineold/loader/image_with_local.dart';
 import 'package:nineold/watcher/gallery_watcher.dart';
@@ -64,7 +65,7 @@ class MediaWidget extends StatelessWidget {
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: 296,
+        // maxHeight: 296,
         maxWidth: 296,
       ),
       child: _aspectRatioImage(context, index: 0, aspectRatio: 16 / 9),
@@ -388,13 +389,22 @@ class MediaWidget extends StatelessWidget {
     int index,
     double aspectRatio = 1,
   }) {
+    var media=medias[index];
+    if('share'==media.type){
+    return _MediaWithLoader(
+      src: media,
+      accessToken: pageContext.principal.accessToken,
+      pageContext: pageContext,
+      stackFit: StackFit.loose,
+    );
+    }
     return InkWell(
         child: AspectRatio(
             aspectRatio: aspectRatio,
             child: Hero(
-                tag: '${medias[index]}?tag=${Uuid().v1()}',
+                tag: '$media?tag=${Uuid().v1()}',
                 child: _MediaWithLoader(
-                  src: medias[index],
+                  src: media,
                   accessToken: pageContext.principal.accessToken,
                   pageContext: pageContext,
                 ))),
@@ -427,11 +437,12 @@ class _MediaWithLoader extends StatelessWidget {
   const _MediaWithLoader({
     this.src,
     this.fit = BoxFit.cover,
+    this.stackFit=StackFit.expand,
     this.loaderSize = 48.0,
     this.accessToken,
     this.pageContext,
   });
-
+  final StackFit stackFit;
   final PageContext pageContext;
   final MediaSrc src;
   final String accessToken;
@@ -440,7 +451,7 @@ class _MediaWithLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      fit: StackFit.expand,
+      fit:stackFit==null? StackFit.expand:stackFit,
       alignment: Alignment.center,
       children: <Widget>[
         Container(
@@ -481,6 +492,23 @@ class _MediaWithLoader extends StatelessWidget {
           image: '$src?accessToken=$accessToken',
           fit: BoxFit.contain,
           placeholder: kTransparentImage,
+        );
+        break;
+      case 'share':
+        mediaRender = Container(
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              renderShareCard(
+                title: media.text,
+                href: media.src,
+                leading: media.leading,
+                context: pageContext,
+                margin: EdgeInsets.only(left: 0,right: 0),
+              ),
+            ],
+          ),
         );
         break;
       case 'video':

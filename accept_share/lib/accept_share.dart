@@ -25,4 +25,9 @@ class AcceptShare {
   static Future<void> forwardGeosphere({Map<String, String> arguments}) async{
     await _channel.invokeMethod('forwardGeosphere',arguments);
   }
+
+  static void forwardTiptool({Map<String, String> arguments}) async{
+    await _channel.invokeMethod('forwardTiptool',arguments);
+  }
+
 }

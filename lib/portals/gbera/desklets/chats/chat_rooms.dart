@@ -630,6 +630,31 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           setState(() {});
         }
         break;
+      case 'share':
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          StringUtil.isEmpty(ctime)
+              ? DateTime.now().millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        chatroomNotifyStreamController
+            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
+        }
+        break;
       case 'audio':
         var contentmap = jsonDecode(content);
         String path = contentmap['path'];
@@ -886,7 +911,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                         return;
                       }
                       messageSender.open(widget.context, members: result,
-                          callback: (isNewRoom) async {
+                          callback: (isNewRoom,model) async {
                         _models.clear();
                         _loadChatrooms().then((v) {
                           if (mounted) {
@@ -973,7 +998,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                     return;
                   }
                   messageSender.open(widget.context, members: result,
-                      callback: (isNewRoom) async {
+                      callback: (isNewRoom,model) async {
                     _models.clear();
                     _loadChatrooms().then((v) {
                       if (mounted) {
@@ -1110,6 +1135,11 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       case '':
       case 'text':
         _stateBar.tips = '$whois:${message?.content}';
+        break;
+      case 'share':
+        var cnt = message?.content;
+        var map = jsonDecode(cnt);
+        _stateBar.tips = '$whois:${map['title']??''}';
         break;
       case 'audio':
         var cnt = message?.content;
