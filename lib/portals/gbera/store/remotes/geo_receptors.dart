@@ -184,6 +184,25 @@ mixin IGeoReceptorRemote {
   Future<void> denyFollowSpeak(String id, Person person) {}
 
   Future<bool> isDenyFollowSpeak(String id) {}
+
+  Future<void> addMedia(GeosphereMediaOL media) {}
+
+  Future<void> addMedia2(GeosphereMediaOL media) {}
+  Future<void> pageLikeTask(
+      String docCreator, String docid, String receptor, int limit, int offset);
+
+  Future<void> pageCommentTask(
+      String docCreator, String docid, String receptor, int limit, int offset);
+
+  Future<void> listMediaTask(String docCreator, String docid, String receptor);
+
+  void listenLikeTaskCallback(Function(List likes) callback);
+
+  void listenCommentTaskCallback(Function(List comments) callback);
+
+  void listenMediaTaskCallback(Function(List medias) callback);
+
+
 }
 
 class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
@@ -447,6 +466,44 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
           '&src=${geosphereMediaOL.src}'
           '&text=${geosphereMediaOL.text ?? ''}'
           '&leading=${geosphereMediaOL.leading ?? ''}',
+    );
+  }
+
+  @override
+  Future<Function> addMedia(GeosphereMediaOL mediaOL) async {
+    var media = {
+      'receptor': mediaOL.receptor,
+      'docid': mediaOL.msgid,
+      'id': mediaOL.id,
+      'type': mediaOL.type,
+      'src': mediaOL.src,
+      'text': mediaOL.text,
+      'leading': mediaOL.leading,
+    };
+    await remotePorts.portGET(
+      _receptorPortsUrl,
+      'addMedia',
+      parameters: media,
+    );
+  }
+
+  @override
+  Future<Function> addMedia2(GeosphereMediaOL mediaOL) async{
+    var media = {
+      'receptor': mediaOL.receptor,
+      'docid': mediaOL.msgid,
+      'id': mediaOL.id,
+      'type': mediaOL.type,
+      'src': mediaOL.src,
+      'text': mediaOL.text,
+      'leading': mediaOL.leading,
+    };
+    await remotePorts.portPOST(
+      _receptorPortsUrl,
+      'addMedia2',
+      data: {
+        'media':jsonEncode(media),
+      }
     );
   }
 
@@ -924,4 +981,106 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     }
     return items;
   }
+
+  @override
+  void listenCommentTaskCallback(Function(List comments) callback) {
+    if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/comments')) {
+      return;
+    }
+    remotePorts.portTask.listener('/geosphere/receptor/extra/comments', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
+          break;
+      }
+    });
+  }
+  @override
+  Future<void> pageCommentTask(
+      String docCreator, String docid, String receptor, int limit, int offset) {
+    remotePorts.portTask.addPortGETTask(
+      _receptorPortsUrl,
+      'pageComment',
+      parameters: {
+        'docid': docid,
+        'limit': limit,
+        'offset': offset,
+      },
+      callbackUrl: '/geosphere/receptor/extra/comments',
+    );
+  }
+  @override
+  void listenLikeTaskCallback(Function(List likes) callback) {
+    if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/likes')) {
+      return;
+    }
+    remotePorts.portTask.listener('/geosphere/receptor/extra/likes', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> pageLikeTask(
+      String docCreator, String docid, String receptor, int limit, int offset) {
+    remotePorts.portTask.addPortGETTask(
+      _receptorPortsUrl,
+      'pageLike',
+      parameters: {
+        'docid': docid,
+        'limit': limit,
+        'offset': offset,
+      },
+      callbackUrl: '/geosphere/receptor/extra/likes',
+    );
+  }
+  @override
+  void listenMediaTaskCallback(Function(List medias) callback) {
+    if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/medias')) {
+      return;
+    }
+    remotePorts.portTask.listener('/geosphere/receptor/extra/medias', (frame) {
+      switch (frame.head('sub-command')) {
+        case 'begin':
+          break;
+        case 'done':
+          var text = frame.contentText;
+          if (!StringUtil.isEmpty(text)) {
+            var list = jsonDecode(text);
+            callback(list);
+          }
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> listMediaTask(String docCreator, String docid, String receptor) {
+    remotePorts.portTask.addPortGETTask(
+      _receptorPortsUrl,
+      'listExtraMedia',
+      parameters: {
+        'docid': docid,
+      },
+      callbackUrl: '/geosphere/receptor/extra/medias',
+    );
+  }
+
+
+
 }

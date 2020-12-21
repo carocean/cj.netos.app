@@ -497,10 +497,16 @@ mixin IGeosphereMessageService {
   Future<int> countUnreadMessage(String receptor) {}
 
   Future<void> flagMessagesReaded(String id) {}
+
+  Future<void> loadMessageExtraTask(String msgCreator, String msgid, String receptor) {}
+
 }
 mixin IGeosphereMediaService {
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,
       {bool isOnlySaveLocal = false}) {}
 
   Future<List<GeosphereMediaOL>> listMedia(String receptor, String messageid) {}
+
+  Future<void>  addMediaNotPush(GeosphereMediaOL media) {}
+
 }

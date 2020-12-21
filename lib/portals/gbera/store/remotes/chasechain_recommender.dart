@@ -985,11 +985,15 @@ class ChasechainRecommenderRemote
       if (media.src.startsWith('/')) {
         return RecommenderMediaOR.load(media);
       }
-      m.src = await _downloadMedia(m.src);
-      await recommenderDAO.updateMediaSrc(m.src, principal.person, m.id);
+      if('share'!=media.type) {
+        m.src = await _downloadMedia(m.src);
+        await recommenderDAO.updateMediaSrc(m.src, principal.person, m.id);
+      }
       return m;
     }
-    m.src = await _downloadMedia(m.src);
+    if('share'!=media.type) {
+      m.src = await _downloadMedia(m.src);
+    }
     await recommenderDAO.addMedia(m.toOL(principal.person));
     return m;
   }

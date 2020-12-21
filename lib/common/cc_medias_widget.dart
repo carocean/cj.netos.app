@@ -8,6 +8,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
+import 'package:netos_app/portals/gbera/share/share_card.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:nineold/loader/image_with_loader.dart';
 import 'package:nineold/loader/image_with_local.dart';
@@ -71,7 +72,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height: 166,
+        height:medias[0]?.type=='share'?80: 166,
       ),
       child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
     );
@@ -394,13 +395,21 @@ class RecommenderMediaWidget extends StatelessWidget {
     int index,
     double aspectRatio = _aspectRatio,
   }) {
+    var media=medias[index];
+    if('share'==media.type){
+      return _MediaCacheAndLoader(
+        src: medias[index],
+        accessToken: pageContext.principal.accessToken,
+        context: pageContext,
+      );
+    }
     return InkWell(
       child: AspectRatio(
         aspectRatio: aspectRatio,
         child: Hero(
-          tag: '${medias[index]}?tag=${Uuid().v1()}',
+          tag: '$media?tag=${Uuid().v1()}',
           child: _MediaCacheAndLoader(
-            src: medias[index],
+            src: media,
             accessToken: pageContext.principal.accessToken,
             context: pageContext,
           ),
@@ -511,7 +520,7 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
                 width: 0,
                 height: 0,
               )
-            : _getMediaRender(_src, widget.accessToken),
+            : _getMediaRender(widget.context,_src, widget.accessToken),
       ],
     );
   }
@@ -525,7 +534,7 @@ CircularProgressIndicator _buildCircularProgressIndicator() {
   );
 }
 
-Widget _getMediaRender(RecommenderMediaOR media, String accessToken) {
+Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String accessToken) {
   var mediaRender;
   var src = media?.src;
   switch (media.type) {
@@ -535,6 +544,23 @@ Widget _getMediaRender(RecommenderMediaOR media, String accessToken) {
         child: Image.file(
           File(src),
           fit: BoxFit.cover,
+        ),
+      );
+      break;
+    case 'share':
+      mediaRender = Container(
+        color: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            renderShareCard(
+              title: media.text,
+              href: media.src,
+              leading: media.leading,
+              context: pageContext,
+              margin: EdgeInsets.only(left: 0,right: 0),
+            ),
+          ],
         ),
       );
       break;

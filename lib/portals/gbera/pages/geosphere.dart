@@ -611,6 +611,8 @@ class _GeosphereState extends State<Geosphere>
 
       await receptorService.updateUtime(receptor.id);
       await messageService.addMessage(message, isOnlySaveLocal: true);
+      await messageService.loadMessageExtraTask(
+          message.creator, message.id, message.receptor);
 
       //通知当前工作的管道有新消息到
       //网流的管道列表中的每个管道的显示消息提醒的状态栏

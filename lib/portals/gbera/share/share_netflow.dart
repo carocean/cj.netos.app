@@ -33,8 +33,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
   String _summary;
   String _leading;
   List<Channel> _channels = [];
-  bool _isChannelsLoading = true;
-  bool _isMoneyLoading = true;
+  int _loadState = 0;//0正在载管道；1正搜索位置；-1完成
   Channel _selector;
   TextEditingController _commentController = TextEditingController();
   PurchaseInfo _purchaseInfo;
@@ -72,12 +71,12 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
 
   Future<void> _load() async {
     await _loadChannels();
-    _isChannelsLoading = false;
+    _loadState = 1;
     if (mounted) {
       setState(() {});
     }
     await _loadMoney();
-    _isMoneyLoading = false;
+    _loadState = -1;
     if (mounted) {
       setState(() {});
     }
@@ -484,6 +483,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
             SizedBox(
               height: 10,
             ),
+            ... _renderProcessing(),
             Expanded(
               child: Container(
                 padding: EdgeInsets.only(
@@ -542,7 +542,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
                                         child: Align(
                                           alignment: Alignment.centerRight,
                                           child: Text(
-                                            '${_isMoneyLoading ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
+                                            '${_loadState>-1 ? '正在搜寻当地的服务商...' : (StringUtil.isEmpty(_districtCode) ? '没找到当地服务商，因此无法提供发布服务' : _label)}',
                                             style: TextStyle(
                                               fontSize: 12,
                                             ),
@@ -668,7 +668,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
 
   List<Widget> _renderChannels() {
     var items = <Widget>[];
-    if (_isChannelsLoading) {
+    if (_loadState==0) {
       items.add(
         Container(
           height: 60,
@@ -787,4 +787,47 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
     }
     return items;
   }
+
+  List<Widget> _renderProcessing() {
+    var items = <Widget>[];
+
+    if (_publishingState > 0) {
+      var tips = '';
+      switch (_publishingState) {
+        case 1:
+          tips = '正在申购发文服务..';
+          break;
+        case 2:
+          tips = '申购完成，正在发表';
+          break;
+        case 3:
+          tips = _purchaseError;
+          break;
+        case 4:
+          tips = '成功发表';
+          break;
+      }
+      items.add(
+        Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.only(
+            bottom: 10,
+            top: 10,
+            left: 15,
+            right: 15,
+          ),
+          child: Text(
+            '$tips',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.red,
+            ),
+          ),
+        ),
+      );
+      items.add(SizedBox(height: 10,),);
+    }
+    return items;
+  }
+
 }
