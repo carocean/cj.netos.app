@@ -36,10 +36,14 @@ class _ChasechainState extends State<Chasechain> {
       var recode = await AmapSearch.searchReGeocode(latLng, radius: 0);
       _towncode = await recode.townCode;
       await _load();
-      await _onRefresh();
       if(mounted){
         setState(() {
           _isLoading=false;
+        });
+      }
+      await _onRefresh();
+      if(mounted){
+        setState(() {
         });
       }
     }();

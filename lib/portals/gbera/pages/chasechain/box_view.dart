@@ -239,7 +239,7 @@ class _PoolPageState extends State<ContentBoxViewPage> {
                       width: 4,
                     ),
                     Text(
-                        '${_boxRealObject.type == 'receptor' ? '地感知器' : '网流管道'}'),
+                        '${_boxRealObject.type == 'receptor' ? '地理感知器' : '网流管道'}'),
                   ],
                 ),
                 SizedBox(

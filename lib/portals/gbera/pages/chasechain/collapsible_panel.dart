@@ -150,7 +150,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-      absorbabler = '${pointer.type}/$pointerBoxID';
+    absorbabler = '${pointer.type}/$pointerBoxID';
     switch (behave) {
       case 'like':
         _tryAddRecipients(
@@ -179,7 +179,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     var pointer = box.pointer;
     var pointerBoxID = box.pointer.id;
     var absorbabler;
-      absorbabler = '${pointer.type}/$pointerBoxID';
+    absorbabler = '${pointer.type}/$pointerBoxID';
     switch (behave) {
       case 'like':
         _removeRecipients(
@@ -320,6 +320,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
     }
     await robotRemote.addRecipients3(id, encourageCode, encourageCause, 0);
   }
+
   Future<void> _tipoffItem() async {
     showDialog(
         context: context,
@@ -340,6 +341,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
       );
     });
   }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -418,7 +420,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           boxShadow: [
             // BoxShadow(color: Theme.of(context).backgroundColor,offset: Offset(2,2),blurRadius: 6,spreadRadius: 6,),
           ],
-         // borderRadius: BorderRadius.only(topLeft: Radius.circular(4),topRight: Radius.circular(4)),
+          // borderRadius: BorderRadius.only(topLeft: Radius.circular(4),topRight: Radius.circular(4)),
         ),
         padding: EdgeInsets.only(
           right: 10,
@@ -450,7 +452,15 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                 ),
               ),
         titleSpacing: 0,
-        title: Text('${widget.pool.title}'),
+        title: InkWell(
+          onTap: () {
+            widget.context.forward('/chasechain/traffic/pools', arguments: {
+              'towncode': widget.towncode,
+              'pool': widget.pool.id,
+            });
+          },
+          child: Text('${widget.pool.title}'),
+        ),
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: <Widget>[
@@ -504,6 +514,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
           ),
         ],
       ),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: EdgeInsets.only(
           top: 0,
@@ -519,10 +530,11 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                 bottom: 15,
                 left: 32,
                 right: 32,
+                top: 15,
               ),
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white70,
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
               child: Text(

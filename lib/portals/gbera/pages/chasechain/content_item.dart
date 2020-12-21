@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
@@ -19,12 +20,18 @@ class ContentItemPanel extends StatefulWidget {
   PageContext context;
   ContentItemOR item;
   String towncode;
+  ContentItemShowMode showMode;
 
   ContentItemPanel({
     this.context,
     this.item,
     this.towncode,
-  });
+    this.showMode,
+  }) {
+    if (this.showMode == null) {
+      this.showMode = ContentItemShowMode.showBox;
+    }
+  }
 
   @override
   _ContentItemPanelState createState() => _ContentItemPanelState();
@@ -33,11 +40,11 @@ class ContentItemPanel extends StatefulWidget {
 class _ContentItemPanelState extends State<ContentItemPanel> {
   int _maxLines = 4;
   RecommenderDocument _doc;
-  Future<TrafficPool> _future_getPool;
+  TrafficPool _pool;
   bool _isCollapsibled = true;
-  Future<Person> _future_getPerson;
-  Future<ContentBoxOR> _future_getContentBox;
-  Future<ItemBehavior> _future_getItemInnerBehavior;
+  Person _provider;
+  ContentBoxOR _contentBox;
+  ItemBehavior _itemInnerBehavior;
   PurchaseOR _purchaseOR;
   StreamController _streamController;
   StreamSubscription _streamSubscription;
@@ -82,10 +89,10 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     if (_doc == null) {
       return;
     }
-    _future_getPool = _getPool();
-    _future_getPerson = _getPerson(widget.context.site, _doc.message.creator);
-    _future_getContentBox = _getContentBox();
-    _future_getItemInnerBehavior = _getItemInnerBehavior();
+    _pool = await _getPool();
+    _provider = await _getPerson(widget.context.site, _doc.message.creator);
+    _contentBox = await _getContentBox();
+    _itemInnerBehavior = await _getItemInnerBehavior();
     _purchaseOR = await _getPurchase();
     if (mounted) setState(() {});
   }
@@ -127,7 +134,10 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (_doc == null) {
+    if (_doc == null ||
+        _provider == null ||
+        _contentBox == null ||
+        _pool == null) {
       return SizedBox(
         width: 0,
         height: 0,
@@ -138,9 +148,23 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     switch (_doc.message.layout) {
       case 0: //上文下图
         if (!StringUtil.isEmpty(_doc.message.content)) {
+          if (_doc.medias.isEmpty) {
+            layout.add(
+              SizedBox(
+                height: 5,
+              ),
+            );
+          }
           layout.add(
             _renderContent(),
           );
+          if (_doc.medias.isEmpty) {
+            layout.add(
+              SizedBox(
+                height: 20,
+              ),
+            );
+          }
         }
         if (_doc.medias.isNotEmpty) {
           layout.add(
@@ -149,7 +173,13 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
             ),
           );
           layout.add(
-            _renderMedias(),
+            Row(
+              children: [
+                Expanded(
+                  child: _renderMedias(),
+                ),
+              ],
+            ),
           );
           layout.add(
             SizedBox(
@@ -157,16 +187,6 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
             ),
           );
         }
-        if (_doc.medias.isEmpty) {
-          layout.add(
-            SizedBox(
-              height: 10,
-            ),
-          );
-        }
-        layout.add(
-          _renderFooter(),
-        );
         break;
       case 1: //左文右图
         var rows = <Widget>[];
@@ -177,20 +197,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                 constraints: BoxConstraints(
                   minHeight: 100,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    _renderContent(),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10,
-                      ),
-                      child: _renderFooter(),
-                    ),
-                  ],
-                ),
+                child: _renderContent(),
               ),
             ),
           );
@@ -210,13 +217,22 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
           );
         }
         layout.add(
+          SizedBox(
+            height: 10,
+          ),
+        );
+        layout.add(
           Row(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: rows,
           ),
         );
-
+        layout.add(
+          SizedBox(
+            height: 10,
+          ),
+        );
         break;
       case 2: //左图右文
         var rows = <Widget>[];
@@ -247,12 +263,6 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     _renderContent(),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10,
-                      ),
-                      child: _renderFooter(),
-                    ),
                   ],
                 ),
               ),
@@ -260,10 +270,20 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
           );
         }
         layout.add(
+          SizedBox(
+            height: 10,
+          ),
+        );
+        layout.add(
           Row(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: rows,
+          ),
+        );
+        layout.add(
+          SizedBox(
+            height: 10,
           ),
         );
         break;
@@ -280,96 +300,480 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     //   ),
     // );
 
-
-    var body=Container(
+    var body = Container(
       padding: EdgeInsets.only(
         left: 10,
         right: 10,
-        bottom: 10,
-        top: 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(color: Colors.grey[200],spreadRadius: 4,blurRadius: 4,offset: Offset(2,2),),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: layout,
       ),
     );
-    return Container(
-      margin: EdgeInsets.only(left: 10,right: 10,),
-      child: Column(
-        children: [
-          body,
-          SizedBox(height: 5,),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${TimelineUtil.format(
-                  _doc.message.ctime,
-                  locale: 'zh',
-                  dayFormat: DayFormat.Simple,
-                )}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[400],
-                  fontWeight: FontWeight.w600,
-                ),
+    return _renderItem(body);
+  }
+
+  Widget _renderItem(Widget body) {
+    Widget portal;
+    switch (widget.showMode) {
+      case ContentItemShowMode.showProvider:
+        portal = Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: EdgeInsets.only(
+                top: 10,
+                bottom: 10,
               ),
-              SizedBox(
-                width: _purchaseOR == null ? 0 : 10,
-              ),
-              _purchaseOR == null
-                  ? SizedBox(
-                width: 0,
-                height: 0,
-              )
-                  : GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                child: Text(
-                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: () {
+                        widget.context.forward('/chasechain/provider', arguments: {
+                          'provider': _provider.official,
+                          'pool': _pool.id,
+                        });
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: getAvatarWidget(
+                                _provider?.avatar ?? '',
+                                widget.context,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            '${_provider?.nickName ?? ''}',
+                            style: TextStyle(
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                onTap: () async {
-                  if (_purchaseOR == null) {
-                    return;
-                  }
-                  IWyBankPurchaserRemote purchaserRemote =
-                  widget.context.site.getService('/remote/purchaser');
-                  WenyBank bank = await purchaserRemote
-                      .getWenyBank(_purchaseOR.bankid);
-                  widget.context.forward(
-                    '/wybank/purchase/details',
-                    arguments: {'purch': _purchaseOR, 'bank': bank},
-                  );
-                },
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 25,
+                      right: 15,
+                    ),
+                    child: Column(
+                      children: [
+                        body,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${TimelineUtil.format(
+                                    _doc.message.ctime,
+                                    locale: 'zh',
+                                    dayFormat: DayFormat.Simple,
+                                  )}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: _purchaseOR == null ? 0 : 10,
+                                ),
+                                _purchaseOR == null
+                                    ? SizedBox(
+                                  width: 0,
+                                  height: 0,
+                                )
+                                    : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Text(
+                                    '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                      decoration:
+                                      TextDecoration.underline,
+                                    ),
+                                  ),
+                                  onTap: () async {
+                                    if (_purchaseOR == null) {
+                                      return;
+                                    }
+                                    IWyBankPurchaserRemote
+                                    purchaserRemote =
+                                    widget.context.site.getService(
+                                        '/remote/purchaser');
+                                    WenyBank bank = await purchaserRemote
+                                        .getWenyBank(_purchaseOR.bankid);
+                                    widget.context.forward(
+                                      '/wybank/purchase/details',
+                                      arguments: {
+                                        'purch': _purchaseOR,
+                                        'bank': bank
+                                      },
+                                    );
+                                  },
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                _AbsorberAction(
+                                  context: widget.context,
+                                  doc: _doc,
+                                  timerStream: _streamController.stream,
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                _itemInnerBehavior == null
+                                    ? SizedBox(
+                                  width: 0,
+                                  height: 0,
+                                )
+                                    : Row(
+                                  children: <Widget>[
+                                    Text(
+                                      '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 4,
+                                    ),
+                                    Text(
+                                      '${parseInt(_itemInnerBehavior.comments, 2)}个评',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    // if (_doc.message.layout == 0) {
+                                    //   _isCollapsibled = !_isCollapsibled;
+                                    //   if (mounted) {
+                                    //     setState(() {});
+                                    //   }
+                                    //   return;
+                                    // }
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (ctx) {
+                                          return CollapsiblePanel(
+                                            context: widget.context,
+                                            doc: _doc,
+                                            pool: _pool,
+                                            usePopupLayout: true,
+                                            towncode: widget.towncode,
+                                          );
+                                        });
+                                  },
+                                  child: Wrap(
+                                    direction: Axis.horizontal,
+                                    spacing: 2,
+                                    crossAxisAlignment: WrapCrossAlignment.end,
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.pool,
+                                        size: 11,
+                                        color: _pool.isGeosphere
+                                            ? Colors.green
+                                            : Colors.grey[600],
+                                      ),
+                                      Text(
+                                        '${_pool.title}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(
-                width: 10,
+            ),
+            SizedBox(
+              height: 15,
+            ),
+          ],
+        );
+        break;
+      case ContentItemShowMode.showBox:
+        portal = Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: EdgeInsets.only(
+                top: 10,
+                bottom: 10,
               ),
-              _AbsorberAction(
-                context: widget.context,
-                doc: _doc,
-                timerStream: _streamController.stream,
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                          '/chasechain/box',
+                          arguments: {
+                            'box': _contentBox,
+                            'pool': _contentBox.pool,
+                          },
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: getAvatarWidget(
+                                _contentBox?.pointer?.leading ?? '',
+                                widget.context,
+                                'lib/portals/gbera/images/netflow.png',
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            '${_contentBox?.pointer?.title ?? ''}',
+                            style: TextStyle(
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 25,
+                      right: 15,
+                    ),
+                    child: Column(
+                      children: [
+                        body,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${TimelineUtil.format(
+                                    _doc.message.ctime,
+                                    locale: 'zh',
+                                    dayFormat: DayFormat.Simple,
+                                  )}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: _purchaseOR == null ? 0 : 10,
+                                ),
+                                _purchaseOR == null
+                                    ? SizedBox(
+                                        width: 0,
+                                        height: 0,
+                                      )
+                                    : GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Text(
+                                          '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.w600,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                        onTap: () async {
+                                          if (_purchaseOR == null) {
+                                            return;
+                                          }
+                                          IWyBankPurchaserRemote
+                                              purchaserRemote =
+                                              widget.context.site.getService(
+                                                  '/remote/purchaser');
+                                          WenyBank bank = await purchaserRemote
+                                              .getWenyBank(_purchaseOR.bankid);
+                                          widget.context.forward(
+                                            '/wybank/purchase/details',
+                                            arguments: {
+                                              'purch': _purchaseOR,
+                                              'bank': bank
+                                            },
+                                          );
+                                        },
+                                      ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                _AbsorberAction(
+                                  context: widget.context,
+                                  doc: _doc,
+                                  timerStream: _streamController.stream,
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                _itemInnerBehavior == null
+                                    ? SizedBox(
+                                        width: 0,
+                                        height: 0,
+                                      )
+                                    : Row(
+                                        children: <Widget>[
+                                          Text(
+                                            '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            '${parseInt(_itemInnerBehavior.comments, 2)}个评',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    // if (_doc.message.layout == 0) {
+                                    //   _isCollapsibled = !_isCollapsibled;
+                                    //   if (mounted) {
+                                    //     setState(() {});
+                                    //   }
+                                    //   return;
+                                    // }
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (ctx) {
+                                          return CollapsiblePanel(
+                                            context: widget.context,
+                                            doc: _doc,
+                                            pool: _pool,
+                                            usePopupLayout: true,
+                                            towncode: widget.towncode,
+                                          );
+                                        });
+                                  },
+                                  child: Wrap(
+                                    direction: Axis.horizontal,
+                                    spacing: 2,
+                                    crossAxisAlignment: WrapCrossAlignment.end,
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.pool,
+                                        size: 11,
+                                        color: _pool.isGeosphere
+                                            ? Colors.green
+                                            : Colors.grey[600],
+                                      ),
+                                      Text(
+                                        '${_pool.title}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          SizedBox(height: 15,),
-        ],
-      ),
-    );
+            ),
+            SizedBox(
+              height: 15,
+            ),
+          ],
+        );
+        break;
+
+    }
+    return portal;
   }
 
   Widget _renderContent() {
@@ -391,7 +795,6 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
 //            letterSpacing: 0.8,
 //            wordSpacing: 1.4,
             height: 1.6,
@@ -405,264 +808,6 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     return RecommenderMediaWidget(
       _doc.medias,
       widget.context,
-    );
-  }
-
-  Widget _renderFooter() {
-    var columns = <Widget>[
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-
-//          Row(
-//            children: <Widget>[
-//              FutureBuilder<Person>(
-//                future: _future_getPerson,
-//                builder: (ctx, snapshot) {
-//                  if (snapshot.connectionState != ConnectionState.done) {
-//                    return SizedBox(
-//                      width: 0,
-//                      height: 0,
-//                    );
-//                  }
-//                  var person = snapshot.data;
-//                  if (person == null) {
-//                    return SizedBox(
-//                      width: 0,
-//                      height: 0,
-//                    );
-//                  }
-//                  return GestureDetector(
-//                    behavior: HitTestBehavior.opaque,
-//                    onTap: () {
-//                      widget.context.forward('/chasechain/provider',
-//                          arguments: {
-//                            'provider': _doc.item.pointer.creator,
-//                            'pool': _doc.item.pool
-//                          });
-//                    },
-//                    child: Text(
-//                      '${person?.nickName}',
-//                      style: TextStyle(
-//                        fontSize: 10,
-//                        color: Colors.grey,
-//                        fontWeight: FontWeight.w600,
-//                        decoration: TextDecoration.underline,
-//                      ),
-//                    ),
-//                  );
-//                },
-//              ),
-//              SizedBox(
-//                width: 10,
-//              ),
-//              FutureBuilder<ContentBoxOR>(
-//                future: _future_getContentBox,
-//                builder: (ctx, snapshot) {
-//                  if (snapshot.connectionState != ConnectionState.done) {
-//                    return SizedBox(
-//                      width: 0,
-//                      height: 0,
-//                    );
-//                  }
-//                  var box = snapshot.data;
-//                  if (box == null) {
-//                    return SizedBox(
-//                      width: 0,
-//                      height: 0,
-//                    );
-//                  }
-//
-//                  return GestureDetector(
-//                    behavior: HitTestBehavior.opaque,
-//                    onTap: () {
-//                      widget.context.forward('/chasechain/box',
-//                          arguments: {'box': box, 'pool': _doc.item.pool});
-//                    },
-//                    child: Wrap(
-//                      direction: Axis.horizontal,
-//                      spacing: 2,
-//                      crossAxisAlignment: WrapCrossAlignment.end,
-//                      children: <Widget>[
-//                        Icon(
-//                          _doc.message.type == 'netflow'
-//                              ? Icons.all_inclusive
-//                              : Icons.add_location,
-//                          size: 11,
-//                          color: Colors.grey,
-//                        ),
-//                        Text(
-//                          '${box.pointer.title}',
-//                          style: TextStyle(
-//                            fontSize: 10,
-//                            color: Colors.grey,
-//                            fontWeight: FontWeight.w600,
-//                            decoration: TextDecoration.underline,
-//                          ),
-//                        ),
-//                      ],
-//                    ),
-//                  );
-//                },
-//              ),
-//            ],
-//          ),
-//          SizedBox(
-//            height: 10,
-//          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FutureBuilder<ItemBehavior>(
-                future: _future_getItemInnerBehavior,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done ||
-                      snapshot.data == null) {
-                    return SizedBox(
-                      height: 0,
-                      width: 0,
-                    );
-                  }
-                  var behavior = snapshot.data;
-                  return Row(
-                    children: <Widget>[
-                      Text(
-                        '${parseInt(behavior.likes, 2)}个赞',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 4,
-                      ),
-                      Text(
-                        '${parseInt(behavior.comments, 2)}个评',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              SizedBox(
-                width: 5,
-              ),
-              FutureBuilder<TrafficPool>(
-                future: _future_getPool,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-                  var pool = snapshot.data;
-                  if (pool == null) {
-                    return SizedBox(
-                      width: 0,
-                      height: 0,
-                    );
-                  }
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (_doc.message.layout == 0) {
-                        _isCollapsibled = !_isCollapsibled;
-                        if (mounted) {
-                          setState(() {});
-                        }
-                        return;
-                      }
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (ctx) {
-                            return CollapsiblePanel(
-                              context: widget.context,
-                              doc: _doc,
-                              pool: pool,
-                              usePopupLayout: true,
-                              towncode: widget.towncode,
-                            );
-                          });
-                    },
-                    child: Wrap(
-                      direction: Axis.horizontal,
-                      spacing: 2,
-                      crossAxisAlignment: WrapCrossAlignment.end,
-                      children: <Widget>[
-                        Icon(
-                          Icons.pool,
-                          size: 11,
-                          color: pool.isGeosphere ? Colors.green : Colors.grey,
-                        ),
-                        Text(
-                          '${pool.title}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color:
-                                _isCollapsibled ? Colors.grey : Colors.blueGrey,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    ];
-    if (!_isCollapsibled) {
-      columns.add(
-        SizedBox(
-          height: 10,
-        ),
-      );
-      columns.add(
-        FutureBuilder<TrafficPool>(
-          future: _future_getPool,
-          builder: (ctx, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return SizedBox(
-                width: 0,
-                height: 0,
-              );
-            }
-            var pool = snapshot.data;
-            if (pool == null) {
-              return SizedBox(
-                width: 0,
-                height: 0,
-              );
-            }
-            if (_doc.message.layout == 0) {
-              return CollapsiblePanel(
-                context: widget.context,
-                doc: _doc,
-                pool: pool,
-                usePopupLayout: false,
-                towncode: widget.towncode,
-              );
-            }
-            return SizedBox(
-              height: 0,
-              width: 0,
-            );
-          },
-        ),
-      );
-    }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: columns,
     );
   }
 }
@@ -817,3 +962,5 @@ Future<Person> _getPerson(IServiceProvider site, String person) async {
   IPersonService personService = site.getService('/gbera/persons');
   return await personService.getPerson(person);
 }
+
+enum ContentItemShowMode { showProvider, showBox }

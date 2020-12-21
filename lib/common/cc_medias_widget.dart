@@ -72,7 +72,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height:medias[0]?.type=='share'?80: 166,
+        height:medias[0]?.type=='share'?90: 166,
       ),
       child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
     );
@@ -507,6 +507,7 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
       children: <Widget>[
         Container(
           color: _src == null ? Colors.black : Colors.transparent,
+          alignment: Alignment.centerLeft,
           child: Center(
             child: SizedBox(
               width: widget.loaderSize,
@@ -548,20 +549,12 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
       );
       break;
     case 'share':
-      mediaRender = Container(
-        color: Colors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            renderShareCard(
-              title: media.text,
-              href: media.src,
-              leading: media.leading,
-              context: pageContext,
-              margin: EdgeInsets.only(left: 0,right: 0),
-            ),
-          ],
-        ),
+      mediaRender = renderShareCard(
+        title: media.text,
+        href: media.src,
+        leading: media.leading,
+        context: pageContext,
+        margin: EdgeInsets.only(left: 0,right: 0),
       );
       break;
     case 'video':

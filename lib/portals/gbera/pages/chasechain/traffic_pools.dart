@@ -354,6 +354,7 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
               context: widget.context,
               item: item,
               towncode: towncode,
+              showMode: ContentItemShowMode.showBox,
             ),
           ),
         );

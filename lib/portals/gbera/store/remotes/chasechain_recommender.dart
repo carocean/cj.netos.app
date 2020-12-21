@@ -965,7 +965,11 @@ class ChasechainRecommenderRemote
         doc.message.content.length >= 50) {
       layout = 0;
     } else if (mediaCount == 1) {
-      layout = doc.item.id.hashCode.abs() % 3;
+      if(doc.medias[0].type=='share'){
+        layout = 0;
+      }else {
+        layout = doc.item.id.hashCode.abs() % 3;
+      }
     } else if (mediaCount > 1) {
       layout = 0;
     }

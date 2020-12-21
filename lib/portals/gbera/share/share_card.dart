@@ -20,53 +20,45 @@ Widget renderShareCard({
       left: 20,
       right: 20,
     ):margin,
-    padding: EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: background == null ? Colors.grey[200] : background,
-      borderRadius: BorderRadius.circular(4),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 50,
-          height: 50,
-          child: SingleMediaWidget(
-            context: context,
-            image: leading,
-          ),
-        ),
-        SizedBox(
-          width: 10,
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    alignment: Alignment.centerLeft,
+    child: Container(
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: background == null ? Colors.grey[200] : background,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                '${title ?? ''}',
-                style: TextStyle(
-                  fontSize:fontSize==null? 16:fontSize,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              /*
               SizedBox(
-                height: 5,
+                width: 50,
+                height: 50,
+                child: SingleMediaWidget(
+                  context: context,
+                  image: leading,
+                ),
               ),
-              Text(
-                '${_summary ?? ''}',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+              SizedBox(
+                width: 10,
               ),
-
-               */
+              Expanded(
+                child: Text(
+                  '${title ?? ''}',
+                  style: TextStyle(
+                    fontSize:fontSize==null? 16:fontSize,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
   if(context!=null&&context.principal!=null&&!StringUtil.isEmpty(context.principal.person)){
