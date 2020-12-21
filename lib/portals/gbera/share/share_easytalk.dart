@@ -190,6 +190,7 @@ class _EasyTalkSharePageState extends State<EasyTalkSharePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding:false ,
       appBar: AppBar(
         title: Text('平聊发布'),
         elevation: 0,

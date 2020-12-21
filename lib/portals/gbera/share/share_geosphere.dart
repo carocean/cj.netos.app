@@ -419,6 +419,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding:false ,
       appBar: AppBar(
         title: Text('地圈发布'),
         elevation: 0,

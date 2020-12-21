@@ -95,6 +95,7 @@ class _TiptoolSharePageState extends State<TiptoolSharePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding:false ,
       appBar: AppBar(
         title: Text('桌面提示栏'),
         elevation: 0,
