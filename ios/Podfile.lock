@@ -1,4 +1,6 @@
 PODS:
+  - accept_share (0.0.1):
+    - Flutter
   - AlipaySDK-iOS (15.7.9)
   - AMap3DMap (6.9.0):
     - AMapFoundation (~> 1.5)
@@ -39,6 +41,8 @@ PODS:
     - Flutter
   - Flutter (1.0.0)
   - flutter_contact (0.0.1):
+    - Flutter
+  - flutter_inappwebview (0.0.1):
     - Flutter
   - flutter_native_timezone (0.0.1):
     - Flutter
@@ -87,8 +91,6 @@ PODS:
     - Flutter
   - qrscan (0.0.1):
     - Flutter
-  - receive_sharing_intent (0.0.1):
-    - Flutter
   - Regift (1.6.0)
   - share (0.0.1):
     - Flutter
@@ -109,6 +111,7 @@ PODS:
   - WechatOpenSDK (1.8.7.1)
 
 DEPENDENCIES:
+  - accept_share (from `.symlinks/plugins/accept_share/ios`)
   - amap_core_fluttify (from `.symlinks/plugins/amap_core_fluttify/ios`)
   - amap_location_fluttify (from `.symlinks/plugins/amap_location_fluttify/ios`)
   - amap_map_fluttify (from `.symlinks/plugins/amap_map_fluttify/ios`)
@@ -120,6 +123,7 @@ DEPENDENCIES:
   - easy_contact_picker (from `.symlinks/plugins/easy_contact_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_contact (from `.symlinks/plugins/flutter_contact/ios`)
+  - flutter_inappwebview (from `.symlinks/plugins/flutter_inappwebview/ios`)
   - flutter_native_timezone (from `.symlinks/plugins/flutter_native_timezone/ios`)
   - flutter_plugin_record (from `.symlinks/plugins/flutter_plugin_record/ios`)
   - flutter_sms (from `.symlinks/plugins/flutter_sms/ios`)
@@ -140,7 +144,6 @@ DEPENDENCIES:
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
   - qrscan (from `.symlinks/plugins/qrscan/ios`)
-  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
@@ -162,6 +165,8 @@ SPEC REPOS:
     - WechatOpenSDK
 
 EXTERNAL SOURCES:
+  accept_share:
+    :path: ".symlinks/plugins/accept_share/ios"
   amap_core_fluttify:
     :path: ".symlinks/plugins/amap_core_fluttify/ios"
   amap_location_fluttify:
@@ -184,6 +189,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_contact:
     :path: ".symlinks/plugins/flutter_contact/ios"
+  flutter_inappwebview:
+    :path: ".symlinks/plugins/flutter_inappwebview/ios"
   flutter_native_timezone:
     :path: ".symlinks/plugins/flutter_native_timezone/ios"
   flutter_plugin_record:
@@ -224,8 +231,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler/ios"
   qrscan:
     :path: ".symlinks/plugins/qrscan/ios"
-  receive_sharing_intent:
-    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   share:
     :path: ".symlinks/plugins/share/ios"
   shared_preferences:
@@ -242,6 +247,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter/ios"
 
 SPEC CHECKSUMS:
+  accept_share: d8473687b4217ed95022ae0bfb5f71d16fd1eb16
   AlipaySDK-iOS: 94ff4c0e17c5e7d126b8207596d5033006534c25
   AMap3DMap: c80b264f08f179d9b0949b84c65fc1a51dec9d6f
   amap_core_fluttify: f82f67cdc867f8fa2f7253bd9a58d8876c260317
@@ -258,6 +264,7 @@ SPEC CHECKSUMS:
   easy_contact_picker: 9ab9dc70e8ddde6e76a19ffc482d7bf899868730
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_contact: d83afd11b19da4d0e7df41b254c84fbb88ef0616
+  flutter_inappwebview: 69dfbac46157b336ffbec19ca6dfd4638c7bf189
   flutter_native_timezone: e72ff1900460ff57cfd331d1758050c9269f3e99
   flutter_plugin_record: 562ded56f3a109d769e72c3ef52ef20d835493d4
   flutter_sms: 91ce41530f55c85d6524d82307a5d555844c086a
@@ -280,7 +287,6 @@ SPEC CHECKSUMS:
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   permission_handler: 8278954f2382902f63f00dd8828769c0bd6d511b
   qrscan: 42f49ba37d3c423a3b140434003e821135cfc4c3
-  receive_sharing_intent: c0d87310754e74c0f9542947e7cbdf3a0335a3b1
   Regift: a7c1a7e377c60bfc34301d6f532e099e5ae109a8
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d

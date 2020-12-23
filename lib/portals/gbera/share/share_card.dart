@@ -259,6 +259,8 @@ class _TitleBar extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Container(

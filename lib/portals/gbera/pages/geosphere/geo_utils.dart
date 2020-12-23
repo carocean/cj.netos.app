@@ -68,12 +68,7 @@ class GeoLocation {
     if(_isStarted) {
       return;
     }
-    await enableFluttifyLog(false); // 关闭log
-    /// !注意: 只要是返回Future的方法, 一律使用`await`修饰, 确保当前方法执行完成后再执行下一行, 在不能使用`await`修饰的环境下, 在`then`方法中执行下一步.
-    /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted
-    if(Platform.isIOS) {
-      await AmapCore.init('d01465eb6d15b8df1ee56e5df1f6e1f6');
-    }
+
 // 连续定位
     if (await requestPermission()) {
       _isStarted=true;
