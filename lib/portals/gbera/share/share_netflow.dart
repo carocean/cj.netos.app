@@ -83,8 +83,8 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
   }
 
   Future<void> _loadMoney() async {
-    var result = await AmapLocation.fetchLocation(mode: LocationAccuracy.High);
-    _districtCode = await result.adCode;
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
     if(StringUtil.isEmpty(_districtCode)) {
       return;
     }

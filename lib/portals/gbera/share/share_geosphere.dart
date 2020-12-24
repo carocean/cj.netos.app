@@ -89,16 +89,16 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
   }
 
   Future<void> _loadMoney() async {
-    var result = await AmapLocation.fetchLocation();
-    _districtCode = await result.adCode;
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
     if (StringUtil.isEmpty(_districtCode)) {
       return;
     }
-    var latlng = await result.latLng;
+    var latlng = result.latLng;
 //    var city = await result.city;
-    String title = await result.poiName;
-    String address = await result.address;
-    var poiId = await result.adCode;
+    String title = result.poiName;
+    String address = result.address;
+    var poiId = result.adCode;
     _poi = AmapPoi(
       title: title,
       latLng: latlng,

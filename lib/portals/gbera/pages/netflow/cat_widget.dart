@@ -82,6 +82,9 @@ class _CatWidgetState extends State<CatWidget> {
   }
 
   Future<bool> _load() async {
+    if(StringUtil.isEmpty(widget.channelId)) {
+      return false;
+    }
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');

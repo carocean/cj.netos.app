@@ -77,6 +77,7 @@ class _CreateChannelState extends State<CreateChannel> {
                 channelid,
                 channelName,
                 user.person,
+                user.person,
                 null,
                 null,
                 null,

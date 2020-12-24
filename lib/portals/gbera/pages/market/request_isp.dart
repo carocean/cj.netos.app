@@ -88,10 +88,10 @@ class _RequestISPState extends State<RequestISP> {
       }
       geoLocation.unlisten('/market/isp');
       geoLocation.stop();
-      var list = await AmapSearch.searchKeyword(province);
+      var list = await AmapSearch.instance.searchKeyword(province);
       for (var item in list) {
-        _bussinessAreaTitle = await item.provinceName;
-        _bussinessAreaCode = await item.provinceCode;
+        _bussinessAreaTitle = item.provinceName;
+        _bussinessAreaCode = item.provinceCode;
         await _existsBusinessAreaCode();
         setState(() {});
         break;

@@ -59,6 +59,9 @@ class _GberaAvatarState extends State<GberaAvatar> {
                   onPressed: () async {
                     var image = await ImagePicker().getImage(
                         source: ImageSource.gallery,imageQuality: 80,maxHeight: Adapt.screenH(),);
+                    if(image==null) {
+                      return;
+                    }
                     setState(() {
                       _image = File(image.path);
                       _background = Colors.black;

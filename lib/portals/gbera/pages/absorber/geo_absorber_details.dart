@@ -286,7 +286,7 @@ class __HeaderCardState extends State<_HeaderCard> {
 
   Future<void> _load() async {
     var location = _absorberResultOR.absorber.location;
-    var recode = await AmapSearch.searchReGeocode(location);
+    var recode = await AmapSearch.instance.searchReGeocode(location);
     _address = await recode.formatAddress;
   }
 

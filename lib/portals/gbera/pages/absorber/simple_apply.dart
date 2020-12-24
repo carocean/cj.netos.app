@@ -45,10 +45,10 @@ class _AbsorberSimpleApplyPageState extends State<AbsorberSimpleApplyPage> {
   }
 
   Future<void> _load() async {
-    var location = await AmapLocation.fetchLocation(
+    var location = await AmapLocation.instance.fetchLocation(
       needAddress: true,
     );
-    _districtCode = await location.adCode;
+    _districtCode = location.adCode;
     IWyBankRemote wyBankRemote =
         widget.context.site.getService('/remote/wybank');
     var bank =

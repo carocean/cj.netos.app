@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 5,
+      version: 6,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -136,7 +136,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `MicroApp` (`id` TEXT, `site` TEXT, `leading` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `upstreamPerson` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `utime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
+            'CREATE TABLE IF NOT EXISTS `Channel` (`id` TEXT, `name` TEXT, `owner` TEXT, `upstreamPerson` TEXT, `sourceCreator` TEXT, `leading` TEXT, `site` TEXT, `ctime` INTEGER, `utime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`, `sandbox`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `InsiteMessage` (`id` TEXT, `docid` TEXT, `upstreamPerson` TEXT, `upstreamChannel` TEXT, `sourceSite` TEXT, `sourceApp` TEXT, `creator` TEXT, `ctime` INTEGER, `atime` INTEGER, `digests` TEXT, `purchaseSn` TEXT, `location` TEXT, `absorber` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -1558,6 +1558,7 @@ class _$IChannelDAO extends IChannelDAO {
                   'name': item.name,
                   'owner': item.owner,
                   'upstreamPerson': item.upstreamPerson,
+                  'sourceCreator': item.sourceCreator,
                   'leading': item.leading,
                   'site': item.site,
                   'ctime': item.ctime,
@@ -1576,6 +1577,7 @@ class _$IChannelDAO extends IChannelDAO {
       row['name'] as String,
       row['owner'] as String,
       row['upstreamPerson'] as String,
+      row['sourceCreator'] as String,
       row['leading'] as String,
       row['site'] as String,
       row['ctime'] as int,

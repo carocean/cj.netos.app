@@ -571,12 +571,12 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   Future<void> _loadLocation() async {
     _currentLatLng = widget.receptorInfo.latLng;
-    var list = await AmapSearch.searchAround(_currentLatLng,
+    var list = await AmapSearch.instance.searchAround(_currentLatLng,
         radius: 2000, type: amapPOIType);
     if (list == null || list.isEmpty) {
       return;
     }
-    _poiTitle = await list[0].title;
+    _poiTitle = list[0].title;
   }
 
   _updateLocation(Location location) async {
@@ -584,12 +584,12 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
       return;
     }
     if (widget.categoryOL.moveMode == 'unmoveable') {
-      _currentLatLng = await location.latLng;
+      _currentLatLng = location.latLng;
       setState(() {});
       return;
     }
-    _currentLatLng = await location.latLng;
-    _poiTitle = await location.poiName;
+    _currentLatLng = location.latLng;
+    _poiTitle = location.poiName;
     setState(() {});
   }
 

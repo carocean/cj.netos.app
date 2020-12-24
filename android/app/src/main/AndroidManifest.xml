@@ -10,7 +10,9 @@
         android:label="地微"
         android:largeHeap="true"
         android:usesCleartextTraffic="true"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:replace="android:label">
         <activity android:name="io.flutter.embedding.android.FlutterActivity"
             android:launchMode="singleInstance"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -82,6 +84,17 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!--Android 接收外部跳转过滤器-->
+            <!--要想在别的App上能成功调起App，必须添加intent过滤器-->
+            <intent-filter>
+                <!-- 协议部分配置 ,注意需要跟web配置相同-->
+                <!--协议部分，随便设置 microgeo://  -->
+                <data android:scheme="microgeo"/>
+                <!--下面这几行也必须得设置-->
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <action android:name="android.intent.action.VIEW" />
             </intent-filter>
             <meta-data
                 android:name="io.flutter.app.android.SplashScreenUntilFirstFrame"

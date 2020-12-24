@@ -64,8 +64,8 @@ class _PoolPageState extends State<ContentBoxViewPage> {
     if (_box.location == null) {
       return null;
     }
-    var geocode = await AmapSearch.searchReGeocode(_box.location);
-    var list = await geocode.poiList;
+    var geocode = await AmapSearch.instance.searchReGeocode(_box.location);
+    var list = geocode.poiList;
     if (list.isEmpty) {
       return geocode.township;
     }

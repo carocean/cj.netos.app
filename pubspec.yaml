@@ -43,8 +43,7 @@ dependencies:
   #数据持久化
   shared_preferences: ^0.5.6
   yaml: ^2.2.0
-#  image_picker: ^0.6.3
-  image_picker: ^0.6.7+14
+  image_picker: ^0.6.7+17
 #  image_pickers: ^1.0.8+7
 #  multi_image_picker: ^4.7.14
   photo_view: ^0.10.2
@@ -65,16 +64,16 @@ dependencies:
   badges: ^1.1.0
   #高德定位依赖
   permission_handler: ^4.3.0
-  amap_location_fluttify: ^0.8.11+481e45c
-  amap_search_fluttify: ^0.7.9+481e45c
-  amap_map_fluttify: ^0.18.2+c038d50
+  amap_location_fluttify: ^0.20.0
+  amap_search_fluttify: ^0.16.2
+  amap_map_fluttify: ^0.30.1
   extended_text_field: ^5.0.0
   #已将源码拷到工程
   #  w_popup_menu: ^0.3.0
   popup_menu: ^1.0.5
   flutter_easyrefresh: ^2.0.8
-  flutter_plugin_record: ^0.1.3
-  just_audio: ^0.0.6
+  flutter_plugin_record: ^0.3.5
+  just_audio: ^0.6.3
   flutter_slidable: ^0.5.4
   device_info: ^0.4.1+4
   objectdb: ^1.0.7+1

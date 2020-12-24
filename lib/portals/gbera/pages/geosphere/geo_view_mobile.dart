@@ -42,8 +42,8 @@ class _GeoViewMobileState extends State<GeoViewMobile> {
     var map = jsonDecode(_receptor.location);
     LatLng latLng = LatLng.fromJson(map);
     ReGeocode code =
-        await AmapSearch.searchReGeocode(latLng, radius: _receptor.radius);
-    _address = await code.formatAddress;
+        await AmapSearch.instance.searchReGeocode(latLng, radius: _receptor.radius);
+    _address = code.formatAddress;
   }
 
   @override

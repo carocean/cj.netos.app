@@ -56,12 +56,12 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
   }
 
   Future<void> _loadLocation() async {
-    var list = await AmapSearch.searchAround(_receptor.latLng,
+    var list = await AmapSearch.instance.searchAround(_receptor.latLng,
         radius: 2000, type: amapPOIType);
     if (list == null || list.isEmpty) {
       return;
     }
-    _poiTitle = await list[0].title;
+    _poiTitle = list[0].title;
   }
 
   Future<void> _updateLocation(Location location) async {

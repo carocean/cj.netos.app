@@ -114,6 +114,9 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
   }
 
   Future<bool> _existsChannel() async {
+    if(StringUtil.isEmpty(_channel.id)) {
+      return false;
+    }
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
     return await channelService.existsChannel(_channel.id);

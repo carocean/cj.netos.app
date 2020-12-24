@@ -38,7 +38,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
           zoomLevel: 18,
           markers: [
             MarkerOption(
-              latLng: _location,
+              coordinate: _location,
               title: '${_label ?? ''}',
               visible: true,
               widget: Wrap(

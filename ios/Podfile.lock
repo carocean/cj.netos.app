@@ -2,37 +2,44 @@ PODS:
   - accept_share (0.0.1):
     - Flutter
   - AlipaySDK-iOS (15.7.9)
-  - AMap3DMap (6.9.0):
-    - AMapFoundation (~> 1.5)
+  - AMap3DMap-NO-IDFA (7.6.0):
+    - AMapFoundation-NO-IDFA (~> 1.6.3)
   - amap_core_fluttify (0.0.1):
-    - AMapFoundation (~> 1.6)
+    - AMapFoundation-NO-IDFA (= 1.6.4)
     - Flutter
     - foundation_fluttify
   - amap_location_fluttify (0.0.1):
     - amap_core_fluttify
-    - AMapLocation (~> 2.6.3)
+    - AMapLocation-NO-IDFA (= 2.6.7)
     - Flutter
     - foundation_fluttify
   - amap_map_fluttify (0.0.1):
-    - AMap3DMap (~> 6.9.0)
+    - AMap3DMap-NO-IDFA (= 7.6.0)
     - amap_core_fluttify
+    - amap_location_fluttify
+    - amap_search_fluttify
     - Flutter
     - foundation_fluttify
     - url_launcher
   - amap_search_fluttify (0.0.1):
     - amap_core_fluttify
-    - AMapSearch (~> 6.9.0)
+    - AMapSearch-NO-IDFA (= 7.7.0)
     - Flutter
     - foundation_fluttify
-  - AMapFoundation (1.6.5.1)
-  - AMapLocation (2.6.7):
-    - AMapFoundation (~> 1.6.4)
-  - AMapSearch (6.9.0):
-    - AMapFoundation (~> 1.4)
+  - AMapFoundation-NO-IDFA (1.6.4)
+  - AMapLocation-NO-IDFA (2.6.7):
+    - AMapFoundation-NO-IDFA (~> 1.6.4)
+  - AMapSearch-NO-IDFA (7.7.0):
+    - AMapFoundation-NO-IDFA (~> 1.6.4)
+  - audio_session (0.0.1):
+    - Flutter
   - buddy_push (0.0.1):
     - Flutter
   - city_pickers (0.0.1):
     - Flutter
+  - core_location_fluttify (0.0.1):
+    - Flutter
+    - foundation_fluttify
   - device_info (0.0.1):
     - Flutter
   - devicelocale (0.0.1):
@@ -116,8 +123,10 @@ DEPENDENCIES:
   - amap_location_fluttify (from `.symlinks/plugins/amap_location_fluttify/ios`)
   - amap_map_fluttify (from `.symlinks/plugins/amap_map_fluttify/ios`)
   - amap_search_fluttify (from `.symlinks/plugins/amap_search_fluttify/ios`)
+  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - buddy_push (from `.symlinks/plugins/buddy_push/ios`)
   - city_pickers (from `.symlinks/plugins/city_pickers/ios`)
+  - core_location_fluttify (from `.symlinks/plugins/core_location_fluttify/ios`)
   - device_info (from `.symlinks/plugins/device_info/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - easy_contact_picker (from `.symlinks/plugins/easy_contact_picker/ios`)
@@ -155,10 +164,10 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AlipaySDK-iOS
-    - AMap3DMap
-    - AMapFoundation
-    - AMapLocation
-    - AMapSearch
+    - AMap3DMap-NO-IDFA
+    - AMapFoundation-NO-IDFA
+    - AMapLocation-NO-IDFA
+    - AMapSearch-NO-IDFA
     - FMDB
     - libPhoneNumber-iOS
     - Regift
@@ -175,10 +184,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/amap_map_fluttify/ios"
   amap_search_fluttify:
     :path: ".symlinks/plugins/amap_search_fluttify/ios"
+  audio_session:
+    :path: ".symlinks/plugins/audio_session/ios"
   buddy_push:
     :path: ".symlinks/plugins/buddy_push/ios"
   city_pickers:
     :path: ".symlinks/plugins/city_pickers/ios"
+  core_location_fluttify:
+    :path: ".symlinks/plugins/core_location_fluttify/ios"
   device_info:
     :path: ".symlinks/plugins/device_info/ios"
   devicelocale:
@@ -249,16 +262,18 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   accept_share: d8473687b4217ed95022ae0bfb5f71d16fd1eb16
   AlipaySDK-iOS: 94ff4c0e17c5e7d126b8207596d5033006534c25
-  AMap3DMap: c80b264f08f179d9b0949b84c65fc1a51dec9d6f
-  amap_core_fluttify: f82f67cdc867f8fa2f7253bd9a58d8876c260317
-  amap_location_fluttify: d11d6a1a7438da8ac6e2451ff76b8cde7966fa08
-  amap_map_fluttify: 25e2e712b0834a66379a9abaee4d72635e9733a1
-  amap_search_fluttify: 7e076e7ce98df37865c0bc051e862ac6995b8de2
-  AMapFoundation: b67560a6f21aab81c8c12f84616b55a3833b6253
-  AMapLocation: a46c30d9930d0f3a3bd21139d8f845d10ac3f01d
-  AMapSearch: af02822537e55b85a4752e9df5c19e4b9da82031
+  AMap3DMap-NO-IDFA: 5e5b483ef230d1bed6c8d989d36254a66c67a6fc
+  amap_core_fluttify: 9e5af179f8151193fa1c9a420bcbcbf2701f648c
+  amap_location_fluttify: baa3007e3f215456ab2ea2f4ccccf5bc1a9a164b
+  amap_map_fluttify: 6b64256d6ccea7813e1b6423fcf7b5ef10d3c984
+  amap_search_fluttify: 874f1e9cf85df4fb95547d07df54d1c5d6b9c1d2
+  AMapFoundation-NO-IDFA: 68a24362b110b8e0a3677605d0fd36bdf521f2bb
+  AMapLocation-NO-IDFA: 2a3edfee336b38481b892e1ecc85df0f6b365851
+  AMapSearch-NO-IDFA: 061479dd567486fb59bf3d01b1076c81d910f1b6
+  audio_session: 4f3e461722055d21515cf3261b64c973c062f345
   buddy_push: 226253d04906e8eec3e154bd54df153d34126af2
   city_pickers: b0370f4c35c201723b5b7fcce10ec29b59d5bc35
+  core_location_fluttify: 9466a411ea7d22c6349c7e6a767ae4623f01eb1d
   device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
   devicelocale: feebbe5e7a30adb8c4f83185de1b50ff19b44f00
   easy_contact_picker: 9ab9dc70e8ddde6e76a19ffc482d7bf899868730
@@ -272,12 +287,12 @@ SPEC CHECKSUMS:
   flutter_video_compress: 641fd3e03d970d79176a59d91d7a4392923710b0
   fluwx: 07a55ed66bf3a4961e836a2a411b02dcada32902
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
-  foundation_fluttify: 3038fcc96aabb59c77f595964954c118af535d57
+  foundation_fluttify: 0c45145e3fad1fb99188e4979daed5b24cd9b278
   get_ip: c063133e0a399ae4089048c90d6a232cb2344846
   image_crop: e0a67085d3ebf3cf46ca46d61c53a082507b0bc3
   image_gallery_saver: 259eab68fb271cfd57d599904f7acdc7832e7ef2
   image_picker: 9c3312491f862b28d21ecd8fdf0ee14e601b3f09
-  just_audio: c695d6e7e37f9e96672dd84039d7530e7fd5c205
+  just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   libphonenumber: bd14d5abfc5939ab0b0767234e2d8e2593af258e
   libPhoneNumber-iOS: 0a32a9525cf8744fe02c5206eb30d571e38f7d75
   native_screenshot: 70900984bca8d5f42acf68611b8214b32a9f0deb

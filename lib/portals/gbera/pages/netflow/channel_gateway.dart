@@ -19,7 +19,7 @@ class _ChannelGatewayState extends State<ChannelGateway> {
   Channel _channel;
   bool _isSetGeo = false;
   Person _upstreamPerson;
-
+  Person _sourceCreator;
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
@@ -38,10 +38,13 @@ class _ChannelGatewayState extends State<ChannelGateway> {
     IChannelPinService pinService =
         widget.context.site.getService('/channel/pin');
     this._isSetGeo = await pinService.getOutputGeoSelector(_channel.id);
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
     if (!StringUtil.isEmpty(_channel.upstreamPerson)) {
-      IPersonService personService =
-          widget.context.site.getService('/gbera/persons');
       _upstreamPerson = await personService.getPerson(_channel.upstreamPerson);
+    }
+    if(!StringUtil.isEmpty(_channel.sourceCreator)) {
+      _sourceCreator = await personService.getPerson(_channel.sourceCreator);
     }
     setState(() {});
   }
@@ -313,6 +316,44 @@ class _ChannelGatewayState extends State<ChannelGateway> {
             widget.context
                 .forward("/netflow/channel/portal/person", arguments: {
               'person': _upstreamPerson,
+            });
+          },
+        ),
+      );
+    }
+    if(_sourceCreator!=null&&_sourceCreator.official!=_channel.upstreamPerson){
+      items.add(
+        _CardItem(
+          title: '管道源',
+          tipsText: '',
+          operator: Column(
+            children: [
+              SizedBox(
+                width: 25,
+                height: 25,
+                child: getAvatarWidget(
+                  _sourceCreator.avatar,
+                  widget.context,
+                  Colors.grey[800],
+                ),
+              ),
+              SizedBox(
+                height: 2,
+              ),
+              Text(
+                '${_sourceCreator.nickName}',
+                style: TextStyle(
+                  fontSize: 10,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          onItemTap: () {
+            widget.context
+                .forward("/netflow/channel/portal/person", arguments: {
+              'person': _sourceCreator,
             });
           },
         ),

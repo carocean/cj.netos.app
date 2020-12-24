@@ -1160,7 +1160,11 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       return null;
     }
 //    print(docMap);
-    String absorbabler = '${docMap['creator']}/${docMap['channel']}';
+    var sourceCreator=docMap['sourceCreator'];
+    if(StringUtil.isEmpty(sourceCreator)) {
+      sourceCreator=docMap['creator'];
+    }
+    String absorbabler = '$sourceCreator/${docMap['channel']}';
     AbsorberResultOR absorberResultOR;
     if (!StringUtil.isEmpty(absorbabler)) {
       absorberResultOR = await _getAbsorberByAbsorbabler(absorbabler);
@@ -1209,6 +1213,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       var channel = await channelService.fetchChannelOfPerson(
           message.upstreamChannel, message.upstreamPerson);
       if (channel != null) {
+        channel.upstreamPerson=frame.head('sender-person');
+        channel.owner=widget.context.principal.person;
         IChannelCache channelCache =
             widget.context.site.getService('/cache/channels');
         await channelCache.cache(channel);
@@ -1355,10 +1361,26 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
                     }
                     return false;
                   },
-                  child: _InsiteMessageItem(
-                    context: widget.context,
-                    message: message,
-                    notBottom: notBottom,
+                  child: Slidable(
+                    actionPane: SlidableDrawerActionPane(),
+                    secondaryActions: <Widget>[
+                      IconButton(
+                          icon: Icon(Icons.delete_forever_outlined),
+                          onPressed: () {
+                            IInsiteMessageService messageService =
+                            widget.context.site.getService('/insite/messages');
+                            messageService.remove(message.id).then((value){
+                              _messages.removeWhere((element) {
+                                return element.id==message.id;
+                              });
+                            });
+                          }),
+                    ],
+                    child: _InsiteMessageItem(
+                      context: widget.context,
+                      message: message,
+                      notBottom: notBottom,
+                    ),
                   ),
                 );
               }).toList(),
@@ -1535,7 +1557,8 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                         text: '',
                         children: [
                           TextSpan(
-                            text: '  ${_channel == null ? '' : _channel.name}',
+                            text:
+                                '  ${_channel == null ? '' : _channel.name ?? ''}',
                             style: TextStyle(
                               color: Colors.grey[500],
                             ),
@@ -2074,25 +2097,25 @@ class __ChannelItemState extends State<_ChannelItem> {
         ],
       ),
     );
-    if (widget.isSystemChannel) {
-      return Slidable(
-        actionPane: SlidableDrawerActionPane(),
-        secondaryActions: <Widget>[
-          Text(
-            '不能删除系统管道',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 12,
-            ),
-          ),
-        ],
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.openChannel,
-          child: item,
-        ),
-      );
-    }
+    // if (widget.isSystemChannel) {
+    //   return Slidable(
+    //     actionPane: SlidableDrawerActionPane(),
+    //     secondaryActions: <Widget>[
+    //       Text(
+    //         '不能删除系统管道',
+    //         style: TextStyle(
+    //           color: Colors.grey[400],
+    //           fontSize: 12,
+    //         ),
+    //       ),
+    //     ],
+    //     child: GestureDetector(
+    //       behavior: HitTestBehavior.opaque,
+    //       onTap: widget.openChannel,
+    //       child: item,
+    //     ),
+    //   );
+    // }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[

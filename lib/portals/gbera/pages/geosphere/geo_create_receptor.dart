@@ -68,8 +68,8 @@ class _GeoCreateReceptorState extends State<GeoCreateReceptor> {
         moveMode = 'moveableSelf';
         break;
     }
-    var reGeocode=await AmapSearch.searchReGeocode(_geoPoi.latLng,radius: 200);
-    var townCode =await reGeocode.townCode;
+    var reGeocode=await AmapSearch.instance.searchReGeocode(_geoPoi.latLng,radius: 200);
+    var townCode =reGeocode.townCode;
     try {
       await receptorService.add(
         GeoReceptor(
@@ -336,16 +336,16 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
 
   _loadLocation() async {
     var location =
-        await AmapLocation.fetchLocation(mode: LocationAccuracy.High);
-    var address = await location.address;
+        await AmapLocation.instance.fetchLocation(mode: LocationAccuracy.High);
+    var address = location.address;
     if (StringUtil.isEmpty(address)) {
       return;
     }
-    var latLng=await location.latLng;
+    var latLng=location.latLng;
     _geoPoi = AmapPoi(
       latLng: latLng,
       address: address,
-      title: await location.poiName,
+      title: location.poiName,
     );
     setState(() {});
   }

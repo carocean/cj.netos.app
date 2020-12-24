@@ -113,21 +113,21 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
   }
 
   Future<void> _updateLocation(Location location) async {
-    var city = await location.city;
+    var city = location.city;
     if (StringUtil.isEmpty(city)) {
       return;
     }
     //计算文档离我的距离
-    var latLng = await location.latLng;
+    var latLng = location.latLng;
     var poiList =
-        await AmapSearch.searchAround(latLng, radius: 500, type: amapPOIType);
+        await AmapSearch.instance.searchAround(latLng, radius: 500, type: amapPOIType);
     if (poiList.isEmpty) {
       return;
     }
     var amapPoi = poiList[0];
-    var title = await amapPoi.title;
-    var address = await amapPoi.address;
-    var poiId = await amapPoi.poiId;
+    var title = amapPoi.title;
+    var address = amapPoi.address;
+    var poiId = amapPoi.poiId;
 
     var distance = 0;
     _currentPoi = AmapPoi(
@@ -655,25 +655,25 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   Future<void> _loadLocation() async {
     _currentLatLng = widget.receptorInfo.latLng;
-    var list = await AmapSearch.searchAround(_currentLatLng,
+    var list = await AmapSearch.instance.searchAround(_currentLatLng,
         radius: 2000, type: amapPOIType);
     if (list == null || list.isEmpty) {
       return;
     }
-    _poiTitle = await list[0].title;
+    _poiTitle = list[0].title;
   }
 
   _updateLocation(Location location) async {
     var moveMode = widget.receptorInfo.origin.moveMode;
     if (moveMode == 'unmoveable') {
-      _currentLatLng = await location.latLng;
+      _currentLatLng = location.latLng;
       if (mounted) {
         setState(() {});
       }
       return;
     }
-    _currentLatLng = await location.latLng;
-    _poiTitle = await location.poiName;
+    _currentLatLng = location.latLng;
+    _poiTitle = location.poiName;
     if (mounted) {
       setState(() {});
     }

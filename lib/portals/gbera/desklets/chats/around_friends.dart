@@ -41,8 +41,8 @@ class _AroundFriendsPageState extends State<AroundFriendsPage> {
       if (mounted) {
         setState(() {});
       }
-      var location = await AmapLocation.fetchLocation();
-      _location = await location.latLng;
+      var location = await AmapLocation.instance.fetchLocation();
+      _location = location.latLng;
       await _load();
       _isLoading = false;
       if (mounted) {

@@ -35,8 +35,8 @@ class _GeoAbsorberSettingsPageState extends State<GeoAbsorberSettingsPage> {
       _creator = await _getPerson(
           widget.context.site, _absorberResultOR.absorber.creator);
       var location = _absorberResultOR.absorber.location;
-      var recode = await AmapSearch.searchReGeocode(location);
-      _address = await recode.formatAddress;
+      var recode = await AmapSearch.instance.searchReGeocode(location);
+      _address = recode.formatAddress;
       if (mounted) {
         setState(() {});
       }

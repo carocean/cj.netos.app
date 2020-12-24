@@ -73,9 +73,9 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   }
 
   Future<void> _load() async {
-    var result = await AmapLocation.fetchLocation();
-    _districtCode = await result.adCode;
-    _districtTitle = await result.district;
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
+    _districtTitle = result.district;
     var purchaseInfo = await _getPurchaseInfo();
     if (purchaseInfo.bankInfo == null) {
       _isLoaded = true;

@@ -1914,7 +1914,11 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var absorbabler = '${widget.channel.owner}/${widget.channel.id}';
+    var sourceCreator=widget.channel.sourceCreator;
+    if(StringUtil.isEmpty(sourceCreator)) {
+      sourceCreator=widget.channel.owner;
+    }
+    var absorbabler = '$sourceCreator/${widget.channel.id}';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {

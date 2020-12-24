@@ -343,38 +343,39 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          StreamBuilder<AudioPlaybackState>(
-            stream: _player.playbackStateStream,
+          StreamBuilder<PlayerState>(
+            stream: _player.playerStateStream,
             builder: (context, snapshot) {
               final state = snapshot.data;
-              if (state == AudioPlaybackState.completed) {
+              if(state==null) {
+                return SizedBox(width: 0,height: 0,);
+              }
+              var processing=state.processingState;
+              if(processing==ProcessingState.completed){
                 _player.stop();
+                _player.seek(Duration(seconds: 0));
               }
               return Center(
                 child: IconButton(
 //                  padding: EdgeInsets.all(0),
                   onPressed: () {
-                    switch (state) {
-                      case AudioPlaybackState.stopped:
+                    if(state.playing) {
+                      _player.pause();
+                      return;
+                    }
+                    switch (processing) {
+                      case ProcessingState.ready:
+                      case ProcessingState.idle:
                         _player.play();
                         break;
-                      case AudioPlaybackState.paused:
-                        _player.play();
-                        break;
-                      case AudioPlaybackState.playing:
-                        _player.pause();
-                        break;
-                      case AudioPlaybackState.none:
-                        break;
-                      case AudioPlaybackState.buffering:
-                      case AudioPlaybackState.connecting:
-                        break;
-                      case AudioPlaybackState.completed:
+                      case ProcessingState.buffering:
+                      case ProcessingState.loading:
+                      case ProcessingState.completed:
                         break;
                     }
                   },
                   icon: Icon(
-                    state == AudioPlaybackState.playing
+                    state.playing
                         ? FontAwesomeIcons.volumeUp
                         : FontAwesomeIcons.volumeDown,
                     size: 30,
@@ -389,7 +390,7 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
             builder: (context, snapshot) {
               final duration = snapshot.data ?? Duration.zero;
               return StreamBuilder<Duration>(
-                stream: _player.getPositionStream(),
+                stream: _player.positionStream,
                 builder: (context, snapshot) {
                   var position = snapshot.data ?? Duration.zero;
                   if (position > duration) {

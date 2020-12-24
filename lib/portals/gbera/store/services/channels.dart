@@ -59,6 +59,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
           _GEO_CHANNEL_ID,
           '地推',
           user.person,
+          user.person,
           null,
           null,
           null,
@@ -127,9 +128,6 @@ class ChannelService implements IChannelService, IServiceBuilder {
     if (!StringUtil.isEmpty(localLeading)) {
       channel.leading = localLeading;
     }
-    if (!StringUtil.isEmpty(upstreamPerson)) {
-      channel.owner = principal.person; //如果上游用户不为空则说明是连接而创建的下游管道，则将所有者更改为自己
-    }
     await this.channelDAO.addChannel(channel);
     await pinService.initChannelPin(channel.id);
     if (!StringUtil.isEmpty(remoteLeading)) {
@@ -140,7 +138,7 @@ class ChannelService implements IChannelService, IServiceBuilder {
         channel.id,
         title: channel.name,
         leading: channel.leading,
-        upstreamPerson: upstreamPerson,
+        upstreamPerson: channel.upstreamPerson,
         outPersonSelector: 'only_select',
         outGeoSelector: false,
       );

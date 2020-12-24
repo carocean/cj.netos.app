@@ -41,7 +41,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   String _districtCode;
   String _districtTitle;
   int _purchse_amount = 100; //单位为分
-  int _purchase_method=0;//0是零钱；1为体验金
+  int _purchase_method = 0; //0是零钱；1为体验金
   String _label = '';
   PurchaseInfo _purchaseInfo;
   bool _canPublish = false;
@@ -74,14 +74,14 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   }
 
   Future<void> _load() async {
-    var result = await AmapLocation.fetchLocation();
-    _districtCode = await result.adCode;
-    _districtTitle = await result.district;
-    var latlng = await result.latLng;
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
+    _districtTitle = result.district;
+    var latlng = result.latLng;
 //    var city = await result.city;
-    String title = await result.poiName;
-    String address = await result.address;
-    var poiId = await result.adCode;
+    String title = result.poiName;
+    String address = result.address;
+    var poiId = result.adCode;
     _poi = AmapPoi(
       title: title,
       latLng: latlng,
@@ -102,8 +102,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       return;
     }
     _purchaseInfo = purchaseInfo;
-    if(_purchaseInfo.myWallet.trial>=100) {
-      _purchase_method=1;
+    if (_purchaseInfo.myWallet.trial >= 100) {
+      _purchase_method = 1;
       _label = '体验金  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}元';
       _canPublish = true;
       _isLoaded = true;
@@ -112,7 +112,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       }
       return;
     }
-    _purchase_method=0;
+    _purchase_method = 0;
     if (purchaseInfo.myWallet.change < _purchse_amount) {
       _isEnoughMoney = false;
       var balance =
@@ -164,24 +164,24 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     widget.context.forward('/channel/article/buywy', arguments: {
       'purchaseInfo': _purchaseInfo,
       'purchaseAmount': _purchse_amount,
-      'purchaseMethod':_purchase_method,
+      'purchaseMethod': _purchase_method,
     }).then((value) async {
       if (value == null) {
         return;
       }
-      if(mounted) {
+      if (mounted) {
         setState(() {
-          _label='正在检查申购服务，请稍候...';
+          _label = '正在检查申购服务，请稍候...';
         });
       }
       var purchaseInfo = await _getPurchaseInfo();
       if (purchaseInfo.bankInfo == null) {
         return;
       }
-      var result=value as Map;
-      var amount=result['amount'];
-      var method=result['method'];
-      if (method==0&&purchaseInfo.myWallet.change < amount) {
+      var result = value as Map;
+      var amount = result['amount'];
+      var method = result['method'];
+      if (method == 0 && purchaseInfo.myWallet.change < amount) {
         _isEnoughMoney = false;
         var v = amount;
         var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
@@ -192,20 +192,21 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         }
         return;
       }
-      if (method==1&&purchaseInfo.myWallet.trial < amount) {
+      if (method == 1 && purchaseInfo.myWallet.trial < amount) {
         _isEnoughMoney = false;
         var v = amount;
         var labelV = '¥${(v / 100.00).toStringAsFixed(2)}';
         _label =
-        '欲购金额:$labelV元 大于 现有体验金余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
+            '欲购金额:$labelV元 大于 现有体验金余额：¥${(purchaseInfo.myWallet.change / 100.00).toStringAsFixed(2)}元，请充值';
         if (mounted) {
           setState(() {});
         }
         return;
       }
-      _purchase_method=method;
+      _purchase_method = method;
       _purchse_amount = amount;
-      _label = '${method==0?'零钱':'体验金'}  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
+      _label =
+          '${method == 0 ? '零钱' : '体验金'}  ¥${(_purchse_amount / 100.00).toStringAsFixed(2)}';
       if (mounted) {
         setState(() {});
       }

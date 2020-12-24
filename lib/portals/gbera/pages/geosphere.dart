@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
+import 'package:amap_map_fluttify/amap_map_fluttify.dart';
+import 'package:amap_map_fluttify/amap_map_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:badges/badges.dart';
 import 'package:common_utils/common_utils.dart';
@@ -69,7 +71,7 @@ class Geosphere extends StatefulWidget {
 }
 
 class _GeosphereState extends State<Geosphere>
-    with AutomaticKeepAliveClientMixin, AmapLocationDisposeMixin {
+    with AutomaticKeepAliveClientMixin {
   bool use_wallpapper = false;
   EasyRefreshController _refreshController;
   StreamController _receptorStreamController;

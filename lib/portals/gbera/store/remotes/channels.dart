@@ -56,17 +56,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     if (map == null) {
       return null;
     }
-    return Channel(
-      map['channel'],
-      map['title'],
-      map['creator'],
-      map['upstreamPerson'],
-      map['leading'],
-      map['site'],
-      map['ctime'],
-      map['ctime'],
-      principal.person,
-    );
+    return Channel.fromMap(map, principal.person);
   }
 
   @override
@@ -188,17 +178,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     }
     List<Channel> channels = [];
     for (var map in list) {
-      channels.add(Channel(
-        map['channel'],
-        map['title'],
-        map['creator'],
-        map['upstreamPerson'],
-        map['leading'],
-        map['site'],
-        map['ctime'],
-        map['ctime'],
-        principal.person,
-      ));
+      channels.add(Channel.fromMap(map,  principal.person,));
     }
     return channels;
   }
@@ -212,18 +192,7 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
     });
     var channels = <Channel>[];
     for (var obj in list) {
-      var channelid = MD5Util.MD5('${Uuid().v1()}');
-      channels.add(Channel(
-        channelid,
-        obj['title'],
-        obj['owner'],
-        obj['upstreamPerson'],
-        obj['leading'],
-        obj['site'],
-        obj['ctime'],
-        obj['ctime'],
-        principal.person,
-      ));
+      channels.add(Channel.fromMap(obj, principal.person,));
     }
     return channels;
   }

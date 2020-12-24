@@ -58,14 +58,14 @@ class _PoolPageState extends State<PoolViewPage> {
   }
 
   Future<void> _goMap() async {
-    var geocodeList = await AmapSearch.searchGeocode(
+    var geocodeList = await AmapSearch.instance.searchGeocode(
       _pool.geoTitle,
     );
     if (geocodeList.isEmpty) {
       return;
     }
     var first = geocodeList[0];
-    var location = await first.latLng;
+    var location = first.latLng;
     widget.context.forward('/chasechain/pool/location',
         arguments: {'pool': _pool, 'location': location});
   }

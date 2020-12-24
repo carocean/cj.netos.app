@@ -74,25 +74,37 @@ class Channel {
   String name;
   String owner;
   String upstreamPerson;
+  String sourceCreator;
   String leading;
   String site;
   int ctime = DateTime.now().millisecondsSinceEpoch;
   int utime = DateTime.now().millisecondsSinceEpoch;
   String sandbox;
 
-  Channel(this.id, this.name, this.owner, this.upstreamPerson, this.leading,
-      this.site, this.ctime,this.utime, this.sandbox);
+  Channel(
+    this.id,
+    this.name,
+    this.owner,
+    this.upstreamPerson,
+    this.sourceCreator,
+    this.leading,
+    this.site,
+    this.ctime,
+    this.utime,
+    this.sandbox,
+  );
 
-  toMap() {
+  toMapOfShare(sandbox) {
     return {
       'id': id,
       'name': name,
       'owner': owner,
       'leading': leading,
       'upstreamPerson': upstreamPerson,
+      'sourceCreator': sourceCreator,
       'site': site,
       'ctime': ctime,
-      'utime':utime,
+      'utime': utime,
       'sandbox': sandbox,
     };
   }
@@ -101,10 +113,25 @@ class Channel {
     id = map['channel'];
     name = map['title'];
     owner = map['creator'];
+    upstreamPerson = map['upstreamPerson'];
+    sourceCreator = map['sourceCreator'];
     leading = map['leading'];
     site = map['site'];
     ctime = map['ctime'];
-    utime=map['utime'];
+    utime = map['utime'];
+    sandbox = person;
+  }
+
+  Channel.fromMapOfShare(map, String person) {
+    id = map['id'];
+    name = map['name'];
+    owner = map['owner'];
+    upstreamPerson = map['upstreamPerson'];
+    sourceCreator = map['sourceCreator'];
+    leading = map['leading'];
+    site = map['site'];
+    ctime = map['ctime'];
+    utime = map['utime'];
     sandbox = person;
   }
 }
@@ -292,19 +319,18 @@ class Media {
         src: src);
   }
 
-  Map<String,dynamic> toMap() {
+  Map<String, dynamic> toMap() {
     return {
-      'id':id,
-      'type':type,
-      'src':src,
-      'leading':leading,
-      'docid':msgid,
-      'text':text,
-      'channel':onChannel,
-      'sandbox':sandbox,
+      'id': id,
+      'type': type,
+      'src': src,
+      'leading': leading,
+      'docid': msgid,
+      'text': text,
+      'channel': onChannel,
+      'sandbox': sandbox,
     };
   }
-
 }
 
 @entity
@@ -473,7 +499,6 @@ class ChatRoom {
     this.microsite,
     this.sandbox,
   );
-
 }
 
 @Entity(primaryKeys: ['person', 'room', 'sandbox'])
@@ -482,8 +507,8 @@ class RoomMember {
   String person;
   String nickName;
   String isShowNick;
-  String leading;//供非person类型的成员使用，如wybank
-  String type;//成员类型，有person,wybank(福利中心)等，默认是person
+  String leading; //供非person类型的成员使用，如wybank
+  String type; //成员类型，有person,wybank(福利中心)等，默认是person
   int atime;
   String sandbox;
 
@@ -497,7 +522,6 @@ class RoomMember {
     this.atime,
     this.sandbox,
   );
-
 }
 
 @entity
@@ -581,6 +605,7 @@ class GeoReceptor {
   int uDistance;
   int ctime;
   int utime;
+
   ///original,white,
   String foregroundMode;
 
@@ -627,7 +652,7 @@ class GeoReceptor {
     this.location = jsonEncode(map);
   }
 
-  GeoReceptor.load(map,String canDel, String sandbox) {
+  GeoReceptor.load(map, String canDel, String sandbox) {
     var loc = map['location'];
     var locStr;
     if (loc is String) {
@@ -637,11 +662,11 @@ class GeoReceptor {
     }
     id = map['id'];
     title = map['title'];
-    townCode=map['townCode'];
-    channel=map['channel'];
+    townCode = map['townCode'];
+    channel = map['channel'];
     category = map['category'];
-    brand=map['brand'];
-    moveMode=map['moveMode'];
+    brand = map['brand'];
+    moveMode = map['moveMode'];
     leading = map['leading'];
     creator = map['creator'];
     location = locStr;
@@ -654,7 +679,7 @@ class GeoReceptor {
     background = map['background'];
     isAutoScrollMessage = map['isAutoScrollMessage'];
     device = map['device'];
-    this.canDel=canDel;
+    this.canDel = canDel;
     this.sandbox = sandbox;
   }
 
@@ -662,11 +687,11 @@ class GeoReceptor {
     return {
       'id': id,
       'title': title,
-      'townCode':townCode,
+      'townCode': townCode,
       'channel': channel,
       'category': category,
       'brand': brand,
-      'moveMode':moveMode,
+      'moveMode': moveMode,
       'leading': leading,
       'creator': creator,
       'location': location,

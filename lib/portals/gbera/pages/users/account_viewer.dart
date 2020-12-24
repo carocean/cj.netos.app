@@ -27,13 +27,13 @@ class _AccountViewerState extends State<AccountViewer> {
       headers: {
         'cjtoken': widget.context.principal.accessToken,
       },
-      onsucceed: ({rc, response}) async{
+      onsucceed: ({rc, response}) async {
         //删除本地历史
         lp.IPlatformLocalPrincipalManager manager =
-        widget.context.site.getService('/local/principals');
+            widget.context.site.getService('/local/principals');
         var account = widget.context.parameters['account'];
         await manager.remove(account['person']);
-        widget.context.forward('/public/entrypoint',scene: '/');
+        widget.context.forward('/public/entrypoint', scene: '/');
       },
       onerror: ({e, stack}) {
         print(e);
@@ -41,7 +41,6 @@ class _AccountViewerState extends State<AccountViewer> {
         setState(() {});
       },
     );
-
   }
 
   @override
@@ -164,37 +163,86 @@ class _AccountViewerState extends State<AccountViewer> {
             ListView(
               shrinkWrap: true,
               children: <Widget>[
-                account['person'] == widget.context.principal.person?
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      widget.context.forward('/users/accounts/editPassword',
-                          arguments: {'account': account});
-                    },
-                    child: item_change_pwd,
-                  ):Container(width: 0,height: 0,),
-                account['person'] == widget.context.principal.person?
-                  Divider(
-                    height: 1,
-                    indent: 20,
-                  ):Container(width: 0,height: 0,),
-                account['person'] != widget.context.principal.person?
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    widget.context.forward('/users/accounts/login',
-                        arguments: {'account': account});
-                  },
-                  child: item_switch_login,
-                ):Container(height: 0,width: 0,),
+                account['person'] == widget.context.principal.person
+                    ? GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          widget.context.forward('/users/accounts/editPassword',
+                              arguments: {'account': account});
+                        },
+                        child: item_change_pwd,
+                      )
+                    : Container(
+                        width: 0,
+                        height: 0,
+                      ),
+                account['person'] == widget.context.principal.person
+                    ? Divider(
+                        height: 1,
+                        indent: 20,
+                      )
+                    : Container(
+                        width: 0,
+                        height: 0,
+                      ),
+                account['person'] != widget.context.principal.person
+                    ? GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          widget.context.forward('/users/accounts/login',
+                              arguments: {'account': account});
+                        },
+                        child: item_switch_login,
+                      )
+                    : Container(
+                        height: 0,
+                        width: 0,
+                      ),
               ],
             ),
-            account['person'] == widget.context.principal.person?
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _doDelete,
-                child: item_del,
-              ):Container(height: 0,width: 0,),
+            account['person'] == widget.context.principal.person
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          child: AlertDialog(
+                            title: Text('注意！'),
+                            elevation: 0,
+                            content: Container(
+                              child: Text(
+                                  '删除账号将清除该账号下的所有数据，且不能再使用该账号登录，也无法恢复，请确认是否删除？'),
+                            ),
+                            actions: [
+                              FlatButton(
+                                onPressed: _doDelete,
+                                child: Text(
+                                  '删除',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              FlatButton(
+                                onPressed: () {
+                                  widget.context.backward();
+                                },
+                                child: Text(
+                                  '取消',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ));
+                    },
+                    child: item_del,
+                  )
+                : Container(
+                    height: 0,
+                    width: 0,
+                  ),
           ],
         ),
       ),

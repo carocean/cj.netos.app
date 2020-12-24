@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
@@ -149,17 +150,23 @@ void main() => platformRun(
             '@.prop.ports.feedback.woflow':
                 'http://47.105.165.186/feedback/wo/flow.ports',
             '@.prop.ports.feedback.tiptool':
-            'http://47.105.165.186/feedback/tiptool.ports',
+                'http://47.105.165.186/feedback/tiptool.ports',
           },
           buildServices: (site) async {
             await enableFluttifyLog(false); // 关闭amaplog
             /// !注意: 只要是返回Future的方法, 一律使用`await`修饰, 确保当前方法执行完成后再执行下一行, 在不能使用`await`修饰的环境下, 在`then`方法中执行下一步.
             /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted
-            if(Platform.isIOS) {
+            if (Platform.isIOS) {
               try {
-                await AmapCore.init('d01465eb6d15b8df1ee56e5df1f6e1f6');
+                await AmapLocation.instance.init(iosKey: 'd01465eb6d15b8df1ee56e5df1f6e1f6');
                 await requestPermission();
-              }catch(e){
+              } catch (e) {
+                print('amap on main error: $e');
+              }
+            } else {
+              try {
+                await AmapLocation.instance.init();
+              } catch (e) {
                 print('amap on main error: $e');
               }
             }
@@ -551,8 +558,11 @@ class _StatusBarState extends State<StatusBar> {
         stateText = '重试${_deviceStatus.reconnectTrytimes}次';
         break;
     }
-    if(_deviceStatus.state==_State.online&&_deviceStatus.unreadCount<1){
-      return SizedBox(width: 0,height: 0,);
+    if (_deviceStatus.state == _State.online && _deviceStatus.unreadCount < 1) {
+      return SizedBox(
+        width: 0,
+        height: 0,
+      );
     }
     return Container(
       alignment: Alignment.topLeft,
@@ -569,7 +579,6 @@ class _StatusBarState extends State<StatusBar> {
               fit: BoxFit.cover,
             ),
           ),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -582,7 +591,6 @@ class _StatusBarState extends State<StatusBar> {
                   SizedBox(
                     width: 1,
                   ),
-
                   Text(
                     '${_deviceStatus.unreadCount}',
                     style: TextStyle(

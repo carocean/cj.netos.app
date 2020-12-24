@@ -49,4 +49,15 @@ final migrationsMicrogeo = <Migration>[
       print('--------database onUpgrade 从版本4迁移到版本5');
     },
   ),
+  Migration(
+    5,
+    6,
+        (db) async {
+      await db.transaction((txn) async {
+        await db.execute('ALTER TABLE Channel ADD COLUMN sourceCreator Text');
+      });
+
+      print('--------database onUpgrade 从版本5迁移到版本6');
+    },
+  ),
 ];

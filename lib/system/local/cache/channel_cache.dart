@@ -46,7 +46,7 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
     if (await get(channel.id) != null) {
       return;
     }
-    var map = channel.toMap();
+    var map = channel.toMapOfShare(principal.person);
     await _db.insert(map);
   }
 
@@ -56,17 +56,7 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
     var channels = await _db.find(query);
     var list = <Channel>[];
     for (var obj in channels) {
-      list.add(Channel(
-        obj['id'],
-        obj['name'],
-        obj['owner'],
-        obj['upstreamPerson'],
-        obj['leading'],
-        obj['site'],
-        obj['ctime'],
-        obj['utime'],
-        obj['sandbox'],
-      ));
+      list.add(Channel.fromMapOfShare(obj, principal.person));
     }
     return list;
   }
@@ -84,16 +74,6 @@ class ChannelCache implements IChannelCache, IServiceBuilder {
     if (obj == null) {
       return null;
     }
-    return Channel(
-      obj['id'],
-      obj['name'],
-      obj['owner'],
-      obj['upstreamPerson'],
-      obj['leading'],
-      obj['site'],
-      obj['ctime'],
-      obj['utime'],
-      obj['sandbox'],
-    );
+    return Channel.fromMapOfShare(obj, principal.person);
   }
 }

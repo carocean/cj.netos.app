@@ -56,8 +56,8 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
   Future<PurchaseInfo> _getPurchaseInfo() async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    var result = await AmapLocation.fetchLocation();
-    var districtCode = await result.adCode;
+    var result = await AmapLocation.instance.fetchLocation();
+    var districtCode = result.adCode;
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(districtCode);
     return purchaseInfo;
   }

@@ -337,7 +337,7 @@ class _TipToolButtonState extends State<TipToolButton> {
     ITipToolRemote tipToolRemote =
         widget.context.site.getService('/feedback/tiptool');
     _canReadableTipDocs = await tipToolRemote.totalReadableTipDocs() > 0;
-    if (_canReadableTipDocs) {
+    if (_canReadableTipDocs&&mounted) {
       await _checkAutoShowTiptoolPanel();
     }
     if (mounted) {

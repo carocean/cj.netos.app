@@ -39,17 +39,17 @@ class _GeoNearByAmapPOIState extends State<GeoNearByAmapPOI> {
     _selectedPoi = widget.context.parameters['poi'];
 
     /// 搜索周边poi
-    final poiList = await AmapSearch.searchAround(
+    final poiList = await AmapSearch.instance.searchAround(
       _selectedPoi.latLng,
       type: amapPOIType,
       radius: 20000,
     );
     for (var poi in poiList) {
-      var address = await poi.address;
-      var distance = await poi.distance;
-      var title = await poi.title;
-      var poiId = await poi.poiId;
-      var lat = await poi.latLng;
+      var address = poi.address;
+      var distance = poi.distance;
+      var title = poi.title;
+      var poiId = poi.poiId;
+      var lat = poi.latLng;
       _poiList.add(
         AmapPoi(
           title: title,

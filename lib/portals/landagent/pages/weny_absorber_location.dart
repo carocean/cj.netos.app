@@ -36,7 +36,7 @@ class _AbsorberLocationPageState extends State<AbsorberLocationPage> {
           zoomLevel: 18,
           markers: [
             MarkerOption(
-              latLng: absorber.location,
+              coordinate: absorber.location,
               title: '${absorber.title}',
               visible: true,
               widget: Wrap(

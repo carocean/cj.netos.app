@@ -57,11 +57,11 @@ class GeoLocation {
     if(!_isStarted) {
       return;
     }
-    AmapLocation.stopLocation();
+    AmapLocation.instance.stopLocation();
     _isStarted=false;
   }
   void forceStop(){
-    AmapLocation.stopLocation();
+    AmapLocation.instance.stopLocation();
     _isStarted=false;
   }
   Future<void> start() async {
@@ -72,7 +72,7 @@ class GeoLocation {
 // 连续定位
     if (await requestPermission()) {
       _isStarted=true;
-      await for(var location in AmapLocation.listenLocation(mode: LocationAccuracy.High,timeout: 120000)){
+      await for(var location in AmapLocation.instance.listenLocation(mode: LocationAccuracy.High,timeout: Duration(minutes: 60))){
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
           try {
@@ -82,8 +82,8 @@ class GeoLocation {
               continue;
             }
             if (listener.current == null) {
-              var latlng = await location.latLng;
-              String city = await location.city;
+              var latlng = location.latLng;
+              String city = location.city;
               if (StringUtil.isEmpty(city)) {
                 continue;
               }
@@ -91,7 +91,7 @@ class GeoLocation {
               await listener.callback(location);
               continue;
             }
-            var current = await location.latLng;
+            var current = location.latLng;
             var distance = getDistance(start: current, end: listener.current);
             if (distance < listener.offsetDistance) {
               //没到更新边界

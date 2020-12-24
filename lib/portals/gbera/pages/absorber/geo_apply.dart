@@ -59,11 +59,11 @@ class _AbsorberGeoApplyPageState extends State<AbsorberGeoApplyPage> {
   }
 
   Future<void> _load() async {
-    var location = await AmapLocation.fetchLocation(
+    var location = await AmapLocation.instance.fetchLocation(
       needAddress: true,
     );
-    _address = await location.address;
-    _districtCode = await location.adCode;
+    _address = location.address;
+    _districtCode = location.adCode;
     IWyBankRemote wyBankRemote =
         widget.context.site.getService('/remote/wybank');
     var bank =

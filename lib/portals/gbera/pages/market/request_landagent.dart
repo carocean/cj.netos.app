@@ -89,10 +89,10 @@ class _RequestLandagentState extends State<RequestLandagent> {
       }
       geoLocation.unlisten('/market/la');
       geoLocation.stop();
-      var list = await AmapSearch.searchKeyword(district);
+      var list = await AmapSearch.instance.searchKeyword(district);
       for (var item in list) {
-        _bussinessAreaTitle = await item.adName;
-        _bussinessAreaCode = await item.adCode;
+        _bussinessAreaTitle = item.adName;
+        _bussinessAreaCode = item.adCode;
         await _existsBusinessAreaCode();
         setState(() {});
         break;
