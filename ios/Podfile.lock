@@ -84,6 +84,7 @@ PODS:
     - Flutter
     - libPhoneNumber-iOS
   - libPhoneNumber-iOS (0.9.15)
+  - MTBBarcodeScanner (5.0.11)
   - native_screenshot (0.0.1):
     - Flutter
   - nineold (0.0.1):
@@ -96,10 +97,9 @@ PODS:
     - Flutter
   - "permission_handler (4.4.0+hotfix.4)":
     - Flutter
-  - r_scan (0.0.1):
+  - qr_code_scanner (0.2.0):
     - Flutter
-    - ZBarSDK (~> 1.3.1)
-    - ZXingObjC (~> 3.6.5)
+    - MTBBarcodeScanner
   - Regift (1.6.0)
   - share (0.0.1):
     - Flutter
@@ -118,10 +118,6 @@ PODS:
   - webview_flutter (0.0.1):
     - Flutter
   - WechatOpenSDK (1.8.7.1)
-  - ZBarSDK (1.3.1)
-  - ZXingObjC (3.6.5):
-    - ZXingObjC/All (= 3.6.5)
-  - ZXingObjC/All (3.6.5)
 
 DEPENDENCIES:
   - accept_share (from `.symlinks/plugins/accept_share/ios`)
@@ -158,7 +154,7 @@ DEPENDENCIES:
   - package_info (from `.symlinks/plugins/package_info/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
-  - r_scan (from `.symlinks/plugins/r_scan/ios`)
+  - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
@@ -176,10 +172,9 @@ SPEC REPOS:
     - AMapSearch-NO-IDFA
     - FMDB
     - libPhoneNumber-iOS
+    - MTBBarcodeScanner
     - Regift
     - WechatOpenSDK
-    - ZBarSDK
-    - ZXingObjC
 
 EXTERNAL SOURCES:
   accept_share:
@@ -250,8 +245,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
-  r_scan:
-    :path: ".symlinks/plugins/r_scan/ios"
+  qr_code_scanner:
+    :path: ".symlinks/plugins/qr_code_scanner/ios"
   share:
     :path: ".symlinks/plugins/share/ios"
   shared_preferences:
@@ -303,13 +298,14 @@ SPEC CHECKSUMS:
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   libphonenumber: bd14d5abfc5939ab0b0767234e2d8e2593af258e
   libPhoneNumber-iOS: 0a32a9525cf8744fe02c5206eb30d571e38f7d75
+  MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   native_screenshot: 70900984bca8d5f42acf68611b8214b32a9f0deb
   nineold: d0d68a3226a2b819ab0c25617ec667fec71797dd
   open_file: c99dbf763133424083d9be8d989d36ba8aeffdf2
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   permission_handler: 8278954f2382902f63f00dd8828769c0bd6d511b
-  r_scan: f90e2a41679bc9cae0e7efe5ce54085a936125c3
+  qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e
   Regift: a7c1a7e377c60bfc34301d6f532e099e5ae109a8
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
@@ -319,8 +315,6 @@ SPEC CHECKSUMS:
   video_player: 9cc823b1d9da7e8427ee591e8438bfbcde500e6e
   webview_flutter: d2b4d6c66968ad042ad94cbb791f5b72b4678a96
   WechatOpenSDK: 6a4d1436c15b3b5fe2a0bd383f3046010186da44
-  ZBarSDK: 4c1b5daeb7d6cc67dc9355e690af0230a661f6ec
-  ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 
 PODFILE CHECKSUM: d5d25356ad7ec2f150e03bf9433c04e2f1b675b1
 
