@@ -72,16 +72,16 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
   Future<void> _fetchLocation() async {
     if (_originAbsorber == null) {
       //如果不是自指定的猫创建，则取当前用户位置
-      var location = await AmapLocation.instance.fetchLocation();
-      _location = await location.latLng;
-      _address = await location.address;
+      var location = await geoLocation.location;
+      _location = location.latLng;
+      _address = location.address;
       return;
     }
     _location = _originAbsorber.location;
     _radius = _originAbsorber.radius;
     ReGeocode regeo =
         await AmapSearch.instance.searchReGeocode(_location, radius: _radius * 1.0);
-    _address = await regeo.formatAddress;
+    _address = regeo.formatAddress;
   }
 
   Future<void> _searchAbsorbers() async {

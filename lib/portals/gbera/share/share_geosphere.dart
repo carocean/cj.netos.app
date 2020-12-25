@@ -11,6 +11,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/single_media_widget.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_opener.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/share/share_card.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
@@ -89,7 +90,8 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
   }
 
   Future<void> _loadMoney() async {
-    var result = await AmapLocation.instance.fetchLocation();
+    //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
+    var result = await AmapLocation.instance.fetchLocation(mode: LocationAccuracy.High);
     _districtCode = result.adCode;
     if (StringUtil.isEmpty(_districtCode)) {
       return;

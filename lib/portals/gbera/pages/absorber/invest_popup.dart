@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -56,7 +57,7 @@ class _InvestPopupWidgetState extends State<InvestPopupWidget> {
   Future<PurchaseInfo> _getPurchaseInfo() async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
-    var result = await AmapLocation.instance.fetchLocation();
+    var result = await geoLocation.location;
     var districtCode = result.adCode;
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(districtCode);
     return purchaseInfo;

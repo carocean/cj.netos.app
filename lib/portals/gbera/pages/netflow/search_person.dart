@@ -267,7 +267,7 @@ class __PersonSuggestionsState extends State<_PersonSuggestions> {
       return;
     }
     _isSearching = true;
-    var location = await AmapLocation.instance.fetchLocation();
+    var location = await geoLocation.location;
     _location = location.latLng;
     IGeoReceptorRemote receptorRemote =
         widget.context.site.getService('/remote/geo/receptors');

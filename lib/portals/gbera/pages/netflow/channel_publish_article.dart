@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
@@ -73,7 +74,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
   }
 
   Future<void> _load() async {
-    var result = await AmapLocation.instance.fetchLocation();
+    var result = await geoLocation.location;
     _districtCode = result.adCode;
     _districtTitle = result.district;
     var purchaseInfo = await _getPurchaseInfo();

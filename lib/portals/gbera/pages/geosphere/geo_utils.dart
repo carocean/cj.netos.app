@@ -29,19 +29,25 @@ final geoLocation = GeoLocation._();
 
 class GeoLocation {
   Map<String, _GeoLocationListener> _listens = {};
-  bool _isStarted=false;
+  bool _isStarted = false;
+  Location _current;
+
   GeoLocation._();
 
-//  Future<Location> get location async {
+  Future<Location> get location async {
+    if (_current != null) {
+      return _current;
+    }
     //以下代码注释掉，原因：在使用一次性和侦听并用时，侦听会失效
-//    if (await requestPermission()) {
-//      var loc = await AmapLocation.fetchLocation(
-//        mode: LocationAccuracy.High,
-//      );
-//      return loc;
-//    }
-//    return null;
-//  }
+    if (!_isStarted && await requestPermission()) {
+      _current = await AmapLocation.instance.fetchLocation(
+        mode: LocationAccuracy.High,
+      );
+      start();
+      return _current;
+    }
+    return _current;
+  }
 
   void listen(String listener, double offsetDistance,
       Function(Location location) callback) {
@@ -54,25 +60,29 @@ class GeoLocation {
   }
 
   void stop() {
-    if(!_isStarted) {
+    if (!_isStarted) {
       return;
     }
     AmapLocation.instance.stopLocation();
-    _isStarted=false;
+    _isStarted = false;
   }
-  void forceStop(){
+
+  void forceStop() {
     AmapLocation.instance.stopLocation();
-    _isStarted=false;
+    _isStarted = false;
   }
+
   Future<void> start() async {
-    if(_isStarted) {
+    if (_isStarted) {
       return;
     }
 
 // 连续定位
     if (await requestPermission()) {
-      _isStarted=true;
-      await for(var location in AmapLocation.instance.listenLocation(mode: LocationAccuracy.High,timeout: Duration(minutes: 60))){
+      _isStarted = true;
+      await for (var location in AmapLocation.instance.listenLocation(
+          mode: LocationAccuracy.High, timeout: Duration(minutes: 60))) {
+        _current = location;
         var listeners = _listens.values.toList(growable: false);
         for (var listener in listeners) {
           try {
@@ -99,24 +109,22 @@ class GeoLocation {
             }
             await listener.callback(location);
             listener.current = current;
-          }catch(e) {
+          } catch (e) {
             print('地理位置执行失败:$e');
             continue;
           }
         }
       }
     }
-
   }
 
-  void setOffsetDistance(String listener,double offsetDistance) {
-    var the=_listens[listener];
-    if(the==null) {
+  void setOffsetDistance(String listener, double offsetDistance) {
+    var the = _listens[listener];
+    if (the == null) {
       return;
     }
-    the.offsetDistance=offsetDistance;
+    the.offsetDistance = offsetDistance;
   }
-
 }
 
 /*
@@ -154,4 +162,6 @@ String getFriendlyDistance(double distance) {
   }
   return '${(distance / 1000).toStringAsFixed(3)}公里';
 }
-final amapPOIType='汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施';
+
+final amapPOIType =
+    '汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施';

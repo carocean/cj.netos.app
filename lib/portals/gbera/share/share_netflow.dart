@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/single_media_widget.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_opener.dart';
 import 'package:netos_app/portals/gbera/share/share_card.dart';
@@ -83,7 +84,8 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
   }
 
   Future<void> _loadMoney() async {
-    var result = await AmapLocation.instance.fetchLocation();
+    //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
+    var result = await AmapLocation.instance.fetchLocation(mode: LocationAccuracy.High);
     _districtCode = result.adCode;
     if(StringUtil.isEmpty(_districtCode)) {
       return;

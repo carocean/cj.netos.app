@@ -75,7 +75,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   }
 
   Future<void> _load() async {
-    var result = await AmapLocation.instance.fetchLocation();
+    var result = await geoLocation.location;
     _districtCode = result.adCode;
     _districtTitle = result.district;
     var latlng = result.latLng;

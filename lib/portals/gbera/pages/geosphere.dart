@@ -182,7 +182,7 @@ class _GeosphereState extends State<Geosphere>
     widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
     widget.context.unlistenMessage(matchPath: '/geosphere/receptor');
     _refreshController.dispose();
-    geoLocation.stop();
+    // geoLocation.stop();
     _receptorStreamController.close();
     geosphereEvents.listeners.clear();
     super.dispose();
