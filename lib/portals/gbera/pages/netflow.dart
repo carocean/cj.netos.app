@@ -28,7 +28,6 @@ import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 

@@ -6,6 +6,7 @@ import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/contants/cardcases.dart';
 import 'package:netos_app/portals/gbera/contants/friend_list.dart';
 import 'package:netos_app/portals/gbera/contants/person_selector.dart';
@@ -811,6 +812,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/',
           buildPage: (PageContext pageContext) => WithBottomScaffold(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '二维码扫描对话框',
+          subtitle: '',
+          icon: null,
+          url: '/qrcode/scanner',
+          buildPage: (PageContext pageContext) => QrScannerDialog(
             context: pageContext,
           ),
         ),

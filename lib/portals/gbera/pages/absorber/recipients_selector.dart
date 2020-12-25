@@ -18,7 +18,6 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
 
 Map<String, bool> _selected = {};

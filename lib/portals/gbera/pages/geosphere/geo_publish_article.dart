@@ -53,6 +53,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   int _publishingState = 0; //1正在申购；2正在发布；3发布出错；4成功完成且跳转
   String _purchaseError;
   StreamSubscription _purchaseHandler;
+  ImagePicker picker = ImagePicker();
 
   @override
   void initState() {
@@ -435,6 +436,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
             SliverToBoxAdapter(
               child: _MediaShower(
                 key: shower_key,
+                context: widget.context,
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
@@ -461,7 +463,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker().getImage(
+                              var image = await picker.getImage(
                                 source: ImageSource.gallery,
                                 imageQuality: 80,
                                 maxHeight: Adapt.screenH(),
@@ -510,7 +512,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker().getVideo(
+                              var image = await picker.getVideo(
                                 source: ImageSource.gallery,
                                 maxDuration: Duration(
                                   seconds: 15,
@@ -581,7 +583,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker().getImage(
+                              var image = await picker.getImage(
                                 source: ImageSource.camera,
                                 imageQuality: 80,
                                 maxHeight: Adapt.screenH(),
@@ -630,7 +632,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
                               String cnt = _contentController.text;
-                              var image = await ImagePicker().getVideo(
+                              var image = await picker.getVideo(
                                 source: ImageSource.camera,
                                 maxDuration: Duration(seconds: 15),
                               );
@@ -939,15 +941,18 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
 class _MediaShower extends StatefulWidget {
   MediaFile initialMedia;
+  PageContext context;
 
   @override
   _MediaShowerState createState() => _MediaShowerState(initialMedia);
 
-  _MediaShower({this.initialMedia, Key key}) : super(key: key);
+  _MediaShower({this.initialMedia, this.context, Key key}) : super(key: key);
 }
 
 class _MediaShowerState extends State<_MediaShower> {
   var files = <MediaFile>[];
+  StreamController _streamController = StreamController.broadcast();
+  StreamSubscription _streamSubscription;
 
   @override
   void initState() {
@@ -957,6 +962,8 @@ class _MediaShowerState extends State<_MediaShower> {
   @override
   void dispose() {
     files.clear();
+    _streamController?.close();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -978,6 +985,7 @@ class _MediaShowerState extends State<_MediaShower> {
 
   @override
   Widget build(BuildContext context) {
+    var mediaSrcs = files.map((e) => e.toMediaSrc()).toList();
     return Container(
       padding: EdgeInsets.all(10),
       child: Wrap(
@@ -1015,6 +1023,40 @@ class _MediaShowerState extends State<_MediaShower> {
           }
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              var index = 0;
+              for (var i = 0; i < files.length; i++) {
+                var f = files[i];
+                if (f.src == mediaFile.src) {
+                  index = i;
+                  break;
+                }
+              }
+              _streamSubscription = _streamController.stream.listen((event) {
+                if (event == null) {
+                  return;
+                }
+                var hasDF;
+                for (var f in files) {
+                  if (f.src.path == event) {
+                    hasDF = f;
+                    break;
+                  }
+                }
+                if (hasDF != null) {
+                  hasDF.delete();
+                  files.remove(hasDF);
+                  if (mounted) {
+                    setState(() {});
+                  }
+                }
+              });
+              await widget.context.forward('/images/viewer', arguments: {
+                'index': index,
+                'medias': mediaSrcs,
+                'deleteEvent': _streamController.sink
+              });
+            },
             onLongPress: () {
               setState(() {
                 showDialog(

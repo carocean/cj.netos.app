@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
@@ -13,7 +14,6 @@ import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:uuid/uuid.dart';
 
 Map<String, bool> _selected = {};
@@ -178,7 +178,7 @@ class _SelectPersonsState extends State<SelectPersons> {
             });
             break;
           case '/netflow/manager/scan_person':
-            String cameraScanResult = await scanner.scan();
+            String cameraScanResult = await scanner.scan(widget.context);
             if (cameraScanResult == null) break;
             arguments['qrcode'] = cameraScanResult;
             widget.context.forward(value, arguments: arguments);

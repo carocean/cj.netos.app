@@ -438,6 +438,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
             SliverToBoxAdapter(
               child: _MediaShower(
                 key: shower_key,
+                context: widget.context,
                 initialMedia: widget.context.parameters['mediaFile'],
               ),
             ),
@@ -855,16 +856,17 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
 class _MediaShower extends StatefulWidget {
   MediaFile initialMedia;
-
+  PageContext context;
   @override
   _MediaShowerState createState() => _MediaShowerState(initialMedia);
 
-  _MediaShower({this.initialMedia, Key key}) : super(key: key);
+  _MediaShower({this.initialMedia,this.context, Key key}) : super(key: key);
 }
 
 class _MediaShowerState extends State<_MediaShower> {
   var files = <MediaFile>[];
-
+  StreamController _streamController = StreamController.broadcast();
+  StreamSubscription _streamSubscription;
   @override
   void initState() {
     super.initState();
@@ -873,6 +875,8 @@ class _MediaShowerState extends State<_MediaShower> {
   @override
   void dispose() {
     files.clear();
+    _streamController?.close();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -894,6 +898,7 @@ class _MediaShowerState extends State<_MediaShower> {
 
   @override
   Widget build(BuildContext context) {
+    var mediaSrcs = files.map((e) => e.toMediaSrc()).toList();
     return Container(
       padding: EdgeInsets.all(10),
       child: Wrap(
@@ -931,6 +936,40 @@ class _MediaShowerState extends State<_MediaShower> {
           }
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              var index = 0;
+              for (var i = 0; i < files.length; i++) {
+                var f = files[i];
+                if (f.src == mediaFile.src) {
+                  index = i;
+                  break;
+                }
+              }
+              _streamSubscription = _streamController.stream.listen((event) {
+                if (event == null) {
+                  return;
+                }
+                var hasDF;
+                for (var f in files) {
+                  if (f.src.path == event) {
+                    hasDF = f;
+                    break;
+                  }
+                }
+                if (hasDF != null) {
+                  hasDF.delete();
+                  files.remove(hasDF);
+                  if (mounted) {
+                    setState(() {});
+                  }
+                }
+              });
+              await widget.context.forward('/images/viewer', arguments: {
+                'index': index,
+                'medias': mediaSrcs,
+                'deleteEvent': _streamController.sink
+              });
+            },
             onLongPress: () {
               setState(() {
                 showDialog(

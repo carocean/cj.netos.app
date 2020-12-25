@@ -968,13 +968,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.2.0"
-  qrscan:
-    dependency: "direct main"
-    description:
-      name: qrscan
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.2.17"
   quiver:
     dependency: transitive
     description:
@@ -982,6 +975,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.4+1"
+  r_scan:
+    dependency: "direct main"
+    description:
+      name: r_scan
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.5"
   rational:
     dependency: transitive
     description:

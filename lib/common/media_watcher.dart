@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,12 +40,15 @@ class _MediaWatcherState extends State<MediaWatcher> {
   Axis _scrollDirection;
   bool _isSaving = false;
   double _baifenbi = 0.0;
-  GlobalKey<ScaffoldState> _globalKey=GlobalKey();
+  GlobalKey<ScaffoldState> _globalKey = GlobalKey();
+  StreamSink _deleteEvent;
+
   @override
   void initState() {
     var _content = widget.pageContext;
     _thumbGalleryItems = _content.parameters['medias'];
     _backgroundDecoration = _content.parameters['backgroundDecoration'];
+    _deleteEvent = _content.parameters['deleteEvent'];
     if (_backgroundDecoration == null) {
       _backgroundDecoration = const BoxDecoration(
         color: Colors.black,
@@ -74,23 +78,25 @@ class _MediaWatcherState extends State<MediaWatcher> {
       return;
     }
     _isSaving = true;
-    setState(() {
-    });
+    setState(() {});
     var file = src.src;
     if (!file.startsWith('/')) {
       var dir = await getExternalStorageDirectory();
-      var localFile =
-          '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
+      var localFile = '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
       await widget.pageContext.ports.download(file, localFile,
           onReceiveProgress: (i, j) {
-        _baifenbi =( (i * 1.0) / j)*100.00;
+        _baifenbi = ((i * 1.0) / j) * 100.00;
         if (mounted) {
           setState(() {});
         }
       });
     }
     var result = await ImageGallerySaver.saveFile(file);
-    _globalKey.currentState.showSnackBar(SnackBar(content: Text('已保存到相册'),),);
+    _globalKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text('已保存到相册'),
+      ),
+    );
     if (mounted) {
       setState(() {
         _isSaving = false;
@@ -119,18 +125,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
               onPageChanged: onPageChanged,
               scrollDirection: _scrollDirection,
             ),
-            Positioned(
-              top: 40,
-              right: 15,
-              child: GestureDetector(
-                onTap: _isSaving
-                    ? null
-                    : () {
-                        _saveMedia(_thumbGalleryItems[currentIndex]);
-                      },
-                child: _renderSaveButton(),
-              ),
-            ),
+            _renderActions(),
             Positioned(
               bottom: 20,
               right: 20,
@@ -158,9 +153,67 @@ class _MediaWatcherState extends State<MediaWatcher> {
                   Navigator.of(context).pop();
                 },
               ),
-            )
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _renderActions() {
+    var items = <Widget>[];
+    if (_deleteEvent != null) {
+      items.add(
+        GestureDetector(
+          onTap: _isSaving
+              ? null
+              : () {
+                  _saveMedia(_thumbGalleryItems[currentIndex]);
+                },
+          child: _renderSaveButton(),
+        ),
+      );
+      items.add(
+        SizedBox(
+          width: 25,
+        ),
+      );
+      items.add(
+        GestureDetector(
+          onTap: () {
+            _deleteEvent.add(_thumbGalleryItems[currentIndex].src);
+            _thumbGalleryItems.removeAt(currentIndex);
+            if (mounted) {
+              setState(() {});
+            }
+            if(_thumbGalleryItems.isEmpty) {
+              widget.pageContext.backward();
+            }
+          },
+          child: Icon(
+            Icons.delete_forever,
+            size: 18,
+            color: Colors.white,
+          ),
+        ),
+      );
+    } else {
+      items.add(
+        GestureDetector(
+          onTap: _isSaving
+              ? null
+              : () {
+                  _saveMedia(_thumbGalleryItems[currentIndex]);
+                },
+          child: _renderSaveButton(),
+        ),
+      );
+    }
+    return Positioned(
+      top: 40,
+      right: 15,
+      child: Row(
+        children: items,
       ),
     );
   }

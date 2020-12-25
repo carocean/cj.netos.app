@@ -14,7 +14,6 @@ import 'package:netos_app/portals/gbera/pages/netflow/search_person.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 
 class PersonsSelector extends StatefulWidget {
   PageContext context;
