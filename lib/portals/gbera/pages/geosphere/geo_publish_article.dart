@@ -6,7 +6,6 @@ import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
@@ -19,6 +18,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_compress/video_compress.dart';
 
 import 'geo_entities.dart';
 
@@ -644,13 +644,10 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var videoCompress = FlutterVideoCompress();
-                              var info = await videoCompress.compressVideo(
+                              var info= await VideoCompress.compressVideo(
                                 image.path,
-                                quality: VideoQuality.MediumQuality,
-                                // 默认(VideoQuality.DefaultQuality)
-                                deleteOrigin: true, // 默认(false)
-                                // frameRate: 10,
+                                quality: VideoQuality.DefaultQuality,
+                                deleteOrigin: true, // It's false by default
                               );
                               if (mounted) {
                                 setState(() {

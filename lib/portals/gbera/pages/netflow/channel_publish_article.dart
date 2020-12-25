@@ -7,7 +7,6 @@ import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,6 +19,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 
 import 'article_entities.dart';
@@ -643,13 +643,10 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var videoCompress = FlutterVideoCompress();
-                              var info = await videoCompress.compressVideo(
+                              var info= await VideoCompress.compressVideo(
                                 image.path,
-                                quality: VideoQuality.MediumQuality,
-                                // 默认(VideoQuality.DefaultQuality)
-                                deleteOrigin: true, // 默认(false)
-                                // frameRate: 10,
+                                quality: VideoQuality.DefaultQuality,
+                                deleteOrigin: true, // It's false by default
                               );
                               if (mounted) {
                                 setState(() {

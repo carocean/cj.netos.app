@@ -101,7 +101,7 @@ dependencies:
   #且将minSdkVersion从19提升至21，即安卓5.0以上
 #  card_scanner: ^0.1.0+1
   #视频压缩
-  flutter_video_compress: ^0.3.7+8
+  video_compress: ^2.1.1
   package_info: ^0.4.3
   open_file:
     path: open_file

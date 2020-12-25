@@ -515,13 +515,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.2"
-  flutter_video_compress:
-    dependency: "direct main"
-    description:
-      name: flutter_video_compress
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.3.7+8"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -1288,6 +1281,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.0-nullsafety.3"
+  video_compress:
+    dependency: "direct main"
+    description:
+      name: video_compress
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.1.1"
   video_player:
     dependency: "direct main"
     description:

@@ -9,7 +9,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
-import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,6 +25,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_compress/video_compress.dart';
 
 import 'chatroom_handler.dart';
 
@@ -738,13 +738,10 @@ class _PlusPannelState extends State<_PlusPannel> {
             message: 'beginVideoCompressing',
           ),
         );
-        var videoCompress = FlutterVideoCompress();
-        var info = await videoCompress.compressVideo(
+        var info= await VideoCompress.compressVideo(
           image.path,
           quality: VideoQuality.MediumQuality,
-          // 默认(VideoQuality.DefaultQuality)
-          deleteOrigin: true, // 默认(false)
-          // frameRate: 10,
+          deleteOrigin: true, // It's false by default
         );
         widget.pluginTap(
           _ChatCommand(
