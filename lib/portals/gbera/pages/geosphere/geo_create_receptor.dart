@@ -336,7 +336,7 @@ class _LocationSettingWidgetState extends State<_LocationSettingWidget> {
 
   _loadLocation() async {
     var location =
-        await AmapLocation.instance.fetchLocation(mode: LocationAccuracy.High);
+        await geoLocation.location;
     var address = location.address;
     if (StringUtil.isEmpty(address)) {
       return;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'dart:math' as math;
@@ -45,9 +46,7 @@ class _AbsorberSimpleApplyPageState extends State<AbsorberSimpleApplyPage> {
   }
 
   Future<void> _load() async {
-    var location = await AmapLocation.instance.fetchLocation(
-      needAddress: true,
-    );
+    var location = await geoLocation.location;
     _districtCode = location.adCode;
     IWyBankRemote wyBankRemote =
         widget.context.site.getService('/remote/wybank');
