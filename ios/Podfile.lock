@@ -59,9 +59,6 @@ PODS:
     - Flutter
   - flutter_user_agent (1.2.2):
     - Flutter
-  - flutter_video_compress (0.3.0):
-    - Flutter
-    - Regift
   - fluwx (0.0.1):
     - Flutter
     - WechatOpenSDK (= 1.8.7.1)
@@ -100,7 +97,6 @@ PODS:
   - qr_code_scanner (0.2.0):
     - Flutter
     - MTBBarcodeScanner
-  - Regift (1.6.0)
   - share (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
@@ -112,6 +108,8 @@ PODS:
     - AlipaySDK-iOS (~> 15.7.9)
     - Flutter
   - url_launcher (0.0.1):
+    - Flutter
+  - video_compress (0.3.0):
     - Flutter
   - video_player (0.0.1):
     - Flutter
@@ -139,7 +137,6 @@ DEPENDENCIES:
   - flutter_plugin_record (from `.symlinks/plugins/flutter_plugin_record/ios`)
   - flutter_sms (from `.symlinks/plugins/flutter_sms/ios`)
   - flutter_user_agent (from `.symlinks/plugins/flutter_user_agent/ios`)
-  - flutter_video_compress (from `.symlinks/plugins/flutter_video_compress/ios`)
   - fluwx (from `.symlinks/plugins/fluwx/ios`)
   - foundation_fluttify (from `.symlinks/plugins/foundation_fluttify/ios`)
   - get_ip (from `.symlinks/plugins/get_ip/ios`)
@@ -160,6 +157,7 @@ DEPENDENCIES:
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - tobias (from `.symlinks/plugins/tobias/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
+  - video_compress (from `.symlinks/plugins/video_compress/ios`)
   - video_player (from `.symlinks/plugins/video_player/ios`)
   - webview_flutter (from `.symlinks/plugins/webview_flutter/ios`)
 
@@ -173,7 +171,6 @@ SPEC REPOS:
     - FMDB
     - libPhoneNumber-iOS
     - MTBBarcodeScanner
-    - Regift
     - WechatOpenSDK
 
 EXTERNAL SOURCES:
@@ -215,8 +212,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_sms/ios"
   flutter_user_agent:
     :path: ".symlinks/plugins/flutter_user_agent/ios"
-  flutter_video_compress:
-    :path: ".symlinks/plugins/flutter_video_compress/ios"
   fluwx:
     :path: ".symlinks/plugins/fluwx/ios"
   foundation_fluttify:
@@ -257,6 +252,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/tobias/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
+  video_compress:
+    :path: ".symlinks/plugins/video_compress/ios"
   video_player:
     :path: ".symlinks/plugins/video_player/ios"
   webview_flutter:
@@ -287,7 +284,6 @@ SPEC CHECKSUMS:
   flutter_plugin_record: 562ded56f3a109d769e72c3ef52ef20d835493d4
   flutter_sms: 91ce41530f55c85d6524d82307a5d555844c086a
   flutter_user_agent: 27c45d034dc31b80948d29998cea52cd3a7bf936
-  flutter_video_compress: 641fd3e03d970d79176a59d91d7a4392923710b0
   fluwx: 07a55ed66bf3a4961e836a2a411b02dcada32902
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   foundation_fluttify: 0c45145e3fad1fb99188e4979daed5b24cd9b278
@@ -306,12 +302,12 @@ SPEC CHECKSUMS:
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   permission_handler: 8278954f2382902f63f00dd8828769c0bd6d511b
   qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e
-  Regift: a7c1a7e377c60bfc34301d6f532e099e5ae109a8
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   tobias: 6872e2198dc30e17c10513b9ee114e28d099bc70
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
+  video_compress: fce97e4fb1dfd88175aa07d2ffc8a2f297f87fbe
   video_player: 9cc823b1d9da7e8427ee591e8438bfbcde500e6e
   webview_flutter: d2b4d6c66968ad042ad94cbb791f5b72b4678a96
   WechatOpenSDK: 6a4d1436c15b3b5fe2a0bd383f3046010186da44

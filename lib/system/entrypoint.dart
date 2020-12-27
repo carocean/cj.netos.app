@@ -111,7 +111,7 @@ class _EntryPointIndex extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
               image: AssetImage('lib/portals/gbera/images/entrypoint_bk.jpg'),
             ),
           ),

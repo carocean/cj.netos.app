@@ -39,14 +39,28 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>iosamap</string>
+		<string>amapuri</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsForMedia</key>
+		<true/>
+	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-    <string>My description about why I need this capability</string>
+	<string>My description about why I need this capability</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string></string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>$(PRODUCT_NAME) use your calendar.</string>
 	<key>NSCameraUsageDescription</key>
-	<string></string>
+	<string>$(PRODUCT_NAME) use your camera.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Your description of why you are requesting permissions.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -57,26 +71,16 @@
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>需要定位权限</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>iosamap</string>
-		<string>amapuri</string>
-	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string></string>
-	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-        <key>NSAllowsArbitraryLoadsForMedia</key>
-        <true/>
-    </dict>
-    <key>NSCalendarsUsageDescription</key>
-        <string>$(PRODUCT_NAME) use your calendar.</string>
+	<string>$(PRODUCT_NAME) use your microphone.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>$(PRODUCT_NAME) use your motion.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Take pretty screenshots and save it to the PhotoLibrary.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string></string>
+	<string>$(PRODUCT_NAME) use your photo.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>$(PRODUCT_NAME) use your SpeechRecognition.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
