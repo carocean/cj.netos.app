@@ -91,7 +91,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
 
   Future<void> _loadMoney() async {
     //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
-    var result = await AmapLocation.instance.fetchLocation(mode: LocationAccuracy.High);
+    var result = await AmapLocation.instance.fetchLocation();
     _districtCode = result.adCode;
     if (StringUtil.isEmpty(_districtCode)) {
       return;
