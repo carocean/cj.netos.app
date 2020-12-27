@@ -135,7 +135,10 @@
         <service
                 android:name="com.vivo.push.sdk.service.CommandClientService"
                 android:exported="true"/>
-
+        <!--Vivo Push SDK的版本信息-->
+        <meta-data
+            android:name="sdk_version_vivo"
+            android:value="480"/>
         <!--Vivo Push开放平台中应用的appid 和api key-->
         <meta-data
                 android:name="com.vivo.push.api_key"

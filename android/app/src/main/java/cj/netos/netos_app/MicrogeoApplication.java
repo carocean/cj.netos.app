@@ -105,7 +105,7 @@ public class MicrogeoApplication extends FlutterApplication {
                 }
             }
         });
-        String regId = PushClient.getInstance(this).getRegId();
+        String regId = PushClient.getInstance(this).getRegId() ;
 //        Log.d(_TAG, "---- regID = " + regId);
         if (regId != null && !"".equals(regId)) {
             __currentPusherDriver.put("driver", "vivo");

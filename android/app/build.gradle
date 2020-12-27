@@ -97,13 +97,14 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation 'com.google.code.gson:gson:2.8.6'
-    //华为
-    implementation 'com.huawei.hms:push:5.0.2.300'
+
     // 添加aar依赖到工程
     implementation fileTree(include: ['*.jar'],   dir: 'libs')
+    //华为
+    implementation 'com.huawei.hms:push:5.0.2.300'
 //    compile fileTree(dir: 'libs', include: ['*.jar'])
-    //添加push sdk aar依赖
-    implementation files("libs/vivo_pushsdk-v2.9.0.0.aar")
+    //vivo添加push sdk aar依赖
+    implementation files("libs/vivo_pushsdk_v3.0.0.0_480.aar")
     //oppo
     implementation files("libs/com.heytap.msp.aar")
     //小米

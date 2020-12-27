@@ -117,9 +117,9 @@
 
 #vivo
 -dontwarn com.vivo.push.**
--keep class com.vivo.push.**{*;   }
+-keep class com.vivo.push.**{*; }
 -keep class com.vivo.vms.**{*; }
--keep class xxx.xxx.xxx.PushMessageReceiverImpl{*;}
+-keep class cj.netos.netos_app.VivoPushMessageReceiverImpl{*;}
 
 #oppo
 -keep public class * extends android.app.Service

@@ -40,4 +40,6 @@
         android:protectionLevel="signature" /> <!--这里com.xiaomi.mipushdemo改成app的包名-->
     <uses-permission android:name="cj.netos.netos_app.permission.MIPUSH_RECEIVE" /><!--这里com.xiaomi.mipushdemo改成app的包名-->
     <!--小米 end-->
+    <!--vivo角标-->
+    <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" />
 </manifest>

@@ -89,7 +89,7 @@ class _EntryPointState extends State<EntryPoint> {
         return Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
               image: AssetImage('lib/portals/gbera/images/entrypoint_bk.jpg'),
             ),
           ),
