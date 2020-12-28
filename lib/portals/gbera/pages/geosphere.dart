@@ -2039,33 +2039,28 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
-                          Text.rich(
+                          Expanded(child: Text.rich(
                             TextSpan(
                               text: widget.receptor.title,
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
                               ),
-                            ),
-                          ),
-                          widget.receptor.offset == 0
-                              ? Container(
-                                  width: 0,
-                                  height: 0,
-                                )
-                              : Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 5,
-                                  ),
-                                  child: Text(
-                                    '${getFriendlyDistance(widget.receptor.offset)}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[500],
-                                    ),
+                              children: [
+                                widget.receptor.offset == 0
+                                    ? TextSpan(text: '')
+                                    : TextSpan(
+                                  text:'  ${getFriendlyDistance(widget.receptor.offset)}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[500],
                                   ),
                                 ),
+                              ],
+                            ),
+                          ),),
+
                         ],
                       ),
                       !_stateBar.isShow

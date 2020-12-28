@@ -1,6 +1,8 @@
 {
 	"agcgw":{
+		"websocketbackurl":"connect-ws-drcn.hispace.dbankcloud.cn",
 		"backurl":"connect-drcn.dbankcloud.cn",
+		"websocketurl":"connect-ws-drcn.hispace.dbankcloud.com",
 		"url":"connect-drcn.hispace.hicloud.com"
 	},
 	"client":{
