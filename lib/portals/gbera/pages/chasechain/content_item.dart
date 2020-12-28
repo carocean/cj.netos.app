@@ -361,7 +361,8 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                           Text(
                             '${_provider?.nickName ?? ''}',
                             style: TextStyle(
-                              color: Colors.grey[800],
+                              color: Colors.blueGrey,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -590,7 +591,8 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                           Text(
                             '${_contentBox?.pointer?.title ?? ''}',
                             style: TextStyle(
-                              color: Colors.grey[800],
+                              color: Colors.blueGrey,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
