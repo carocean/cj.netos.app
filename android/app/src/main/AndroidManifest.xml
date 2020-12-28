@@ -5,6 +5,12 @@
          In most cases you can leave this as-is, but you if you want to provide
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
+    <!--小米-->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <permission android:name="cj.netos.netos_app.permission.MIPUSH_RECEIVE"
+        android:protectionLevel="signature" /> <!--这里com.xiaomi.mipushdemo改成app的包名-->
+    <uses-permission android:name="cj.netos.netos_app.permission.MIPUSH_RECEIVE" /><!--这里com.xiaomi.mipushdemo改成app的包名-->
+    <!--小米 end-->
     <application
             android:name=".MicrogeoApplication"
             android:label="地微"
