@@ -190,23 +190,17 @@ class DefaultAppSurface implements IAppSurface, IServiceProvider {
   }
 
   Future<void> _fillDevice(AppKeyPair appKeyPair) async {
-    var pushDriver = await BuddyPush.currentPushDriver;
-    var device;
-    if (pushDriver != null && !StringUtil.isEmpty(pushDriver['regId'])) {
-      device = '${pushDriver['driver']}://${pushDriver['regId']}';
-    } else {
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
-        var android = await deviceInfo.androidInfo;
-        device =
-            '${android.device}${android.type}${android.model}${android.product}';
-      } else if (Platform.isIOS) {
-        var ios = await deviceInfo.iosInfo;
-        //ios.identifierForVendor每次重新安装应用都会变
-        device = '${ios.name}${ios.model}${ios.utsname.machine}';
-      }
-      device = MD5Util.MD5(device);
+    var device = '';
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      var android = await deviceInfo.androidInfo;
+      device =
+      '${android.device}${android.type}${android.model}${android.product}';
+    } else if (Platform.isIOS) {
+      var ios = await deviceInfo.iosInfo;
+      device = '${ios.name}${ios.model}${ios.identifierForVendor}';
     }
+    device = MD5Util.MD5(device);
     appKeyPair.device = device;
   }
 

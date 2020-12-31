@@ -38,13 +38,17 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
     });
     IPlatformLocalPrincipalManager _localPrincipalManager =
         widget.context.site.getService('/local/principals');
+    bool isOnline = false;
     BuddyPush.supportsDriver((driver, isSupports) async {
       if (!isSupports) {
+        print('--------online 1');
+        isOnline = true;
         await _localPrincipalManager.online();
       }
     });
     BuddyPush.onEvent(
       onError: (driver, error) async {
+        isOnline = true;
         await _localPrincipalManager.online();
       },
       onToken: (driver, regId) async {
@@ -53,9 +57,19 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
           var device = '$driver://$regId';
           await _localPrincipalManager.updateDevice(device);
         }
+        print('--------online 2');
+        isOnline = true;
         await _localPrincipalManager.online();
       },
     );
+    Future.delayed(Duration(seconds: 3), () async {
+      if (isOnline) {
+        return;
+      }
+      print('--------online 3');
+      await _localPrincipalManager.online();
+      isOnline = true;
+    });
     super.initState();
     _pageController = PageController(initialPage: this.selectedIndex);
     wallpaper = widget.context.sharedPreferences().getString('@.wallpaper',

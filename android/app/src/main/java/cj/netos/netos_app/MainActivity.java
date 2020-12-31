@@ -10,10 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cj.netos.accept_share.AcceptSharePlugin;
+import cj.netos.buddy_push.BuddyPushPlugin;
 import io.flutter.embedding.android.FlutterActivity;
 
 public class MainActivity extends FlutterActivity {
     Intent currentIntent;
+
 
     @Override
     public void onFlutterUiDisplayed() {
@@ -32,11 +34,22 @@ public class MainActivity extends FlutterActivity {
             AcceptSharePlugin sharePlugin = (AcceptSharePlugin) getFlutterEngine().getPlugins().get(AcceptSharePlugin.class);
             sharePlugin.sendShareEvent(action, map);
         }
+
+        BuddyPushPlugin buddyPushPlugin = getBuddyPushPlugin();
+        MicrogeoApplication application= (MicrogeoApplication) getApplication();
+        buddyPushPlugin.onFlutterUiDisplayed(application.waitEvent);
     }
+
 
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
         currentIntent = intent;
     }
+
+    public BuddyPushPlugin getBuddyPushPlugin() {
+        BuddyPushPlugin buddyPushPlugin = (BuddyPushPlugin) getFlutterEngine().getPlugins().get(BuddyPushPlugin.class);
+        return buddyPushPlugin;
+    }
+
 }

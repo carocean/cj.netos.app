@@ -5,6 +5,9 @@ import android.content.Context;
 import com.vivo.push.model.UPSNotificationMessage;
 import com.vivo.push.sdk.OpenClientPushMessageReceiver;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class VivoPushMessageReceiverImpl extends OpenClientPushMessageReceiver {
 
 
@@ -18,7 +21,10 @@ public class VivoPushMessageReceiverImpl extends OpenClientPushMessageReceiver {
     @Override
     public void onReceiveRegId(Context context, String regId) {
         MicrogeoApplication application = (MicrogeoApplication) context;
-        application.setCurrentPusherDriver("vivo", regId);
+        Map<String, String> map = new HashMap<>();
+        map.put("driver","vivo");
+        map.put("regId",regId);
+        application.setCurrentPusherDriver(map);
         android.util.Log.d("---------regId", regId);
     }
 

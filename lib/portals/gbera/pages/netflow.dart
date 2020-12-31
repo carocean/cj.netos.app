@@ -713,11 +713,41 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   StreamSubscription _streamSubscription;
   Lock _lock;
   StreamSubscription _refresh_streamSubscription;
-
+  StreamSubscription _onlineEventStreamSubscription;
   @override
   void initState() {
     _lock = Lock();
     _listenMeidaFileDownload();
+
+    if(deviceStatus.state==DeviceNetState.online){
+      _listen();
+    }else{
+      _onlineEventStreamSubscription=onlineEvent.stream.listen((event) {
+        _listen();
+      });
+    }
+
+    _refresh_streamSubscription =
+        netflowRefresherController.stream.listen((event) {
+      if (mounted) {
+        _refresh();
+      }
+    });
+    _loadMessages();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _refresh_streamSubscription?.cancel();
+    _unlistenMeidaFileDownload();
+    _streamSubscription?.cancel();
+    widget.context.unlistenMessage(matchPath: '/netflow/channel');
+    _messages.clear();
+    _onlineEventStreamSubscription?.cancel();
+    super.dispose();
+  }
+  void _listen(){
     if (!widget.context.isListeningMessage(matchPath: '/netflow/channel')) {
       widget.context.listenMessage((frame) async {
         switch (frame.command) {
@@ -776,26 +806,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
         }
       }, matchPath: '/netflow/channel');
     }
-    _refresh_streamSubscription =
-        netflowRefresherController.stream.listen((event) {
-      if (mounted) {
-        _refresh();
-      }
-    });
-    _loadMessages();
-    super.initState();
   }
-
-  @override
-  void dispose() {
-    _refresh_streamSubscription?.cancel();
-    _unlistenMeidaFileDownload();
-    _streamSubscription?.cancel();
-    widget.context.unlistenMessage(matchPath: '/netflow/channel');
-    _messages.clear();
-    super.dispose();
-  }
-
   Future<void> _arrivedUnlikeDocumentCommand(Frame frame) async {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {

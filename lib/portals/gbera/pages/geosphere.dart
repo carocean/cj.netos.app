@@ -78,7 +78,7 @@ class _GeosphereState extends State<Geosphere>
   int _limit = 15, _offset = 0;
   Lock _lock;
   bool _isSyning = false;
-
+  StreamSubscription _onlineEventStreamSubscription;
   @override
   bool get wantKeepAlive {
     return true;
@@ -96,9 +96,53 @@ class _GeosphereState extends State<Geosphere>
     });
 
     _listenMeidaFileDownload();
+    if(deviceStatus.state==DeviceNetState.online){
+      _listen();
+    }else{
+      _onlineEventStreamSubscription=onlineEvent.stream.listen((event) {
+        _listen();
+      });
+    }
+    syncTaskMananger.tasks['geoshpere'] = SyncTask(
+      doTask: _sync_task,
+    )..run(
+        syncName: 'geoshpere',
+        context: widget.context,
+        checkRemote: _sync_check,
+//      forceSync: true,
+      );
+    geosphereEvents.listeners.add((action, args) {
+      if (!mounted) {
+        return;
+      }
+      switch (action) {
+        case 'addReceptor':
+          _receptorStreamController.add(<GeoReceptor>[args]);
+          break;
+        case 'removeReceptor':
+          _receptorStreamController.add({'action': action, 'args': args});
+          break;
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
+    widget.context.unlistenMessage(matchPath: '/geosphere/receptor');
+    _refreshController.dispose();
+    // geoLocation.stop();
+    _receptorStreamController.close();
+    geosphereEvents.listeners.clear();
+    _onlineEventStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listen() {
     if (!widget.context.isListeningMessage(matchPath: '/geosphere/receptor')) {
       widget.context.listenMessage(
-        (frame) async {
+            (frame) async {
           switch (frame.command) {
             case 'pushDocument':
               await _lock.synchronized(() async {
@@ -153,41 +197,7 @@ class _GeosphereState extends State<Geosphere>
         matchPath: '/geosphere/receptor',
       );
     }
-    syncTaskMananger.tasks['geoshpere'] = SyncTask(
-      doTask: _sync_task,
-    )..run(
-        syncName: 'geoshpere',
-        context: widget.context,
-        checkRemote: _sync_check,
-//      forceSync: true,
-      );
-    geosphereEvents.listeners.add((action, args) {
-      if (!mounted) {
-        return;
-      }
-      switch (action) {
-        case 'addReceptor':
-          _receptorStreamController.add(<GeoReceptor>[args]);
-          break;
-        case 'removeReceptor':
-          _receptorStreamController.add({'action': action, 'args': args});
-          break;
-      }
-    });
-    super.initState();
   }
-
-  @override
-  void dispose() {
-    widget.context.ports.portTask.unlistener('/geosphere/doc/file.download');
-    widget.context.unlistenMessage(matchPath: '/geosphere/receptor');
-    _refreshController.dispose();
-    // geoLocation.stop();
-    _receptorStreamController.close();
-    geosphereEvents.listeners.clear();
-    super.dispose();
-  }
-
   Future<SyncArgs> _sync_check(PageContext context) async {
     var portsurl =
         context.site.getService('@.prop.ports.document.geo.receptor');
@@ -954,6 +964,8 @@ class _GeosphereState extends State<Geosphere>
       },
     );
   }
+
+
 }
 
 ///当前行政区划

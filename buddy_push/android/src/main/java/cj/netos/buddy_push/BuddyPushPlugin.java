@@ -2,6 +2,7 @@ package cj.netos.buddy_push;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -37,17 +38,24 @@ public class BuddyPushPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.method.equals("currentPushDriver")) {//注意：onMethodCall方法必须以result返回，否则会导致flutter调用方堵塞
-            try {
-                Field field = context.getClass().getDeclaredField("__currentPusherDriver");//注意：必须避免对MicrogeoApplication类中的该属性名__currentPusherDriver的混淆
-                field.setAccessible(true);
-                Map<String, String> pushDriver = (Map<String, String>) field.get(context);
-                result.success(pushDriver);
-            } catch (NoSuchFieldException e) {
-                result.error("404",e.getMessage(),e);
-            } catch (IllegalAccessException e) {
-                result.error("500",e.getMessage(),e);
+        if (call.method.equals("supportsDriver")) {//注意：onMethodCall方法必须以result返回，否则会导致flutter调用方堵塞
+            Map<String, Object> driverMap = new HashMap<>();
+            String driver = null;
+            if (isBrandHuawei()) {
+                driver = "huawei";
             }
+            if (isBrandOppo()) {
+                driver = "oppo";
+            }
+            if (isBrandVivo()) {
+                driver = "vivo";
+            }
+            if (isBrandXiaomi()) {
+                driver = "xiaomi";
+            }
+            driverMap.put("isSupports", (driver != null));
+            driverMap.put("driver", driver == null ? "unknown" : driver);
+            result.success(driverMap);
         } else {
             result.notImplemented();
         }
@@ -57,4 +65,35 @@ public class BuddyPushPlugin implements FlutterPlugin, MethodCallHandler {
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
     }
+
+
+    public void onFlutterUiDisplayed(Map<String, String> waitEvent) {
+        if (waitEvent == null) {
+            waitEvent = new HashMap<>();
+            waitEvent.put("driver","huawei");
+            waitEvent.put("error","获取regId失败");
+        }
+        if (waitEvent.containsKey("regId")){
+            channel.invokeMethod("onToken", waitEvent);
+        }else{
+            channel.invokeMethod("onError", waitEvent);
+        }
+    }
+
+    public static boolean isBrandHuawei() {
+        return "huawei".equalsIgnoreCase(Build.BRAND) || "huawei".equalsIgnoreCase(Build.MANUFACTURER);
+    }
+
+    public static boolean isBrandVivo() {
+        return "vivo".equalsIgnoreCase(Build.BRAND) || "vivo".equalsIgnoreCase(Build.MANUFACTURER);
+    }
+
+    public static boolean isBrandXiaomi() {
+        return "Redmi".equalsIgnoreCase(Build.BRAND) || "Xiaomi".equalsIgnoreCase(Build.MANUFACTURER);
+    }
+
+    public static boolean isBrandOppo() {
+        return "OPPO".equalsIgnoreCase(Build.BRAND) || "OPPO".equalsIgnoreCase(Build.MANUFACTURER);
+    }
+
 }

@@ -42,10 +42,7 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
-#注意：必须避免对MicrogeoApplication类中的该属性名__currentPusherDriver的混淆,因为插件buddy_push中通过反射引用
--keepclassmembers class cj.netos.netos_app.MicrogeoApplication{
-    ** __currentPusherDriver;
-}
+
 ################pickerview###############
 #https://github.com/zaaach/CityPicker
 -keep class com.zaaach.citypicker.**{

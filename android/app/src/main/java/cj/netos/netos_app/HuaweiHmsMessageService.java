@@ -4,12 +4,20 @@ import android.net.Uri;
 
 import com.huawei.hms.push.HmsMessageService;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class HuaweiHmsMessageService extends HmsMessageService {
-    int i=0;
+
     @Override
     public void onNewToken(String s) {
         super.onNewToken(s);
-        android.util.Log.d("-----test",s);
+        android.util.Log.d("-----test", s);
+        MicrogeoApplication application= (MicrogeoApplication) getApplication();
+        Map<String, String> map = new HashMap<>();
+        map.put("driver","huawei");
+        map.put("regId",s);
+        application.setCurrentPusherDriver(map);
     }
 
     /***
@@ -20,7 +28,7 @@ public class HuaweiHmsMessageService extends HmsMessageService {
     public void onDestroy() {
         super.onDestroy();
 
-        android.util.Log.d("-----test","onDestroy");
+        android.util.Log.d("-----test", "onDestroy");
         android.os.Bundle extra = new android.os.Bundle();
         extra.putString("package", "cj.netos.netos_app");
         extra.putString("class", "cj.netos.netos_app.MainActivity");

@@ -2,23 +2,31 @@ package cj.netos.netos_app;
 
 import com.heytap.msp.push.callback.ICallBackResultService;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class OppoCallBackResultService implements ICallBackResultService {
-    private final Map<String, String> currentPusherDriver;
+import cj.netos.buddy_push.BuddyPushPlugin;
 
-    public OppoCallBackResultService(Map<String, String> currentPusherDriver) {
-        this.currentPusherDriver=currentPusherDriver;
+public class OppoCallBackResultService implements ICallBackResultService {
+   MicrogeoApplication application;
+    public OppoCallBackResultService(MicrogeoApplication application) {
+        this.application=application;
     }
 
     @Override
     public void onRegister(int code, String s) {
         if (code == 0) {
             android.util.Log.d("注册成功", "registerId:" + s);
-            currentPusherDriver.put("driver", "oppo");
-            currentPusherDriver.put("regId", s);
+            Map<String, String> map = new HashMap<>();
+            map.put("driver","oppo");
+            map.put("regId",s);
+            application.setCurrentPusherDriver(map);
         } else {
             android.util.Log.d("注册失败", "code=" + code + ",msg=" + s);
+            Map<String, String> map = new HashMap<>();
+            map.put("driver","oppo");
+            map.put("error","code=" + code + ",msg=" + s);
+            application.setCurrentPusherDriver(map);
         }
 
     }
@@ -26,8 +34,6 @@ public class OppoCallBackResultService implements ICallBackResultService {
     @Override
     public void onUnRegister(int code) {
         if (code == 0) {
-            currentPusherDriver.put("driver", "oppo");
-            currentPusherDriver.put("regId", "");
             android.util.Log.d("注销成功", "code=" + code);
         } else {
             android.util.Log.d("注销失败", "code=" + code);

@@ -51,6 +51,11 @@ func getFlutterError(_ error: Error) -> FlutterError {
                         error: Error) {
           channel.invokeMethod("onError", arguments: ["driver":"ios","error":error.localizedDescription])
         }
+    public func applicationDidBecomeActive(_ application: UIApplication) {
+            resumingFromBackground = false
+            application.applicationIconBadgeNumber = 1
+            application.applicationIconBadgeNumber = 0
+        }
    func registerForPushNotifications() {
        UNUserNotificationCenter.current()
          .requestAuthorization(options: [.alert, .sound, .badge]) {

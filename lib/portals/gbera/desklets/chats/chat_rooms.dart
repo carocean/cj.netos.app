@@ -46,14 +46,28 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
   List<ChatRoomModel> _models = [];
   ProgressTaskBar taskbarProgress;
   Lock _lock;
+  StreamSubscription _onlineEventStreamSubscription;
 
   @override
   void initState() {
     _lock = Lock();
     taskbarProgress = widget.context.site.getService('@.prop.taskbar.progress');
-    if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
-      widget.context.listenMessage(_onmessage, matchPath: '/chat/room/message');
+
+    if (deviceStatus.state == DeviceNetState.online) {
+      if (!widget.context.isListeningMessage(matchPath: '/chat/room/message')) {
+        widget.context
+            .listenMessage(_onmessage, matchPath: '/chat/room/message');
+      }
+    } else {
+      _onlineEventStreamSubscription = onlineEvent.stream.listen((event) {
+        if (!widget.context
+            .isListeningMessage(matchPath: '/chat/room/message')) {
+          widget.context
+              .listenMessage(_onmessage, matchPath: '/chat/room/message');
+        }
+      });
     }
+
     _load().then((v) {
       if (mounted) {
         _isloaded = true;
@@ -81,6 +95,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     taskbarProgress = null;
     // _notifyStreamController.close();
     _models.clear();
+    _onlineEventStreamSubscription?.cancel();
     // widget.context.unlistenMessage(matchPath: '/chat/room/message');
     super.dispose();
   }
@@ -871,7 +886,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     if (!_isloaded) {
       return Container(
         alignment: Alignment.center,
-        height:Adapt.screenH()- 250,
+        height: Adapt.screenH() - 250,
         child: Container(
           height: 50,
           width: 150,
@@ -911,7 +926,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                         return;
                       }
                       messageSender.open(widget.context, members: result,
-                          callback: (isNewRoom,model) async {
+                          callback: (isNewRoom, model) async {
                         _models.clear();
                         _loadChatrooms().then((v) {
                           if (mounted) {
@@ -998,7 +1013,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                     return;
                   }
                   messageSender.open(widget.context, members: result,
-                      callback: (isNewRoom,model) async {
+                      callback: (isNewRoom, model) async {
                     _models.clear();
                     _loadChatrooms().then((v) {
                       if (mounted) {
@@ -1139,7 +1154,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       case 'share':
         var cnt = message?.content;
         var map = jsonDecode(cnt);
-        _stateBar.tips = '$whois:${map['title']??''}';
+        _stateBar.tips = '$whois:${map['title'] ?? ''}';
         break;
       case 'audio':
         var cnt = message?.content;

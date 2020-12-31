@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
@@ -15,11 +16,12 @@ import 'package:open_file/open_file.dart';
 import 'system/local/dao/database.dart';
 import 'system/system.dart';
 
-final _deviceStatus = _DeviceStatus(
-  state: _State.closed,
+final deviceStatus = DeviceStatus(
+  state: DeviceNetState.closed,
   unreadCount: 0,
   reconnectTrytimes: 0,
 );
+final onlineEvent=StreamController.broadcast();
 
 class ProgressTaskBar {
   Function(double percent) _target;
@@ -198,41 +200,43 @@ void main() => platformRun(
           localPrincipal: DefaultLocalPrincipal(),
           messageNetwork: 'interactive-center',
           deviceOnmessageCount: (count) {
-            _deviceStatus.unreadCount = count;
-            _deviceStatus.state = _State.online;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.unreadCount = count;
+            deviceStatus.state = DeviceNetState.online;
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
           deviceOnopen: (connection) {
-            _deviceStatus.state = _State.opened;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.state = DeviceNetState.opened;
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
           deviceOnclose: () {
-            _deviceStatus.state = _State.closed;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.state = DeviceNetState.closed;
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
           deviceOnline: () {
-            _deviceStatus.state = _State.online;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.state = DeviceNetState.online;
+            onlineEvent.add("online");
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
           deviceOffline: () {
-            _deviceStatus.state = _State.offline;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.state = DeviceNetState.offline;
+            onlineEvent.add("offline");
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
           deviceOnreconnect: (trytimes) {
-            _deviceStatus.state = _State.reconnecting;
-            _deviceStatus.reconnectTrytimes = trytimes;
-            if (_deviceStatus.refresh != null) {
-              _deviceStatus.refresh();
+            deviceStatus.state = DeviceNetState.reconnecting;
+            deviceStatus.reconnectTrytimes = trytimes;
+            if (deviceStatus.refresh != null) {
+              deviceStatus.refresh();
             }
           },
 
@@ -527,7 +531,7 @@ class _StatusBarState extends State<StatusBar> {
   @override
   void initState() {
     super.initState();
-    _deviceStatus.refresh = () {
+    deviceStatus.refresh = () {
       if (mounted) {
         setState(() {});
       }
@@ -536,29 +540,29 @@ class _StatusBarState extends State<StatusBar> {
 
   @override
   void dispose() {
-    _deviceStatus.refresh = null;
+    deviceStatus.refresh = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     var stateText = '';
-    switch (_deviceStatus.state) {
-      case _State.offline:
-      case _State.opened:
+    switch (deviceStatus.state) {
+      case DeviceNetState.offline:
+      case DeviceNetState.opened:
         stateText = '离线';
         break;
-      case _State.online:
+      case DeviceNetState.online:
         stateText = '在线';
         break;
-      case _State.closed:
+      case DeviceNetState.closed:
         stateText = '未连接';
         break;
-      case _State.reconnecting:
-        stateText = '重试${_deviceStatus.reconnectTrytimes}次';
+      case DeviceNetState.reconnecting:
+        stateText = '重试${deviceStatus.reconnectTrytimes}次';
         break;
     }
-    if (_deviceStatus.state == _State.online && _deviceStatus.unreadCount < 1) {
+    if (deviceStatus.state == DeviceNetState.online && deviceStatus.unreadCount < 1) {
       return SizedBox(
         width: 0,
         height: 0,
@@ -592,7 +596,7 @@ class _StatusBarState extends State<StatusBar> {
                     width: 1,
                   ),
                   Text(
-                    '${_deviceStatus.unreadCount}',
+                    '${deviceStatus.unreadCount}',
                     style: TextStyle(
                       fontSize: 7,
                       color: Colors.black54,
@@ -617,7 +621,7 @@ class _StatusBarState extends State<StatusBar> {
   }
 }
 
-enum _State {
+enum DeviceNetState {
   opened,
   online,
   offline,
@@ -625,14 +629,14 @@ enum _State {
   reconnecting,
 }
 
-class _DeviceStatus {
-  _State state;
+class DeviceStatus {
+  DeviceNetState state;
   int unreadCount = 0;
 
   int reconnectTrytimes;
   Function() refresh;
 
-  _DeviceStatus({
+  DeviceStatus({
     this.state,
     this.unreadCount,
     this.reconnectTrytimes,
