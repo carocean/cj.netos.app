@@ -1039,7 +1039,6 @@ class PasswordLoginAction {
         subject['person'],
       ));
     }
-    await manager.online();
     context.forward("/",
         clearHistoryByPagePath: '/', scene: map['portal'] ?? 'gbera');
   }

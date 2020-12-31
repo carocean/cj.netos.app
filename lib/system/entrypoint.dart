@@ -63,7 +63,7 @@ class _EntryPointState extends State<EntryPoint> {
     if (_entrymode != 3) {
       return;
     }
-    await _localPrincipalManager.online();
+
     //成功则到桌面
     WidgetsBinding.instance.addPostFrameCallback((d) {
       widget.context.forward(

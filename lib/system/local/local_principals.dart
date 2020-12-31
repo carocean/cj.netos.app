@@ -21,8 +21,10 @@ mixin IPlatformLocalPrincipalManager implements ILocalPrincipalVisitor {
   String current();
 
   Future<void> setCurrent(String person) {}
+
   ///上线
   Future<void> online();
+
   bool isEmpty();
 
   //请求远程刷新token并存储
@@ -55,6 +57,8 @@ mixin IPlatformLocalPrincipalManager implements ILocalPrincipalVisitor {
   Future<void> updateNickName(String person, String nickName) {}
 
   Future<void> updateSignature(String person, String text) {}
+
+  Future<void> updateDevice(String device) {}
 }
 
 class DefaultLocalPrincipalManager
@@ -66,6 +70,8 @@ class DefaultLocalPrincipalManager
   IServiceProvider _site;
 
   UserPrincipal get principal => _site.getService('@.principal');
+
+  IRemotePorts get remotePorts => _site.getService('@.remote.ports');
 
   @override
   builder(IServiceProvider site) async {
@@ -131,16 +137,37 @@ class DefaultLocalPrincipalManager
   }
 
   @override
+  Future<Function> updateDevice(String device) async {
+    Principal principal = get(_current);
+    if (principal == null) {
+      return null;
+    }
+    await _principalService.updateDevice(_current, device);
+    await _doUpdateDevice(principal, device);
+    principal.device = device;
+  }
+
+  @override
+  Future<void> _doUpdateDevice(Principal principal, newDevice) async {
+    var portsUrl = _site.getService('@.prop.ports.uc.auth');
+    await remotePorts.portPOST(portsUrl, 'updateDevice', data: {
+      'oldDevice': principal.device,
+      'newDevice': newDevice,
+    });
+  }
+
+  @override
   Future<void> doRefreshToken([error, susseed]) async {
     String person = _current;
     Principal principal = await _principalService.get(person);
     //如果令牌还能用半个小时就不刷新，半个小时会导致用户在使用中间令牌失效
     //非常操蛋，entrypoint会一次性调用两次doRefreshToken，而且第二次传入的是旧的refreshToken，因此第二次会验证失败，故计是一次进入该方法两个处理，都拿的是旧的。之后再找原因
 
-    bool isExpired=DateTime.now().millisecondsSinceEpoch>=(principal?.pubtime + principal?.expiretime-1800000);
+    bool isExpired = DateTime.now().millisecondsSinceEpoch >=
+        (principal?.pubtime + principal?.expiretime - 1800000);
     print('${DateTime.fromMillisecondsSinceEpoch(principal.pubtime)} '
         '${DateTime.fromMillisecondsSinceEpoch(principal?.pubtime + principal?.expiretime)} '
-        '${DateTime.fromMillisecondsSinceEpoch(principal?.pubtime + principal?.expiretime-1800000)} '
+        '${DateTime.fromMillisecondsSinceEpoch(principal?.pubtime + principal?.expiretime - 1800000)} '
         '${DateTime.now()}');
     if (!isExpired) {
       if (susseed != null) {
@@ -148,10 +175,10 @@ class DefaultLocalPrincipalManager
       }
       return;
     }
-    var appid=principal.appid;
+    var appid = principal.appid;
     Dio dio = _site.getService('@.http');
     AppKeyPair appKeyPair = _site.getService('@.appKeyPair');
-    var sceneAppKeyPair=await appKeyPair.getAppKeyPair(appid, _site);
+    var sceneAppKeyPair = await appKeyPair.getAppKeyPair(appid, _site);
 
     //强制刷新所有账户的访问令牌
     var appNonce = MD5Util.MD5(Uuid().v1()).toUpperCase();
@@ -171,13 +198,14 @@ class DefaultLocalPrincipalManager
         },
       ),
     )
-        .catchError((e) async{
+        .catchError((e) async {
       print(e);
     });
     if (response.statusCode >= 400) {
       print('刷新失败：${response.statusCode} ${response.statusMessage}');
       if (error != null) {
-        await error({'status':response.statusCode,'message':response.statusMessage});
+        await error(
+            {'status': response.statusCode, 'message': response.statusMessage});
       }
       return;
     }
@@ -186,7 +214,7 @@ class DefaultLocalPrincipalManager
     if (map['status'] as int >= 400) {
       print('刷新失败：${map['status']} ${map['message']}');
       if (error != null) {
-       await error(map);
+        await error(map);
       }
       return;
     }
@@ -199,7 +227,7 @@ class DefaultLocalPrincipalManager
     Principal one = await _principalService.get(person);
     _cached[person] = one;
     if (susseed != null) {
-     await susseed(one);
+      await susseed(one);
     }
   }
 
@@ -276,7 +304,7 @@ class DefaultLocalPrincipalManager
   }
 
   @override
-  Future<Function> online() async{
+  Future<Function> online() async {
     IDeviceManager deviceManager = _site.getService('@.device.manager');
     if (deviceManager != null) {
       await deviceManager.start(_site);

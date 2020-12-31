@@ -1227,6 +1227,13 @@ class _$IPrincipalDAO extends IPrincipalDAO {
   }
 
   @override
+  Future<void> updateDevice(String device, String person) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Principal SET device=? WHERE person=?',
+        arguments: <dynamic>[device, person]);
+  }
+
+  @override
   Future<void> add(Principal principal) async {
     await _principalInsertionAdapter.insert(
         principal, sqflite.ConflictAlgorithm.abort);

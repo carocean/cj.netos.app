@@ -688,6 +688,9 @@ abstract class IPrincipalDAO {
 
   @Query('UPDATE Principal SET signature=:signature WHERE person=:person')
   Future<void> updateSignature(String signature, String person) {}
+
+  @Query('UPDATE Principal SET device=:device WHERE person=:person')
+  Future<void> updateDevice(String device, String person) {}
 }
 
 @dao

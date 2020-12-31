@@ -57,6 +57,11 @@ class PrincipalService implements IPrincipalService, IServiceBuilder {
   }
 
   @override
+  Future<Function> updateDevice(String person, String device) async{
+    await principalDAO.updateDevice(device,person);
+  }
+
+  @override
   Future<Function> remove(String person) async {
     await principalDAO.remove(person);
   }

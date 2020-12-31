@@ -400,6 +400,8 @@ mixin IPrincipalService {
   Future<void> updateNickName(String person, nickName) {}
 
   Future<void> updateSignature(String person, String signature) {}
+
+  Future<void>  updateDevice(String current, String device) {}
 }
 mixin IGeoReceptorCache {
   Future<void> add(GeoReceptor receptor);

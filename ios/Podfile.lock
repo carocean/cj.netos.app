@@ -271,7 +271,7 @@ SPEC CHECKSUMS:
   AMapLocation-NO-IDFA: 2a3edfee336b38481b892e1ecc85df0f6b365851
   AMapSearch-NO-IDFA: 061479dd567486fb59bf3d01b1076c81d910f1b6
   audio_session: 4f3e461722055d21515cf3261b64c973c062f345
-  buddy_push: 226253d04906e8eec3e154bd54df153d34126af2
+  buddy_push: fb138984ac57f29bf75dc946b4b8607fd37d1904
   city_pickers: b0370f4c35c201723b5b7fcce10ec29b59d5bc35
   core_location_fluttify: 9466a411ea7d22c6349c7e6a767ae4623f01eb1d
   device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
