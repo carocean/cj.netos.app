@@ -161,8 +161,8 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     }
     //计算文档离我的距离
     var latLng = location.latLng;
-    var poiList =
-        await AmapSearch.instance.searchAround(latLng, radius: 500, type: amapPOIType);
+    var poiList = await AmapSearch.instance
+        .searchAround(latLng, radius: 500, type: amapPOIType);
     if (poiList.isEmpty) {
       return;
     }
@@ -903,8 +903,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
 
   Future<void> _loadLocation() async {
     _currentLatLng = widget.receptorInfo.latLng;
-    var list = await AmapSearch.instance.searchAround(_currentLatLng,
-        radius: 2000, type: amapPOIType);
+    var list = await AmapSearch.instance
+        .searchAround(_currentLatLng, radius: 2000, type: amapPOIType);
     if (list == null || list.isEmpty) {
       return;
     }
@@ -1491,21 +1491,13 @@ class __MessageCardState extends State<_MessageCard> {
   int maxLines = 4;
   _InteractiveRegionRefreshAdapter _interactiveRegionRefreshAdapter;
   GeoReceptor _upstreamReceptor;
-  Person _upstreamPerson;
-  String _titleLabel;
-  String _leading;
+  Person _creator;
   bool _isMine = false;
 
   @override
   void initState() {
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
-    _loadUpstreamReceptor().then((v) {
-      //检查该状态类是否已释放，如果挂在树上则可用
-      _setTitleLabel();
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _setTitleLabel() ;
     super.initState();
   }
 
@@ -1520,54 +1512,15 @@ class __MessageCardState extends State<_MessageCard> {
     if (oldWidget.messageWrapper.message.id !=
         widget.messageWrapper.message.id) {
       oldWidget.messageWrapper = widget.messageWrapper;
-      _loadUpstreamReceptor().then((v) {
-        //检查该状态类是否已释放，如果挂在树上则可用
-        _setTitleLabel();
-        if (mounted) {
-          setState(() {});
-        }
-      });
+      _setTitleLabel() ;
     }
     super.didUpdateWidget(oldWidget);
   }
 
   _setTitleLabel() {
-    if (_upstreamReceptor != null) {
-      _titleLabel = _upstreamReceptor.title;
-      _leading = _upstreamReceptor.leading;
-    } else {
-      _titleLabel = widget.messageWrapper.creator.nickName;
-      _leading = widget.messageWrapper.creator.avatar;
-    }
+    _creator = widget.messageWrapper.creator;
     _isMine = widget.context.principal?.person ==
         widget.messageWrapper.creator.official;
-  }
-
-  _loadUpstreamReceptor() async {
-    var upstreamReceptor = widget.messageWrapper.message.upstreamReceptor;
-    var upstreamPerson = widget.messageWrapper.message.upstreamPerson;
-    if (StringUtil.isEmpty(upstreamReceptor)) {
-      _upstreamReceptor = null;
-      _upstreamPerson = null;
-      return;
-    }
-    IGeoReceptorService receptorService =
-        widget.context.site.getService('/geosphere/receptors');
-    _upstreamReceptor = await receptorService.get(upstreamReceptor);
-    if (_upstreamReceptor == null) {
-      IGeoReceptorRemote receptorRemote =
-          widget.context.site.getService('/remote/geo/receptors');
-      _upstreamReceptor = await receptorRemote.getReceptor(upstreamReceptor);
-    }
-    if (!StringUtil.isEmpty(upstreamPerson)) {
-      IPersonService personService =
-          widget.context.site.getService('/gbera/persons');
-//      _upstreamPerson = await personService.getPerson(
-//        upstreamPerson,
-//        isDownloadAvatar: true,
-//      );
-      _upstreamPerson = widget.messageWrapper.upstreamPerson;
-    }
   }
 
   @override
@@ -1586,7 +1539,7 @@ class __MessageCardState extends State<_MessageCard> {
                   '/geosphere/portal.owner',
                   arguments: {
                     'receptor': widget.receptor,
-                    'personFilter': widget.messageWrapper.message.creator,
+                    'personFilter': _creator.official,
                   },
                 );
               },
@@ -1604,13 +1557,13 @@ class __MessageCardState extends State<_MessageCard> {
                   '/geosphere/portal.owner',
                   arguments: {
                     'receptor': widget.receptor,
-                    'personFilter': widget.messageWrapper.message.creator,
+                    'personFilter': _creator.official,
                   },
                 );
               },
               behavior: HitTestBehavior.opaque,
               child: Text(
-                '${_titleLabel ?? ''}',
+                '${_creator?.nickName ?? ''}',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[700],
@@ -1769,6 +1722,7 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   _getleadingImg() {
+    var _leading=_creator.avatar;
     var leadingImg;
     if (StringUtil.isEmpty(_leading)) {
       leadingImg = Image(

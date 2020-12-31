@@ -153,7 +153,8 @@ class GberaPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     return expandedHeight != oldDelegate.expandedHeight ||
         _appBarHeight != oldDelegate._appBarHeight ||
         child != oldDelegate.child ||
-        background != oldDelegate.background;
+        background != oldDelegate.background||
+        actions!=oldDelegate.actions;
   }
 
   @override

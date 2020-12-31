@@ -1139,8 +1139,13 @@ class __MessageCardState extends State<_MessageCard> {
 
   _setTitleLabel() {
     if (_upstreamReceptor != null) {
-      _titleLabel = _upstreamReceptor.title;
-      _leading = _upstreamReceptor.leading;
+      if(_upstreamReceptor.id!=widget.receptor.id){
+        _titleLabel = _upstreamReceptor.title;
+        _leading = _upstreamReceptor.leading;
+      }else{
+        _titleLabel = widget.messageWrapper.creator.nickName;
+        _leading = widget.messageWrapper.creator.avatar;
+      }
     } else {
       _titleLabel = widget.receptor.title;
       _leading = widget.receptor.leading;
