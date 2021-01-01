@@ -330,7 +330,8 @@ class _WindowState extends State<Window> {
         child: TaskBar(widget.site, _progressTaskBar),
       ),
     ];
-    if (_upgradeInfo != null &&
+    if (Platform.isAndroid&&
+        _upgradeInfo != null &&
         !_upgradeInfo.isHide &&
         _upgradeInfo.canUpgrade) {
       items.add(Scaffold(
