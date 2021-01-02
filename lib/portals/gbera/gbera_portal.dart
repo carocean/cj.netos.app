@@ -253,6 +253,7 @@ import 'package:netos_app/portals/gbera/store/services/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_messages.dart';
 import 'package:netos_app/portals/gbera/store/services/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/services/insite_messages.dart';
+import 'package:netos_app/portals/gbera/store/services/sync_person.dart';
 import 'package:netos_app/portals/gbera/styles/blue-styles.dart';
 import 'package:netos_app/portals/gbera/styles/blueGrey-styles.dart';
 import 'package:netos_app/portals/gbera/styles/lime-styles.dart';
@@ -297,6 +298,7 @@ class GberaPortal {
       defaultTheme: '/grey',
       builderSceneServices: (site) async {
         return <String, dynamic>{
+          '/gbera/sync/person':SyncPersonService(),
           "/gbera/friends": FriendService(),
           '/netflow/channels': ChannelService(),
           '/insite/messages': InsiteMessageService(),
@@ -335,6 +337,7 @@ class GberaPortal {
           '/feedback/helper': HelperRemote(),
           '/feedback/tipoff': TipOffRemote(),
           '/feedback/tiptool': TipToolRemote(),
+
         };
       },
       builderShareServices: (site) async {

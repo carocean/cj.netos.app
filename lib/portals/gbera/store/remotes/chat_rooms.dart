@@ -128,7 +128,17 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
       },
     );
   }
-
+  @override
+  Future<void> removeMemberOnlyByCreator(String code, member) async {
+    remotePorts.portTask.addPortGETTask(
+      chatPortsUrl,
+      'removeMemberOnlyByCreator',
+      parameters: {
+        'room': code,
+        'member':member,
+      },
+    );
+  }
   @override
   Future<Function> updateRoomTitle(String room, String title) async {
     remotePorts.portTask.addPortGETTask(
@@ -239,6 +249,19 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
     return RoomMemberOR.parse(map);
   }
 
+
+  @override
+  Future<int> totalMember(String roomCreator, String room) async{
+    return  await remotePorts.portGET(
+      chatPortsUrl,
+      'totalRoomMember',
+      parameters: {
+        'roomCreator': roomCreator,
+        'room': room,
+      },
+    );
+  }
+
   @override
   Future<RoomMemberOR> getMemberOfPerson(
       String creator, String room, String member) async {
@@ -263,7 +286,7 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
       chatPortsUrl,
       'listFlagRoomMember',
       parameters: {
-        'creator': creator,
+        'roomCreator': creator,
         'room': id,
       },
     );

@@ -92,7 +92,11 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     use_wallpapper = widget.context.parameters['use_wallpapper'];
 
     var onProfileTap = () {
-      widget.context.forward('/profile');
+      widget.context.forward('/profile').then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     };
     var url = widget.context.page.parameters['From-Page-Url'];
     var scaffold = widget.context.findPage('$url');
@@ -337,7 +341,7 @@ class _TipToolButtonState extends State<TipToolButton> {
     ITipToolRemote tipToolRemote =
         widget.context.site.getService('/feedback/tiptool');
     _canReadableTipDocs = await tipToolRemote.totalReadableTipDocs() > 0;
-    if (_canReadableTipDocs&&mounted) {
+    if (_canReadableTipDocs && mounted) {
       await _checkAutoShowTiptoolPanel();
     }
     if (mounted) {

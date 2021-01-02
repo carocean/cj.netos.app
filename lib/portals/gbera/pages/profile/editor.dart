@@ -144,7 +144,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 widget.context
-                    .forward('/widgets/avatar')
+                    .forward('/widgets/avatar',arguments: {'file':widget.context.principal.avatarOnRemote})
                     .then((localAvatar) async {
                   if (StringUtil.isEmpty(localAvatar)) {
                     return;

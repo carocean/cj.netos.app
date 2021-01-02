@@ -43,7 +43,7 @@ class FriendService implements IFriendService, IServiceBuilder {
       return friend;
     }
     var person = await personService.getPerson(official);
-    if(person==null) {
+    if (person == null) {
       return null;
     }
     return Friend.formPerson(person);
@@ -59,6 +59,43 @@ class FriendService implements IFriendService, IServiceBuilder {
     await friendDAO.addFriend(friend);
   }
 
+  @override
+  Future<Function> update(Person person) async {
+    await friendDAO.update(person.nickName, person.avatar, person.signature,
+        person.pyname, principal.person, person.official);
+  }
+
+  @override
+  Future<void> updateAvatar(official, String avatar) async{
+    if(StringUtil.isEmpty(avatar)) {
+      return;
+    }
+    await friendDAO.updateAvatar(avatar, principal.person, official);
+  }
+
+  @override
+  Future<void> updateNickName(official, String nickName) async{
+    if(StringUtil.isEmpty(nickName)) {
+      return;
+    }
+    await friendDAO.updateNickName(nickName, principal.person, official);
+  }
+
+  @override
+  Future<void> updateSignature(official, String signature) async{
+    if(StringUtil.isEmpty(signature)) {
+      return;
+    }
+    await friendDAO.updateSignature(signature, principal.person, official);
+  }
+
+  @override
+  Future<void> updatePyname(official, String pyname) async{
+    if(StringUtil.isEmpty(pyname)) {
+      return;
+    }
+    await friendDAO.updatePyname(pyname, principal.person, official);
+  }
   @override
   Future<List<Friend>> pageFriendLikeName(
       String name, List<String> officials, int limit, int offset) async {
@@ -119,14 +156,13 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> removeMember(String code, official,
+  Future<Function> removeMember(String room, official,
       {bool isOnlySaveLocal = false}) async {
-    await roomMemberDAO.removeMember(code, official, principal.person);
+    await roomMemberDAO.removeMember(room, official, principal.person);
     if (!isOnlySaveLocal) {
-      await chatRoomRemote.removeMember(code, official);
+      await chatRoomRemote.removeMemberOnlyByCreator(room, official);
     }
   }
-
   @override
   Future<bool> existsMember(String code, official) async {
     CountValue value =
@@ -157,6 +193,11 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
       principal.person,
       room,
     );
+  }
+
+  @override
+  Future<Function> updateRoom(ChatRoomOR room) async{
+    await chatRoomDAO.updateRoom(room.title, room.leading, room.background, room.isForegroundWhite?"true":"false", principal.person, room.room);
   }
 
   @override
@@ -241,12 +282,17 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
         await roomMemberDAO.getMember(room, official, principal.person);
     if (member == null) {
       var m = await chatRoomRemote.getMemberOfPerson(creator, room, official);
-      if(m==null) {
+      if (m == null) {
         return null;
       }
-      member=m.toLocal(principal.person);
+      member = m.toLocal(principal.person);
     }
     return member;
+  }
+
+  @override
+  Future<RoomMember> getMemberOnLocal(String room, String official) async {
+    return await roomMemberDAO.getMember(room, official, principal.person);
   }
 
   @override
@@ -272,7 +318,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     if (cr == null) {
       throw FlutterError('$creator不存在聊天室$room');
     }
-    var local=cr.toLocal(principal.person);
+    var local = cr.toLocal(principal.person);
     await chatRoomDAO.addRoom(local);
     return local;
   }
@@ -338,29 +384,29 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<List<ChatRoom>> findChatroomByMembers(List<String> members) async{
+  Future<List<ChatRoom>> findChatroomByMembers(List<String> members) async {
     //加1的原因是因为：参数members不包括自己，所以算是自已。
     //下面是成员在的聊天室且成员数为所求传入成员+1的聊天室
-    return await chatRoomDAO.findChatroomByMembers(members,members.length+1,principal.person);
+    return await chatRoomDAO.findChatroomByMembers(
+        members, members.length + 1, principal.person);
   }
-
 
   @override
   Future<Function> addMember(RoomMember roomMember,
       {bool isOnlySaveLocal = false}) async {
-    await roomMemberDAO.addMember(roomMember);
     if (!isOnlySaveLocal) {
       await chatRoomRemote.addMember(roomMember);
     }
+    await roomMemberDAO.addMember(roomMember);
   }
 
   @override
   Future<Function> addMemberToOwner(String chatroomOwner, RoomMember roomMember,
       {bool isOnlySaveLocal = false}) async {
-    await roomMemberDAO.addMember(roomMember);
     if (!isOnlySaveLocal) {
       await chatRoomRemote.addMemberToOwner(chatroomOwner, roomMember);
     }
+    await roomMemberDAO.addMember(roomMember);
   }
 
   @override
@@ -385,23 +431,24 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
     await messageDAO.emptyRoomMessages(room.id, principal.person);
     if (room.creator != principal.person) {
       await chatRoomRemote.removeMember(room.id, room.creator);
-    }else{
+    } else {
       await chatRoomRemote.removeChatRoom(room.id);
     }
   }
 
   @override
-  Future<List<String>> listFlagRoomMember(String creator, String id)async {
-    return await chatRoomRemote.listFlagRoomMember(creator,id);
+  Future<List<String>> listFlagRoomMember(String creator, String id) async {
+    return await chatRoomRemote.listFlagRoomMember(creator, id);
   }
 
   @override
-  Future<Function> removeChatMembersOnLocal(String id, List<String> members) async{
-    await roomMemberDAO.removeChatMembersOnLocal(id,members, principal.person);
+  Future<Function> removeChatMembersOnLocal(
+      String id, List<String> members) async {
+    await roomMemberDAO.removeChatMembersOnLocal(id, members, principal.person);
   }
 
   @override
-  Future<Function> emptyChatMembersOnLocal(String id) async{
+  Future<Function> emptyChatMembersOnLocal(String id) async {
     await roomMemberDAO.emptyChatMembersOnLocal(id, principal.person);
   }
 }

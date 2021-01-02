@@ -7,6 +7,11 @@ import 'package:netos_app/system/remote/persons.dart';
 import '../../../system/local/entities.dart';
 import 'gbera_entities.dart';
 
+mixin ISyncPersonService {
+  Future<bool> syncPerson(String official);
+
+  Future<bool> syncChatroom(String creator, String room, String member) {}
+}
 mixin IPersonService {
   IPersonRemote get remote;
 
@@ -19,6 +24,8 @@ mixin IPersonService {
 
       ///如果不存在在远程获取时是否下载其头像到本地
       bool isDownloadAvatar = false});
+
+  Future<Person> getPersonOnLocal(official);
 
   Future<Person> fetchPerson(official, {bool isDownloadAvatar = false});
 
@@ -49,6 +56,16 @@ mixin IPersonService {
   Future<void> updateRights(String official, param1) {}
 
   Future<bool> existsAccount(String accountCode) {}
+
+  Future<void> update(Person person) {}
+
+  Future<void> updateAvatar(official, String avatar) {}
+
+  Future<void> updateNickName(official, String nickName) {}
+
+  Future<void> updateSignature(official, String signature) {}
+
+  Future<void> updatePyname(official, String pyname) {}
 }
 mixin IChannelService {
   ///地圈管道标识
@@ -288,6 +305,16 @@ mixin IFriendService {
 
   Future<List<Friend>> pageFriendNotIn(
       List<String> officials, int limit, int offset) {}
+
+  Future<void> update(Person person) {}
+
+  Future<void> updateAvatar(String official, String avatar) {}
+
+  Future<void> updateNickName(String official, String nickName) {}
+
+  Future<void> updateSignature(String official, String signature) {}
+
+  Future<void> updatePyname(String official, String pyname) {}
 }
 mixin IChatRoomService {
   Future<void> addRoom(ChatRoom chatRoom, {bool isOnlySaveLocal = false}) {}
@@ -318,8 +345,7 @@ mixin IChatRoomService {
   Future<List<RoomMember>> top20Members(String code) {}
 
   Future<List<RoomMember>> pageMember(String room, int limit, int offset) {}
-
-  Future<void> removeMember(String code, official,
+  Future<void> removeMember(String room, official,
       {bool isOnlySaveLocal = false}) {}
 
   Future<bool> existsMember(String code, official) {}
@@ -361,6 +387,10 @@ mixin IChatRoomService {
   Future<List<String>> listFlagRoomMember(String creator, String id) {}
 
   Future<void> removeChatMembersOnLocal(String id, List<String> members) {}
+
+  Future<RoomMember> getMemberOnLocal(String room, String member) {}
+
+  Future<void> updateRoom(ChatRoomOR roomOnRemote) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,
@@ -401,7 +431,7 @@ mixin IPrincipalService {
 
   Future<void> updateSignature(String person, String signature) {}
 
-  Future<void>  updateDevice(String current, String device) {}
+  Future<void> updateDevice(String current, String device) {}
 }
 mixin IGeoReceptorCache {
   Future<void> add(GeoReceptor receptor);
@@ -500,8 +530,8 @@ mixin IGeosphereMessageService {
 
   Future<void> flagMessagesReaded(String id) {}
 
-  Future<void> loadMessageExtraTask(String msgCreator, String msgid, String receptor) {}
-
+  Future<void> loadMessageExtraTask(
+      String msgCreator, String msgid, String receptor) {}
 }
 mixin IGeosphereMediaService {
   Future<void> addMedia(GeosphereMediaOL geosphereMediaOL,
@@ -509,6 +539,5 @@ mixin IGeosphereMediaService {
 
   Future<List<GeosphereMediaOL>> listMedia(String receptor, String messageid) {}
 
-  Future<void>  addMediaNotPush(GeosphereMediaOL media) {}
-
+  Future<void> addMediaNotPush(GeosphereMediaOL media) {}
 }

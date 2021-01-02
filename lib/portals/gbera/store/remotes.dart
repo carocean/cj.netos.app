@@ -124,14 +124,14 @@ class ChatRoomOR {
     this.microsite = obj['microsite'];
     this.background = obj['background'];
     this.flag = obj['flag'];
-    this.isForegroundWhite = obj['isForegroundWhite'] ??false;
+    this.isForegroundWhite = obj['isForegroundWhite'] ?? false;
     this.ctime = obj['ctime'];
   }
 
- ChatRoom toLocal(String sandbox) {
-    return ChatRoom(room, title, leading, creator, ctime, ctime, null, null, isForegroundWhite?'true':'false', 'false', microsite, sandbox);
- }
-
+  ChatRoom toLocal(String sandbox) {
+    return ChatRoom(room, title, leading, creator, ctime, ctime, null, null,
+        isForegroundWhite ? 'true' : 'false', 'false', microsite, sandbox);
+  }
 }
 
 class RoomMemberOR {
@@ -157,14 +157,14 @@ class RoomMemberOR {
     this.actor = obj['actor'];
     this.nickName = obj['nickName'];
     this.flag = obj['flag'];
-    this.isShowNick = obj['isShowNick']??false;
+    this.isShowNick = obj['isShowNick'] ?? false;
     this.atime = obj['atime'];
   }
 
   RoomMember toLocal(String sandbox) {
-    return RoomMember(room, person, nickName, isShowNick?'true':'false', null, 'person', atime, sandbox);
+    return RoomMember(room, person, nickName, isShowNick ? 'true' : 'false',
+        null, 'person', atime, sandbox);
   }
-
 }
 
 mixin IChannelRemote {
@@ -267,6 +267,8 @@ mixin IChannelRemote {
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}
 
+  Future<void> removeMemberOnlyByCreator(String code, member);
+
   Future<void> createRoom(ChatRoom chatRoom) {}
 
   Future<void> addMember(RoomMember roomMember) {}
@@ -313,5 +315,8 @@ mixin IChatRoomRemote {
   Future<void> updateRoomForeground(String id, bool isForegroundWhite) {}
 
   Future<List<String>> listFlagRoomMember(String creator, String id) {}
+
+
+  Future<int> totalMember(String roomCreator,String room) {}
 
 }

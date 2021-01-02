@@ -69,6 +69,24 @@ abstract class IPersonDAO {
   @Query(
       'UPDATE Person SET rights = :rights WHERE sandbox=:sandbox and official=:official')
   Future<void> updateRights(String rights, String sandbox, String official) {}
+
+  @Query(
+      'UPDATE Person SET nickName=:nickName , avatar=:avatar , signature=:signature , pyname=:pyname WHERE sandbox=:sandbox and official=:official')
+  Future<void> updateAny(nickName, avatar, signature, pyname,
+      String sandbox, String official) {}
+
+  @Query(
+      'UPDATE Person SET avatar = :avatar WHERE sandbox=:sandbox and official=:official')
+  Future<void>updateAvatar(String avatar, String sandbox, official) {}
+  @Query(
+      'UPDATE Person SET nickName = :nickName WHERE sandbox=:sandbox and official=:official')
+  Future<void>updateNickName(String nickName, String sandbox, official) {}
+  @Query(
+      'UPDATE Person SET signature = :signature WHERE sandbox=:sandbox and official=:official')
+  Future<void>updateSignature(String signature, String sandbox, official) {}
+  @Query(
+      'UPDATE Person SET pyname = :pyname WHERE sandbox=:sandbox and official=:official')
+  Future<void>updatePyname(String pyname, String sandbox, official) {}
 }
 
 @dao
@@ -501,6 +519,23 @@ abstract class IFriendDAO {
   @Query(
       'SELECT *  FROM Friend where sandbox=:sandbox and official in (:members)')
   Future<List<Friend>> listMembersIn(String sandbox, List<String> members) {}
+
+  @Query(
+      'UPDATE Friend SET nickName =:nickName , avatar=:avatar , signature=:signature , pyname=:pyname WHERE sandbox=:sandbox and official = :official')
+  Future<void> update(nickName, avatar, signature, pyname, sandbox, official);
+
+  @Query(
+      'UPDATE Friend SET avatar = :avatar WHERE sandbox=:sandbox and official = :official')
+  Future<void>updateAvatar(String avatar, String sandbox, String official) {}
+  @Query(
+      'UPDATE Friend SET nickName = :nickName WHERE sandbox=:sandbox and official = :official')
+  Future<void>updateNickName(String nickName, String sandbox, String official) {}
+  @Query(
+      'UPDATE Friend SET signature = :signature WHERE sandbox=:sandbox and official = :official')
+  Future<void>updateSignature(String signature, String sandbox, String official) {}
+  @Query(
+      'UPDATE Friend SET pyname = :pyname WHERE sandbox=:sandbox and official = :official')
+  Future<void>updatePyname(String pyname, String sandbox, String official) {}
 }
 
 @dao
@@ -542,6 +577,9 @@ abstract class IChatRoomDAO {
       'UPDATE ChatRoom SET utime = :utime WHERE sandbox=:sandbox and id = :room')
   Future<void> updateRoomUtime(int utime, String sandbox, String room) {}
 
+  @Query(
+      'UPDATE ChatRoom SET title = :title , leading = :leading , p2pBackground = :p2pBackground , isForegoundWhite = :isForegoundWhite WHERE sandbox=:sandbox and id = :room')
+  Future<void> updateRoom(title,leading,p2pBackground,isForegoundWhite, String sandbox, String room) {}
   @Query(
       'SELECT *  FROM RoomMember where sandbox=:sandbox and room=:room LIMIT 20')
   Future<List<RoomMember>> top20Members(String sandbox, String room) {}

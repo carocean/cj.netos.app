@@ -1418,6 +1418,53 @@ class _$IPersonDAO extends IPersonDAO {
   }
 
   @override
+  Future<void> updateAny(dynamic nickName, dynamic avatar, dynamic signature,
+      dynamic pyname, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET nickName=? , avatar=? , signature=? , pyname=? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[
+          nickName,
+          avatar,
+          signature,
+          pyname,
+          sandbox,
+          official
+        ]);
+  }
+
+  @override
+  Future<void> updateAvatar(
+      String avatar, String sandbox, dynamic official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET avatar = ? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[avatar, sandbox, official]);
+  }
+
+  @override
+  Future<void> updateNickName(
+      String nickName, String sandbox, dynamic official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET nickName = ? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[nickName, sandbox, official]);
+  }
+
+  @override
+  Future<void> updateSignature(
+      String signature, String sandbox, dynamic official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET signature = ? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[signature, sandbox, official]);
+  }
+
+  @override
+  Future<void> updatePyname(
+      String pyname, String sandbox, dynamic official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Person SET pyname = ? WHERE sandbox=? and official=?',
+        arguments: <dynamic>[pyname, sandbox, official]);
+  }
+
+  @override
   Future<void> addPerson(Person person) async {
     await _personInsertionAdapter.insert(
         person, sqflite.ConflictAlgorithm.abort);
@@ -2649,6 +2696,53 @@ class _$IFriendDAO extends IFriendDAO {
   }
 
   @override
+  Future<void> update(dynamic nickName, dynamic avatar, dynamic signature,
+      dynamic pyname, dynamic sandbox, dynamic official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Friend SET nickName =? , avatar=? , signature=? , pyname=? WHERE sandbox=? and official = ?',
+        arguments: <dynamic>[
+          nickName,
+          avatar,
+          signature,
+          pyname,
+          sandbox,
+          official
+        ]);
+  }
+
+  @override
+  Future<void> updateAvatar(
+      String avatar, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Friend SET avatar = ? WHERE sandbox=? and official = ?',
+        arguments: <dynamic>[avatar, sandbox, official]);
+  }
+
+  @override
+  Future<void> updateNickName(
+      String nickName, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Friend SET nickName = ? WHERE sandbox=? and official = ?',
+        arguments: <dynamic>[nickName, sandbox, official]);
+  }
+
+  @override
+  Future<void> updateSignature(
+      String signature, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Friend SET signature = ? WHERE sandbox=? and official = ?',
+        arguments: <dynamic>[signature, sandbox, official]);
+  }
+
+  @override
+  Future<void> updatePyname(
+      String pyname, String sandbox, String official) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Friend SET pyname = ? WHERE sandbox=? and official = ?',
+        arguments: <dynamic>[pyname, sandbox, official]);
+  }
+
+  @override
   Future<void> addFriend(Friend friend) async {
     await _friendInsertionAdapter.insert(
         friend, sqflite.ConflictAlgorithm.abort);
@@ -2762,6 +2856,21 @@ class _$IChatRoomDAO extends IChatRoomDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChatRoom SET utime = ? WHERE sandbox=? and id = ?',
         arguments: <dynamic>[utime, sandbox, room]);
+  }
+
+  @override
+  Future<void> updateRoom(dynamic title, dynamic leading, dynamic p2pBackground,
+      dynamic isForegoundWhite, String sandbox, String room) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET title = ? , leading = ? , p2pBackground = ? , isForegoundWhite = ? WHERE sandbox=? and id = ?',
+        arguments: <dynamic>[
+          title,
+          leading,
+          p2pBackground,
+          isForegoundWhite,
+          sandbox,
+          room
+        ]);
   }
 
   @override

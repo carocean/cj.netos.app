@@ -573,9 +573,22 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         widget.context.site.getService('/gbera/persons');
     if (!(await personService.existsPerson(sender))) {
       var sendPerson =
-          await personService.getPerson(sender, isDownloadAvatar: true);
+          await personService.fetchPerson(sender, isDownloadAvatar: true);
       if (sendPerson != null) {
         personService.addPerson(sendPerson, isOnlyLocal: true);
+      }
+    } else {
+      ISyncPersonService syncPersonService =
+          widget.context.site.getService('/gbera/sync/person');
+      try {
+        if (await syncPersonService.syncPerson(sender)) {
+          await _updateRoom(room);
+        }
+        if (await syncPersonService.syncChatroom(roomCreator, room, sender)) {
+          await _updateRoom(room);
+        }
+      }catch(e){
+        print('聊天室同步用户资料出错:$e');
       }
     }
 
@@ -596,20 +609,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
       if (member != null) {
         await chatRoomService.addMember(member, isOnlySaveLocal: true);
-      }
-    } else {
-      IChatRoomRemote chatRoomRemote =
-          widget.context.site.getService('/remote/chat/rooms');
-      var member =
-          await chatRoomRemote.getMemberOfPerson(roomCreator, room, sender);
-      var exists =
-          await chatRoomService.getMemberOfPerson(roomCreator, room, sender);
-      if (exists.nickName != member.nickName ||
-          exists.isShowNick != member.isShowNick) {
-        await chatRoomService.removeMember(room, sender, isOnlySaveLocal: true);
-        await chatRoomService.addMember(
-            member.toLocal(widget.context.principal.person),
-            isOnlySaveLocal: true);
       }
     }
 
@@ -872,6 +871,41 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         ),
       );
     }
+  }
+
+  Future<void> _updateRoom(roomId) async {
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IFriendService friendService =
+        widget.context.site.getService("/gbera/friends");
+    var room = await chatRoomService.get(roomId, isOnlyLocal: true);
+    if (room == null) {
+      return;
+    }
+    ChatRoomModel model;
+    for (var m in _models) {
+      if (m.chatRoom.id == roomId) {
+        model = m;
+        break;
+      }
+    }
+    if (model == null) {
+      return;
+    }
+    List<RoomMember> members = await chatRoomService.listMember(roomId);
+    List<Friend> friends = [];
+    for (var member in members) {
+      if (!StringUtil.isEmpty(member.type) && member.type != 'person') {
+        continue;
+      }
+      var f = await friendService.getFriend(member.person);
+      if (f == null) {
+        continue;
+      }
+      friends.add(f);
+    }
+    model.chatRoom = room;
+    model.members = friends;
   }
 
   Future<void> _removeChatRoom(ChatRoom room) async {

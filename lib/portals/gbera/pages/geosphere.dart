@@ -2168,9 +2168,9 @@ class _ReceptorItemState extends State<_ReceptorItem> {
       },
       child: item,
     );
-    if (widget.receptor.origin.canDel == 'false') {
-      return tapItem;
-    }
+    // if (widget.receptor.origin.canDel == 'false') {
+    //   return tapItem;
+    // }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[

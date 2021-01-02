@@ -157,6 +157,7 @@ class _GberaAvatarState extends State<GberaAvatar> {
     if (aspectRatio == null) {
       aspectRatio = 1;
     }
+
     if (aspectRatio == -1) {
       _crop = Crop(
         key: _cropKey,
@@ -168,9 +169,9 @@ class _GberaAvatarState extends State<GberaAvatar> {
     } else {
       _crop = Crop(
         key: _cropKey,
-        image: FileImage(
+        image: _image.path.startsWith('/')?FileImage(
           _image,
-        ),
+        ):NetworkImage('${_image.path}?accessToken=${widget.context.principal.accessToken}',),
         aspectRatio: aspectRatio,
       );
     }

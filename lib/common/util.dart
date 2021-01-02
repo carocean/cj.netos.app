@@ -91,7 +91,7 @@ Future<String> downloadPersonAvatar({Dio dio, String avatarUrl}) async {
     dir.createSync(recursive: true);
   }
 
-  var avatarPath = '${dir.path}/${Uuid().v1()}';
+  var avatarPath = '${dir.path}/${MD5Util.MD5(avatarUrl)}';
   var ext = fileExt(avatarUrl);
   if (!StringUtil.isEmpty(ext)) {
     avatarPath = '$avatarPath.$ext';

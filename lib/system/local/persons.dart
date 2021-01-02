@@ -58,8 +58,51 @@ class PersonService implements IPersonService, IServiceBuilder {
   }
 
   @override
+  Future<Person> getPersonOnLocal(official) async {
+    return await this.personDAO.getPerson(official, principal?.person);
+  }
+
+  @override
   Future<Function> updateRights(String official, rights) async {
     await personDAO.updateRights(rights, principal.person, official);
+  }
+
+  @override
+  Future<Function> update(Person person) async {
+    await personDAO.updateAny(person.nickName, person.avatar, person.signature,
+        person.pyname,  principal.person, person.official);
+  }
+
+  @override
+  Future<void> updateAvatar(official, String avatar) async{
+    if(StringUtil.isEmpty(avatar)) {
+      return;
+    }
+    await personDAO.updateAvatar(avatar, principal.person, official);
+  }
+
+  @override
+  Future<void> updateNickName(official, String nickName) async{
+    if(StringUtil.isEmpty(nickName)) {
+      return;
+    }
+    await personDAO.updateNickName(nickName, principal.person, official);
+  }
+
+  @override
+  Future<void> updateSignature(official, String signature) async{
+    if(StringUtil.isEmpty(signature)) {
+      return;
+    }
+    await personDAO.updateSignature(signature, principal.person, official);
+  }
+
+  @override
+  Future<void> updatePyname(official, String pyname) async{
+    if(StringUtil.isEmpty(pyname)) {
+      return;
+    }
+    await personDAO.updatePyname(pyname, principal.person, official);
   }
 
   @override
@@ -217,7 +260,7 @@ class PersonService implements IPersonService, IServiceBuilder {
 
   @override
   Future<void> addPerson(Person person, {bool isOnlyLocal = false}) async {
-    if(person==null) {
+    if (person == null) {
       return;
     }
     await personDAO.addPerson(person);
@@ -236,4 +279,5 @@ class PersonService implements IPersonService, IServiceBuilder {
     var person = await personDAO.getPerson(official, principal?.person);
     return person == null ? false : true;
   }
+
 }

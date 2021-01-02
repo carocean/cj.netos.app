@@ -10,6 +10,9 @@ mixin IPersonCache {
   Future<void> cache(Person person);
 
   Future<Person> get(String person);
+
+  Future<void> update(Person person);
+  Future<void> remove(String person);
 }
 
 class PersonCache implements IPersonCache, IServiceBuilder {
@@ -36,6 +39,18 @@ class PersonCache implements IPersonCache, IServiceBuilder {
   Future<void> cache(Person person) async {
     var map = person.toMap();
     await _db.insert(map);
+  }
+
+  @override
+  Future<Function> update(Person person)async {
+    var query={'official':person.official};
+    await _db.update(query, person.toMap(),true);
+  }
+
+  @override
+  Future<Function> remove(String person) async{
+    var query={'official':person};
+    await _db.remove(query);
   }
 
   @override

@@ -24,6 +24,7 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
   FocusNode _focusNode;
   int _limit = 50, _offset = 0;
   ChatRoom _chatRoom;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -35,7 +36,13 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
       }
     });
     _controller = TextEditingController();
-    _load();
+    _load().then((value) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
     super.initState();
   }
 
@@ -164,14 +171,34 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
         titleSpacing: 0,
         centerTitle: true,
       ),
-      body: _rendBody(),
+      body: ConstrainedBox(
+        constraints: BoxConstraints.expand(),
+        child: _rendBody(),
+      ),
     );
   }
 
   Widget _rendBody() {
+    if (_isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '正在加载...',
+            style: TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      );
+    }
     if (_memberModels.isEmpty) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          SizedBox(height: 20,),
           Text(
             '没有成员',
             style: TextStyle(

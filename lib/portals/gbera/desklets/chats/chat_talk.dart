@@ -151,7 +151,7 @@ class _ChatTalkState extends State<ChatTalk> {
     IChatRoomRemote chatRoomRemote =
         widget.context.site.getService('/remote/chat/rooms');
     var path = await chatRoomRemote.downloadBackground(_chatRoom.p2pBackground);
-    await chatRoomService.updateRoomBackground(_chatRoom, path);
+    await chatRoomService.updateRoomBackground(_chatRoom, path,isOnlyLocal: true);
     _chatRoom.p2pBackground = path;
   }
 
@@ -557,7 +557,7 @@ class _ChatTalkState extends State<ChatTalk> {
     return BoxDecoration(
       image: DecorationImage(
         image: NetworkImage(
-          _chatRoom.p2pBackground,
+          '${_chatRoom.p2pBackground}?accessToken=${widget.context.principal.accessToken}',
         ),
         fit: BoxFit.fill,
       ),
@@ -1436,7 +1436,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           ),
           overflow: TextOverflow.visible,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 16,
             color: widget.isForegroundWhite ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
@@ -1826,7 +1826,7 @@ class _SendMessageItem extends StatefulWidget {
 }
 
 class __SendMessageItemState extends State<_SendMessageItem> {
-  Person _sender;
+  UserPrincipal _sender;
   RoomMember _member;
   bool isShowNick = false;
   ChatRoomModel _model;
@@ -1841,9 +1841,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   }
 
   Future<void> _loadSender() async {
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    _sender = await personService.getPerson(widget.p2pMessage.sender);
+    _sender = widget.context.principal;
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     ChatRoom _chatRoom = _model.chatRoom;
@@ -1956,15 +1954,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(5),
                   ),
-                  child: _sender == null
-                      ? Container(
-                          height: 0,
-                          width: 0,
-                        )
-                      : Image.file(
-                          File(_sender.avatar),
-                          fit: BoxFit.cover,
-                        ),
+                  child: getAvatarWidget(_sender?.avatarOnLocal, widget.context),
                 ),
               ),
             ),
@@ -1989,7 +1979,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           ),
           overflow: TextOverflow.visible,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 16,
             color: widget.isForegroundWhite == true
                 ? Colors.white
                 : Colors.black87,

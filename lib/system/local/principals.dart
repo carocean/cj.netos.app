@@ -1,4 +1,5 @@
 import 'package:framework/framework.dart';
+import 'package:lpinyin/lpinyin.dart';
 
 import 'dao/daos.dart';
 import 'dao/database.dart';
@@ -7,6 +8,7 @@ import '../../portals/gbera/store/services.dart';
 
 class PrincipalService implements IPrincipalService, IServiceBuilder {
   IPrincipalDAO principalDAO;
+  IPersonService personService;
   IServiceProvider site;
 
   UserPrincipal get principal => site.getService('@.principal');
@@ -16,6 +18,7 @@ class PrincipalService implements IPrincipalService, IServiceBuilder {
     this.site = site;
     AppDatabase db = site.getService('@.db');
     principalDAO = db.principalDAO;
+    personService=site.getService('/gbera/persons');
     return null;
   }
 
@@ -23,6 +26,7 @@ class PrincipalService implements IPrincipalService, IServiceBuilder {
   Future<Function> updateAvatar(
       String person, localAvatar, String remoteAvatar) async {
     await principalDAO.updateAvatar(localAvatar, remoteAvatar, person);
+    await personService.updateAvatar(person, localAvatar);
   }
 
   @override
@@ -49,11 +53,15 @@ class PrincipalService implements IPrincipalService, IServiceBuilder {
   @override
   Future<Function> updateNickName(String person, nickName) async {
     await principalDAO.updateNickname(nickName, person);
+    await personService.updateNickName(person, nickName);
+    String pinyin = PinyinHelper.getPinyinE(nickName);
+    await personService.updatePyname(person, pinyin);
   }
 
   @override
   Future<Function> updateSignature(String person, String signature) async {
     await principalDAO.updateSignature(signature, person);
+    await personService.updateSignature(person, signature);
   }
 
   @override

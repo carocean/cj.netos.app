@@ -33,7 +33,8 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   int _limit = 20, _offset = 0;
   ChatRoomNotice _newestNotice;
   bool _isForegroundWhite = false;
-  int _memberCount = 0;
+
+  var _globalKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -66,12 +67,6 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     super.dispose();
   }
 
-  Future<void> _totalMembers() async {
-    IChatRoomService chatRoomService =
-        widget.context.site.getService('/chat/rooms');
-    _memberCount = await chatRoomService.totalMembers(_chatRoom.id);
-  }
-
   Future<void> _emptyMessages() async {
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
@@ -92,7 +87,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     _member = await chatRoomService.getMember(_chatRoom.creator, _chatRoom.id);
-    if(_member==null) {
+    if (_member == null) {
       return;
     }
     _showNickName = _member.isShowNick == 'true';
@@ -112,11 +107,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   }
 
   Future<void> _loadMembers() async {
-    await _totalMembers();
     IChatRoomService chatRoomService =
         widget.context.site.getService('/chat/rooms');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
+
     List<RoomMember> members =
         await chatRoomService.pageMember(_chatRoom.id, _limit, _offset);
     if (members.isEmpty) {
@@ -128,7 +123,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       //   continue;
       // }
       var person = await personService.getPerson(member.person);
-      if (person!=null&&_chatRoom.creator == person.official) {
+      if (person != null && _chatRoom.creator == person.official) {
         _memberModels.insert(0, _MemberModel(person: person, member: member));
         continue;
       }
@@ -141,40 +136,59 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         widget.context.site.getService('/chat/rooms');
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
+    var error = '';
     for (var official in members) {
       if (await chatRoomService.existsMember(_chatRoom.id, official)) {
         continue;
       }
       var person =
           await personService.getPerson(official, isDownloadAvatar: false);
-      if (_chatRoom.creator == widget.context.principal.person) {
-        await chatRoomService.addMember(
-          RoomMember(
-            _chatRoom.id,
-            official,
-            person?.nickName,
-            'false',
-            person?.avatar,
-            'person',
-            DateTime.now().millisecondsSinceEpoch,
-            widget.context.principal.person,
-          ),
-        );
-      } else {
-        await chatRoomService.addMemberToOwner(
-          _chatRoom.creator,
-          RoomMember(
-            _chatRoom.id,
-            official,
-            person?.nickName,
-            'false',
-            person?.avatar,
-            'person',
-            DateTime.now().millisecondsSinceEpoch,
-            widget.context.principal.person,
-          ),
-        );
+      try {
+        if (_chatRoom.creator == widget.context.principal.person) {
+          await chatRoomService.addMember(
+            RoomMember(
+              _chatRoom.id,
+              official,
+              person?.nickName,
+              'false',
+              person?.avatar,
+              'person',
+              DateTime.now().millisecondsSinceEpoch,
+              widget.context.principal.person,
+            ),
+          );
+        } else {
+          await chatRoomService.addMemberToOwner(
+            _chatRoom.creator,
+            RoomMember(
+              _chatRoom.id,
+              official,
+              person?.nickName,
+              'false',
+              person?.avatar,
+              'person',
+              DateTime.now().millisecondsSinceEpoch,
+              widget.context.principal.person,
+            ),
+          );
+        }
+      } catch (e) {
+        String err = e.message;
+        if (err.startsWith('10004')) {
+          error += '${person.nickName}(已退出聊天室，你无权拉入)；';
+        } else {
+          error += '${person.nickName}(已在聊天室)；';
+        }
       }
+    }
+    if (!StringUtil.isEmpty(error)) {
+      _globalKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text(
+            '提示\r\n已忽略以下成员：$error',
+          ),
+        ),
+      );
     }
   }
 
@@ -221,6 +235,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _globalKey,
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
@@ -667,11 +682,12 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       var person = model.person;
       var member = model.member;
       bool isOwner = member.person == _chatRoom.creator;
-      var title ;
-      if(member.type=='wybank'){
-        title=member.nickName;
-      }else{
-        title='${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
+      var title;
+      if (member.type == 'wybank') {
+        title = member.nickName;
+      } else {
+        title =
+            '${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
       }
       var avatar =
           StringUtil.isEmpty(member.leading) ? person?.avatar : member.leading;
@@ -679,9 +695,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () async {
-            if(member.type=='wybank') {
+            if (member.type == 'wybank') {
               widget.context
-                  .forward('/portlet/chat/room/view_licence', arguments: {'bankid': member.person,});
+                  .forward('/portlet/chat/room/view_licence', arguments: {
+                'bankid': member.person,
+              });
               return;
             }
             widget.context
@@ -916,14 +934,9 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             ),
           ),
         ),
-        Text(
-          '共$_memberCount个成员',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        _SyncMemberPanel(
+          context: widget.context,
+          chatRoom: _chatRoom,
         ),
       ],
     );
@@ -1000,4 +1013,114 @@ class _MemberModel {
   RoomMember member;
 
   _MemberModel({this.person, this.member});
+}
+
+class _SyncMemberPanel extends StatefulWidget {
+  PageContext context;
+  ChatRoom chatRoom;
+
+  _SyncMemberPanel({this.context, this.chatRoom});
+
+  @override
+  __SyncMemberPanelState createState() => __SyncMemberPanelState();
+}
+
+class __SyncMemberPanelState extends State<_SyncMemberPanel> {
+  int _memberCountRemote = 0, _memberCountLocal = 0;
+  ChatRoom _chatRoom;
+  String _progress;
+  int _limit = 100, _offset = 0;
+
+  @override
+  void initState() {
+    _chatRoom = widget.chatRoom;
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    _progress = '正在统计成员...';
+    setState(() {});
+    await _totalMembers();
+    if (_memberCountRemote != _memberCountLocal) {
+      if (mounted) {
+        setState(() {
+          _progress = '有新成员,同步中...';
+        });
+      }
+      await _syncMembers();
+      await _totalMembers();
+    }
+    if (mounted) {
+      setState(() {
+        _progress = '$_memberCountLocal/$_memberCountRemote';
+      });
+    }
+  }
+
+  Future<void> _totalMembers() async {
+    IChatRoomService chatRoomService = widget.context.site.getService(
+      '/chat/rooms',
+    );
+    IChatRoomRemote chatRoomRemote =
+        widget.context.site.getService('/remote/chat/rooms');
+    _memberCountLocal = await chatRoomService.totalMembers(_chatRoom.id);
+    _memberCountRemote =
+        await chatRoomRemote.totalMember(_chatRoom.creator, _chatRoom.id);
+  }
+
+  Future<void> _syncMembers() async {
+    IChatRoomService chatRoomService = widget.context.site.getService(
+      '/chat/rooms',
+    );
+    IChatRoomRemote chatRoomRemote =
+        widget.context.site.getService('/remote/chat/rooms');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    var list = await chatRoomRemote.listFlagRoomMember(
+        _chatRoom.creator, _chatRoom.id);
+    await chatRoomService.removeChatMembersOnLocal(_chatRoom.id, list);
+    var members = await chatRoomRemote.pageRoomMember(
+        _chatRoom.creator, _chatRoom.id, _limit, _offset);
+    for (var m in members) {
+      var exists = await chatRoomService.existsMember(m.room, m.person);
+      if (exists) {
+        continue;
+      }
+      var person =
+          await personService.getPerson(m.person, isDownloadAvatar: true);
+      var nickName = person?.nickName ?? m.nickName;
+      await chatRoomService.addMember(
+          RoomMember(
+            m.room,
+            m.person,
+            nickName,
+            m.isShowNick ? 'true' : 'false',
+            person?.avatar,
+            'person',
+            m.atime,
+            widget.context.principal.person,
+          ),
+          isOnlySaveLocal: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$_progress',
+      style: TextStyle(
+        fontSize: 12,
+        color: Colors.black54,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
 }
