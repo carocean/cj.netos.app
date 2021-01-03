@@ -278,6 +278,15 @@ class _ChannelPageState extends State<ChannelPage> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: () {
+              if(Platform.isIOS){
+                widget.context.forward('/netflow/channel/publish_article/ios',
+                    arguments: <String, dynamic>{
+                      'type': 'text',
+                      'channel': _channel,
+                      'refreshMessages': _refreshMessages
+                    });
+                return;
+              }
               widget.context.forward('/netflow/channel/publish_article',
                   arguments: <String, dynamic>{
                     'type': 'text',
@@ -869,6 +878,7 @@ class __MessageCardState extends State<_MessageCard> {
                                           ),
                                           children: [
                                             TextSpan(text: '  '),
+                                            (Platform.isIOS&&_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
                                             TextSpan(
                                               text:
                                                   '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',

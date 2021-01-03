@@ -175,6 +175,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                                 ),
                               ),
                             ),
+                            Platform.isIOS?SizedBox(height: 0,width: 0,):
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () {

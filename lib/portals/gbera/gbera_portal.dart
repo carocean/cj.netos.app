@@ -78,6 +78,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_create_receptor.dart
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_filter.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_fountain.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_publish_article_ios.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_background.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_lord.dart';
@@ -119,6 +120,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_gateway.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_popularize.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_portal.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel_publish_article_ios.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_qrcode.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_rename.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channels_of_user.dart';
@@ -1071,6 +1073,15 @@ class GberaPortal {
           ),
         ),
         LogicPage(
+          title: '发布文章',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/netflow/channel/publish_article/ios',
+          buildPage: (PageContext pageContext) => ChannelPublishArticleIos(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
           title: '管道活动门户',
           subtitle: '',
           icon: Icons.art_track,
@@ -1467,6 +1478,15 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/geosphere/publish_article',
           buildPage: (PageContext pageContext) => GeospherePublishArticle(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '发布文章',
+          subtitle: '',
+          icon: Icons.art_track,
+          url: '/geosphere/publish_article/ios',
+          buildPage: (PageContext pageContext) => GeospherePublishArticleIos(
             context: pageContext,
           ),
         ),
