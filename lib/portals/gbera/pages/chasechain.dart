@@ -31,16 +31,16 @@ class _ChasechainState extends State<Chasechain> {
   void initState() {
     _controller = EasyRefreshController();
     () async {
-      var location = await geoLocation.location;
-      var latLng = location.latLng;
-      var recode = await AmapSearch.instance.searchReGeocode(latLng, radius: 200.0);
-      _towncode = recode.townCode;
       await _load();
       if(mounted){
         setState(() {
           _isLoading=false;
         });
       }
+      var location = await geoLocation.location;
+      var latLng = location.latLng;
+      var recode = await AmapSearch.instance.searchReGeocode(latLng, radius: 200.0);
+      _towncode = recode.townCode;
       await _onRefresh();
       if(mounted){
         setState(() {

@@ -54,7 +54,8 @@ class _GeosphereEvents {
 
   void onRemoveReceptor(GeoReceptor receptor) {
     listeners.forEach((listener) {
-      listener('removeReceptor', receptor);
+      listener(''
+          '', receptor);
     });
   }
 }
@@ -1960,6 +1961,7 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                       widget.context
                           .forward(
                         '/widgets/avatar',
+                        arguments: {'file':widget.receptor.leading},
                       )
                           .then((path) {
                         if (StringUtil.isEmpty(path)) {

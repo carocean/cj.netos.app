@@ -1939,6 +1939,7 @@ class __ChannelItemState extends State<_ChannelItem> {
                       widget.context
                           .forward(
                         '/widgets/avatar',
+                        arguments: {'file':widget.leading},
                       )
                           .then((path) {
                         if (StringUtil.isEmpty(path)) {

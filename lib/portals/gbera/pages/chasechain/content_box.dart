@@ -46,6 +46,13 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
           widget.context.site.getService('/remote/geo/receptors');
       var receptor = await receptorRemote.getReceptor( box.pointer.id);
       if (receptor == null) {
+        _boxPointerRealObject = BoxPointerRealObject(
+          type: 'receptor',
+          title: box.pointer.title,
+          id: box.pointer.id,
+          icon: box.pointer.leading,
+          location: box.location,
+        );
         return;
       }
       var locationJson = receptor.location;
@@ -66,14 +73,22 @@ class _ContentBoxPageState extends State<ContentBoxPage> {
         widget.context.site.getService('/remote/channels');
     var channel = await channelRemote.findChannelOfPerson(
         box.pointer.id, box.pointer.type);
-    if(channel!=null) {
+    if(channel==null) {
       _boxPointerRealObject = BoxPointerRealObject(
         type: 'channel',
-        title: channel.name,
-        id: channel.id,
-        icon: channel.leading,
+        title: box.pointer.title,
+        id: box.pointer.id,
+        icon: box.pointer.leading,
+        location: box.location,
       );
+      return;
     }
+    _boxPointerRealObject = BoxPointerRealObject(
+      type: 'channel',
+      title: channel.name,
+      id: channel.id,
+      icon: channel.leading,
+    );
   }
 
   @override
