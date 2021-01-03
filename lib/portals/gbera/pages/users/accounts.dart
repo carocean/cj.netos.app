@@ -345,7 +345,7 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
             ),
             child: Text.rich(
               TextSpan(
-                text: '当前应用 ',
+                text: '',
                 children: [
                   TextSpan(
                     text: widget.app['appName'],
@@ -435,9 +435,15 @@ class __OtherAppCardState extends State<_OtherAppCard> {
 
   @override
   Widget build(BuildContext context) {
-    var items = <Widget>[];
     var principal = widget.context.principal;
-    List<dynamic> apps=_getRightsApps(principal);
+    List<dynamic> apps = _getRightsApps(principal);
+    if (apps.isEmpty) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+    var items = <Widget>[];
     for (var app in apps) {
       var appLogoUrl =
           '${app['appLogo']}?accessToken=${widget.context.principal.accessToken}';
@@ -587,20 +593,19 @@ class __OtherAppCardState extends State<_OtherAppCard> {
   }
 
   List _getRightsApps(UserPrincipal principal) {
-    var apps=[];
+    var apps = [];
     apps.addAll(_applist);
     print(principal.roles);
-    apps.removeWhere((element) => element['appid']==principal.appid);
-    if(!principal.roles.contains('app:users@la.netos')){
-      apps.removeWhere((element) => element['appid']=='la.netos');
+    apps.removeWhere((element) => element['appid'] == principal.appid);
+    if (!principal.roles.contains('app:users@la.netos')) {
+      apps.removeWhere((element) => element['appid'] == 'la.netos');
     }
-    if(!principal.roles.contains('app:users@isp.netos')){
-      apps.removeWhere((element) => element['appid']=='isp.netos');
+    if (!principal.roles.contains('app:users@isp.netos')) {
+      apps.removeWhere((element) => element['appid'] == 'isp.netos');
     }
-    if(!principal.roles.contains('platform:administrators')){
-      apps.removeWhere((element) => element['appid']=='system.netos');
+    if (!principal.roles.contains('platform:administrators')) {
+      apps.removeWhere((element) => element['appid'] == 'system.netos');
     }
     return apps;
   }
-
 }

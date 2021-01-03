@@ -54,33 +54,33 @@
 		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的多媒体</string>
+	<string>想要访问您的多媒体</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string></string>
+	<string>想要访问您的蓝牙</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的日历</string>
+	<string>想要访问您的日历</string>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的相机。</string>
+	<string>想要访问您的相机。</string>
 	<key>NSContactsUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的通讯录。</string>
+	<string>想要访问您的通讯录。</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
+	<string>想要在应用使用期间访问您的位置</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
+	<string>想要在应用使用期间访问您的位置</string>
 	<key>NSLocationUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
+	<string>想要在应用使用期间访问您的位置</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
+	<string>想要在应用使用期间访问您的位置</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要调起您的电话.</string>
+	<string>想要调起您的电话.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your motion.</string>
+	<string>想要访问您的健康</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的截屏功能.</string>
+	<string>想要访问您的截屏功能.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) 想要访问您的照片.</string>
+	<string>想要访问您的照片.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your SpeechRecognition.</string>
+	<string>想要访问您的语音</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

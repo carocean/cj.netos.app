@@ -61,7 +61,7 @@ class _AmountSettingsState extends State<AmountSettings> {
         controller: _amountController,
         autofocus: false,
         focusNode: _amount_focus_node,
-        keyboardType: TextInputType.numberWithOptions(),
+        keyboardType: TextInputType.numberWithOptions(decimal: true,signed: true),
         validator: amountValidator,
         onChanged: (v) {
           setState(() {});

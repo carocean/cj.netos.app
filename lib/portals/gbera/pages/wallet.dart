@@ -757,44 +757,7 @@ class _WalletState extends State<Wallet> {
         ],
       ),
     );
-    var card_zq;
-    if (_myWallet?.banks == null || _myWallet?.banks.isEmpty) {
-      card_zq = Container(
-        color: Colors.white,
-        margin: EdgeInsets.only(
-          top: 2,
-        ),
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-          top: 20,
-          bottom: 20,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '没有纹银账户',
-          style: TextStyle(
-            color: Colors.grey[500],
-          ),
-        ),
-      );
-    } else {
-      card_zq = Container(
-        color: Colors.white,
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: _myWallet.banks.map((bank) {
-            return WenyItemWidget(
-              context: widget.context,
-              bank: bank,
-            );
-          }).toList(),
-        ),
-      );
-    }
+
     return Scaffold(
       body: ConstrainedBox(
         constraints: BoxConstraints.expand(),
@@ -842,61 +805,84 @@ class _WalletState extends State<Wallet> {
                 child: card_apply,
               ),
             ),
-            SliverToBoxAdapter(
-              child: Container(
-                padding: EdgeInsets.only(
-                  left: 15,
-                  bottom: 2,
-                  right: 15,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      '纹银账户',
-                      style: TextStyle(
-                        color: Colors.black45,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        _loadAccounts().then((value) {
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 4,
-                          right: 2,
-                        ),
-                        child: Icon(
-                          Icons.refresh,
-                          size: 14,
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            ..._renderWenyPanel(),
+          ],
+        ),
+      ),
+    );
+  }
+  List<Widget> _renderWenyPanel(){
+    var items=<Widget>[];
+    if (_myWallet?.banks == null || _myWallet?.banks?.isEmpty) {
+      return items;
+    }
+    items.add(SliverToBoxAdapter(
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 15,
+          bottom: 2,
+          right: 15,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              '纹银账户',
+              style: TextStyle(
+                color: Colors.black45,
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
               ),
             ),
-            SliverToBoxAdapter(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                _loadAccounts().then((value) {
+                  if (mounted) {
+                    setState(() {});
+                  }
+                });
+              },
               child: Padding(
                 padding: EdgeInsets.only(
-                  bottom: 10,
+                  left: 4,
+                  right: 2,
                 ),
-                child: card_zq,
+                child: Icon(
+                  Icons.refresh,
+                  size: 14,
+                  color: Colors.grey[500],
+                ),
               ),
             ),
           ],
         ),
       ),
+    ),);
+    var card_zq = Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        left: 10,
+        right: 10,
+      ),
+      child: Column(
+        children: _myWallet.banks.map((bank) {
+          return WenyItemWidget(
+            context: widget.context,
+            bank: bank,
+          );
+        }).toList(),
+      ),
     );
+    items.add(SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: 10,
+        ),
+        child: card_zq,
+      ),
+    ),);
+    return items;
   }
 }
 

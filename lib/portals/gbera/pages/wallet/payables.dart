@@ -695,7 +695,7 @@ void registerQrcodeAction(PageContext context) {
                         ),
                       ),
                       TextField(
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true,signed: true),
                         decoration: InputDecoration(
                           hintText: '输入金额,单位元。如:2.35',
                           hintStyle: TextStyle(

@@ -1038,7 +1038,7 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
                 }
                 setState(() {});
               },
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true,signed: true),
             ),
           ),
         ),

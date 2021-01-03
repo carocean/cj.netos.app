@@ -154,7 +154,7 @@ class _TranslateToPageState extends State<TranslateToPage> {
                   ),
                   TextField(
                     controller: _controller,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true,signed: true),
                     autofocus: true,
                     inputFormatters: [
                       // WhitelistingTextInputFormatter.digitsOnly

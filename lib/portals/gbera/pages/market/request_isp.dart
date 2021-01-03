@@ -1140,7 +1140,7 @@ class _RequestISPState extends State<RequestISP> {
               Expanded(
                 child: TextField(
                   controller: _masterRealName,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
                   style: TextStyle(
                     fontSize: 14,
                   ),

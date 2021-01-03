@@ -101,7 +101,7 @@ class _GeoSetUpdateRateState extends State<GeoSetUpdateRate> {
                       fit: FlexFit.loose,
                       child: TextField(
                         controller: _distanceController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true,signed: true),
                         autofocus: true,
                         onSubmitted: (v) {
                           print(v);
