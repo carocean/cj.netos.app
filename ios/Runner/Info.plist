@@ -54,31 +54,31 @@
 		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>My description about why I need this capability</string>
+	<string>$(PRODUCT_NAME) 想要访问您的多媒体</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string></string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your calendar.</string>
+	<string>$(PRODUCT_NAME) 想要访问您的日历</string>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your camera.</string>
+	<string>$(PRODUCT_NAME) 想要访问您的相机。</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Your description of why you are requesting permissions.</string>
+	<string>$(PRODUCT_NAME) 想要访问您的通讯录。</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string></string>
+	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string></string>
+	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
 	<key>NSLocationUsageDescription</key>
-	<string></string>
+	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>需要定位权限</string>
+	<string>$(PRODUCT_NAME) 想要在应用使用期间访问您的位置</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your microphone.</string>
+	<string>$(PRODUCT_NAME) 想要调起您的电话.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>$(PRODUCT_NAME) use your motion.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Take pretty screenshots and save it to the PhotoLibrary.</string>
+	<string>$(PRODUCT_NAME) 想要访问您的截屏功能.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) use your photo.</string>
+	<string>$(PRODUCT_NAME) 想要访问您的照片.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>$(PRODUCT_NAME) use your SpeechRecognition.</string>
 	<key>UIBackgroundModes</key>
