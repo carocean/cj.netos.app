@@ -569,7 +569,7 @@ class __OtherAppCardState extends State<_OtherAppCard> {
               right: 10,
             ),
             child: Text(
-              '申请其它应用账号',
+              '其它应用账号',
               style: TextStyle(
                 color: Colors.grey[500],
                 fontSize: 16,
