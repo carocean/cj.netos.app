@@ -15,6 +15,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/phoenix_footer.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
@@ -260,6 +261,20 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         });
                       });
                       break;
+                    case '/netflow/recycleBin':
+                      widget.context
+                          .forward(
+                        value,
+                      )
+                          .then((v) {
+                        _items.clear();
+                        _loadChannels().then((v) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      });
+                      break;
                     // case '/netflow/manager/scan_channel':
                     //   String cameraScanResult = await scanner.scan();
                     //   if (cameraScanResult == null) break;
@@ -390,6 +405,30 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
                         ),
                         Text(
                           '我的公众',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: '/netflow/recycleBin',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            FontAwesomeIcons.recycle,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '回收站',
                           style: TextStyle(
                             fontSize: 14,
                           ),

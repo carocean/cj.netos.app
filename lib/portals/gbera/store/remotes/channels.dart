@@ -198,10 +198,32 @@ class ChannelRemote implements IChannelRemote, IServiceBuilder {
   }
 
   @override
+  Future<List<Channel>> pageMyDeletedChannel(int limit, int offset)async {
+    var list = await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'pageMyDeletedChannel', parameters: {
+      'limit': '$limit',
+      'offset': '$offset',
+    });
+    var channels = <Channel>[];
+    for (var obj in list) {
+      channels.add(Channel.fromMap(obj, principal.person,));
+    }
+    return channels;
+  }
+
+  @override
   Future<Function> removeChannel(String channel) async {
     await remotePorts
         .portGET(_linkNetflowPortsUrl, 'removeChannel', parameters: {
       'channel': channel,
+    });
+  }
+
+  @override
+  Future<Function> recoverChannel(String channel) async{
+    await remotePorts
+        .portGET(_linkNetflowPortsUrl, 'recoverChannel', parameters: {
+      'id': channel,
     });
   }
 

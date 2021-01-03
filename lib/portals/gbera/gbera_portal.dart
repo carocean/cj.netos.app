@@ -83,6 +83,7 @@ import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_background.
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_fans.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_lord.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_receptor_mines.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_recycle_bin.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_region.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_select_category.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_set_update_rate.dart';
@@ -122,6 +123,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel_popularize.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_portal.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_publish_article_ios.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_qrcode.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel_recycle_bin.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_rename.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channels_of_user.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/create_channel.dart';
@@ -1137,6 +1139,26 @@ class GberaPortal {
           icon: Icons.art_track,
           url: '/netflow/channel/router',
           buildPage: (PageContext pageContext) => ChannelRouter(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '管道回收站',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/netflow/recycleBin',
+          buildPage: (PageContext pageContext) => ChannelRecycleBin(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '地圈回收站',
+          subtitle: '',
+          desc: '',
+          icon: Icons.art_track,
+          url: '/geosphere/recycleBin',
+          buildPage: (PageContext pageContext) => GeoRecycleBin(
             context: pageContext,
           ),
         ),

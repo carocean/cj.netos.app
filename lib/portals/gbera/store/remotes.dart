@@ -4,6 +4,7 @@ import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 
@@ -263,6 +264,11 @@ mixin IChannelRemote {
 
   Future<void> addOutputPersonBy(
       String channelCreator, String person, String channel) {}
+
+  Future<List<Channel>> pageMyDeletedChannel(int limit, int offset) {}
+
+ Future<void> recoverChannel(String id) {}
+
 }
 mixin IChatRoomRemote {
   Future<void> removeMember(String code, official) {}
@@ -316,7 +322,5 @@ mixin IChatRoomRemote {
 
   Future<List<String>> listFlagRoomMember(String creator, String id) {}
 
-
-  Future<int> totalMember(String roomCreator,String room) {}
-
+  Future<int> totalMember(String roomCreator, String room) {}
 }

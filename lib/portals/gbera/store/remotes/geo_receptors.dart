@@ -188,6 +188,7 @@ mixin IGeoReceptorRemote {
   Future<void> addMedia(GeosphereMediaOL media) {}
 
   Future<void> addMedia2(GeosphereMediaOL media) {}
+
   Future<void> pageLikeTask(
       String docCreator, String docid, String receptor, int limit, int offset);
 
@@ -202,6 +203,9 @@ mixin IGeoReceptorRemote {
 
   void listenMediaTaskCallback(Function(List medias) callback);
 
+  Future<List<GeoReceptor>> pageMyDeletedReceptor(int limit, int offset) {}
+
+ Future<void> recoverReceptor(String id) {}
 
 }
 
@@ -224,6 +228,34 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
     AppDatabase db = site.getService('@.db');
     receptorDAO = db.geoReceptorDAO;
     return null;
+  }
+
+  @override
+  Future<List<GeoReceptor>> pageMyDeletedReceptor(int limit, int offset) async{
+   var list= await remotePorts.portGET(
+      _receptorPortsUrl,
+      'pageMyDeletedReceptor',
+      parameters: {
+        'limit': limit,
+        'skip': offset,
+      },
+    );
+   List<GeoReceptor> receptors=[];
+   for(var obj in list){
+     receptors.add(GeoReceptor.load(obj, 'true', principal.person));
+   }
+   return receptors;
+  }
+
+  @override
+  Future<Function> recoverReceptor(String id) async{
+    await remotePorts.portGET(
+      _receptorPortsUrl,
+      'recoverReceptor',
+      parameters: {
+        'id': id,
+      },
+    );
   }
 
   @override
@@ -488,7 +520,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
   }
 
   @override
-  Future<Function> addMedia2(GeosphereMediaOL mediaOL) async{
+  Future<Function> addMedia2(GeosphereMediaOL mediaOL) async {
     var media = {
       'receptor': mediaOL.receptor,
       'docid': mediaOL.msgid,
@@ -498,13 +530,9 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       'text': mediaOL.text,
       'leading': mediaOL.leading,
     };
-    await remotePorts.portPOST(
-      _receptorPortsUrl,
-      'addMedia2',
-      data: {
-        'media':jsonEncode(media),
-      }
-    );
+    await remotePorts.portPOST(_receptorPortsUrl, 'addMedia2', data: {
+      'media': jsonEncode(media),
+    });
   }
 
   @override
@@ -984,10 +1012,12 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
 
   @override
   void listenCommentTaskCallback(Function(List comments) callback) {
-    if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/comments')) {
+    if (remotePorts.portTask
+        .hasListener('/geosphere/receptor/extra/comments')) {
       return;
     }
-    remotePorts.portTask.listener('/geosphere/receptor/extra/comments', (frame) {
+    remotePorts.portTask.listener('/geosphere/receptor/extra/comments',
+        (frame) {
       switch (frame.head('sub-command')) {
         case 'begin':
           break;
@@ -1001,6 +1031,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       }
     });
   }
+
   @override
   Future<void> pageCommentTask(
       String docCreator, String docid, String receptor, int limit, int offset) {
@@ -1015,6 +1046,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       callbackUrl: '/geosphere/receptor/extra/comments',
     );
   }
+
   @override
   void listenLikeTaskCallback(Function(List likes) callback) {
     if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/likes')) {
@@ -1049,6 +1081,7 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       callbackUrl: '/geosphere/receptor/extra/likes',
     );
   }
+
   @override
   void listenMediaTaskCallback(Function(List medias) callback) {
     if (remotePorts.portTask.hasListener('/geosphere/receptor/extra/medias')) {
@@ -1080,7 +1113,4 @@ class GeoReceptorRemote implements IGeoReceptorRemote, IServiceBuilder {
       callbackUrl: '/geosphere/receptor/extra/medias',
     );
   }
-
-
-
 }

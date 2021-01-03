@@ -764,6 +764,19 @@ class _GeosphereState extends State<Geosphere>
                         });
                       });
                       break;
+                    case '/geosphere/recycleBin':
+                      widget.context
+                          .forward(
+                        value,
+                      )
+                          .then((result) {
+                        _offset = 0;
+                        _receptorStreamController.add('refresh');
+                        _loadReceptors().then((v) {
+                          setState(() {});
+                        });
+                      });
+                      break;
                     // case '/netflow/manager/scan_receptor':
                     //   break;
                     // case '/netflow/manager/search_receptor':
@@ -819,6 +832,30 @@ class _GeosphereState extends State<Geosphere>
                         ),
                         Text(
                           '我的公众',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: '/geosphere/recycleBin',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: 10,
+                          ),
+                          child: Icon(
+                            FontAwesomeIcons.recycle,
+                            color: Colors.grey[500],
+                            size: 15,
+                          ),
+                        ),
+                        Text(
+                          '回收站',
                           style: TextStyle(
                             fontSize: 14,
                           ),
