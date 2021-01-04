@@ -47,7 +47,7 @@ class _ChatMemberPlusPageState extends State<ChatMemberPlusPage> {
   }
 
   Future<void> _refresh() async {
-    _offset=0;
+    _offset = 0;
     _friends.clear();
     await _load();
   }
@@ -115,9 +115,9 @@ class _ChatMemberPlusPageState extends State<ChatMemberPlusPage> {
             hintStyle: _focusNode.hasFocus
                 ? null
                 : TextStyle(
-              fontSize: 20,
-              color: Colors.black,
-            ),
+                    fontSize: 20,
+                    color: Colors.black,
+                  ),
             suffix: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
@@ -140,26 +140,26 @@ class _ChatMemberPlusPageState extends State<ChatMemberPlusPage> {
         actions: [
           _selectedFriends.isEmpty
               ? SizedBox(
-            width: 0,
-            height: 0,
-          )
+                  width: 0,
+                  height: 0,
+                )
               : Padding(
-            padding: EdgeInsets.only(
-              top: 12,
-              bottom: 12,
-              right: 15,
-            ),
-            child: RaisedButton(
-              onPressed: () {
-                _done();
-              },
-              color: Colors.green,
-              textColor: Colors.white,
-              child: Text(
-                '完成(${_selectedFriends.length})',
-              ),
-            ),
-          ),
+                  padding: EdgeInsets.only(
+                    top: 12,
+                    bottom: 12,
+                    right: 15,
+                  ),
+                  child: RaisedButton(
+                    onPressed: () {
+                      _done();
+                    },
+                    color: Colors.green,
+                    textColor: Colors.white,
+                    child: Text(
+                      '完成(${_selectedFriends.length})',
+                    ),
+                  ),
+                ),
         ],
       ),
       body: Column(
@@ -300,35 +300,41 @@ class _ChatMemberPlusPageState extends State<ChatMemberPlusPage> {
         height: 0,
       );
     }
-    for (var friend in _friends) {
-      for (var person in _selectedFriends) {
-        if (friend.official != person) {
-          continue;
+
+    for (var person in _selectedFriends) {
+      var found;
+      for (var friend in _friends) {
+        if (friend.official == person) {
+          found = friend;
+          break;
         }
-        items.add(
-          Container(
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context
-                    .forward('/person/view', arguments: {'person': friend.toPerson()});
-              },
-              onLongPress: () {
-                _selectedFriends.removeWhere((p) {
-                  return p == person;
-                });
-                setState(() {});
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: getAvatarWidget(friend.avatar, widget.context),
-              ),
+      }
+      if (found == null) {
+        continue;
+      }
+      items.add(
+        Container(
+          width: 40,
+          height: 40,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context.forward('/person/view',
+                  arguments: {'person': found.toPerson()});
+            },
+            onLongPress: () {
+              _selectedFriends.removeWhere((p) {
+                return p == person;
+              });
+              setState(() {});
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: getAvatarWidget(found.avatar, widget.context),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
     if (items.isNotEmpty) {
       items.add(

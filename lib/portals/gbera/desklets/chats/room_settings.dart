@@ -691,115 +691,117 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       }
       var avatar =
           StringUtil.isEmpty(member.leading) ? person?.avatar : member.leading;
-      items.add(
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            if (member.type == 'wybank') {
-              widget.context
-                  .forward('/portlet/chat/room/view_licence', arguments: {
-                'bankid': member.person,
-              });
-              return;
-            }
+      var panel = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          if (member.type == 'wybank') {
             widget.context
-                .forward('/person/view', arguments: {'person': person});
-          },
-          onLongPress: () {
-            showDialog(
-              context: context,
-//                          child: Text('xx'),
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('是否删除？'),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text(
-                        '删除',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
-                      onPressed: () {
-                        widget.context.backward(result: 'delete');
-                      },
-                    ),
-                    FlatButton(
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
-                      onPressed: () {
-                        widget.context.backward(result: 'cancel');
-                      },
-                    ),
-                  ],
-                );
-              },
-            ).then((action) {
-              if (action != 'delete') {
-                return;
-              }
-              _removeMember(person).then((v) {
-                if (mounted) {
-                  setState(() {});
-                }
-              });
+                .forward('/portlet/chat/room/view_licence', arguments: {
+              'bankid': member.person,
             });
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Stack(
-                fit: StackFit.passthrough,
-                overflow: Overflow.visible,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 2,
-                    ),
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(4),
-                        ),
-                        child: getAvatarWidget(avatar, widget.context),
+            return;
+          }
+          widget.context.forward('/person/view', arguments: {'person': person});
+        },
+        onLongPress: () {
+          showDialog(
+            context: context,
+//                          child: Text('xx'),
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('是否删除？'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text(
+                      '删除',
+                      style: TextStyle(
+                        color: Colors.black87,
                       ),
                     ),
+                    onPressed: () {
+                      widget.context.backward(result: 'delete');
+                    },
                   ),
-                  Positioned(
-                    right: -6,
-                    bottom: -2,
-                    child: isOwner
-                        ? Icon(
-                            Icons.settings,
-                            size: 12,
-                            color: Colors.redAccent,
-                          )
-                        : Container(
-                            width: 0,
-                            height: 0,
-                          ),
+                  FlatButton(
+                    child: Text(
+                      '取消',
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                    onPressed: () {
+                      widget.context.backward(result: 'cancel');
+                    },
                   ),
                 ],
-              ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
+              );
+            },
+          ).then((action) {
+            if (action != 'delete') {
+              return;
+            }
+            _removeMember(person).then((v) {
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          });
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Stack(
+              fit: StackFit.passthrough,
+              overflow: Overflow.visible,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: 2,
+                  ),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(4),
+                      ),
+                      child: getAvatarWidget(avatar, widget.context),
+                    ),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                Positioned(
+                  right: -6,
+                  bottom: -2,
+                  child: isOwner
+                      ? Icon(
+                          Icons.settings,
+                          size: 12,
+                          color: Colors.redAccent,
+                        )
+                      : Container(
+                          width: 0,
+                          height: 0,
+                        ),
+                ),
+              ],
+            ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
               ),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       );
+      if (isOwner) {
+        items.insert(0, panel);
+      } else {
+        items.add(panel);
+      }
     }
     items.add(plusMemberButton);
     if (_isManager()) {

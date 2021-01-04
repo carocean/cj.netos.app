@@ -221,60 +221,84 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
         leading = person.avatar;
         title = person.nickName;
       }
-      items.add(
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (member.type == 'wybank') {
-              widget.context
-                  .forward('/portlet/chat/room/view_licence', arguments: {
-                'bankid': member.person,
-              });
-              return;
-            }
+      dynamic avatar=SizedBox(
+        height: 40,
+        width: 40,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: getAvatarWidget(leading, widget.context),
+        ),
+      );
+      bool isCreator=member.person==_chatRoom.creator;
+      if(isCreator){
+        avatar=Stack(
+          alignment: Alignment.center,
+          overflow: Overflow.visible,
+          children: [
+            avatar,
+            Positioned(
+              right: -5,
+              bottom: -6,
+              child: Icon(
+                Icons.settings,
+                size: 12,
+                color: Colors.redAccent,
+              ),
+            ),
+          ],
+        );
+      }
+      var panel=GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (member.type == 'wybank') {
             widget.context
-                .forward('/person/view', arguments: {'person': model.person});
-          },
-          child: Padding(
-            padding: EdgeInsets.all(10),
-            child: SizedBox(
-              width: 50,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: getAvatarWidget(leading, widget.context),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            '${title}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                .forward('/portlet/chat/room/view_licence', arguments: {
+              'bankid': member.person,
+            });
+            return;
+          }
+          widget.context
+              .forward('/person/view', arguments: {'person': model.person});
+        },
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: SizedBox(
+            width: 50,
+            child: Column(
+              children: [
+                avatar,
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '${title}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
       );
+      if(isCreator){
+        items.insert(0,panel);
+      }else{
+        items.add(panel);
+      }
+
     }
     items.add(
       _renderPlusMemberButton(),

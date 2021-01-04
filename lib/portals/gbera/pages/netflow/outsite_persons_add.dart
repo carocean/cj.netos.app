@@ -71,6 +71,9 @@ class _OutsitePersonsAddsPageState extends State<OutsitePersonsAddsPage> {
 
     var personList = <String>[];
     for (var p in _cached) {
+      if(p.official==_channel.owner){
+        continue;
+      }
       personList.add(p.official);
     }
     //求剩余未被选择的公众
@@ -85,6 +88,7 @@ class _OutsitePersonsAddsPageState extends State<OutsitePersonsAddsPage> {
       return;
     }
     this._persons_offset += persons.length;
+    persons.removeWhere((element) => element.official==_channel.owner);
     _persons.addAll(persons);
     if (mounted) {
       setState(() {});
@@ -265,9 +269,16 @@ class _OutsitePersonsAddsPageState extends State<OutsitePersonsAddsPage> {
         height: 0,
       );
     }
-    for (var friend in _persons) {
+
       for (var person in _selectedPersons) {
-        if (friend.official != person) {
+        var found;
+        for (var friend in _persons) {
+          if (friend.official == person) {
+            found=friend;
+            break;
+          }
+        }
+        if(found==null) {
           continue;
         }
         items.add(
@@ -278,7 +289,7 @@ class _OutsitePersonsAddsPageState extends State<OutsitePersonsAddsPage> {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 widget.context
-                    .forward('/person/view', arguments: {'person': friend});
+                    .forward('/person/view', arguments: {'person': found});
               },
               onLongPress: () {
                 _selectedPersons.removeWhere((p) {
@@ -288,13 +299,12 @@ class _OutsitePersonsAddsPageState extends State<OutsitePersonsAddsPage> {
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: getAvatarWidget(friend.avatar, widget.context),
+                child: getAvatarWidget(found.avatar, widget.context),
               ),
             ),
           ),
         );
       }
-    }
     if (items.isNotEmpty) {
       items.add(
         GestureDetector(

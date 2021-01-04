@@ -47,7 +47,7 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
   }
 
   Future<void> _refresh() async {
-    _offset=0;
+    _offset = 0;
     _memberModels.clear();
     await _load();
   }
@@ -59,11 +59,10 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
         widget.context.site.getService('/gbera/persons');
     List<RoomMember> members;
     if (StringUtil.isEmpty(_query)) {
-      members =
-      await chatRoomService.pageMember(_chatRoom.id, _limit, _offset);
-    }else{
-      members =
-      await chatRoomService.pageMemberLike('%$_query%',_chatRoom.id, _limit, _offset);
+      members = await chatRoomService.pageMember(_chatRoom.id, _limit, _offset);
+    } else {
+      members = await chatRoomService.pageMemberLike(
+          '%$_query%', _chatRoom.id, _limit, _offset);
     }
     if (members.isEmpty) {
       if (mounted) {
@@ -74,7 +73,7 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
     _offset += members.length;
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
-      if (person==null||person.official == _chatRoom.creator) {
+      if (person == null || person.official == _chatRoom.creator) {
         continue;
       }
       _memberModels.add(_MemberModel(person: person, member: member));
@@ -285,8 +284,8 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      widget.context
-                          .forward('/person/view', arguments: {'person': person});
+                      widget.context.forward('/person/view',
+                          arguments: {'person': person});
                     },
                     child: Icon(
                       Icons.info,
@@ -321,36 +320,42 @@ class _ChatMemberRemovePageState extends State<ChatMemberRemovePage> {
         height: 0,
       );
     }
-    for (var member in _memberModels) {
-      var creator = member.person;
-      for (var person in _selectedFriends) {
-        if (creator.official != person) {
-          continue;
+
+    for (var person in _selectedFriends) {
+      var found;
+      for (var member in _memberModels) {
+        var creator = member.person;
+        if (creator.official == person) {
+          found = creator;
+          break;
         }
-        items.add(
-          Container(
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context
-                    .forward('/person/view', arguments: {'person': creator});
-              },
-              onLongPress: () {
-                _selectedFriends.removeWhere((p) {
-                  return p == person;
-                });
-                setState(() {});
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: getAvatarWidget(creator.avatar, widget.context),
-              ),
+      }
+      if (found == null) {
+        continue;
+      }
+      items.add(
+        Container(
+          width: 40,
+          height: 40,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context
+                  .forward('/person/view', arguments: {'person': found});
+            },
+            onLongPress: () {
+              _selectedFriends.removeWhere((p) {
+                return p == person;
+              });
+              setState(() {});
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: getAvatarWidget(found.avatar, widget.context),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
     if (items.isNotEmpty) {
       items.add(

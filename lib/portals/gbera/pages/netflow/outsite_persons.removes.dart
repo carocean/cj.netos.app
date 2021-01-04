@@ -22,6 +22,7 @@ class _OutsitePersonsRemovesPageState extends State<OutsitePersonsRemovesPage> {
   Channel _channel;
   int _limit = 20, _offset = 0;
   String _originPerson;
+
   @override
   void initState() {
     _channel = widget.context.parameters['channel'];
@@ -44,7 +45,7 @@ class _OutsitePersonsRemovesPageState extends State<OutsitePersonsRemovesPage> {
 
   Future<void> _load() async {
     IChannelRemote channelRemote =
-    widget.context.site.getService('/remote/channels');
+        widget.context.site.getService('/remote/channels');
     var persons = await channelRemote.pageOutputPersonOf(
         _channel.id, _originPerson, _limit, _offset);
     if (persons.isEmpty) {
@@ -249,35 +250,41 @@ class _OutsitePersonsRemovesPageState extends State<OutsitePersonsRemovesPage> {
         height: 0,
       );
     }
-    for (var creator in _persons) {
-      for (var person in _selectedPersons) {
-        if (creator.official != person) {
-          continue;
+
+    for (var person in _selectedPersons) {
+      var found;
+      for (var creator in _persons) {
+        if (creator.official == person) {
+          found = creator;
+          break;
         }
-        items.add(
-          Container(
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.context
-                    .forward('/person/view', arguments: {'person': creator});
-              },
-              onLongPress: () {
-                _selectedPersons.removeWhere((p) {
-                  return p == person;
-                });
-                setState(() {});
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: getAvatarWidget(creator.avatar, widget.context),
-              ),
+      }
+      if (found == null) {
+        continue;
+      }
+      items.add(
+        Container(
+          width: 40,
+          height: 40,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.context
+                  .forward('/person/view', arguments: {'person': found});
+            },
+            onLongPress: () {
+              _selectedPersons.removeWhere((p) {
+                return p == person;
+              });
+              setState(() {});
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: getAvatarWidget(found.avatar, widget.context),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
     if (items.isNotEmpty) {
       items.add(

@@ -140,7 +140,7 @@ class _PersonListRegion extends StatefulWidget {
 
 class __PersonListRegionState extends State<_PersonListRegion> {
   Channel _channel;
-  int _limit = 20;
+  int _limit = 500;
   int _offset = 0;
   List<Person> _persons = [];
   bool _isAddingPersons = false;
@@ -194,6 +194,7 @@ class __PersonListRegionState extends State<_PersonListRegion> {
     var persons = await channelRemote.pageOutputPersonOf(
         _channel.id, _originPerson, _limit, _offset);
     if (persons.isEmpty) {
+
       return;
     }
     _offset += persons.length;

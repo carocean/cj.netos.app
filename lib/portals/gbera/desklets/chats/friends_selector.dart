@@ -245,40 +245,46 @@ class _FriendsSelectorState extends State<FriendsSelector> {
       return body;
     }
     var items = <Widget>[];
-    for (var friend in _contactList) {
+
+    for (var person in _selectedFriends) {
       if (items.length >= 11) {
         //最多显示11个已选中的,带上一个更多总共12个
         break;
       }
-      for (var person in _selectedFriends) {
-        if (friend.person != person) {
-          continue;
+      var found;
+      for (var friend in _contactList) {
+        if (friend.person == person) {
+          found = friend;
+          break;
         }
-        items.add(
-          Container(
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                Friend f = friend.attach;
-                widget.context.forward('/person/view',
-                    arguments: {'person': f.toPerson()});
-              },
-              onLongPress: () {
-                _selectedFriends.removeWhere((p) {
-                  return p == person;
-                });
-                setState(() {});
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: getAvatarWidget(friend.avatar, widget.context),
-              ),
+      }
+      if (found==null) {
+        continue;
+      }
+      items.add(
+        Container(
+          width: 40,
+          height: 40,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Friend f = found.attach;
+              widget.context
+                  .forward('/person/view', arguments: {'person': f.toPerson()});
+            },
+            onLongPress: () {
+              _selectedFriends.removeWhere((p) {
+                return p == person;
+              });
+              setState(() {});
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: getAvatarWidget(found.avatar, widget.context),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
     if (items.isNotEmpty) {
       items.add(
@@ -299,10 +305,30 @@ class _FriendsSelectorState extends State<FriendsSelector> {
                 color: Colors.grey[400],
               ),
             ),
-            child: Icon(
-              Icons.arrow_forward_ios,
-              size: 18,
-              color: Colors.grey,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 18,
+                  color: Colors.grey,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  left: 0,
+                  child: Center(
+                    child: Text(
+                      '${_selectedFriends.length}',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
