@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel_handler.dart';
@@ -226,6 +227,8 @@ class _MessagesRegionState extends State<_MessagesRegion> {
   @override
   Widget build(BuildContext context) {
     return EasyRefresh(
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       controller: _controller,
       onLoad: _onLoadMessages,
       child: ListView(

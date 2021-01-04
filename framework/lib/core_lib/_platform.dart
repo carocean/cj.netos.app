@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:framework/core_lib/_utimate.dart';
 
 import '_app_surface.dart';
@@ -108,6 +109,15 @@ class __PlatformAppState extends State<_PlatformApp> {
         home: _appSurface.home,
         navigatorObservers: [
           _appNavigatorObserver,
+        ],
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('zh', 'CN'),
+          const Locale('en', 'US'),
         ],
       ),
     );

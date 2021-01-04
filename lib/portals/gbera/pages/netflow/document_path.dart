@@ -8,6 +8,7 @@ import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
@@ -240,6 +241,8 @@ class _DocumentPathState extends State<DocumentPath> {
         body: Container(
           color: Colors.white,
           child: EasyRefresh(
+            header: easyRefreshHeader(),
+            footer: easyRefreshFooter(),
             controller: _controller,
             onLoad: _loadActivities,
             child: ListView(

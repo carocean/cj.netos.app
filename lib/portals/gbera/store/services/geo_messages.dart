@@ -209,7 +209,11 @@ class GeosphereMessageService
           media['receptor'],
           principal.person,
         );
-        await this.mediaDAO.addMedia(mediaOL);
+        try {
+          await this.mediaDAO.addMedia(mediaOL);
+        }catch(e){
+          print('消息多媒体附件存入出错:$e');
+        }
       }
     });
 

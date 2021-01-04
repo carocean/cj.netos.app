@@ -17,6 +17,7 @@ import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -443,6 +444,8 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         ),
         Expanded(
           child: EasyRefresh.custom(
+            header: MaterialHeader(),
+            footer: MaterialFooter(),
             controller: _controller,
             onLoad: _loadChannels,
             slivers: <Widget>[
@@ -753,15 +756,16 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
   Lock _lock;
   StreamSubscription _refresh_streamSubscription;
   StreamSubscription _onlineEventStreamSubscription;
+
   @override
   void initState() {
     _lock = Lock();
     _listenMeidaFileDownload();
 
-    if(deviceStatus.state==DeviceNetState.online){
+    if (deviceStatus.state == DeviceNetState.online) {
       _listen();
-    }else{
-      _onlineEventStreamSubscription=onlineEvent.stream.listen((event) {
+    } else {
+      _onlineEventStreamSubscription = onlineEvent.stream.listen((event) {
         _listen();
       });
     }
@@ -786,7 +790,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     _onlineEventStreamSubscription?.cancel();
     super.dispose();
   }
-  void _listen(){
+
+  void _listen() {
     if (!widget.context.isListeningMessage(matchPath: '/netflow/channel')) {
       widget.context.listenMessage((frame) async {
         switch (frame.command) {
@@ -846,6 +851,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       }, matchPath: '/netflow/channel');
     }
   }
+
   Future<void> _arrivedUnlikeDocumentCommand(Frame frame) async {
     var text = frame.contentText;
     if (StringUtil.isEmpty(text)) {
@@ -1209,9 +1215,9 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       return null;
     }
 //    print(docMap);
-    var sourceCreator=docMap['sourceCreator'];
-    if(StringUtil.isEmpty(sourceCreator)) {
-      sourceCreator=docMap['creator'];
+    var sourceCreator = docMap['sourceCreator'];
+    if (StringUtil.isEmpty(sourceCreator)) {
+      sourceCreator = docMap['creator'];
     }
     String absorbabler = '$sourceCreator/${docMap['channel']}';
     AbsorberResultOR absorberResultOR;
@@ -1262,8 +1268,8 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
       var channel = await channelService.fetchChannelOfPerson(
           message.upstreamChannel, message.upstreamPerson);
       if (channel != null) {
-        channel.upstreamPerson=frame.head('sender-person');
-        channel.owner=widget.context.principal.person;
+        channel.upstreamPerson = frame.head('sender-person');
+        channel.owner = widget.context.principal.person;
         IChannelCache channelCache =
             widget.context.site.getService('/cache/channels');
         await channelCache.cache(channel);
@@ -1416,11 +1422,12 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
                       IconButton(
                           icon: Icon(Icons.delete_forever_outlined),
                           onPressed: () {
-                            IInsiteMessageService messageService =
-                            widget.context.site.getService('/insite/messages');
-                            messageService.remove(message.id).then((value){
+                            IInsiteMessageService messageService = widget
+                                .context.site
+                                .getService('/insite/messages');
+                            messageService.remove(message.id).then((value) {
                               _messages.removeWhere((element) {
-                                return element.id==message.id;
+                                return element.id == message.id;
                               });
                             });
                           }),
@@ -1975,12 +1982,10 @@ class __ChannelItemState extends State<_ChannelItem> {
                         );
                         return;
                       }
-                      widget.context
-                          .forward(
+                      widget.context.forward(
                         '/widgets/avatar',
-                        arguments: {'file':widget.leading},
-                      )
-                          .then((path) {
+                        arguments: {'file': widget.leading},
+                      ).then((path) {
                         if (StringUtil.isEmpty(path)) {
                           return;
                         }

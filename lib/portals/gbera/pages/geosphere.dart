@@ -20,6 +20,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -926,6 +927,8 @@ class _GeosphereState extends State<Geosphere>
         ),
         Expanded(
           child: EasyRefresh.custom(
+            header: MaterialHeader(),
+            footer: MaterialFooter(),
             controller: _refreshController,
             onLoad: _onload,
             slivers: <Widget>[
@@ -1409,6 +1412,8 @@ class _GeoDistrictState extends State<_GeoDistrict> {
                     style: TextStyle(
                       fontSize: 8,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(
                     height: 2,

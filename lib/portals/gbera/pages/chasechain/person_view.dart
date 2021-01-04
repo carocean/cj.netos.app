@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:lpinyin/lpinyin.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chattalk_opener.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
@@ -517,6 +518,8 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
   Widget build(BuildContext context) {
     return EasyRefresh.custom(
       shrinkWrap: true,
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       controller: _controller,
       onLoad: _load,
       slivers: _boxList.map((box) {

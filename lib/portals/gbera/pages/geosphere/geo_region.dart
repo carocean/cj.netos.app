@@ -2,6 +2,7 @@ import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
@@ -241,6 +242,8 @@ class _GeoRegionState extends State<GeoRegion> {
             ),
             Expanded(
               child: EasyRefresh(
+                header: easyRefreshHeader(),
+                footer: easyRefreshFooter(),
                 controller: _controller,
                 onLoad: _load,
                 onRefresh: _onRefresh,
@@ -264,6 +267,21 @@ class _GeoRegionState extends State<GeoRegion> {
           children: [
             Text(
               '搜索中...',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+      return items;
+    }
+    if (!_isSearching&&_pois.isEmpty) {
+      items.add(
+        Column(
+          children: [
+            Text(
+              '半径内没有发现${_selectCategory?.title??''}感知器',
               style: TextStyle(
                 color: Colors.grey,
               ),

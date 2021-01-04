@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/util.dart';
@@ -101,6 +102,8 @@ class _ChannelPortalState extends State<ChannelPortal> {
     }
     return Scaffold(
       body: EasyRefresh.custom(
+        header: easyRefreshHeader(),
+        footer: easyRefreshFooter(),
         controller: _refreshController,
 //        onRefresh: _onRefresh,//注释掉则不支持下拉
         onLoad: () {

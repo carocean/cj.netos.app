@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 
@@ -323,8 +324,8 @@ class __RenderContentItemsPanelState extends State<_RenderContentItemsPanel> {
       controller: _controller,
       onRefresh: _refreshContentItems,
       onLoad: _loadContentItems,
-      header: ClassicalHeader(),
-      footer: ClassicalFooter(),
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       slivers: _getContentItemSlivers(),
     );
   }
@@ -802,6 +803,8 @@ class __ChildPoolPanelState extends State<_ChildPoolPanel> {
           height: 28,
         ),
         child: EasyRefresh.custom(
+          header: easyRefreshHeader(),
+          footer: easyRefreshFooter(),
           controller: _controller,
           scrollDirection: Axis.horizontal,
           onRefresh: _refresh,

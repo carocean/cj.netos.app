@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -278,6 +279,8 @@ class _SeeChannelPinPersonsState extends State<SeeChannelPinPersons> {
               ),
               color: Colors.white,
               child: EasyRefresh(
+                header: easyRefreshHeader(),
+                footer: easyRefreshFooter(),
                 controller: _easyRefreshController,
                 onLoad: _load,
                 child: ListView(

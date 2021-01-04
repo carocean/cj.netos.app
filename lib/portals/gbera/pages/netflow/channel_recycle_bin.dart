@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -87,6 +88,8 @@ class _ChannelRecycleBinState extends State<ChannelRecycleBin> {
         children: [
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               controller: _controller,
               onLoad: _load,
               child: ListView(

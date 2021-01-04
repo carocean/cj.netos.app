@@ -5,6 +5,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
@@ -169,6 +170,8 @@ class _GeosphereReceptorDiscoveryState
           ),
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               onLoad: _onloadDiscoveryReceptors,
               controller: _controller,
               child: ListView(

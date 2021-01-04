@@ -15,6 +15,7 @@ import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/persistent_header_delegate.dart';
 import 'package:netos_app/common/util.dart';
@@ -326,6 +327,8 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
                 ),
               ),
         child: EasyRefresh.custom(
+          header: easyRefreshHeader(),
+          footer: easyRefreshFooter(),
           controller: _refreshController,
           onLoad: _onloadMessages,
           slivers: slivers,

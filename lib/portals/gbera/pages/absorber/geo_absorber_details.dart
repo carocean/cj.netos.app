@@ -10,6 +10,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -881,6 +882,8 @@ class _GeoRecipientsCardState extends State<_GeoRecipientsCard> {
           ),
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               onLoad: _onLoad,
               onRefresh: _onRefresh,
               controller: _controller,

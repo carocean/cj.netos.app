@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/portals/gbera/store/gbera_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
@@ -677,6 +678,8 @@ class __MyAbsorberListViewState extends State<_MyAbsorberListView> {
           // ),
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               controller: _controller,
               onLoad: _onLoad,
               onRefresh: _onRefresh,
@@ -1108,6 +1111,8 @@ class __MyJioninAbsorberListViewState extends State<_MyJioninAbsorberListView> {
           // ),
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               controller: _controller,
               onLoad: _onLoad,
               onRefresh: _onRefresh,
@@ -1154,7 +1159,7 @@ class _MyEnterAbsorberListView extends StatefulWidget {
 class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
   EasyRefreshController _controller;
   List<AbsorberResultOR> _absorbers = [];
-  int _limit = 10, _offset = 0;
+  int _limit = 20, _offset = 0;
   int _usage = -1;
   GeoReceptor _myReceptor;
   bool _isLoading = false;
@@ -1195,7 +1200,7 @@ class __MyEnterAbsorberListViewState extends State<_MyEnterAbsorberListView> {
 
     List<GeoPOI> pois = await receptorRemote.searchAroundReceptors(
         receptor: _myReceptor.id,
-        geoType: 'mobiles',
+        geoType: '',
         limit: _limit,
         offset: _offset);
     if (pois.isEmpty) {

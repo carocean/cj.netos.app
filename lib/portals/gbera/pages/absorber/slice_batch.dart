@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:intl/intl.dart' as intl;
@@ -73,6 +74,8 @@ class _SliceBatchPageState extends State<SliceBatchPage> {
         children: [
           Expanded(
             child: EasyRefresh(
+              header: easyRefreshHeader(),
+              footer: easyRefreshFooter(),
               onLoad: _load,
               child: ListView(
                 children: _templates.map((e) {

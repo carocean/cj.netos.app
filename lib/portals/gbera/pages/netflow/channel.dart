@@ -14,6 +14,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow.dart';
@@ -354,6 +355,8 @@ class _ChannelPageState extends State<ChannelPage> {
         ],
       ),
       body: EasyRefresh.custom(
+        header: easyRefreshHeader(),
+        footer: easyRefreshFooter(),
         controller: _refreshController,
 //        onRefresh: _onRefresh,//注释掉onRefresh则不支持下拉
         onLoad: _onload, //onload是上拉

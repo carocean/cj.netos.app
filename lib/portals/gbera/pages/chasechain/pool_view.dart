@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
@@ -805,6 +806,8 @@ class __ContentProviderListPanelState extends State<_ContentProviderListPanel> {
   Widget build(BuildContext context) {
     return EasyRefresh.custom(
       shrinkWrap: true,
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       controller: _controller,
       onLoad: _load,
       slivers: _providers.map((provider) {
@@ -948,6 +951,8 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
   Widget build(BuildContext context) {
     return EasyRefresh.custom(
       shrinkWrap: true,
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       controller: _controller,
       onLoad: _load,
       slivers: _boxList.map((box) {

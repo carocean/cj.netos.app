@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/swipe_refresh.dart';
 import 'package:netos_app/common/util.dart';
@@ -335,6 +336,8 @@ class _PersonsViewState extends State<PersonsView> {
   @override
   Widget build(BuildContext context) {
     return EasyRefresh(
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       controller: _controller,
       onLoad: () async {
         await _onLoadPersons('up');

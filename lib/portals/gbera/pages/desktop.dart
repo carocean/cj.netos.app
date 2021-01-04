@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
@@ -238,6 +239,8 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     );
     _slivers.add(lets_region);
     var myarea = EasyRefresh.custom(
+      header: MaterialHeader(),
+      footer: MaterialFooter(),
       controller: _controller,
       onLoad: _load,
       slivers: _slivers,

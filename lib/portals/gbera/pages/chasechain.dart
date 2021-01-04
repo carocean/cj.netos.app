@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/core_lib/_utimate.dart';
+import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
@@ -209,8 +210,8 @@ class _ChasechainState extends State<Chasechain> {
       controller: _controller,
       onRefresh: _onRefresh,
       onLoad: _load,
-      header: ClassicalHeader(),
-      footer: ClassicalFooter(),
+      header: easyRefreshHeader(),
+      footer: easyRefreshFooter(),
       slivers: _getSlivers(),
     );
   }
