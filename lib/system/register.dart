@@ -29,7 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _showPassword = false;
   String _anonymousAccessToken;
   String _registerLabel = '注册';
-
+  GlobalKey<ScaffoldState> _globalKey=GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -82,13 +82,39 @@ class _RegisterPageState extends State<RegisterPage> {
     _showPassword = false;
     super.dispose();
   }
-
+  var _showed=<String,bool>{};
+  void _showSnack(text){
+    if(_showed.containsKey(text)){
+      return;
+    }
+    _showed[text]=true;
+    _globalKey.currentState.showSnackBar(SnackBar(content: Text('$text'),backgroundColor: Colors.red,),);
+  }
   bool _checkRegister() {
-    return !StringUtil.isEmpty(_avatarRemoteFile) &&
+    if(!StringUtil.isEmpty(_nickNameController.text) &&
+        !StringUtil.isEmpty(_phoneController.text) &&
+        !StringUtil.isEmpty(_passwordController.text)){
+      if(!_agree&&StringUtil.isEmpty(_avatarRemoteFile)){
+        _showSnack('请勾选已同意，并且设置头像');
+        _showed.remove('请勾选已同意');
+        _showed.remove('请设置头像');
+      }else if(!_agree){
+        _showSnack('请勾选已同意');
+        _showed.remove('请勾选已同意，并且设置头像');
+      }else if(StringUtil.isEmpty(_avatarRemoteFile)){
+        _showSnack('请设置头像');
+        _showed.remove('请勾选已同意，并且设置头像');
+      }
+    }
+    var v=!StringUtil.isEmpty(_avatarRemoteFile) &&
         !StringUtil.isEmpty(_nickNameController.text) &&
         !StringUtil.isEmpty(_phoneController.text) &&
         !StringUtil.isEmpty(_passwordController.text) &&
         _agree;
+    if(v){
+      _showed.clear();
+    }
+    return v;
   }
 
   Future<void> _doRegister() async {
@@ -163,6 +189,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     }
     return Scaffold(
+      key: _globalKey,
       appBar: AppBar(
         elevation: 0,
       ),
