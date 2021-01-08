@@ -263,6 +263,9 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             backgroundColor: Colors.transparent,
             toolbarOpacity: 1,
             actions: <Widget>[
+              IconButton(icon: Icon(Icons.live_help_outlined,), onPressed: (){
+                widget.context.forward('/system/help_feedback');
+              },),
               TipToolButton(
                 context: widget.context,
               ),
