@@ -17,6 +17,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
+import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 
 class Desktop extends StatefulWidget {
   PageContext context;
@@ -52,6 +53,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
       }
     });
     _registerQrcodeActions();
+    _checkScreenPopup();
     super.initState();
   }
 
@@ -62,7 +64,28 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     _isloaded = false;
     super.dispose();
   }
-
+  Future<void> _checkScreenPopup()async{
+    IScreenRemote screenRemote =
+    widget.context.site.getService('/desktop/screen');
+    var screen=await screenRemote.getCurrent();
+    if(screen==null){
+      return;
+    }
+    var rule=screen.rule;
+    switch(rule.code){
+      case 'none':
+        break;
+      case 'after_installed':
+        break;
+      case 'every_opened':
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          showDialog(context: context,child: widget.context.part('/desktop/screen/popup', context));
+        });
+        break;
+      case 'once_opened':
+        break;
+    }
+  }
   _registerQrcodeActions() {
     receivables.registerQrcodeAction(widget.context);
     payables.registerQrcodeAction(widget.context);

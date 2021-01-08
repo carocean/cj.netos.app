@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/media_watcher.dart';
+import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/pages/screen/screen_popup.dart';
 import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/tiptool_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
@@ -13,6 +15,7 @@ import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
+import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
@@ -46,6 +49,9 @@ import 'package:netos_app/portals/nodepower/pages/feedback/tiptool_main.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/wo_flows.dart';
 import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
+import 'package:netos_app/portals/nodepower/pages/screen/create_subject.dart';
+import 'package:netos_app/portals/nodepower/pages/screen/screen_main.dart';
+import 'package:netos_app/portals/nodepower/pages/screen/view_subject.dart';
 import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
 import 'package:netos_app/portals/nodepower/pages/weny/exchange_details.dart';
 import 'package:netos_app/portals/nodepower/pages/weny/purchase_details.dart';
@@ -184,6 +190,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/feedback/helper': HelperRemote(),
           '/feedback/tipoff': TipOffRemote(),
           '/feedback/tiptool': TipToolRemote(),
+          '/operation/screen': DefaultScreenRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -842,6 +849,51 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/feedback/tiptool/previewAndcreate',
           buildPage: (PageContext pageContext) => TipsDocPreviewAndCreate(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '桌面弹屏',
+          subtitle: '',
+          icon: null,
+          url: '/operation/screen',
+          buildPage: (PageContext pageContext) => ScreenMain(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '创建弹屏主体',
+          subtitle: '',
+          icon: null,
+          url: '/operation/screen/create',
+          buildPage: (PageContext pageContext) => CreateScreenSubjectPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '查看弹屏主体',
+          subtitle: '',
+          icon: null,
+          url: '/operation/screen/view',
+          buildPage: (PageContext pageContext) => ViewScreenSubjectPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '弹屏',
+          subtitle: '',
+          icon: null,
+          url: '/desktop/screen',
+          buildPage: (PageContext pageContext) => ScreenPopupPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '二维码扫描对话框',
+          subtitle: '',
+          icon: null,
+          url: '/qrcode/scanner',
+          buildPage: (PageContext pageContext) => QrScannerDialog(
             context: pageContext,
           ),
         ),

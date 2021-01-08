@@ -153,6 +153,8 @@ void main() => platformRun(
                 'http://47.105.165.186/feedback/wo/flow.ports',
             '@.prop.ports.feedback.tiptool':
                 'http://47.105.165.186/feedback/tiptool.ports',
+            '@.prop.ports.operation.screen':
+            'http://47.105.165.186/screen/screen.ports',
           },
           buildServices: (site) async {
             await enableFluttifyLog(false); // 关闭amaplog

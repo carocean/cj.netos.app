@@ -157,6 +157,7 @@ import 'package:netos_app/portals/gbera/pages/profile/more.dart';
 import 'package:netos_app/portals/gbera/pages/profile/person_more.dart';
 import 'package:netos_app/portals/gbera/pages/profile/person_profile.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
+import 'package:netos_app/portals/gbera/pages/screen/screen_popup.dart';
 import 'package:netos_app/portals/gbera/pages/site/friend_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/insite_request.dart';
 import 'package:netos_app/portals/gbera/pages/site/marchant_site.dart';
@@ -241,6 +242,7 @@ import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_bills.dart';
@@ -302,7 +304,7 @@ class GberaPortal {
       defaultTheme: '/grey',
       builderSceneServices: (site) async {
         return <String, dynamic>{
-          '/gbera/sync/person':SyncPersonService(),
+          '/gbera/sync/person': SyncPersonService(),
           "/gbera/friends": FriendService(),
           '/netflow/channels': ChannelService(),
           '/insite/messages': InsiteMessageService(),
@@ -341,7 +343,7 @@ class GberaPortal {
           '/feedback/helper': HelperRemote(),
           '/feedback/tipoff': TipOffRemote(),
           '/feedback/tiptool': TipToolRemote(),
-
+          '/desktop/screen': DefaultScreenRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -3175,6 +3177,15 @@ class GberaPortal {
           icon: null,
           url: '/robot/slice/showAbsorbers',
           buildPage: (PageContext pageContext) => ShowSliceAbsorbersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '桌面弹窗',
+          subtitle: '',
+          icon: null,
+          url: '/desktop/screen/popup',
+          buildPage: (PageContext pageContext) => ScreenPopupPage(
             context: pageContext,
           ),
         ),

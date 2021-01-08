@@ -112,6 +112,16 @@ Workbench nodePowerWorkbench = Workbench(
             );
           },
         ),
+        MenuItem(
+          title: '桌面弹屏',
+          id: 'operation.screen',
+          icon: 'http://47.105.165.186:7100/app/operation/popup.png',
+          onTap: (context) {
+            context.forward(
+              '/operation/screen',
+            );
+          },
+        ),
       ],
     ),
     Menu(
