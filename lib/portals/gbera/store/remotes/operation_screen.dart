@@ -28,6 +28,7 @@ class ScreenSubjectOR {
   int sort;
   int ctime;
   String leading;
+
   ScreenSubjectOR({
     this.id,
     this.title,
@@ -70,7 +71,8 @@ class PopupRuleOR {
 }
 
 mixin IScreenRemote {
-  Future<void> createSubject(String title, String subTitle, String leading,String href);
+  Future<void> createSubject(
+      String title, String subTitle, String leading, String href);
 
   Future<ScreenResultOR> getCurrent();
 
@@ -89,7 +91,9 @@ mixin IScreenRemote {
   Future<void> moveUpSubject(id) {}
 
   Future<void> updateSubject(
-      String id, String title, String subTitle,String leading, String href) {}
+      String id, String title, String subTitle, String leading, String href) {}
+
+  Future<void> updatePopupRuleArgs(String code, String args) {}
 }
 
 class DefaultScreenRemote implements IScreenRemote, IServiceBuilder {
@@ -108,14 +112,15 @@ class DefaultScreenRemote implements IScreenRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> createSubject(String title, String subTitle,String leading, String href) async {
+  Future<void> createSubject(
+      String title, String subTitle, String leading, String href) async {
     await remotePorts.portPOST(
       screenPorts,
       'createSubject',
       parameters: {
         'title': title,
         'subTitle': subTitle,
-        'leading':leading,
+        'leading': leading,
       },
       data: {
         'href': href,
@@ -220,8 +225,8 @@ class DefaultScreenRemote implements IScreenRemote, IServiceBuilder {
   }
 
   @override
-  Future<void> updateSubject(
-      String id, String title, String subTitle, String leading,String href) async {
+  Future<void> updateSubject(String id, String title, String subTitle,
+      String leading, String href) async {
     await remotePorts.portPOST(
       screenPorts,
       'updateSubject',
@@ -229,10 +234,24 @@ class DefaultScreenRemote implements IScreenRemote, IServiceBuilder {
         'id': id,
         'title': title,
         'subTitle': subTitle,
-        'leading':leading,
+        'leading': leading,
       },
       data: {
         'href': href,
+      },
+    );
+  }
+
+  @override
+  Future<void> updatePopupRuleArgs(String code, String args) async{
+    await remotePorts.portPOST(
+      screenPorts,
+      'updatePopupRuleArgs',
+      parameters: {
+        'code': code,
+      },
+      data: {
+        'args': args,
       },
     );
   }

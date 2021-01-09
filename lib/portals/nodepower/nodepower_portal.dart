@@ -50,6 +50,7 @@ import 'package:netos_app/portals/nodepower/pages/feedback/wo_flows.dart';
 import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/create_subject.dart';
+import 'package:netos_app/portals/nodepower/pages/screen/popup_rule.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/screen_main.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/view_subject.dart';
 import 'package:netos_app/portals/nodepower/pages/view_colleague.dart';
@@ -885,6 +886,15 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/desktop/screen',
           buildPage: (PageContext pageContext) => ScreenPopupPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '弹屏规则参数设置',
+          subtitle: '',
+          icon: null,
+          url: '/desktop/screen/rule',
+          buildPage: (PageContext pageContext) => PopupRulePage(
             context: pageContext,
           ),
         ),

@@ -57,6 +57,16 @@ class _ScreenMainPanelState extends State<ScreenMain> {
     actions.add(
       FlatButton(
         onPressed: () {
+          widget.context.forward('/desktop/screen/rule');
+        },
+        child: Text(
+          '规则',
+        ),
+      ),
+    );
+    actions.add(
+      FlatButton(
+        onPressed: () {
           _clearScreen();
         },
         child: Text(
@@ -78,6 +88,7 @@ class _ScreenMainPanelState extends State<ScreenMain> {
       appBar: AppBar(
         title: Text('桌面弹屏'),
         elevation: 0,
+        titleSpacing: 0,
         actions: actions,
       ),
       body: Column(
@@ -665,7 +676,7 @@ class __ScreenMainState extends State<_ScreenMainPanel> {
                         width: 5,
                       ),
                       Expanded(
-                        child: Text(
+                        child:Text(
                           '${rule.name ?? ''}',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
@@ -673,8 +684,11 @@ class __ScreenMainState extends State<_ScreenMainPanel> {
                           ),
                         ),
                       ),
+
                     ],
                   ),
+                  SizedBox(height: 10,),
+                  Text('${rule.args??''}',style: TextStyle(fontSize: 8,),),
                 ],
               ),
             ),

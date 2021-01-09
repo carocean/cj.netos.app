@@ -158,6 +158,7 @@ import 'package:netos_app/portals/gbera/pages/profile/person_more.dart';
 import 'package:netos_app/portals/gbera/pages/profile/person_profile.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
 import 'package:netos_app/portals/gbera/pages/screen/screen_popup.dart';
+import 'package:netos_app/portals/gbera/pages/screen/screen_popup2.dart';
 import 'package:netos_app/portals/gbera/pages/site/friend_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/insite_request.dart';
 import 'package:netos_app/portals/gbera/pages/site/marchant_site.dart';
@@ -3186,6 +3187,15 @@ class GberaPortal {
           icon: null,
           url: '/desktop/screen/popup',
           buildPage: (PageContext pageContext) => ScreenPopupPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '桌面弹窗',
+          subtitle: '',
+          icon: null,
+          url: '/desktop/screen/popup2',
+          buildPage: (PageContext pageContext) => ScreenPopupPage2(
             context: pageContext,
           ),
         ),

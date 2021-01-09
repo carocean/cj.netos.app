@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:badges/badges.dart';
@@ -12,6 +13,7 @@ import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
+import 'package:netos_app/portals/gbera/pages/screen/screen_popup2.dart';
 import 'package:netos_app/portals/gbera/pages/system/tiptool_opener.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
     as receivables;
@@ -37,6 +39,7 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
   EasyRefreshController _controller;
 
   bool _isChecked = false;
+  bool _isPopupScreen = false;
 
   @override
   bool get wantKeepAlive {
@@ -64,28 +67,67 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     _isloaded = false;
     super.dispose();
   }
-  Future<void> _checkScreenPopup()async{
+
+  Future<void> _checkScreenPopup() async {
     IScreenRemote screenRemote =
-    widget.context.site.getService('/desktop/screen');
-    var screen=await screenRemote.getCurrent();
-    if(screen==null){
+        widget.context.site.getService('/desktop/screen');
+    var screen = await screenRemote.getCurrent();
+    if (screen == null) {
       return;
     }
-    var rule=screen.rule;
-    switch(rule.code){
+    var share = widget.context.sharedPreferences();
+    var rule = screen.rule;
+    switch (rule.code) {
       case 'none':
         break;
       case 'after_installed':
+        var v = share.getString('/desktop/screen/after_installed');
+        _isPopupScreen = StringUtil.isEmpty(v);
+        share.setString('/desktop/screen/after_installed', 'true');
+        if (mounted) {
+          setState(() {});
+        }
         break;
       case 'every_opened':
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          showDialog(context: context,child: widget.context.part('/desktop/screen/popup', context));
-        });
+        if (mounted) {
+          setState(() {
+            _isPopupScreen = true;
+          });
+        }
+        break;
+      case 'begin_time':
+        if(StringUtil.isEmpty(rule.args)) {
+          break;
+        }
+        var begin=jsonDecode(rule.args);
+        var time=begin['time'];
+        if(time==null) {
+          break;
+        }
+        var v = share.getString('/desktop/screen/begin_time');
+        if(!StringUtil.isEmpty(v)&&v=='$time'){
+          break;
+        }
+        if(DateTime.now().millisecondsSinceEpoch>=time){
+          share.setString('/desktop/screen/begin_time', '$time');
+          if (mounted) {
+            setState(() {
+              _isPopupScreen = true;
+            });
+          }
+        }
         break;
       case 'once_opened':
+        var v = share.getString('/desktop/screen/once_opened');
+        _isPopupScreen = StringUtil.isEmpty(v);
+        share.setString('/desktop/screen/once_opened', 'true');
+        if (mounted) {
+          setState(() {});
+        }
         break;
     }
   }
+
   _registerQrcodeActions() {
     receivables.registerQrcodeAction(widget.context);
     payables.registerQrcodeAction(widget.context);
@@ -261,13 +303,40 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
       ),
     );
     _slivers.add(lets_region);
-    var myarea = EasyRefresh.custom(
+    dynamic myarea = EasyRefresh.custom(
       header: MaterialHeader(),
       footer: MaterialFooter(),
       controller: _controller,
       onLoad: _load,
       slivers: _slivers,
     );
+    if (_isPopupScreen) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          myarea,
+          Positioned(
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: widget.context.part(
+              '/desktop/screen/popup2',
+              context,
+              arguments: {
+                'backgroundColor': Colors.red,
+                'onclose': () {
+                  _isPopupScreen = false;
+                  if (mounted) {
+                    setState(() {});
+                  }
+                },
+              },
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       children: <Widget>[
         MediaQuery.removePadding(
@@ -286,9 +355,14 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             backgroundColor: Colors.transparent,
             toolbarOpacity: 1,
             actions: <Widget>[
-              IconButton(icon: Icon(Icons.live_help_outlined,), onPressed: (){
-                widget.context.forward('/system/help_feedback');
-              },),
+              IconButton(
+                icon: Icon(
+                  Icons.live_help_outlined,
+                ),
+                onPressed: () {
+                  widget.context.forward('/system/help_feedback');
+                },
+              ),
               TipToolButton(
                 context: widget.context,
               ),
