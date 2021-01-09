@@ -134,7 +134,7 @@ class ChatRoomOR {
 
   ChatRoom toLocal(String sandbox) {
     return ChatRoom(room, title, leading, creator, ctime, ctime, null, null,
-        isForegroundWhite ? 'true' : 'false', 'false', microsite, sandbox);
+        isForegroundWhite ? 'true' : 'false', 'false',this.isSeal?'true':'false', microsite, sandbox);
   }
 }
 
@@ -326,4 +326,10 @@ mixin IChatRoomRemote {
   Future<List<String>> listFlagRoomMember(String creator, String id) {}
 
   Future<int> totalMember(String roomCreator, String room) {}
+
+  Future<void>unsealRoom(String roomCreator,String room) {}
+
+  Future<void> sealRoom(String roomCreator,String room) {}
+
+
 }

@@ -60,4 +60,15 @@ final migrationsMicrogeo = <Migration>[
       print('--------database onUpgrade 从版本5迁移到版本6');
     },
   ),
+  Migration(
+    6,
+    7,
+        (db) async {
+      await db.transaction((txn) async {
+        await db.execute('ALTER TABLE ChatRoom ADD COLUMN isSeal Text');
+      });
+
+      print('--------database onUpgrade 从版本5迁移到版本6');
+    },
+  ),
 ];

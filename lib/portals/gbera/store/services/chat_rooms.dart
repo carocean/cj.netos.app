@@ -66,36 +66,37 @@ class FriendService implements IFriendService, IServiceBuilder {
   }
 
   @override
-  Future<void> updateAvatar(official, String avatar) async{
-    if(StringUtil.isEmpty(avatar)) {
+  Future<void> updateAvatar(official, String avatar) async {
+    if (StringUtil.isEmpty(avatar)) {
       return;
     }
     await friendDAO.updateAvatar(avatar, principal.person, official);
   }
 
   @override
-  Future<void> updateNickName(official, String nickName) async{
-    if(StringUtil.isEmpty(nickName)) {
+  Future<void> updateNickName(official, String nickName) async {
+    if (StringUtil.isEmpty(nickName)) {
       return;
     }
     await friendDAO.updateNickName(nickName, principal.person, official);
   }
 
   @override
-  Future<void> updateSignature(official, String signature) async{
-    if(StringUtil.isEmpty(signature)) {
+  Future<void> updateSignature(official, String signature) async {
+    if (StringUtil.isEmpty(signature)) {
       return;
     }
     await friendDAO.updateSignature(signature, principal.person, official);
   }
 
   @override
-  Future<void> updatePyname(official, String pyname) async{
-    if(StringUtil.isEmpty(pyname)) {
+  Future<void> updatePyname(official, String pyname) async {
+    if (StringUtil.isEmpty(pyname)) {
       return;
     }
     await friendDAO.updatePyname(pyname, principal.person, official);
   }
+
   @override
   Future<List<Friend>> pageFriendLikeName(
       String name, List<String> officials, int limit, int offset) async {
@@ -163,6 +164,7 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
       await chatRoomRemote.removeMemberOnlyByCreator(room, official);
     }
   }
+
   @override
   Future<bool> existsMember(String code, official) async {
     CountValue value =
@@ -196,8 +198,21 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> updateRoom(ChatRoomOR room) async{
-    await chatRoomDAO.updateRoom(room.title, room.leading, room.background, room.isForegroundWhite?"true":"false", principal.person, room.room);
+  Future<Function> updateRoom(ChatRoomOR room) async {
+    await chatRoomDAO.updateRoom(room.title, room.leading, room.background,
+        room.isForegroundWhite ? "true" : "false", principal.person, room.room);
+  }
+
+  @override
+  Future<Function> unsealRoom(String creator, String id)async {
+    await chatRoomRemote.unsealRoom(creator, id);
+    await chatRoomDAO.updateRoomSeal('false',id,principal.person);
+  }
+
+  @override
+  Future<Function> sealRoom(String creator, String id) async{
+    await chatRoomRemote.sealRoom(creator, id);
+    await chatRoomDAO.updateRoomSeal('true',id,principal.person);
   }
 
   @override

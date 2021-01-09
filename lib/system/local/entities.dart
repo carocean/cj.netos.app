@@ -482,6 +482,7 @@ class ChatRoom {
   String p2pBackground;
   String isForegoundWhite;
   String isDisplayNick;
+  String isSeal;
   String microsite;
   String sandbox;
 
@@ -496,6 +497,7 @@ class ChatRoom {
     this.p2pBackground,
     this.isForegoundWhite,
     this.isDisplayNick,
+    this.isSeal,
     this.microsite,
     this.sandbox,
   );

@@ -176,6 +176,7 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       null,
       'false',
       'false',
+      'false',
       null,
       context.principal.person,
     );

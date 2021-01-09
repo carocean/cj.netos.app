@@ -349,6 +349,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         null,
         'false',
         'false',
+        'false',
         null,
         widget.context.principal.person,
       );
@@ -476,6 +477,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         DateTime.now().millisecondsSinceEpoch,
         null,
         null,
+        'false',
         'false',
         'false',
         null,

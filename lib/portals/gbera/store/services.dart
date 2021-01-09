@@ -345,6 +345,7 @@ mixin IChatRoomService {
   Future<List<RoomMember>> top20Members(String code) {}
 
   Future<List<RoomMember>> pageMember(String room, int limit, int offset) {}
+
   Future<void> removeMember(String room, official,
       {bool isOnlySaveLocal = false}) {}
 
@@ -391,6 +392,10 @@ mixin IChatRoomService {
   Future<RoomMember> getMemberOnLocal(String room, String member) {}
 
   Future<void> updateRoom(ChatRoomOR roomOnRemote) {}
+
+  Future<void> unsealRoom(String creator, String id) {}
+
+  Future<void> sealRoom(String creator, String id) {}
 }
 mixin IP2PMessageService {
   Future<void> addMessage(String creator, ChatMessage message,

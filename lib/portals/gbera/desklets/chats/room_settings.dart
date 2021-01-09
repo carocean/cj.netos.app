@@ -41,6 +41,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
     _isForegroundWhite = _chatRoom.isForegoundWhite == 'true' ? true : false;
+    _isSeal=_chatRoom.isSeal == 'true' ? true : false;
     _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadMembers().then((v) {
@@ -230,6 +231,20 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         widget.context.site.getService('/chat/rooms');
     await chatRoomService.updateRoomForeground(_chatRoom, _isForegroundWhite);
     _chatRoom.isForegoundWhite = _isForegroundWhite == true ? 'true' : 'false';
+  }
+
+  Future<void> _unsealRoom()async{
+    IChatRoomService chatRoomService =
+    widget.context.site.getService('/chat/rooms');
+    await chatRoomService.unsealRoom(_chatRoom.creator,_chatRoom.id);
+    _chatRoom.isSeal = 'false';
+  }
+
+  Future<void> _sealRoom()async{
+    IChatRoomService chatRoomService =
+    widget.context.site.getService('/chat/rooms');
+    await chatRoomService.sealRoom(_chatRoom.creator,_chatRoom.id);
+    _chatRoom.isSeal = 'true';
   }
 
   @override
@@ -694,6 +709,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             child: Switch.adaptive(
               value: _isSeal,
               onChanged: (v) {
+                if(v){
+                  _sealRoom();
+                }else{
+                  _unsealRoom();
+                }
                setState(() {
                  _isSeal=v;
                });
@@ -701,6 +721,11 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             ),
           ),
           onItemTap: () {
+            if(_isSeal) {
+              _unsealRoom();
+            }else{
+              _sealRoom();
+            }
             setState(() {
               _isSeal=!_isSeal;
             });
@@ -842,7 +867,9 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         items.add(panel);
       }
     }
-    items.add(plusMemberButton);
+    if(_chatRoom.isSeal!='true'){
+      items.add(plusMemberButton);
+    }
     if (_isManager()) {
       items.add(_renderRemoveMemberButton());
     }
@@ -984,6 +1011,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   }
 
   Widget _renderPlusMemberButton() {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[

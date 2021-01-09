@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 6,
+      version: 7,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -156,7 +156,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Friend` (`official` TEXT, `source` TEXT, `uid` TEXT, `accountCode` TEXT, `appid` TEXT, `avatar` TEXT, `rights` TEXT, `nickName` TEXT, `signature` TEXT, `pyname` TEXT, `sandbox` TEXT, PRIMARY KEY (`official`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `utime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatRoom` (`id` TEXT, `title` TEXT, `leading` TEXT, `creator` TEXT, `ctime` INTEGER, `utime` INTEGER, `notice` TEXT, `p2pBackground` TEXT, `isForegoundWhite` TEXT, `isDisplayNick` TEXT, `isSeal` TEXT, `microsite` TEXT, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `leading` TEXT, `type` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
@@ -2766,6 +2766,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
                   'p2pBackground': item.p2pBackground,
                   'isForegoundWhite': item.isForegoundWhite,
                   'isDisplayNick': item.isDisplayNick,
+                  'isSeal': item.isSeal,
                   'microsite': item.microsite,
                   'sandbox': item.sandbox
                 });
@@ -2787,6 +2788,7 @@ class _$IChatRoomDAO extends IChatRoomDAO {
       row['p2pBackground'] as String,
       row['isForegoundWhite'] as String,
       row['isDisplayNick'] as String,
+      row['isSeal'] as String,
       row['microsite'] as String,
       row['sandbox'] as String);
 
@@ -2904,6 +2906,14 @@ class _$IChatRoomDAO extends IChatRoomDAO {
     await _queryAdapter.queryNoReturn(
         'UPDATE ChatRoom SET isForegoundWhite = ? WHERE id = ? and sandbox=?',
         arguments: <dynamic>[isForegoundWhite, room, sandbox]);
+  }
+
+  @override
+  Future<void> updateRoomSeal(
+      String isSeal, String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatRoom SET isSeal = ? WHERE id = ? and sandbox=?',
+        arguments: <dynamic>[isSeal, room, sandbox]);
   }
 
   @override

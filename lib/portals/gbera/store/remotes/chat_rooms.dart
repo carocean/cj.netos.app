@@ -251,6 +251,28 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
 
 
   @override
+  Future<Function> unsealRoom(String roomCreator, String room) async{
+    await remotePorts.portGET(
+      chatPortsUrl,
+      'unsealRoom',
+      parameters: {
+        'room': room,
+      },
+    );
+  }
+
+  @override
+  Future<Function> sealRoom(String roomCreator, String room) async{
+    await remotePorts.portGET(
+      chatPortsUrl,
+      'sealRoom',
+      parameters: {
+        'room': room,
+      },
+    );
+  }
+
+  @override
   Future<int> totalMember(String roomCreator, String room) async{
     return  await remotePorts.portGET(
       chatPortsUrl,

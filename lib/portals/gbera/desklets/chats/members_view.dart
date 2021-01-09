@@ -320,6 +320,9 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
   }
 
   Widget _renderPlusMemberButton() {
+    if(_chatRoom.isSeal=='true'){
+      return SizedBox(width: 0,height: 0,);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
