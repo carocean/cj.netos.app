@@ -62,12 +62,10 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
           await robotRemote.countRecipients(_absorberResultOR.absorber.id);
       _isMemberOfRecipients = await robotRemote.existsRecipients(
           _absorberResultOR.absorber.id, widget.context.principal.person);
-    }()
-        .then((value) {
       if (mounted) {
         setState(() {});
       }
-    });
+    }();
     super.initState();
   }
 

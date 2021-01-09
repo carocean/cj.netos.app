@@ -691,14 +691,12 @@ class _PlusPannelState extends State<_PlusPannel> {
             message: 'beginVideoCompressing',
           ),
         );
-        // var videoCompress = FlutterVideoCompress();
-        // var info = await videoCompress.compressVideo(
+        // var info= await VideoCompress.compressVideo(
         //   image.path,
         //   quality: VideoQuality.MediumQuality,
-        //   // 默认(VideoQuality.DefaultQuality)
-        //   deleteOrigin: false, // 默认(false)
-        //   // frameRate: 10,
+        //   deleteOrigin: true, // It's false by default
         // );
+        // var newfile=await copyVideoCompressFile(info.file);
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
@@ -746,6 +744,7 @@ class _PlusPannelState extends State<_PlusPannel> {
           quality: VideoQuality.MediumQuality,
           deleteOrigin: true, // It's false by default
         );
+        var newfile=await copyVideoCompressFile(info.file);
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
@@ -755,7 +754,7 @@ class _PlusPannelState extends State<_PlusPannel> {
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
-            message: info.file.path,
+            message: newfile,
           ),
         );
         break;

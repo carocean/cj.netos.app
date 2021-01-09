@@ -648,13 +648,14 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                                 quality: VideoQuality.DefaultQuality,
                                 deleteOrigin: true, // It's false by default
                               );
+                              var newfile=await copyVideoCompressFile(info.file);
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;
                                 });
                               }
                               shower_key.currentState.addImage(MediaFile(
-                                  src: info.file, type: MediaFileType.video));
+                                  src: File(newfile), type: MediaFileType.video));
                               _contentController.text = cnt;
                               _contentController.selection =
                                   TextSelection.fromPosition(

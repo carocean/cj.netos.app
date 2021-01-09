@@ -867,7 +867,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         items.add(panel);
       }
     }
-    if(_chatRoom.isSeal!='true'){
+    if(_isManager()||_chatRoom.isSeal!='true'){
       items.add(plusMemberButton);
     }
     if (_isManager()) {

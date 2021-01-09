@@ -272,3 +272,19 @@ Future<String> checkUrlAndDownload(PageContext pageContext, String src) async {
   });
   return localFile;
 }
+///VideoCompress文件名含有空格，导致frame在解析地址时截断，从而使对方收到的文件名是空
+Future<String> copyVideoCompressFile(File srcFile)async{
+  var src=srcFile.path;
+  if(src.indexOf(' ')<0){
+    return src;
+  }
+  var home = await getExternalStorageDirectory();
+  var dir = '${home.path}/videos';
+  var dirFile = Directory(dir);
+  if (!dirFile.existsSync()) {
+    dirFile.createSync();
+  }
+  var localFile = '$dir/${MD5Util.MD5(src)}.${fileExt(src)}';
+  srcFile.copySync(localFile);
+  return localFile;
+}

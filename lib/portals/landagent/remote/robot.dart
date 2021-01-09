@@ -816,7 +816,7 @@ class RobotRemote implements IRobotRemote, IServiceBuilder {
       robotHubPorts,
       'countRecipients',
       parameters: {
-        'absorberid ': absorberid,
+        'absorberid': absorberid,
       },
     );
     return obj;

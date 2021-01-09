@@ -69,13 +69,13 @@ class _ChatMemberPlusPageState extends State<ChatMemberPlusPage> {
       friends = await friendService.pageFriendLikeName(
           '%$_query%', officials, _limit, _offset);
     }
-    if (members.isEmpty) {
+    if (friends.isEmpty) {
       if (mounted) {
         setState(() {});
       }
       return;
     }
-    _offset += members.length;
+    _offset += friends.length;
     _friends.addAll(friends);
     if (mounted) {
       setState(() {});
