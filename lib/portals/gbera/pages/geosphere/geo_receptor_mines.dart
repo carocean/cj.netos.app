@@ -918,6 +918,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           ],
                         ),
                       ),
+                /*
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -986,6 +987,8 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                     ],
                   ),
                 ),
+
+                 */
               ],
             ),
           ),
