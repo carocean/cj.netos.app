@@ -103,6 +103,7 @@ class ChatRoomOR {
   String background;
   int flag; //0为可用；1为已被删除
   bool isForegroundWhite;
+  bool isSeal;
   int ctime;
 
   ChatRoomOR({
@@ -114,6 +115,7 @@ class ChatRoomOR {
     this.background,
     this.flag,
     this.isForegroundWhite,
+    this.isSeal,
     this.ctime,
   });
 
@@ -126,6 +128,7 @@ class ChatRoomOR {
     this.background = obj['background'];
     this.flag = obj['flag'];
     this.isForegroundWhite = obj['isForegroundWhite'] ?? false;
+    this.isSeal = obj['isSeal'] ?? false;
     this.ctime = obj['ctime'];
   }
 

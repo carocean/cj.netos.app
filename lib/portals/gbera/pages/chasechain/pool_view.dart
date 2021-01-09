@@ -1040,7 +1040,7 @@ class __ContentBoxListPanelState extends State<_ContentBoxListPanel> {
 
 class _DemoHeader extends SliverPersistentHeaderDelegate {
   Widget child;
-  double height = 40;
+  double height = 50;
 
   _DemoHeader({this.child});
 

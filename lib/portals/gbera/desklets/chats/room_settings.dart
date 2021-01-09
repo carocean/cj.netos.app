@@ -33,7 +33,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   int _limit = 20, _offset = 0;
   ChatRoomNotice _newestNotice;
   bool _isForegroundWhite = false;
-
+  bool _isSeal=false;
   var _globalKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -621,6 +621,12 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       );
     }
     list.add(
+      Divider(
+        height: 1,
+        indent: 15,
+      ),
+    );
+    list.add(
       CardItem(
         paddingLeft: 15,
         paddingRight: 15,
@@ -668,7 +674,40 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
               },
       ),
     );
-
+    if (isMineRoom) {
+      list.add(
+        Divider(
+          height: 1,
+          indent: 15,
+        ),
+      );
+      list.add(
+        CardItem(
+          paddingLeft: 15,
+          paddingRight: 15,
+          title: '封群',
+          tipsOverflow: TextOverflow.ellipsis,
+          hiddenSubTitle: true,
+          tipsText: '封群后只有管理员能拉人进群',
+          tail: SizedBox(
+            height: 20,
+            child: Switch.adaptive(
+              value: _isSeal,
+              onChanged: (v) {
+               setState(() {
+                 _isSeal=v;
+               });
+              },
+            ),
+          ),
+          onItemTap: () {
+            setState(() {
+              _isSeal=!_isSeal;
+            });
+          },
+        ),
+      );
+    }
     return list;
   }
 
