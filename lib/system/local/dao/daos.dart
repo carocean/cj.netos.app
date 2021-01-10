@@ -672,6 +672,16 @@ abstract class IP2PMessageDAO {
       String sandbox, String roomCode, int limit, int offset) {}
 
   @Query(
+      "SELECT *  FROM ChatMessage where sandbox=:sandbox and room=:roomCode and contentType in (:types) and ctime > :ctime ORDER BY ctime asc LIMIT :limit OFFSET  :offset")
+  Future<List<ChatMessage>> pageMessageWithMedia(
+      String sandbox, String roomCode, List<String> types,int ctime,int limit, int offset) {}
+
+  @Query(
+      "SELECT count(*) as value  FROM ChatMessage where sandbox=:sandbox and room=:roomCode and contentType in (:types)  and ctime > :ctime")
+  Future<CountValue> countMessageWithMedia(
+      String sandbox, String roomCode,List<String> types,int ctime) {}
+
+  @Query(
       'SELECT *  FROM ChatMessage where room=:room and state=:state and sandbox=:sandbox ORDER BY ctime DESC')
   Future<List<ChatMessage>> listUnreadMessages(
       String room, String state, String sandbox) {}

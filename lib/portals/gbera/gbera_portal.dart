@@ -277,6 +277,7 @@ import 'desklets/chats/add_friend.dart';
 import 'desklets/chats/chat_talk.dart';
 import 'desklets/chats/friend_page.dart';
 import 'desklets/chats/import_persons.dart';
+import 'desklets/chats/media_card.dart';
 import 'desklets/chats/members_plus.dart';
 import 'desklets/chats/members_view.dart';
 import 'desklets/chats/room_settings.dart';
@@ -1368,6 +1369,33 @@ class GberaPortal {
               fullscreenDialog: true,
             );
           },
+        ),
+        LogicPage(
+          title: '图片查看器',
+          subtitle: '用于聊天室',
+          desc: '',
+          icon: Icons.image,
+          url: '/images/viewer2',
+          buildPage: (PageContext pageContext) => RoomMediaViewer(
+            pageContext: pageContext,
+          ),
+          // buildRoute:
+          //     (RouteSettings settings, LogicPage page, IServiceProvider site) {
+          //   return MaterialPageRoute(
+          //     settings: settings,
+          //     builder: (context) {
+          //       PageContext pageContext = PageContext(
+          //         page: page,
+          //         site: site,
+          //         context: context,
+          //       );
+          //       return RoomMediaViewer(
+          //         pageContext: pageContext,
+          //       );
+          //     },
+          //     fullscreenDialog: true,
+          //   );
+          // },
         ),
         LogicPage(
           title: '管道看版',

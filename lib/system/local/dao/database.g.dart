@@ -3127,6 +3127,31 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
   }
 
   @override
+  Future<List<ChatMessage>> pageMessageWithMedia(
+      String sandbox,
+      String roomCode,
+      List<String> types,
+      int ctime,
+      int limit,
+      int offset) async {
+    final valueList1 = types.map((value) => "'$value'").join(', ');
+    return _queryAdapter.queryList(
+        'SELECT * FROM ChatMessage where sandbox=? and room=? and contentType in ($valueList1) and ctime > ? ORDER BY ctime asc LIMIT ? OFFSET ?',
+        arguments: <dynamic>[sandbox, roomCode, ctime, limit, offset],
+        mapper: _chatMessageMapper);
+  }
+
+  @override
+  Future<CountValue> countMessageWithMedia(
+      String sandbox, String roomCode, List<String> types, int ctime) async {
+    final valueList1 = types.map((value) => "'$value'").join(', ');
+    return _queryAdapter.query(
+        'SELECT count(*) as value FROM ChatMessage where sandbox=? and room=? and contentType in ($valueList1) and ctime > ?',
+        arguments: <dynamic>[sandbox, roomCode, ctime],
+        mapper: _countValueMapper);
+  }
+
+  @override
   Future<List<ChatMessage>> listUnreadMessages(
       String room, String state, String sandbox) async {
     return _queryAdapter.queryList(

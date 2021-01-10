@@ -17,6 +17,8 @@ import 'package:netos_app/common/emoji.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/media_card.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/message_toolbar.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -152,7 +154,8 @@ class _ChatTalkState extends State<ChatTalk> {
     IChatRoomRemote chatRoomRemote =
         widget.context.site.getService('/remote/chat/rooms');
     var path = await chatRoomRemote.downloadBackground(_chatRoom.p2pBackground);
-    await chatRoomService.updateRoomBackground(_chatRoom, path,isOnlyLocal: true);
+    await chatRoomService.updateRoomBackground(_chatRoom, path,
+        isOnlyLocal: true);
     _chatRoom.p2pBackground = path;
   }
 
@@ -739,12 +742,12 @@ class _PlusPannelState extends State<_PlusPannel> {
             message: 'beginVideoCompressing',
           ),
         );
-        var info= await VideoCompress.compressVideo(
+        var info = await VideoCompress.compressVideo(
           image.path,
           quality: VideoQuality.MediumQuality,
           deleteOrigin: true, // It's false by default
         );
-        var newfile=await copyVideoCompressFile(info.file);
+        var newfile = await copyVideoCompressFile(info.file);
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
@@ -1376,7 +1379,11 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _getContentDisplay(),
+                MessageToolbar(
+                  child: _getContentDisplay(),
+                  context: widget.context,
+                  message: widget.p2pMessage,
+                ),
                 Row(
                   children: <Widget>[
                     Padding(
@@ -1483,9 +1490,15 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       case 'audio':
         var content = jsonDecode(widget.p2pMessage.content);
         String path = content['path'];
-        return MyAudioWidget(
-          audioFile: path,
-          timeLength: content['timelength'],
+        return MediaCard(
+          media: RoomMessageMedia(
+            src: path,
+            type: 'audio',
+            args: content['timelength'],
+          ),
+          room: _model.chatRoom.id,
+          beginTime:widget.p2pMessage.ctime,
+          pageContext: widget.context,
         );
       case 'image':
         var json = widget.p2pMessage.content;
@@ -1507,17 +1520,14 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           //         '$file?accessToken=${widget.context.principal.accessToken}',
           //         fit: BoxFit.fitWidth,
           //       ),
-          child: MediaWidget(
-            [
-              MediaSrc(
-                sourceType: 'image',
-                msgid: 'xx',
-                id: 'xxx',
-                src: file,
-                type: 'image',
-              )
-            ],
-            widget.context,
+          child: MediaCard(
+            media: RoomMessageMedia(
+              src: file,
+              type: 'image',
+            ),
+            room: _model.chatRoom.id,
+            beginTime:widget.p2pMessage.ctime,
+            pageContext: widget.context,
           ),
         );
       case 'video':
@@ -1534,17 +1544,14 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           // child: VideoView(
           //   src: File(file),
           // ),
-          child: MediaWidget(
-            [
-              MediaSrc(
-                sourceType: 'video',
-                msgid: 'xx',
-                id: 'xxx',
-                src: file,
-                type: 'video',
-              )
-            ],
-            widget.context,
+          child: MediaCard(
+            media: RoomMessageMedia(
+              src: file,
+              type: 'video',
+            ),
+            room: _model.chatRoom.id,
+            beginTime:widget.p2pMessage.ctime,
+            pageContext: widget.context,
           ),
         );
       case 'transTo':
@@ -1893,7 +1900,11 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                _getContentDisplay(),
+                MessageToolbar(
+                  child: _getContentDisplay(),
+                  context: widget.context,
+                  message: widget.p2pMessage,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -1956,7 +1967,8 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(5),
                   ),
-                  child: getAvatarWidget(_sender?.avatarOnLocal, widget.context),
+                  child:
+                      getAvatarWidget(_sender?.avatarOnLocal, widget.context),
                 ),
               ),
             ),
@@ -2030,9 +2042,15 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       case 'audio':
         var json = widget.p2pMessage.content;
         Map<String, dynamic> map = jsonDecode(json);
-        display = MyAudioWidget(
-          audioFile: map['path'],
-          timeLength: map['timelength'],
+        display = MediaCard(
+          media: RoomMessageMedia(
+            src: map['path'],
+            type: 'audio',
+            args: map['timelength'],
+          ),
+          room: _model.chatRoom.id,
+          beginTime:widget.p2pMessage.ctime,
+          pageContext: widget.context,
         );
         break;
       case 'image':
@@ -2050,17 +2068,14 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           //   File(file),
           //   fit: BoxFit.fitWidth,
           // ),
-          child: MediaWidget(
-            [
-              MediaSrc(
-                sourceType: 'image',
-                msgid: 'xx',
-                id: 'xxx',
-                src: file,
-                type: 'image',
-              )
-            ],
-            widget.context,
+          child: MediaCard(
+            media: RoomMessageMedia(
+              src: file,
+              type: 'image',
+            ),
+            room: _model.chatRoom.id,
+            beginTime:widget.p2pMessage.ctime,
+            pageContext: widget.context,
           ),
         );
         break;
@@ -2078,17 +2093,14 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           // child: VideoView(
           //   src: File(file),
           // ),
-          child: MediaWidget(
-            [
-              MediaSrc(
-                sourceType: 'video',
-                msgid: 'xx',
-                id: 'xxx',
-                src: file,
-                type: 'video',
-              )
-            ],
-            widget.context,
+          child: MediaCard(
+            media: RoomMessageMedia(
+              src: file,
+              type: 'video',
+            ),
+            room: _model.chatRoom.id,
+            beginTime:widget.p2pMessage.ctime,
+            pageContext: widget.context,
           ),
         );
         break;

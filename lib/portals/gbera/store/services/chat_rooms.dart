@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:floor/floor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/media_card.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/dao/daos.dart';
 import 'package:netos_app/system/local/dao/database.dart';
@@ -204,15 +206,15 @@ class ChatRoomService implements IChatRoomService, IServiceBuilder {
   }
 
   @override
-  Future<Function> unsealRoom(String creator, String id)async {
+  Future<Function> unsealRoom(String creator, String id) async {
     await chatRoomRemote.unsealRoom(creator, id);
-    await chatRoomDAO.updateRoomSeal('false',id,principal.person);
+    await chatRoomDAO.updateRoomSeal('false', id, principal.person);
   }
 
   @override
-  Future<Function> sealRoom(String creator, String id) async{
+  Future<Function> sealRoom(String creator, String id) async {
     await chatRoomRemote.sealRoom(creator, id);
-    await chatRoomDAO.updateRoomSeal('true',id,principal.person);
+    await chatRoomDAO.updateRoomSeal('true', id, principal.person);
   }
 
   @override
@@ -543,5 +545,40 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   @override
   Future<Function> empty(ChatRoom chatRoom) async {
     await p2pMessageDAO.emptyRoomMessages(chatRoom.id, principal.person);
+  }
+
+  @override
+  Future<List<RoomMessageMedia>> pageMessageWithMedia(
+      String roomCode,int beginTime, limit, offset) async {
+    var types=['image','video','audio'];
+    var msgList = await p2pMessageDAO.pageMessageWithMedia(
+        principal.person, roomCode,types,beginTime, limit, offset);
+    var items = <RoomMessageMedia>[];
+    for (var msg in msgList) {
+      var content=msg.content;
+      var obj=jsonDecode(content);
+      var path=obj['path'];
+      items.add(
+        RoomMessageMedia(
+          type: msg.contentType,
+          src: path,
+        ),
+      );
+    }
+    return items;
+  }
+
+  @override
+  Future<int> totalMessageWithMedia(
+    String roomCode,
+  int beginTime
+  ) async {
+    var types=['image','video','audio'];
+    var count =
+        await p2pMessageDAO.countMessageWithMedia(principal.person ,roomCode,types,beginTime);
+    if (count == null) {
+      return 0;
+    }
+    return count.value;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/media_card.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_entities.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/remote/persons.dart';
@@ -415,6 +416,10 @@ mixin IP2PMessageService {
   Future<bool> existsMessage(String msgid) {}
 
   Future<void> empty(ChatRoom chatRoom) {}
+
+  Future<int>  totalMessageWithMedia(String roomCode,int beginTime) {}
+
+  Future<List<RoomMessageMedia>> pageMessageWithMedia(String roomCode,int beginTime,limit, offset);
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);

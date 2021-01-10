@@ -105,6 +105,15 @@ class SyncPersonService implements ISyncPersonService, IServiceBuilder {
           isOnlyLocal: true);
       _updated = true;
     }
+    var isSeal = roomOnRemote.isSeal ?? false;
+    if (roomOnLocal.isSeal != (isSeal?'true':'false')) {
+      if (isSeal) {
+        await chatRoomService.sealRoom(roomOnLocal.creator, roomOnLocal.id);
+      } else {
+        await chatRoomService.unsealRoom(roomOnLocal.creator, roomOnLocal.id);
+      }
+      _updated = true;
+    }
     var memberOnRomete =
         await chatRoomRemote.getMemberOfPerson(creator, room, member);
     var memberOnLocal = await chatRoomService.getMemberOnLocal(room, member);

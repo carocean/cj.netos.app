@@ -296,8 +296,8 @@ class _VoiceFloatingButtonState extends State<VoiceFloatingButton> {
 class MyAudioWidget extends StatefulWidget {
   String audioFile;
   double timeLength;
-
-  MyAudioWidget({this.audioFile, this.timeLength});
+  bool isAutoPlay;
+  MyAudioWidget({this.audioFile, this.timeLength,this.isAutoPlay});
 
   @override
   _MyAudioWidgetState createState() => _MyAudioWidgetState();
@@ -312,6 +312,10 @@ class _MyAudioWidgetState extends State<MyAudioWidget> {
     _player.setFilePath(widget.audioFile).then((v) {
       if (mounted) {
         setState(() {});
+      }
+      var isAutoPlay=widget.isAutoPlay;
+      if(isAutoPlay??false){
+        _player.play();
       }
     });
     super.initState();
