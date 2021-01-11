@@ -1,23 +1,47 @@
 import 'package:custom_pop_up_menu/custom_pop_up_menu.dart';
+import 'package:extended_text/extended_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:zefyr/zefyr.dart';
 
-class MessageToolbar extends StatelessWidget {
+class MessageToolbar extends StatefulWidget {
   Widget child;
   ChatMessage message;
   PageContext context;
+  ZefyrController controller;
 
-  MessageToolbar({this.child, this.context, this.message});
+  MessageToolbar({this.child, this.context, this.message, this.controller});
+  @override
+  _MessageToolbarState createState() => _MessageToolbarState();
+}
 
+class _MessageToolbarState extends State<MessageToolbar> {
   bool get isMessageForSender =>
-      message.sender == this.context.principal.person;
-
+      widget.message.sender == widget.context.principal.person;
+  CustomPopupMenuController _customPopupMenuController=CustomPopupMenuController();
+  @override
+  void initState() {
+    super.initState();
+  }
+  @override
+  void dispose() {
+    _customPopupMenuController?.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return CustomPopupMenu(
-      child: child,
+      controller: _customPopupMenuController,
+      onHideMenu: (){
+        var selection = TextSelection(
+            baseOffset: 0, extentOffset: 0);
+        widget.controller?.updateSelection(selection);
+      },
+      child: widget.child,
       menuBuilder: () {
         return Container(
           padding: EdgeInsets.all(10),
@@ -45,13 +69,20 @@ class MessageToolbar extends StatelessWidget {
 
   List<Widget> _renderActions() {
     var items = <Widget>[];
-    var type = message.contentType;
+    var type = widget.message.contentType;
     var textStyle = TextStyle(
       fontSize: 12,
       color: Colors.white,
     );
     switch (type) {
       case 'text':
+        if(widget.controller!=null) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            var selection = widget.controller.selection.copyWith(
+                baseOffset: 0, extentOffset: widget.message.content?.length ?? 0);
+            widget.controller.updateSelection(selection);
+          });
+        }
         items.addAll(
           _renderTextMessageActions(textStyle),
         );
@@ -90,54 +121,34 @@ class MessageToolbar extends StatelessWidget {
   }
 
   List<Widget> _renderVideoMessageActions(TextStyle textStyle) {
-    var extra=<Widget>[];
-    if(isMessageForSender){
-      extra.add( Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
+    var extra = <Widget>[];
+    if (isMessageForSender) {
+      extra.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.redo,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '撤回',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.redo,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '撤回',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),);
+      );
     }
     return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.copy,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '复制',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),
       Padding(
         padding: EdgeInsets.only(
           left: 10,
@@ -185,55 +196,36 @@ class MessageToolbar extends StatelessWidget {
       ),
     ];
   }
+
   List<Widget> _renderAudioMessageActions(TextStyle textStyle) {
-    var extra=<Widget>[];
-    if(isMessageForSender){
-      extra.add( Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
+    var extra = <Widget>[];
+    if (isMessageForSender) {
+      extra.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.redo,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '撤回',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.redo,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '撤回',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),);
+      );
     }
     return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.copy,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '复制',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),
       Padding(
         padding: EdgeInsets.only(
           left: 10,
@@ -281,55 +273,36 @@ class MessageToolbar extends StatelessWidget {
       ),
     ];
   }
+
   List<Widget> _renderImageMessageActions(TextStyle textStyle) {
-    var extra=<Widget>[];
-    if(isMessageForSender){
-      extra.add( Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
+    var extra = <Widget>[];
+    if (isMessageForSender) {
+      extra.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.redo,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '撤回',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.redo,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '撤回',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),);
+      );
     }
     return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.copy,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '复制',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),
       Padding(
         padding: EdgeInsets.only(
           left: 10,
@@ -377,55 +350,36 @@ class MessageToolbar extends StatelessWidget {
       ),
     ];
   }
+
   List<Widget> _renderShareMessageActions(TextStyle textStyle) {
-    var extra=<Widget>[];
-    if(isMessageForSender){
-      extra.add( Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
+    var extra = <Widget>[];
+    if (isMessageForSender) {
+      extra.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.redo,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '撤回',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.redo,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '撤回',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),);
+      );
     }
     return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.copy,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '复制',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),
       Padding(
         padding: EdgeInsets.only(
           left: 10,
@@ -473,53 +427,71 @@ class MessageToolbar extends StatelessWidget {
       ),
     ];
   }
+
   List<Widget> _renderTextMessageActions(TextStyle textStyle) {
-    var extra=<Widget>[];
-    if(isMessageForSender){
-      extra.add( Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
+    var extra = <Widget>[];
+    if (isMessageForSender) {
+      extra.add(
+        Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.redo,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '撤回',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.redo,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '撤回',
-              style: textStyle,
-            ),
-          ],
-        ),
-      ),);
+      );
     }
+
     return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.copy,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '复制',
-              style: textStyle,
-            ),
-          ],
+      InkWell(
+        onTap: widget.controller == null
+            ? null
+            : () {
+
+          var data = ClipboardData(text: widget.message.content??'');
+          Clipboard.setData(data);
+          var done = TextSelection(baseOffset: 0, extentOffset: 0);
+          // var done = widget.controller.selection.copyWith(
+          //     baseOffset: 0, extentOffset:  0);
+          widget.controller.updateSelection(done);
+          _customPopupMenuController?.hideMenu();
+        },
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.copy,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '复制',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
       ),
       Padding(
@@ -545,28 +517,38 @@ class MessageToolbar extends StatelessWidget {
         ),
       ),
       ...extra,
-      Padding(
-        padding: EdgeInsets.only(
-          left: 10,
-          right: 10,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.delete,
-              size: 18,
-              color: Colors.white,
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            Text(
-              '删除',
-              style: textStyle,
-            ),
-          ],
+      InkWell(
+        onTap: (){
+          _deleteMessage();
+        },
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.delete,
+                size: 18,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                '删除',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
       ),
     ];
+  }
+  Future<void> _deleteMessage()async{
+    IP2PMessageService messageService =
+    widget.context.site.getService('/chat/p2p/messages');
+    // messageService.
   }
 }

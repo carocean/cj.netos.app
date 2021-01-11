@@ -70,7 +70,10 @@ dependencies:
   amap_location_fluttify: ^0.20.0
   amap_search_fluttify: ^0.16.2
   amap_map_fluttify: ^0.30.1
-  extended_text_field: ^5.0.0
+  extended_text_field: ^5.0.4
+  extended_text: ^4.1.0
+  zefyr:
+    path: zefyr
   #已将源码拷到工程
   #  w_popup_menu: ^0.3.0
   popup_menu: ^1.0.5
@@ -111,7 +114,8 @@ dependencies:
   flutter_contact: ^0.5.1
   flutter_sms: ^2.1.1
   url_launcher: ^5.7.8
-  custom_pop_up_menu: ^1.1.0
+  custom_pop_up_menu:
+    path: custom_pop_up_menu
   native_screenshot:
     path: native_screenshot
   buddy_push:

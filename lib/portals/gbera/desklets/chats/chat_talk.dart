@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
+import 'package:extended_text/extended_text.dart';
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -16,6 +17,7 @@ import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/emoji.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/common/zefyr_selectable.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/media_card.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/message_toolbar.dart';
@@ -29,6 +31,7 @@ import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_compress/video_compress.dart';
+import 'package:zefyr/zefyr.dart';
 
 import 'chatroom_handler.dart';
 
@@ -1264,6 +1267,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   RoomMember _member;
   bool isShowNick = false;
   ChatRoomModel _model;
+  ZefyrController _controller;
 
   @override
   void initState() {
@@ -1279,7 +1283,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -1379,11 +1383,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                MessageToolbar(
-                  child: _getContentDisplay(),
-                  context: widget.context,
-                  message: widget.p2pMessage,
-                ),
+                _getContentDisplay(),
                 Row(
                   children: <Widget>[
                     Padding(
@@ -1431,25 +1431,61 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   }
 
   Widget _getContentDisplay() {
+    dynamic display;
     switch (widget.p2pMessage.contentType ?? '') {
       case '':
       case 'text':
-        return Text.rich(
-          TextSpan(
-            text: widget.p2pMessage.content ?? '',
-            children: [],
-          ),
-          softWrap: true,
-          strutStyle: StrutStyle(
-            height: 1.8,
-          ),
-          overflow: TextOverflow.visible,
-          style: TextStyle(
-            fontSize: 16,
-            color: widget.isForegroundWhite ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
+        var text = widget.p2pMessage.content ?? '';
+        var json;
+        if (!text.startsWith('[') && !text.endsWith(']')) {
+          json = [
+            {"insert": "$text"},
+            {"insert": "\n"}
+          ];
+        } else {
+          json = jsonDecode(text);
+        }
+        var doc = NotusDocument.fromJson(json);
+        if (_controller == null) {
+          _controller = ZefyrController(doc);
+        }
+        display = ZefyrSelectableView(
+          controller: _controller,
+          focusNode: FocusNode(),
+          mode: ZefyrMode.view,
+          buildChild: (child) {
+            return EditorBuildChild(
+              align: Alignment.centerLeft,
+              child: Stack(
+                overflow: Overflow.visible,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: MessageToolbar(
+                      child: child,
+                      context: widget.context,
+                      message: widget.p2pMessage,
+                      controller: _controller,
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: -14,
+                    child: Icon(
+                      Icons.arrow_left,
+                      size: 25,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
+        break;
       case 'share':
         var json = widget.p2pMessage.content;
         Map<String, dynamic> map = jsonDecode(json);
@@ -1484,27 +1520,39 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ),
           );
         }
-        return Column(
+        display = Column(
           children: items,
         );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+        );
+        break;
       case 'audio':
         var content = jsonDecode(widget.p2pMessage.content);
         String path = content['path'];
-        return MediaCard(
+        display = MediaCard(
           media: RoomMessageMedia(
             src: path,
             type: 'audio',
             args: content['timelength'],
           ),
           room: _model.chatRoom.id,
-          beginTime:widget.p2pMessage.ctime,
+          beginTime: widget.p2pMessage.ctime,
           pageContext: widget.context,
         );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+        );
+        break;
       case 'image':
         var json = widget.p2pMessage.content;
         Map<String, dynamic> map = jsonDecode(json);
         String file = map['path'];
-        return Container(
+        display = Container(
           padding: EdgeInsets.only(
             top: 5,
           ),
@@ -1526,15 +1574,21 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
               type: 'image',
             ),
             room: _model.chatRoom.id,
-            beginTime:widget.p2pMessage.ctime,
+            beginTime: widget.p2pMessage.ctime,
             pageContext: widget.context,
           ),
         );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+        );
+        break;
       case 'video':
         var json = widget.p2pMessage.content;
         Map<String, dynamic> map = jsonDecode(json);
         var file = map['path'];
-        return Container(
+        display = Container(
           padding: EdgeInsets.only(
             top: 5,
           ),
@@ -1550,16 +1604,22 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
               type: 'video',
             ),
             room: _model.chatRoom.id,
-            beginTime:widget.p2pMessage.ctime,
+            beginTime: widget.p2pMessage.ctime,
             pageContext: widget.context,
           ),
         );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+        );
+        break;
       case 'transTo':
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
         var record = P2PRecordOR.parse(obj);
         //
-        return GestureDetector(
+        display = GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
             widget.context
@@ -1606,6 +1666,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ),
           ),
         );
+        break;
       case '/pay/absorbs':
         var colors = [
           Color(0xFFccffff),
@@ -1618,7 +1679,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
         double amount = obj['amount'] / 100.00;
         var title = obj['title'];
         var encourageCause = obj['encourageCause'];
-        return Container(
+        display = Container(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -1701,12 +1762,13 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ],
           ),
         );
+        break;
       case '/pay/trials':
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
         var record = DepositTrialOR.parse(obj);
         double amount = record.amount / 100.00;
-        return Container(
+        display = Container(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -1793,13 +1855,16 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             ],
           ),
         );
+        break;
       default:
         print('不支持的消息类型:${widget.p2pMessage.contentType}');
-        return Container(
+        display = Container(
           width: 0,
           height: 0,
         );
+        break;
     }
+    return display;
   }
 
   String _renderMemberName() {
@@ -1839,6 +1904,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   RoomMember _member;
   bool isShowNick = false;
   ChatRoomModel _model;
+  ZefyrController _controller;
 
   @override
   void initState() {
@@ -1863,7 +1929,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -1900,11 +1966,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                MessageToolbar(
-                  child: _getContentDisplay(),
-                  context: widget.context,
-                  message: widget.p2pMessage,
-                ),
+                _getContentDisplay(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -1982,23 +2044,56 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     var display;
     switch (widget.p2pMessage.contentType) {
       case 'text':
-        display = Text.rich(
-          TextSpan(
-            text: widget.p2pMessage.content ?? '',
-            children: [],
-          ),
-          softWrap: true,
-          strutStyle: StrutStyle(
-            height: 1.8,
-          ),
-          overflow: TextOverflow.visible,
-          style: TextStyle(
-            fontSize: 16,
-            color: widget.isForegroundWhite == true
-                ? Colors.white
-                : Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
+        var text = widget.p2pMessage.content ?? '';
+        var json;
+        if (!text.startsWith('[') && !text.endsWith(']')) {
+          json = [
+            {"insert": "$text"},
+            {"insert": "\n"}
+          ];
+        } else {
+          json = jsonDecode(text);
+        }
+        var doc = NotusDocument.fromJson(json);
+        if (_controller == null) {
+          _controller = ZefyrController(doc);
+        }
+        display = ZefyrSelectableView(
+          controller: _controller,
+          focusNode: FocusNode(),
+          mode: ZefyrMode.view,
+          buildChild: (child) {
+            return EditorBuildChild(
+              align: Alignment.centerRight,
+              child: Stack(
+                overflow: Overflow.visible,
+                alignment: Alignment.centerRight,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.lightGreen[300],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: MessageToolbar(
+                      child: child,
+                      context: widget.context,
+                      message: widget.p2pMessage,
+                      controller: _controller,
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: -14,
+                    child: Icon(
+                      Icons.arrow_right,
+                      size: 25,
+                      color: Colors.lightGreen[300],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
         break;
       case 'share':
@@ -2038,6 +2133,11 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         display = Column(
           children: items,
         );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+        );
         break;
       case 'audio':
         var json = widget.p2pMessage.content;
@@ -2049,8 +2149,13 @@ class __SendMessageItemState extends State<_SendMessageItem> {
             args: map['timelength'],
           ),
           room: _model.chatRoom.id,
-          beginTime:widget.p2pMessage.ctime,
+          beginTime: widget.p2pMessage.ctime,
           pageContext: widget.context,
+        );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
         );
         break;
       case 'image':
@@ -2074,9 +2179,14 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               type: 'image',
             ),
             room: _model.chatRoom.id,
-            beginTime:widget.p2pMessage.ctime,
+            beginTime: widget.p2pMessage.ctime,
             pageContext: widget.context,
           ),
+        );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
         );
         break;
       case 'video':
@@ -2099,9 +2209,14 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               type: 'video',
             ),
             room: _model.chatRoom.id,
-            beginTime:widget.p2pMessage.ctime,
+            beginTime: widget.p2pMessage.ctime,
             pageContext: widget.context,
           ),
+        );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
         );
         break;
       case 'transTo':
