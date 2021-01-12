@@ -495,6 +495,14 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
+  Future<Function> cancelMessage(String roomCreator, String room, String msgid,{bool isOnlyLocal=false}) async{
+    await p2pMessageDAO.updateMsgState('canceled',  room, msgid, principal.person);
+    if(!isOnlyLocal) {
+      await chatRoomRemote.cancelMessage(roomCreator, room, msgid);
+    }
+  }
+
+  @override
   Future<List<ChatMessage>> pageMessage(
       String roomCode, int limit, int offset) {
     return p2pMessageDAO.pageMessage(principal.person, roomCode, limit, offset);
@@ -513,7 +521,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   @override
   Future<ChatMessage> firstUnreadMessage(String room) async {
     return await p2pMessageDAO.firstUnreadMessage(
-        room, principal.person, 'arrived');
+        room, principal.person, ['arrived','canceled']);
   }
 
   @override
@@ -540,6 +548,11 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
       return false;
     }
     return value.value > 0;
+  }
+
+  @override
+  Future<ChatMessage> getMessage(String msgid) async{
+    return await p2pMessageDAO.getMessage(msgid,principal.person);
   }
 
   @override

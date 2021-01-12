@@ -299,6 +299,14 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           }
         });
         break;
+      case 'cancelMessage':
+        await _lock.synchronized(() async {
+          await _arriveCancelMessage(frame);
+          if (mounted) {
+            setState(() {});
+          }
+        });
+        break;
     }
   }
 
@@ -541,6 +549,36 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
+  Future<void> _arriveCancelMessage(Frame frame) async {
+    var room = frame.parameter('room');
+    var msgid = frame.parameter('msgid');
+    var ctime = frame.parameter('ctime');
+    var roomCreator = frame.parameter('roomCreator');
+    var sender = frame.head('sender-person');
+    if (frame.head('sender-person') == widget.context.principal.person) {
+//      print('自已的消息又发给自己，被丢弃。');
+      return null;
+    }
+    IChatRoomService chatRoomService =
+        widget.context.site.getService('/chat/rooms');
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    var message = await messageService.getMessage(msgid);
+    if (message == null) {
+      return null;
+    }
+    await messageService.cancelMessage(roomCreator, room, msgid,
+        isOnlyLocal: true);
+    message.state = 'canceled';
+    chatroomNotifyStreamController
+        .add({'action': 'arriveCancelMessageCommand', 'message': message});
+    await chatRoomService.updateRoomUtime(room);
+    await _topChatroom(room);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<void> _arrivePushMessageCommand(Frame frame) async {
     var content = frame.contentText;
     if (StringUtil.isEmpty(content)) {
@@ -589,7 +627,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         if (await syncPersonService.syncChatroom(roomCreator, room, sender)) {
           await _updateRoom(room);
         }
-      }catch(e){
+      } catch (e) {
         print('聊天室同步用户资料出错:$e');
       }
     }
@@ -1127,6 +1165,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
       oldWidget.model = widget.model;
       oldWidget.isBottom = widget.isBottom;
       oldWidget.onDelete = widget.onDelete;
+      _stateBar = _ChatroomItemStateBar();
     }
     _load();
     super.didUpdateWidget(oldWidget);
@@ -1182,6 +1221,10 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     }
     _stateBar.brackets = '${count > 0 ? '$count条' : '$whois'}';
     _stateBar.isShow = true;
+    if (message.state == 'canceled') {
+      _stateBar.tips = '$whois:撤回消息';
+      return;
+    }
     switch (message?.contentType ?? '') {
       case '':
       case 'text':

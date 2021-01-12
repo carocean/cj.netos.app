@@ -446,6 +446,19 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
   }
 
   @override
+  Future<Function> cancelMessage(roomCreator,room, msgid) async{
+    remotePorts.portTask.addPortGETTask(
+      chatFlowPortsUrl,
+      'cancelMessage',
+      parameters: {
+        'creator': roomCreator,
+        'room': room,
+        'msgid': msgid,
+      },
+    );
+  }
+
+  @override
   Future<Function> pushMessage(String creator, ChatMessage message) async{
     ProgressTaskBar taskbarProgress =
         site.getService('@.prop.taskbar.progress');

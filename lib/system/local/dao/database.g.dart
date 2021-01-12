@@ -3171,10 +3171,11 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
 
   @override
   Future<ChatMessage> firstUnreadMessage(
-      String room, String person, String state) async {
+      String room, String person, List states) async {
+    final valueList1 = states.map((value) => "'$value'").join(', ');
     return _queryAdapter.query(
-        'SELECT * FROM ChatMessage where room=? and sandbox=? and state=? ORDER BY atime DESC LIMIT 1',
-        arguments: <dynamic>[room, person, state],
+        'SELECT * FROM ChatMessage where room=? and sandbox=? and state in ($valueList1) ORDER BY atime DESC LIMIT 1',
+        arguments: <dynamic>[room, person],
         mapper: _chatMessageMapper);
   }
 
@@ -3206,6 +3207,22 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
     await _queryAdapter.queryNoReturn(
         'delete FROM ChatMessage WHERE id = ? and room=? and sandbox = ?',
         arguments: <dynamic>[id, room, sandbox]);
+  }
+
+  @override
+  Future<void> updateMsgState(
+      String state, String room, String msgid, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE ChatMessage SET state=? WHERE room=? and id=? and sandbox=?',
+        arguments: <dynamic>[state, room, msgid, sandbox]);
+  }
+
+  @override
+  Future<ChatMessage> getMessage(String msgid, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM ChatMessage where id=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[msgid, sandbox],
+        mapper: _chatMessageMapper);
   }
 
   @override

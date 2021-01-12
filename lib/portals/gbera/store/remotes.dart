@@ -331,5 +331,8 @@ mixin IChatRoomRemote {
 
   Future<void> sealRoom(String roomCreator,String room) {}
 
+  Future<void> cancelMessage(roomCreator,room, msgid) {}
+
+
 
 }

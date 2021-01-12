@@ -13,8 +13,11 @@ import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zefyr/zefyr.dart';
 
+import 'chattalk_opener.dart';
+
 class MessageToolbar extends StatefulWidget {
   Widget child;
+  ChatRoom chatRoom;
   ChatMessage message;
   PageContext context;
   BuildContext buildContext;
@@ -22,6 +25,7 @@ class MessageToolbar extends StatefulWidget {
 
   MessageToolbar(
       {this.child,
+        this.chatRoom,
       this.context,
       this.buildContext,
       this.message,
@@ -34,6 +38,7 @@ class MessageToolbar extends StatefulWidget {
 class _MessageToolbarState extends State<MessageToolbar> {
   bool get isMessageForSender =>
       widget.message.sender == widget.context.principal.person;
+  bool get isMessageCanceled=>widget.message.state=='canceled';
   CustomPopupMenuController _customPopupMenuController =
       CustomPopupMenuController();
   bool _isSaving = false;
@@ -56,6 +61,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
       oldWidget.message = widget.message;
       oldWidget.context = widget.context;
       oldWidget.controller = widget.controller;
+      oldWidget.chatRoom=widget.chatRoom;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -150,7 +156,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderVideoMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender) {
+    if (isMessageForSender&&!isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -165,7 +171,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderAudioMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender) {
+    if (isMessageForSender&&!isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -179,7 +185,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderImageMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender) {
+    if (isMessageForSender&&!isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -194,7 +200,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderShareMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender) {
+    if (isMessageForSender&&!isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -208,7 +214,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderTextMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender) {
+    if (isMessageForSender&&!isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -255,7 +261,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   Widget _getActionCancel(TextStyle textStyle) {
     return InkWell(
-      onTap: (){
+      onTap: () {
         _cancel();
       },
       child: Padding(
@@ -439,9 +445,15 @@ class _MessageToolbarState extends State<MessageToolbar> {
     );
   }
 
-  Future<void> _cancel()async{
+  Future<void> _cancel() async {
+    var message=widget.message;
+    var room=widget.chatRoom;
     _customPopupMenuController.hideMenu();
-
+    IP2PMessageService messageService =
+        widget.context.site.getService('/chat/p2p/messages');
+    await messageService.cancelMessage(room.creator,message.room, message.id);
+    ToolbarNotification(message:message, command: 'cancelMessage')
+        .dispatch(widget.buildContext);
   }
 }
 

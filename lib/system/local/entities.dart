@@ -529,17 +529,17 @@ class RoomMember {
 @entity
 class ChatMessage {
   @primaryKey
-  final String id;
-  final String sender;
-  final String room;
-  final String contentType;
-  final String content;
-  final String state;
-  final int ctime;
-  final int atime;
-  final int rtime;
-  final int dtime;
-  final String sandbox;
+   String id;
+   String sender;
+   String room;
+   String contentType;
+   String content;
+   String state;
+   int ctime;
+   int atime;
+   int rtime;
+   int dtime;
+   String sandbox;
 
   ChatMessage(this.id, this.sender, this.room, this.contentType, this.content,
       this.state, this.ctime, this.atime, this.rtime, this.dtime, this.sandbox);

@@ -97,6 +97,17 @@ class _ChatTalkState extends State<ChatTalk> {
         case 'arrivePushMessageCommand':
           _arrivePushMessageCommand(message);
           break;
+        case 'arriveCancelMessageCommand':
+          var msg =
+              _p2pMessages.singleWhere((element) => element.id == message.id);
+          if (msg == null) {
+            return;
+          }
+          msg.state = 'canceled';
+          if (mounted) {
+            setState(() {});
+          }
+          break;
         default:
           print('不支持的命令:${command['action']}');
           break;
@@ -436,6 +447,16 @@ class _ChatTalkState extends State<ChatTalk> {
                               (element) => element == notification.message);
                           if (mounted) {
                             setState(() {});
+                          }
+                          break;
+                        case 'cancelMessage':
+                          var msg = _p2pMessages.singleWhere(
+                              (element) => element == notification.message);
+                          if (msg != null) {
+                            msg.state = 'canceled';
+                            if (mounted) {
+                              setState(() {});
+                            }
                           }
                           break;
                       }
@@ -1307,9 +1328,9 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   void didUpdateWidget(_ReceiveMessageItem oldWidget) {
     if (widget.p2pMessage.id != oldWidget.p2pMessage.id) {
       oldWidget.p2pMessage = widget.p2pMessage;
-      oldWidget.isForegroundWhite=widget.isForegroundWhite;
+      oldWidget.isForegroundWhite = widget.isForegroundWhite;
       _model = widget.context.parameters['model'];
-      _controller=null;
+      _controller = null;
       _load().then((v) {
         if (mounted) {
           _isloaded = true;
@@ -1400,7 +1421,37 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _getContentDisplay(),
+                widget.p2pMessage.state == 'canceled'
+                    ? Stack(
+                        children: [
+                          Container(
+                            child: Text(
+                              '消息已被对方撤回',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            left: -14,
+                            child: Icon(
+                              Icons.arrow_left,
+                              size: 25,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                        overflow: Overflow.visible,
+                      )
+                    : _getContentDisplay(),
                 Row(
                   children: <Widget>[
                     Padding(
@@ -1482,6 +1533,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                       message: widget.p2pMessage,
                       controller: _controller,
                       buildContext: context,
+                      chatRoom: _model.chatRoom,
                     ),
                   ),
                   Positioned(
@@ -1541,6 +1593,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'audio':
@@ -1561,6 +1614,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'image':
@@ -1598,6 +1652,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'video':
@@ -1629,6 +1684,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'transTo':
@@ -1957,9 +2013,9 @@ class __SendMessageItemState extends State<_SendMessageItem> {
       return;
     }
     oldWidget.p2pMessage = widget.p2pMessage;
-    oldWidget.isForegroundWhite=widget.isForegroundWhite;
+    oldWidget.isForegroundWhite = widget.isForegroundWhite;
     _model = widget.context.parameters['model'];
-    _controller=null;
+    _controller = null;
     _loadSender().then((p) {
       if (mounted) setState(() {});
     });
@@ -1985,7 +2041,23 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                _getContentDisplay(),
+                widget.p2pMessage.state == 'canceled'
+                    ? Stack(
+                        overflow: Overflow.visible,
+                        children: [
+                          _getContentDisplay(),
+                          Positioned(
+                            right: -9,
+                            top: -9,
+                            child: Icon(
+                              Icons.redo,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      )
+                    : _getContentDisplay(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -2094,6 +2166,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                       message: widget.p2pMessage,
                       controller: _controller,
                       buildContext: context,
+                      chatRoom: _model.chatRoom,
                     ),
                   ),
                   Positioned(
@@ -2153,6 +2226,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'audio':
@@ -2173,6 +2247,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'image':
@@ -2205,6 +2280,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'video':
@@ -2236,6 +2312,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           context: widget.context,
           message: widget.p2pMessage,
           buildContext: context,
+          chatRoom: _model.chatRoom,
         );
         break;
       case 'transTo':

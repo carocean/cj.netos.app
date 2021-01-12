@@ -423,6 +423,10 @@ mixin IP2PMessageService {
 
   Future<void> remove(String room, String id) {}
 
+  Future<void> cancelMessage(String roomCreator,String room, String id,{bool isOnlyLocal=false}) {}
+
+  Future<ChatMessage> getMessage(String msgid) {}
+
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);
