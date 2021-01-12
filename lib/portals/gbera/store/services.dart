@@ -420,6 +420,9 @@ mixin IP2PMessageService {
   Future<int>  totalMessageWithMedia(String roomCode,int beginTime) {}
 
   Future<List<RoomMessageMedia>> pageMessageWithMedia(String roomCode,int beginTime,limit, offset);
+
+  Future<void> remove(String room, String id) {}
+
 }
 mixin IPrincipalService {
   Future<void> add(Principal principal);

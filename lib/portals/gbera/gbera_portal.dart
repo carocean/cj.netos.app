@@ -12,6 +12,7 @@ import 'package:netos_app/portals/gbera/contants/friend_list.dart';
 import 'package:netos_app/portals/gbera/contants/person_selector.dart';
 import 'package:netos_app/portals/gbera/contants/public_persons.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/around_friends.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/forward_message.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/friends_selector.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/members_remove.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/publish_notice.dart';
@@ -3224,6 +3225,15 @@ class GberaPortal {
           icon: null,
           url: '/desktop/screen/popup2',
           buildPage: (PageContext pageContext) => ScreenPopupPage2(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '转发',
+          subtitle: '',
+          icon: null,
+          url: '/chatroom/message/forward',
+          buildPage: (PageContext pageContext) => ForwardMessagePage(
             context: pageContext,
           ),
         ),

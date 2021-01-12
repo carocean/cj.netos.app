@@ -427,20 +427,36 @@ class _ChatTalkState extends State<ChatTalk> {
                   });
                 },
                 behavior: HitTestBehavior.opaque,
-                child: EasyRefresh.custom(
-                  shrinkWrap: true,
-                  header: easyRefreshHeader(),
-                  footer: easyRefreshFooter(),
-                  scrollController: _scrollController,
-                  controller: _controller,
-                  onRefresh: _offset < _limit
-                      ? null
-                      : () async {
-                          _onRefresh().then((v) {
+                child: NotificationListener(
+                  onNotification: (notification) {
+                    if (notification is ToolbarNotification) {
+                      switch (notification.command) {
+                        case 'delete':
+                          _p2pMessages.removeWhere(
+                              (element) => element == notification.message);
+                          if (mounted) {
                             setState(() {});
-                          });
-                        },
-                  slivers: _getSlivers(),
+                          }
+                          break;
+                      }
+                    }
+                    return false;
+                  },
+                  child: EasyRefresh.custom(
+                    shrinkWrap: true,
+                    header: easyRefreshHeader(),
+                    footer: easyRefreshFooter(),
+                    scrollController: _scrollController,
+                    controller: _controller,
+                    onRefresh: _offset < _limit
+                        ? null
+                        : () async {
+                            _onRefresh().then((v) {
+                              setState(() {});
+                            });
+                          },
+                    slivers: _getSlivers(),
+                  ),
                 ),
               ),
             ),
@@ -1289,16 +1305,17 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
 
   @override
   void didUpdateWidget(_ReceiveMessageItem oldWidget) {
-    if (widget.p2pMessage == oldWidget.p2pMessage) {
+    if (widget.p2pMessage.id != oldWidget.p2pMessage.id) {
       oldWidget.p2pMessage = widget.p2pMessage;
+      oldWidget.isForegroundWhite=widget.isForegroundWhite;
       _model = widget.context.parameters['model'];
+      _controller=null;
       _load().then((v) {
         if (mounted) {
           _isloaded = true;
           setState(() {});
         }
       });
-      setState(() {});
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -1436,15 +1453,10 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       case '':
       case 'text':
         var text = widget.p2pMessage.content ?? '';
-        var json;
-        if (!text.startsWith('[') && !text.endsWith(']')) {
-          json = [
-            {"insert": "$text"},
-            {"insert": "\n"}
-          ];
-        } else {
-          json = jsonDecode(text);
-        }
+        var json = [
+          {"insert": "$text"},
+          {"insert": "\n"}
+        ];
         var doc = NotusDocument.fromJson(json);
         if (_controller == null) {
           _controller = ZefyrController(doc);
@@ -1469,6 +1481,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
                       context: widget.context,
                       message: widget.p2pMessage,
                       controller: _controller,
+                      buildContext: context,
                     ),
                   ),
                   Positioned(
@@ -1527,6 +1540,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'audio':
@@ -1546,6 +1560,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'image':
@@ -1582,6 +1597,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'video':
@@ -1612,6 +1628,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'transTo':
@@ -1935,12 +1952,14 @@ class __SendMessageItemState extends State<_SendMessageItem> {
 
   @override
   void didUpdateWidget(_SendMessageItem oldWidget) {
-    if (oldWidget.p2pMessage == widget.p2pMessage) {
+    if (oldWidget.p2pMessage.id == widget.p2pMessage.id) {
       super.didUpdateWidget(oldWidget);
       return;
     }
     oldWidget.p2pMessage = widget.p2pMessage;
+    oldWidget.isForegroundWhite=widget.isForegroundWhite;
     _model = widget.context.parameters['model'];
+    _controller=null;
     _loadSender().then((p) {
       if (mounted) setState(() {});
     });
@@ -2045,15 +2064,10 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     switch (widget.p2pMessage.contentType) {
       case 'text':
         var text = widget.p2pMessage.content ?? '';
-        var json;
-        if (!text.startsWith('[') && !text.endsWith(']')) {
-          json = [
-            {"insert": "$text"},
-            {"insert": "\n"}
-          ];
-        } else {
-          json = jsonDecode(text);
-        }
+        var json = [
+          {"insert": "$text"},
+          {"insert": "\n"}
+        ];
         var doc = NotusDocument.fromJson(json);
         if (_controller == null) {
           _controller = ZefyrController(doc);
@@ -2079,6 +2093,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
                       context: widget.context,
                       message: widget.p2pMessage,
                       controller: _controller,
+                      buildContext: context,
                     ),
                   ),
                   Positioned(
@@ -2137,6 +2152,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'audio':
@@ -2156,6 +2172,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'image':
@@ -2187,6 +2204,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'video':
@@ -2217,6 +2235,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           child: display,
           context: widget.context,
           message: widget.p2pMessage,
+          buildContext: context,
         );
         break;
       case 'transTo':

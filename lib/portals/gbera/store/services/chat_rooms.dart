@@ -543,6 +543,11 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   }
 
   @override
+  Future<Function> remove(String room, String id) async{
+    await p2pMessageDAO.remove(id,room,principal.person);
+  }
+
+  @override
   Future<Function> empty(ChatRoom chatRoom) async {
     await p2pMessageDAO.emptyRoomMessages(chatRoom.id, principal.person);
   }

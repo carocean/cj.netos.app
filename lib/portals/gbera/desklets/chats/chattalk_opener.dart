@@ -21,6 +21,9 @@ mixin IChatTalkOpener {
 
   Future<void> sendShareMessage(PageContext context, String roomCreator,
       String roomId, String comment, Map<String, String> content) {}
+
+  Future<void> sendNormalMessage(PageContext context, String roomCreator,
+      String roomId, String contentType, String content) {}
 }
 
 class _DefaultChatTalkOpener implements IChatTalkOpener {
@@ -35,6 +38,27 @@ class _DefaultChatTalkOpener implements IChatTalkOpener {
       roomId,
       'share',
       json,
+      'sended',
+      DateTime.now().millisecondsSinceEpoch,
+      null,
+      null,
+      null,
+      context.principal.person,
+    );
+    IP2PMessageService messageService =
+        context.site.getService('/chat/p2p/messages');
+    await messageService.addMessage(roomCreator, message);
+  }
+
+  @override
+  Future<Function> sendNormalMessage(PageContext context, String roomCreator,
+      String roomId, String contentType, String content) async {
+    var message = ChatMessage(
+      MD5Util.MD5(Uuid().v1()),
+      context.principal.person,
+      roomId,
+      contentType,
+      content,
       'sended',
       DateTime.now().millisecondsSinceEpoch,
       null,

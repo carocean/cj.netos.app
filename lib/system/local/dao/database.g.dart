@@ -3202,6 +3202,13 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
   }
 
   @override
+  Future<void> remove(String id, String room, String sandbox) async {
+    await _queryAdapter.queryNoReturn(
+        'delete FROM ChatMessage WHERE id = ? and room=? and sandbox = ?',
+        arguments: <dynamic>[id, room, sandbox]);
+  }
+
+  @override
   Future<void> addMessage(ChatMessage message) async {
     await _chatMessageInsertionAdapter.insert(
         message, sqflite.ConflictAlgorithm.abort);

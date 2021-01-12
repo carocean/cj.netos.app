@@ -156,6 +156,9 @@ class _RoomMediaViewerState extends State<RoomMediaViewer> {
   Future<void> _load() async {
     IP2PMessageService messageService =
         widget.pageContext.site.getService('/chat/p2p/messages');
+    if(_beginTime==null) {
+      _beginTime=DateTime.now().millisecondsSinceEpoch;
+    }
     var _mediaCount = await messageService.totalMessageWithMedia(_room,_beginTime,);
     var medias = await messageService.pageMessageWithMedia(_room,_beginTime, _mediaCount, 0);
    _medias.addAll(medias);

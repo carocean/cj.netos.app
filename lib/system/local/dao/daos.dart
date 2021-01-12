@@ -707,6 +707,10 @@ abstract class IP2PMessageDAO {
 
   @Query('delete FROM ChatMessage WHERE room=:room and sandbox = :sandbox')
   Future<void> emptyRoomMessages(String room, String sandbox) {}
+
+  @Query('delete FROM ChatMessage WHERE id = :id and room=:room and sandbox = :sandbox')
+  Future<void> remove(String id, String room, String sandbox) {}
+
 }
 
 @dao
