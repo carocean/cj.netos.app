@@ -151,6 +151,7 @@ class _GeoSettingsFansState extends State<GeoSettingsFans> {
                             widget.context
                                 .forward('/gbera/location', arguments: {
                               'location': _receptor.latLng,
+                              'hasNavigationAction':true,
                               'label':
                               '半径:${getFriendlyDistance(_receptor.radius)}'
                             });

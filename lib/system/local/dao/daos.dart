@@ -696,19 +696,19 @@ abstract class IP2PMessageDAO {
       String room, String state, String sandbox) {}
 
   @Query(
-      'SELECT count(*) as value  FROM ChatMessage where room=:room and sandbox=:sandbox and state=:state')
+      'SELECT count(*) as value  FROM ChatMessage where room=:room and sandbox=:sandbox and state in (:states)')
   Future<CountValue> countUnreadMessage(
-      String room, String sandbox, String state) {}
+      String room, String sandbox, List<dynamic> states) {}
 
   @Query(
-      'SELECT *  FROM ChatMessage where room=:room and sandbox=:sandbox and state in (:states) ORDER BY atime DESC LIMIT 1')
+      'SELECT *  FROM ChatMessage where room=:room and sender != :sender and sandbox=:sandbox and state in (:states) ORDER BY atime DESC LIMIT 1')
   Future<ChatMessage> firstUnreadMessage(
-      String room, String person, List<dynamic> states) {}
+      String room,String sender, String person, List<dynamic> states) {}
 
   @Query(
-      'UPDATE ChatMessage SET state=:state , rtime=:rtime WHERE room=:room and state=:wherestate and sandbox=:sandbox')
+      'UPDATE ChatMessage SET state=:state , rtime=:rtime WHERE room=:room and state in (:wherestates) and sandbox=:sandbox')
   Future<void> updateMessagesState(String state, int rtime, String room,
-      String wherestate, String sandbox) {}
+      List<dynamic> wherestates, String sandbox) {}
 
   @Query(
       'SELECT count(*) as value  FROM ChatMessage where id=:msgid and sandbox=:sandbox')

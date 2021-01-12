@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:extended_text/extended_text.dart';
 import 'package:extended_text_field/extended_text_field.dart';
@@ -21,6 +22,7 @@ import 'package:netos_app/common/zefyr_selectable.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/chat_rooms.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/media_card.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/message_toolbar.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
@@ -33,6 +35,7 @@ import 'package:uuid/uuid.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:zefyr/zefyr.dart';
 
+import 'amap_widget.dart';
 import 'chatroom_handler.dart';
 
 class ChatTalk extends StatefulWidget {
@@ -352,6 +355,24 @@ class _ChatTalkState extends State<ChatTalk> {
           _chatRoom.id,
           'transTo',
           content,
+          'sended',
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        break;
+      case 'captureLocation':
+        var location = cmd.message as Location;
+        var json = location.latLng.toJson();
+        var cnt = jsonEncode(json);
+        message = ChatMessage(
+          MD5Util.MD5(Uuid().v1()),
+          widget.context.principal.person,
+          _chatRoom.id,
+          'captureLocation',
+          cnt,
           'sended',
           DateTime.now().millisecondsSinceEpoch,
           null,
@@ -828,6 +849,15 @@ class _PlusPannelState extends State<_PlusPannel> {
           );
         });
         break;
+      case 'captureLocation':
+        var location = await geoLocation.location;
+        widget.pluginTap(
+          _ChatCommand(
+            cmd: plugin.id,
+            message: location,
+          ),
+        );
+        break;
       default:
         print('不支持的发布插件:${plugin.id}');
         break;
@@ -922,6 +952,15 @@ class _PlusPannelState extends State<_PlusPannel> {
         title: '录像',
         leading: Icon(
           Icons.videocam,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+      TalkPlugin(
+        id: 'captureLocation',
+        title: '位置',
+        leading: Icon(
+          Icons.location_on,
           size: 30,
           color: Colors.grey[600],
         ),
@@ -1687,6 +1726,30 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           chatRoom: _model.chatRoom,
         );
         break;
+      case 'captureLocation':
+        var json=widget.p2pMessage.content;
+        if(StringUtil.isEmpty(json)){
+          break;
+        }
+        var latLng=LatLng.fromJson(jsonDecode(json));
+        display =widget.context.part('/chatroom/talk/location',context,arguments: {'location':latLng});
+        display=InkWell(
+          onTap: (){
+            widget.context
+                .forward('/gbera/location', arguments: {
+              'location': latLng,
+            });
+          },
+          child: display,
+        );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+          buildContext: context,
+          chatRoom: _model.chatRoom,
+        );
+        break;
       case 'transTo':
         var json = widget.p2pMessage.content;
         var obj = jsonDecode(json);
@@ -2306,6 +2369,30 @@ class __SendMessageItemState extends State<_SendMessageItem> {
             beginTime: widget.p2pMessage.ctime,
             pageContext: widget.context,
           ),
+        );
+        display = MessageToolbar(
+          child: display,
+          context: widget.context,
+          message: widget.p2pMessage,
+          buildContext: context,
+          chatRoom: _model.chatRoom,
+        );
+        break;
+      case 'captureLocation':
+        var json=widget.p2pMessage.content;
+        if(StringUtil.isEmpty(json)){
+          break;
+        }
+        var latLng=LatLng.fromJson(jsonDecode(json));
+        display =widget.context.part('/chatroom/talk/location',context,arguments: {'location':latLng});
+        display=InkWell(
+          onTap: (){
+            widget.context
+                .forward('/gbera/location', arguments: {
+            'location': latLng,
+            });
+          },
+          child: display,
         );
         display = MessageToolbar(
           child: display,

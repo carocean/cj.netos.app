@@ -794,6 +794,31 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           setState(() {});
         }
         break;
+      case 'captureLocation':
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          StringUtil.isEmpty(ctime)
+              ? DateTime.now().millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime.now().millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        chatroomNotifyStreamController
+            .add({'action': 'arrivePushMessageCommand', 'message': message});
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
+        }
+        break;
       default:
         print('收到未知的消息类型：$contentType');
         break;
@@ -1250,6 +1275,11 @@ class __ChatroomItemState extends State<_ChatroomItem> {
 //        var cnt = message?.content;
 //        var map = jsonDecode(cnt);
         _stateBar.tips = '$whois: 发来视频';
+        break;
+      case 'captureLocation':
+//        var cnt = message?.content;
+//        var map = jsonDecode(cnt);
+        _stateBar.tips = '$whois: 发来位置';
         break;
       case 'transTo':
         _stateBar.tips = '$whois: 转账给我';

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:custom_pop_up_menu/custom_pop_up_menu.dart';
 import 'package:extended_text/extended_text.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:netos_app/common/gis_navigation.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,7 +27,7 @@ class MessageToolbar extends StatefulWidget {
 
   MessageToolbar(
       {this.child,
-        this.chatRoom,
+      this.chatRoom,
       this.context,
       this.buildContext,
       this.message,
@@ -38,7 +40,8 @@ class MessageToolbar extends StatefulWidget {
 class _MessageToolbarState extends State<MessageToolbar> {
   bool get isMessageForSender =>
       widget.message.sender == widget.context.principal.person;
-  bool get isMessageCanceled=>widget.message.state=='canceled';
+
+  bool get isMessageCanceled => widget.message.state == 'canceled';
   CustomPopupMenuController _customPopupMenuController =
       CustomPopupMenuController();
   bool _isSaving = false;
@@ -61,7 +64,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
       oldWidget.message = widget.message;
       oldWidget.context = widget.context;
       oldWidget.controller = widget.controller;
-      oldWidget.chatRoom=widget.chatRoom;
+      oldWidget.chatRoom = widget.chatRoom;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -141,6 +144,11 @@ class _MessageToolbarState extends State<MessageToolbar> {
           _renderVideoMessageActions(textStyle),
         );
         break;
+      case 'captureLocation':
+        items.addAll(
+          _renderCaptureLocationMessageActions(textStyle),
+        );
+        break;
       case 'transTo':
         break;
       case '/pay/absorbs':
@@ -154,9 +162,24 @@ class _MessageToolbarState extends State<MessageToolbar> {
     return items;
   }
 
+  List<Widget> _renderCaptureLocationMessageActions(TextStyle textStyle) {
+    var extra = <Widget>[];
+    if (isMessageForSender && !isMessageCanceled) {
+      extra.add(
+        _getActionCancel(textStyle),
+      );
+    }
+    return <Widget>[
+      _getActionMapNavigate(textStyle),
+      _getActionForward(textStyle),
+      ...extra,
+      _getActionDelete(textStyle),
+    ];
+  }
+
   List<Widget> _renderVideoMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender&&!isMessageCanceled) {
+    if (isMessageForSender && !isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -171,7 +194,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderAudioMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender&&!isMessageCanceled) {
+    if (isMessageForSender && !isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -185,7 +208,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderImageMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender&&!isMessageCanceled) {
+    if (isMessageForSender && !isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -200,7 +223,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderShareMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender&&!isMessageCanceled) {
+    if (isMessageForSender && !isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -214,7 +237,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
 
   List<Widget> _renderTextMessageActions(TextStyle textStyle) {
     var extra = <Widget>[];
-    if (isMessageForSender&&!isMessageCanceled) {
+    if (isMessageForSender && !isMessageCanceled) {
       extra.add(
         _getActionCancel(textStyle),
       );
@@ -319,6 +342,36 @@ class _MessageToolbarState extends State<MessageToolbar> {
             ),
             Text(
               '复制',
+              style: textStyle,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _getActionMapNavigate(TextStyle textStyle) {
+    return InkWell(
+      onTap: () {
+        _mapNavigate();
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.navigation,
+              size: 18,
+              color: Colors.white,
+            ),
+            SizedBox(
+              height: 4,
+            ),
+            Text(
+              '导航',
               style: textStyle,
             ),
           ],
@@ -446,14 +499,25 @@ class _MessageToolbarState extends State<MessageToolbar> {
   }
 
   Future<void> _cancel() async {
-    var message=widget.message;
-    var room=widget.chatRoom;
+    var message = widget.message;
+    var room = widget.chatRoom;
     _customPopupMenuController.hideMenu();
     IP2PMessageService messageService =
         widget.context.site.getService('/chat/p2p/messages');
-    await messageService.cancelMessage(room.creator,message.room, message.id);
-    ToolbarNotification(message:message, command: 'cancelMessage')
+    await messageService.cancelMessage(room.creator, message.room, message.id);
+    ToolbarNotification(message: message, command: 'cancelMessage')
         .dispatch(widget.buildContext);
+  }
+
+  Future<void> _mapNavigate() async {
+    _customPopupMenuController.hideMenu();
+    var cnt=widget.message.content;
+    if(cnt==null) {
+      return;
+    }
+    var json=jsonDecode(cnt);
+    var latLng=LatLng.fromJson(json);
+    showNavigationDialog(context: widget.buildContext,latLng: latLng);
   }
 }
 

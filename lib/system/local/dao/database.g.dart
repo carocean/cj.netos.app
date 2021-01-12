@@ -3162,29 +3162,31 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
 
   @override
   Future<CountValue> countUnreadMessage(
-      String room, String sandbox, String state) async {
+      String room, String sandbox, List states) async {
+    final valueList1 = states.map((value) => "'$value'").join(', ');
     return _queryAdapter.query(
-        'SELECT count(*) as value FROM ChatMessage where room=? and sandbox=? and state=?',
-        arguments: <dynamic>[room, sandbox, state],
+        'SELECT count(*) as value FROM ChatMessage where room=? and sandbox=? and state in ($valueList1)',
+        arguments: <dynamic>[room, sandbox],
         mapper: _countValueMapper);
   }
 
   @override
   Future<ChatMessage> firstUnreadMessage(
-      String room, String person, List states) async {
+      String room, String sender, String person, List states) async {
     final valueList1 = states.map((value) => "'$value'").join(', ');
     return _queryAdapter.query(
-        'SELECT * FROM ChatMessage where room=? and sandbox=? and state in ($valueList1) ORDER BY atime DESC LIMIT 1',
-        arguments: <dynamic>[room, person],
+        'SELECT * FROM ChatMessage where room=? and sender != ? and sandbox=? and state in ($valueList1) ORDER BY atime DESC LIMIT 1',
+        arguments: <dynamic>[room, sender, person],
         mapper: _chatMessageMapper);
   }
 
   @override
   Future<void> updateMessagesState(String state, int rtime, String room,
-      String wherestate, String sandbox) async {
+      List wherestates, String sandbox) async {
+    final valueList1 = wherestates.map((value) => "'$value'").join(', ');
     await _queryAdapter.queryNoReturn(
-        'UPDATE ChatMessage SET state=? , rtime=? WHERE room=? and state=? and sandbox=?',
-        arguments: <dynamic>[state, rtime, room, wherestate, sandbox]);
+        'UPDATE ChatMessage SET state=? , rtime=? WHERE room=? and state in ($valueList1) and sandbox=?',
+        arguments: <dynamic>[state, rtime, room, sandbox]);
   }
 
   @override

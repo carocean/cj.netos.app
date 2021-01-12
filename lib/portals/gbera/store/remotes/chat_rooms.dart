@@ -673,6 +673,22 @@ class ChatRoomRemote implements IChatRoomRemote, IServiceBuilder {
           },
         );
         break;
+      case 'captureLocation':
+        remotePorts.portTask.addPortPOSTTask(
+          chatFlowPortsUrl,
+          'pushMessage',
+          parameters: {
+            'creator': creator,
+            'room': message.room,
+            'msgid': message.id,
+            'contentType': 'captureLocation',
+            'interval': 10,
+          },
+          data: {
+            'content': message.content,
+          },
+        );
+        break;
       default:
         print('不支持的消息类型:${message.contentType}');
         break;

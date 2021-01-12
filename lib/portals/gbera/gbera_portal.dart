@@ -11,6 +11,7 @@ import 'package:netos_app/portals/gbera/contants/cardcases.dart';
 import 'package:netos_app/portals/gbera/contants/friend_list.dart';
 import 'package:netos_app/portals/gbera/contants/person_selector.dart';
 import 'package:netos_app/portals/gbera/contants/public_persons.dart';
+import 'package:netos_app/portals/gbera/desklets/chats/amap_widget.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/around_friends.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/forward_message.dart';
 import 'package:netos_app/portals/gbera/desklets/chats/friends_selector.dart';
@@ -3234,6 +3235,15 @@ class GberaPortal {
           icon: null,
           url: '/chatroom/message/forward',
           buildPage: (PageContext pageContext) => ForwardMessagePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '平聊位置图',
+          subtitle: '',
+          icon: null,
+          url: '/chatroom/talk/location',
+          buildPage: (PageContext pageContext) => GisMapWidget(
             context: pageContext,
           ),
         ),

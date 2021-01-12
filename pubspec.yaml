@@ -238,3 +238,6 @@ flutter:
     - family: user_security
       fonts:
         - asset: lib/portals/gbera/fonts/user_security.ttf
+    - family: gis_map
+      fonts:
+        - asset: lib/portals/gbera/fonts/gis_map.ttf

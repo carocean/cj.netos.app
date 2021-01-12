@@ -511,7 +511,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   @override
   Future<int> countUnreadMessage(String room) async {
     CountValue value = await p2pMessageDAO.countUnreadMessage(
-        room, principal.person, 'arrived');
+        room, principal.person, ['arrived','canceled']);
     if (value == null) {
       return 0;
     }
@@ -521,7 +521,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
   @override
   Future<ChatMessage> firstUnreadMessage(String room) async {
     return await p2pMessageDAO.firstUnreadMessage(
-        room, principal.person, ['arrived','canceled']);
+        room, principal.person,principal.person, ['arrived','canceled']);
   }
 
   @override
@@ -536,7 +536,7 @@ class P2PMessageService implements IP2PMessageService, IServiceBuilder {
         'readed',
         DateTime.now().millisecondsSinceEpoch,
         room,
-        'arrived',
+        ['arrived','canceled'],
         principal.person);
   }
 
