@@ -696,19 +696,19 @@ abstract class IP2PMessageDAO {
       String room, String state, String sandbox) {}
 
   @Query(
-      'SELECT count(*) as value  FROM ChatMessage where room=:room and sandbox=:sandbox and state in (:states)')
+      'SELECT count(*) as value  FROM ChatMessage where room=:room and sandbox=:sandbox and state = :state')
   Future<CountValue> countUnreadMessage(
-      String room, String sandbox, List<dynamic> states) {}
+      String room, String sandbox,String state) {}
 
   @Query(
-      'SELECT *  FROM ChatMessage where room=:room and sender != :sender and sandbox=:sandbox and state in (:states) ORDER BY atime DESC LIMIT 1')
+      'SELECT *  FROM ChatMessage where room=:room and sandbox=:sandbox and state = :state ORDER BY atime DESC LIMIT 1')
   Future<ChatMessage> firstUnreadMessage(
-      String room,String sender, String person, List<dynamic> states) {}
+      String room, String person, String state) {}
 
   @Query(
-      'UPDATE ChatMessage SET state=:state , rtime=:rtime WHERE room=:room and state in (:wherestates) and sandbox=:sandbox')
+      'UPDATE ChatMessage SET state=:state , rtime=:rtime WHERE room=:room and state = :wherestate and sandbox=:sandbox')
   Future<void> updateMessagesState(String state, int rtime, String room,
-      List<dynamic> wherestates, String sandbox) {}
+      String wherestate, String sandbox) {}
 
   @Query(
       'SELECT count(*) as value  FROM ChatMessage where id=:msgid and sandbox=:sandbox')
@@ -722,9 +722,9 @@ abstract class IP2PMessageDAO {
   Future<void> remove(String id, String room, String sandbox) {}
 
   @Query(
-      'UPDATE ChatMessage SET state=:state WHERE room=:room and id=:msgid and sandbox=:sandbox')
-  Future<void> updateMsgState(
-      String state, String room, String msgid, String sandbox) {}
+      'UPDATE ChatMessage SET isCanceled=:isCanceled WHERE room=:room and id=:msgid and sandbox=:sandbox')
+  Future<void> updateMsgCancel(
+      String isCanceled, String room, String msgid, String sandbox) {}
 
   @Query(
       'SELECT *  FROM ChatMessage where id=:msgid and sandbox=:sandbox LIMIT 1')

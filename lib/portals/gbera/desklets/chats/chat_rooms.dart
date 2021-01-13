@@ -433,6 +433,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       '/pay/absorbs',
       msgcontext,
       'arrived',
+      'false',
       StringUtil.isEmpty(ctime)
           ? DateTime.now().millisecondsSinceEpoch
           : int.parse(ctime),
@@ -530,6 +531,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       '/pay/trials',
       content,
       'arrived',
+      'false',
       StringUtil.isEmpty(ctime)
           ? DateTime.now().millisecondsSinceEpoch
           : int.parse(ctime),
@@ -569,7 +571,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
     await messageService.cancelMessage(roomCreator, room, msgid,
         isOnlyLocal: true);
-    message.state = 'canceled';
+    message.isCanceled = 'true';
     chatroomNotifyStreamController
         .add({'action': 'arriveCancelMessageCommand', 'message': message});
     await chatRoomService.updateRoomUtime(room);
@@ -667,6 +669,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           contentType,
           content,
           'arrived',
+          'false',
           StringUtil.isEmpty(ctime)
               ? DateTime.now().millisecondsSinceEpoch
               : int.parse(ctime),
@@ -692,6 +695,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           contentType,
           content,
           'arrived',
+          'false',
           StringUtil.isEmpty(ctime)
               ? DateTime.now().millisecondsSinceEpoch
               : int.parse(ctime),
@@ -777,6 +781,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           contentType,
           content,
           'arrived',
+          'false',
           StringUtil.isEmpty(ctime)
               ? DateTime.now().millisecondsSinceEpoch
               : int.parse(ctime),
@@ -802,6 +807,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           contentType,
           content,
           'arrived',
+          'false',
           StringUtil.isEmpty(ctime)
               ? DateTime.now().millisecondsSinceEpoch
               : int.parse(ctime),
@@ -862,6 +868,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           contentType,
           content,
           'arrived',
+          'false',
           StringUtil.isEmpty(ctime)
               ? DateTime.now().millisecondsSinceEpoch
               : int.parse(ctime),
@@ -1246,7 +1253,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     }
     _stateBar.brackets = '${count > 0 ? '$count条' : '$whois'}';
     _stateBar.isShow = true;
-    if (message.state == 'canceled') {
+    if (message.isCanceled == 'true') {
       _stateBar.tips = '$whois:撤回消息';
       return;
     }

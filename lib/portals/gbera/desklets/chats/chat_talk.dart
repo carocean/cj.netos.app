@@ -16,6 +16,7 @@ import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/emoji.dart';
+import 'package:netos_app/common/ifly_util.dart';
 import 'package:netos_app/common/medias_widget.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/common/zefyr_selectable.dart';
@@ -106,7 +107,7 @@ class _ChatTalkState extends State<ChatTalk> {
           if (msg == null) {
             return;
           }
-          msg.state = 'canceled';
+          msg.isCanceled = 'true';
           if (mounted) {
             setState(() {});
           }
@@ -234,6 +235,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'text',
           cmd.message,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -252,6 +254,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'audio',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -270,6 +273,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'image',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -296,6 +300,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'video',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -314,6 +319,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'image',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -340,6 +346,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'video',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -356,6 +363,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'transTo',
           content,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -374,6 +382,7 @@ class _ChatTalkState extends State<ChatTalk> {
           'captureLocation',
           cnt,
           'sended',
+          'false',
           DateTime.now().millisecondsSinceEpoch,
           null,
           null,
@@ -474,7 +483,7 @@ class _ChatTalkState extends State<ChatTalk> {
                           var msg = _p2pMessages.singleWhere(
                               (element) => element == notification.message);
                           if (msg != null) {
-                            msg.state = 'canceled';
+                            msg.isCanceled = 'true';
                             if (mounted) {
                               setState(() {});
                             }
@@ -482,7 +491,7 @@ class _ChatTalkState extends State<ChatTalk> {
                           break;
                       }
                     }
-                    return false;
+                    return true;
                   },
                   child: EasyRefresh.custom(
                     shrinkWrap: true,
@@ -1344,7 +1353,8 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
   bool isShowNick = false;
   ChatRoomModel _model;
   ZefyrController _controller;
-
+  TranslateResult _translateResult;
+  TranslateResult _translateDone;
   @override
   void initState() {
     _model = widget.context.parameters['model'];
@@ -1370,6 +1380,8 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
       oldWidget.isForegroundWhite = widget.isForegroundWhite;
       _model = widget.context.parameters['model'];
       _controller = null;
+      _translateResult=null;
+      _translateDone=null;
       _load().then((v) {
         if (mounted) {
           _isloaded = true;
@@ -1460,7 +1472,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                widget.p2pMessage.state == 'canceled'
+                widget.p2pMessage.isCanceled == 'true'
                     ? Stack(
                         children: [
                           Container(
@@ -1654,7 +1666,147 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
           message: widget.p2pMessage,
           buildContext: context,
           chatRoom: _model.chatRoom,
+          ontranslate: (translateResult) {
+            if(translateResult.cmd=='stoped'){
+              _translateDone=_translateResult;
+            }
+            _translateResult = translateResult;
+            if (mounted) {
+              setState(() {});
+            }
+          },
         );
+        if (_translateResult != null) {
+          var style;
+          var label;
+          var term;
+          switch (_translateResult.cmd) {
+            case 'open':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '开始联系第三方服务',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'connError':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '联系第三方失败，请稍候重试...',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                ),
+              );
+              break;
+            case 'started':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '已成功联系第三方服务，正在翻译...',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'result':
+              label = Text(
+                '处理中...',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '${_translateResult.term ?? ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'transError':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '翻译过程中失败。',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                ),
+              );
+              break;
+            case 'stoped':
+              label = Text(
+                '译文：',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              );
+              term = Text(
+                '${_translateDone?.term ?? ''}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              );
+              break;
+          }
+          display = Column(
+            children: [
+              display,
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 12,
+                  right: 12,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: label,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 5,),
+                    Container(
+                      padding: EdgeInsets.only(left: 15,right: 15,),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            child: term,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
         break;
       case 'image':
         var json = widget.p2pMessage.content;
@@ -1727,18 +1879,18 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
         );
         break;
       case 'captureLocation':
-        var json=widget.p2pMessage.content;
-        if(StringUtil.isEmpty(json)){
+        var json = widget.p2pMessage.content;
+        if (StringUtil.isEmpty(json)) {
           break;
         }
-        var latLng=LatLng.fromJson(jsonDecode(json));
-        display =widget.context.part('/chatroom/talk/location',context,arguments: {'location':latLng});
-        display=InkWell(
-          onTap: (){
-            widget.context
-                .forward('/gbera/location', arguments: {
+        var latLng = LatLng.fromJson(jsonDecode(json));
+        display = widget.context.part('/chatroom/talk/location', context,
+            arguments: {'location': latLng});
+        display = InkWell(
+          onTap: () {
+            widget.context.forward('/gbera/location', arguments: {
               'location': latLng,
-              'hasNavigationAction':true,
+              'hasNavigationAction': true,
             });
           },
           child: display,
@@ -2042,7 +2194,8 @@ class __SendMessageItemState extends State<_SendMessageItem> {
   bool isShowNick = false;
   ChatRoomModel _model;
   ZefyrController _controller;
-
+  TranslateResult _translateResult;
+  TranslateResult _translateDone;
   @override
   void initState() {
     _model = widget.context.parameters['model'];
@@ -2080,6 +2233,8 @@ class __SendMessageItemState extends State<_SendMessageItem> {
     oldWidget.isForegroundWhite = widget.isForegroundWhite;
     _model = widget.context.parameters['model'];
     _controller = null;
+    _translateResult = null;
+    _translateDone=null;
     _loadSender().then((p) {
       if (mounted) setState(() {});
     });
@@ -2105,7 +2260,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                widget.p2pMessage.state == 'canceled'
+                widget.p2pMessage.isCanceled == 'true'
                     ? Stack(
                         overflow: Overflow.visible,
                         children: [
@@ -2312,7 +2467,147 @@ class __SendMessageItemState extends State<_SendMessageItem> {
           message: widget.p2pMessage,
           buildContext: context,
           chatRoom: _model.chatRoom,
+          ontranslate: (translateResult) {
+            if(translateResult.cmd=='stoped'){
+              _translateDone=_translateResult;
+            }
+            _translateResult = translateResult;
+            if (mounted) {
+              setState(() {});
+            }
+          },
         );
+        if (_translateResult != null) {
+          var style;
+          var label;
+          var term;
+          switch (_translateResult.cmd) {
+            case 'open':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '开始联系第三方服务',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'connError':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '联系第三方失败，请稍候重试...',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                ),
+              );
+              break;
+            case 'started':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '已成功联系第三方服务，正在翻译...',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'result':
+              label = Text(
+                '处理中...',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '${_translateResult.term ?? ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              );
+              break;
+            case 'transError':
+              label = Text(
+                '提示:',
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              );
+              term = Text(
+                '翻译过程中失败。',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red,
+                ),
+              );
+              break;
+            case 'stoped':
+              label = Text(
+                '译文：',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              );
+              term = Text(
+                '${_translateDone?.term ?? ''}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              );
+              break;
+          }
+          display = Column(
+            children: [
+              display,
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 12,
+                  right: 12,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: label,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 5,),
+                   Container(
+                     padding: EdgeInsets.only(left: 15,right: 15,),
+                     child:  Row(
+                       children: [
+                         Expanded(
+                           child: term,
+                         ),
+                       ],
+                     ),
+                   ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
         break;
       case 'image':
         var json = widget.p2pMessage.content;
@@ -2380,18 +2675,18 @@ class __SendMessageItemState extends State<_SendMessageItem> {
         );
         break;
       case 'captureLocation':
-        var json=widget.p2pMessage.content;
-        if(StringUtil.isEmpty(json)){
+        var json = widget.p2pMessage.content;
+        if (StringUtil.isEmpty(json)) {
           break;
         }
-        var latLng=LatLng.fromJson(jsonDecode(json));
-        display =widget.context.part('/chatroom/talk/location',context,arguments: {'location':latLng});
-        display=InkWell(
-          onTap: (){
-            widget.context
-                .forward('/gbera/location', arguments: {
-            'location': latLng,
-              'hasNavigationAction':true,
+        var latLng = LatLng.fromJson(jsonDecode(json));
+        display = widget.context.part('/chatroom/talk/location', context,
+            arguments: {'location': latLng});
+        display = InkWell(
+          onTap: () {
+            widget.context.forward('/gbera/location', arguments: {
+              'location': latLng,
+              'hasNavigationAction': true,
             });
           },
           child: display,

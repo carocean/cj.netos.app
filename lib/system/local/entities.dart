@@ -535,6 +535,7 @@ class ChatMessage {
    String contentType;
    String content;
    String state;
+   String isCanceled;
    int ctime;
    int atime;
    int rtime;
@@ -542,7 +543,7 @@ class ChatMessage {
    String sandbox;
 
   ChatMessage(this.id, this.sender, this.room, this.contentType, this.content,
-      this.state, this.ctime, this.atime, this.rtime, this.dtime, this.sandbox);
+      this.state,this.isCanceled, this.ctime, this.atime, this.rtime, this.dtime, this.sandbox);
 }
 
 @entity

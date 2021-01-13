@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:custom_pop_up_menu/custom_pop_up_menu.dart';
@@ -10,6 +11,7 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:framework/framework.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/gis_navigation.dart';
+import 'package:netos_app/common/ifly_util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,14 +26,14 @@ class MessageToolbar extends StatefulWidget {
   PageContext context;
   BuildContext buildContext;
   ZefyrController controller;
-
+  void Function(TranslateResult result) ontranslate;
   MessageToolbar(
       {this.child,
       this.chatRoom,
       this.context,
       this.buildContext,
       this.message,
-      this.controller});
+      this.controller,this.ontranslate,});
 
   @override
   _MessageToolbarState createState() => _MessageToolbarState();
@@ -44,7 +46,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
   bool get isMessageCanceled => widget.message.state == 'canceled';
   CustomPopupMenuController _customPopupMenuController =
       CustomPopupMenuController();
-  bool _isSaving = false;
+  bool _isSaving = false,_isTranslating=false;
 
   @override
   void initState() {
@@ -65,6 +67,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
       oldWidget.context = widget.context;
       oldWidget.controller = widget.controller;
       oldWidget.chatRoom = widget.chatRoom;
+      oldWidget.ontranslate=widget.ontranslate;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -202,6 +205,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
     return <Widget>[
       _getActionForward(textStyle),
       ...extra,
+    _getActionTranslate(textStyle),
       _getActionDelete(textStyle),
     ];
   }
@@ -249,7 +253,37 @@ class _MessageToolbarState extends State<MessageToolbar> {
       _getActionDelete(textStyle),
     ];
   }
-
+  Widget _getActionTranslate(TextStyle textStyle) {
+    return InkWell(
+      onTap: _isTranslating
+          ? null
+          : () {
+        _translate();
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.text_fields,
+              size: 18,
+              color: Colors.white,
+            ),
+            SizedBox(
+              height: 4,
+            ),
+            Text(
+              '音转文',
+              style: textStyle,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _getActionSave(TextStyle textStyle) {
     return InkWell(
       onTap: _isSaving
@@ -519,13 +553,20 @@ class _MessageToolbarState extends State<MessageToolbar> {
     var latLng=LatLng.fromJson(json);
     showNavigationDialog(context: widget.buildContext,latLng: latLng);
   }
+  Future<void> _translate() async {
+    _customPopupMenuController.hideMenu();
+   var cnt=widget.message.content;
+   var json=jsonDecode(cnt);
+   var path=json['path'];
+   await Ifly.sendFile(path,callback: widget.ontranslate);
+  }
 }
 
 class ToolbarNotification extends Notification {
   String command;
   ChatMessage message;
-
-  ToolbarNotification({this.command, this.message});
+  String term;
+  ToolbarNotification({this.command, this.message,this.term});
 }
 
 class _MediaSaveWidget extends StatefulWidget {

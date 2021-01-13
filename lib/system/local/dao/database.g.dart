@@ -113,7 +113,7 @@ class _$AppDatabase extends AppDatabase {
 
     return sqflite.openDatabase(
       path,
-      version: 7,
+      version: 8,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
@@ -160,7 +160,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `RoomMember` (`room` TEXT, `person` TEXT, `nickName` TEXT, `isShowNick` TEXT, `leading` TEXT, `type` TEXT, `atime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`room`, `person`, `sandbox`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `ChatMessage` (`id` TEXT, `sender` TEXT, `room` TEXT, `contentType` TEXT, `content` TEXT, `state` TEXT, `isCanceled` TEXT, `ctime` INTEGER, `atime` INTEGER, `rtime` INTEGER, `dtime` INTEGER, `sandbox` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Principal` (`person` TEXT, `uid` TEXT, `accountCode` TEXT, `nickName` TEXT, `appid` TEXT, `portal` TEXT, `roles` TEXT, `accessToken` TEXT, `refreshToken` TEXT, `ravatar` TEXT, `lavatar` TEXT, `signature` TEXT, `ltime` INTEGER, `pubtime` INTEGER, `expiretime` INTEGER, `device` TEXT, PRIMARY KEY (`person`))');
         await database.execute(
@@ -3086,6 +3086,7 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
                   'contentType': item.contentType,
                   'content': item.content,
                   'state': item.state,
+                  'isCanceled': item.isCanceled,
                   'ctime': item.ctime,
                   'atime': item.atime,
                   'rtime': item.rtime,
@@ -3106,6 +3107,7 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
       row['contentType'] as String,
       row['content'] as String,
       row['state'] as String,
+      row['isCanceled'] as String,
       row['ctime'] as int,
       row['atime'] as int,
       row['rtime'] as int,
@@ -3162,31 +3164,28 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
 
   @override
   Future<CountValue> countUnreadMessage(
-      String room, String sandbox, List states) async {
-    final valueList1 = states.map((value) => "'$value'").join(', ');
+      String room, String sandbox, String state) async {
     return _queryAdapter.query(
-        'SELECT count(*) as value FROM ChatMessage where room=? and sandbox=? and state in ($valueList1)',
-        arguments: <dynamic>[room, sandbox],
+        'SELECT count(*) as value FROM ChatMessage where room=? and sandbox=? and state = ?',
+        arguments: <dynamic>[room, sandbox, state],
         mapper: _countValueMapper);
   }
 
   @override
   Future<ChatMessage> firstUnreadMessage(
-      String room, String sender, String person, List states) async {
-    final valueList1 = states.map((value) => "'$value'").join(', ');
+      String room, String person, String state) async {
     return _queryAdapter.query(
-        'SELECT * FROM ChatMessage where room=? and sender != ? and sandbox=? and state in ($valueList1) ORDER BY atime DESC LIMIT 1',
-        arguments: <dynamic>[room, sender, person],
+        'SELECT * FROM ChatMessage where room=? and sandbox=? and state = ? ORDER BY atime DESC LIMIT 1',
+        arguments: <dynamic>[room, person, state],
         mapper: _chatMessageMapper);
   }
 
   @override
   Future<void> updateMessagesState(String state, int rtime, String room,
-      List wherestates, String sandbox) async {
-    final valueList1 = wherestates.map((value) => "'$value'").join(', ');
+      String wherestate, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE ChatMessage SET state=? , rtime=? WHERE room=? and state in ($valueList1) and sandbox=?',
-        arguments: <dynamic>[state, rtime, room, sandbox]);
+        'UPDATE ChatMessage SET state=? , rtime=? WHERE room=? and state = ? and sandbox=?',
+        arguments: <dynamic>[state, rtime, room, wherestate, sandbox]);
   }
 
   @override
@@ -3212,11 +3211,11 @@ class _$IP2PMessageDAO extends IP2PMessageDAO {
   }
 
   @override
-  Future<void> updateMsgState(
-      String state, String room, String msgid, String sandbox) async {
+  Future<void> updateMsgCancel(
+      String isCanceled, String room, String msgid, String sandbox) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE ChatMessage SET state=? WHERE room=? and id=? and sandbox=?',
-        arguments: <dynamic>[state, room, msgid, sandbox]);
+        'UPDATE ChatMessage SET isCanceled=? WHERE room=? and id=? and sandbox=?',
+        arguments: <dynamic>[isCanceled, room, msgid, sandbox]);
   }
 
   @override

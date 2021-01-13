@@ -122,6 +122,7 @@ dependencies:
     path: buddy_push
   accept_share:
     path: accept_share
+  crypto: ^2.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -68,7 +68,18 @@ final migrationsMicrogeo = <Migration>[
         await db.execute('ALTER TABLE ChatRoom ADD COLUMN isSeal Text');
       });
 
-      print('--------database onUpgrade 从版本5迁移到版本6');
+      print('--------database onUpgrade 从版本6迁移到版本7');
+    },
+  ),
+  Migration(
+    7,
+    8,
+        (db) async {
+      await db.transaction((txn) async {
+        await db.execute('ALTER TABLE ChatMessage ADD COLUMN isCanceled Text');
+      });
+
+      print('--------database onUpgrade 从版本7迁移到版本8');
     },
   ),
 ];
