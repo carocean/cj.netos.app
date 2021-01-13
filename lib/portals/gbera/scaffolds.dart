@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:accept_share/accept_share.dart';
 import 'package:buddy_push/buddy_push.dart';
 import 'package:flutter/material.dart';
@@ -143,12 +145,7 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
       body: Container(
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
-          image: use_wallpapper
-              ? DecorationImage(
-                  image: AssetImage(wallpaper),
-                  fit: BoxFit.cover,
-                )
-              : null,
+          image: use_wallpapper ? getWallpaperImage(wallpaper) : null,
         ),
         child: PageView(
           physics: NeverScrollableScrollPhysics(), //禁止页面左右滑动切换
@@ -166,6 +163,19 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
           });
         },
       ),
+    );
+  }
+
+  getWallpaperImage(String wallpaper) {
+    if (wallpaper.startsWith('/')) {
+      return DecorationImage(
+        image: FileImage(File(wallpaper)),
+        fit: BoxFit.cover,
+      );
+    }
+    return DecorationImage(
+      image: AssetImage(wallpaper),
+      fit: BoxFit.cover,
     );
   }
 }
