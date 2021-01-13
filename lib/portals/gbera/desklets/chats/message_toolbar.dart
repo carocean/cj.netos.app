@@ -299,7 +299,7 @@ class _MessageToolbarState extends State<MessageToolbar> {
         child: Column(
           children: [
             Icon(
-              Icons.redo,
+              Icons.save_alt,
               size: 18,
               color: Colors.white,
             ),
