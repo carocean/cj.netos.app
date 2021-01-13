@@ -279,15 +279,15 @@ class _ChannelPageState extends State<ChannelPage> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: () {
-              if(Platform.isIOS){
-                widget.context.forward('/netflow/channel/publish_article/ios',
-                    arguments: <String, dynamic>{
-                      'type': 'text',
-                      'channel': _channel,
-                      'refreshMessages': _refreshMessages
-                    });
-                return;
-              }
+              // if(Platform.isIOS){
+              //   widget.context.forward('/netflow/channel/publish_article/ios',
+              //       arguments: <String, dynamic>{
+              //         'type': 'text',
+              //         'channel': _channel,
+              //         'refreshMessages': _refreshMessages
+              //       });
+              //   return;
+              // }
               widget.context.forward('/netflow/channel/publish_article',
                   arguments: <String, dynamic>{
                     'type': 'text',

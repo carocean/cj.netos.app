@@ -325,10 +325,11 @@ class _WindowState extends State<Window> {
       Positioned(
         // top: Platform.isAndroid ? 23 : 31,
         // left: Platform.isAndroid ? 90 : 30,
-        height: 1,
-        width: 30,
+        height: 4,
+        // width: 30,
         left: 0,
-        bottom: 30,
+        bottom: 0,
+        right: 0,
         child: TaskBar(widget.site, _progressTaskBar),
       ),
     ];

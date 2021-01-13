@@ -424,21 +424,21 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () {
-          if(Platform.isIOS){
-            widget.context.forward('/geosphere/publish_article',
-                arguments: <String, dynamic>{
-                  'type': 'text',
-                  'receptor': _receptorInfo.id,
-                }).then((v) {
-              if (v == null) {
-                return;
-              }
-              _loadMessageAndPutTop(v).then((s) {
-                setState(() {});
-              });
-            });
-            return;
-          }
+          // if(Platform.isIOS){
+          //   widget.context.forward('/geosphere/publish_article',
+          //       arguments: <String, dynamic>{
+          //         'type': 'text',
+          //         'receptor': _receptorInfo.id,
+          //       }).then((v) {
+          //     if (v == null) {
+          //       return;
+          //     }
+          //     _loadMessageAndPutTop(v).then((s) {
+          //       setState(() {});
+          //     });
+          //   });
+          //   return;
+          // }
           widget.context.forward('/geosphere/publish_article',
               arguments: <String, dynamic>{
                 'type': 'text',
