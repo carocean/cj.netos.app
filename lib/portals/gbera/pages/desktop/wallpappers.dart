@@ -58,7 +58,7 @@ class _WallpappersState extends State<Wallpappers> {
   }
 
   Future<void> _openDb() async {
-    var home = await getExternalStorageDirectory();
+    var home = await getApplicationDocumentsDirectory();
     var dir = '${home.path}/db';
     var dirFile = Directory(dir);
     if (!dirFile.existsSync()) {
@@ -185,7 +185,7 @@ class _WallpappersState extends State<Wallpappers> {
                         title: Text('请确认'),
                         content: Text('是否删除？'),
                         actions: [
-                          RaisedButton(
+                          FlatButton(
                             onPressed: () {},
                             child: Text(
                               '取消',
@@ -194,7 +194,7 @@ class _WallpappersState extends State<Wallpappers> {
                               ),
                             ),
                           ),
-                          RaisedButton(
+                          FlatButton(
                             onPressed: () {
                               widget.context.backward(result: 'yes');
                             },
@@ -263,7 +263,7 @@ class _WallpappersState extends State<Wallpappers> {
           return;
         }
         var src = image.path;
-        var home = await getExternalStorageDirectory();
+        var home = await getApplicationDocumentsDirectory();
         var dir = '${home.path}/wallpapers';
         var dirFile = Directory(dir);
         if (!dirFile.existsSync()) {
