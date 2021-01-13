@@ -317,7 +317,7 @@ class GisMapUtil {
   static Future<bool> gotoAMap(longitude, latitude) async {
     var url =
         '${Platform.isAndroid ? 'android' : 'ios'}amap://navi?sourceApplication=amap&lat=$latitude&lon=$longitude&dev=0&style=2';
-
+    // url=Uri.encodeFull(url);
     bool canLaunchUrl = await canLaunch(url);
 
     if (!canLaunchUrl) {

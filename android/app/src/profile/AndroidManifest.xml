@@ -36,4 +36,6 @@
 
     <!--vivo角标-->
     <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 </manifest>

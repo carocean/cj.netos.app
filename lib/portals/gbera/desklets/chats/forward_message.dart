@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:framework/core_lib/_page_context.dart';
@@ -615,6 +616,25 @@ class _ForwardMessagePageState extends State<ForwardMessagePage> {
             pageContext: widget.context,
           ),
         );
+        break;
+      case 'captureLocation':
+        var json=_message.content;
+        if(StringUtil.isEmpty(json)){
+          break;
+        }
+        var latLng=LatLng.fromJson(jsonDecode(json));
+        display =widget.context.part('/chatroom/talk/location',context,arguments: {'location':latLng});
+        display=InkWell(
+          onTap: (){
+            widget.context
+                .forward('/gbera/location', arguments: {
+              'location': latLng,
+              'hasNavigationAction':true,
+            });
+          },
+          child: display,
+        );
+        display=Padding(padding: EdgeInsets.only(left: 20,right: 20,),child: display,);
         break;
       default:
         display = SizedBox.shrink();

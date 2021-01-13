@@ -90,7 +90,7 @@ class _PoolPageState extends State<ContentBoxViewPage> {
 //    var first = geocodeList[0];
 //    var location = await first.latLng;
     widget.context.forward('/gbera/location',
-        arguments: {'location': location, 'label': label});
+        arguments: {'location': location, 'label': label,'hasNavigationAction':true});
   }
 
   Future<Person> _getPerson() async {

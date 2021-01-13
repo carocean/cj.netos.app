@@ -1738,6 +1738,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
             widget.context
                 .forward('/gbera/location', arguments: {
               'location': latLng,
+              'hasNavigationAction':true,
             });
           },
           child: display,
@@ -2390,6 +2391,7 @@ class __SendMessageItemState extends State<_SendMessageItem> {
             widget.context
                 .forward('/gbera/location', arguments: {
             'location': latLng,
+              'hasNavigationAction':true,
             });
           },
           child: display,
