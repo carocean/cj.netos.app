@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -214,6 +216,8 @@ class _DepositAbsorbDetailsState extends State<DepositAbsorbDetails> {
               ],
             ),
           ),
+          _renderRecord(record,minWidth),
+
           Padding(
             padding: EdgeInsets.only(
               left: 40,
@@ -428,4 +432,43 @@ class _DepositAbsorbDetailsState extends State<DepositAbsorbDetails> {
       ),
     );
   }
+
+ Widget _renderRecord(DepositAbsorbOR record,double minWidth) {
+    var note=record.note;
+    if(StringUtil.isEmpty(note)){
+      return SizedBox.shrink();
+    }
+    var encourage=jsonDecode(note);
+    var cause=encourage['encourageCause'];
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 40,
+        right: 40,
+        top: 10,
+        bottom: 10,
+      ),
+      child:Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: minWidth,
+            ),
+            child: Text(
+              '激励原因:',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '${cause??'-'}',
+            ),
+          ),
+        ],
+      ),
+    );
+ }
+
 }
