@@ -254,7 +254,7 @@ class _AbsorberDetailsState extends State<SimpleAbsorberDetailsPage> {
                                           ),
                                         ),
                                       ),
-                                Platform.isIOS?SizedBox(height: 0,width: 0,):
+                                // Platform.isIOS?SizedBox(height: 0,width: 0,):
                                 GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
