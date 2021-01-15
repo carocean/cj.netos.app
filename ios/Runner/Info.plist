@@ -54,6 +54,8 @@
 		<true/>
 		<key>NSAllowsArbitraryLoadsForMedia</key>
 		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+        <true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>若不允许,你将无法在地微中发送及保存照片</string>

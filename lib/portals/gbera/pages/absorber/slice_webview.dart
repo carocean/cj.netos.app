@@ -18,13 +18,13 @@ class SliceWebViewPage extends StatefulWidget {
 
 class _SliceWebViewPageState extends State<SliceWebViewPage> {
   QrcodeSliceOR _qrcodeSliceOR;
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
   bool isLoading = true;
+  var _url;
 
   @override
   void initState() {
     _qrcodeSliceOR = widget.context.parameters['slice'];
+    _url = '${_qrcodeSliceOR.href}?id=${_qrcodeSliceOR.id}';
     super.initState();
   }
 
@@ -54,33 +54,41 @@ class _SliceWebViewPageState extends State<SliceWebViewPage> {
         child: Stack(
           children: [
             WebView(
-              initialUrl: '${_qrcodeSliceOR.href}?id=${_qrcodeSliceOR.id}',
+              initialUrl: _url,
+              onPageStarted: (url){
+                print('---');
+              },
+              onWebResourceError: (err){
+                print('---${err.errorCode} ${err.description}');
+              },
               javascriptMode: JavascriptMode.unrestricted,
               initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
-              onWebViewCreated: (WebViewController webViewController) {
-                _controller.complete(webViewController);
-              },
-              navigationDelegate: (NavigationRequest request) {
-                setState(() {
-                  isLoading = true; // 开始访问页面，更新状态
-                });
-
-                return NavigationDecision.navigate;
-              },
-              onPageFinished: (String url) {
-                setState(() {
-                  isLoading = false; // 页面加载完成，更新状态
-                });
+              onPageFinished: (ctr){
+                if (mounted) {
+                  setState(() {
+                    isLoading = false;
+                  });
+                }
               },
             ),
             isLoading
-                ? Container(
-                  constraints: BoxConstraints.expand(),
-                    child: Center(
-                      child: SizedBox(height: 50,width: 50,child: CircularProgressIndicator(),),
+                ? Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      constraints: BoxConstraints.expand(),
+                      child: Center(
+                        child: SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
                     ),
                   )
-                : Container(),
+                : SizedBox.shrink(),
           ],
         ),
       ),

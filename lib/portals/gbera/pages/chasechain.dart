@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +26,13 @@ class Chasechain extends StatefulWidget {
 class _ChasechainState extends State<Chasechain> {
   EasyRefreshController _controller;
   String _towncode;
+  String _country;
   List<ContentItemOR> _items = [];
   int _limit = 20;
   int _offset = 0;
   bool _isLoading=true;
+  bool _isFirstRecommenderDone=false;//是否首次推荐已完成
+
   @override
   void initState() {
     _controller = EasyRefreshController();
@@ -42,6 +47,7 @@ class _ChasechainState extends State<Chasechain> {
       var latLng = location.latLng;
       var recode = await AmapSearch.instance.searchReGeocode(latLng, radius: 200.0);
       _towncode = recode.townCode;
+      _country= recode.country;
       await _onRefresh();
       if(mounted){
         setState(() {
@@ -88,7 +94,9 @@ class _ChasechainState extends State<Chasechain> {
     if (mounted) {
       Toast.show('已推荐${items.length}个', context,
           gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
-      setState(() {});
+      setState(() {
+        _isFirstRecommenderDone=true;
+      });
     }
   }
 
@@ -206,6 +214,7 @@ class _ChasechainState extends State<Chasechain> {
         ),
       );
     }
+
     return EasyRefresh.custom(
       controller: _controller,
       onRefresh: _onRefresh,
@@ -218,6 +227,16 @@ class _ChasechainState extends State<Chasechain> {
 
   List<Widget> _getSlivers() {
     var slivers = <Widget>[];
+    if(_items.isEmpty&&_isFirstRecommenderDone) {
+      var isIosAndNotChina=Platform.isIOS&&_country!='中国';
+      slivers.add(SliverToBoxAdapter(child: Container(
+        alignment: Alignment.center,
+        height: Adapt.screenH()-150,
+        constraints: BoxConstraints.tightForFinite(width: double.maxFinite,),
+        child: Text('没有推荐内容，${isIosAndNotChina?'请尝试下拉刷新，如果仍没有内容，或许是你不在追链支持地区':'请尝试下拉刷新'}',style: TextStyle(fontSize: 12,color: Colors.grey,),),
+      ),),);
+      return slivers;
+    }
     for (var item in _items) {
       slivers.add(
         SliverToBoxAdapter(
