@@ -57,6 +57,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
   StreamSubscription _refresh_streamSubscription;
   bool _isSyning = false;
   bool _isLoading=true;
+  String _syncProcessTips;
   @override
   bool get wantKeepAlive {
     return true;
@@ -130,6 +131,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
     if (mounted) {
       setState(() {
         _isSyning = true;
+        _syncProcessTips='准备从云端同步你的管道，请稍候...';
       });
     }
     var source = frame.contentText;
@@ -148,9 +150,24 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
         continue;
       }
       //缓冲channel
+      if(mounted){
+        setState(() {
+          _syncProcessTips='正在同步管道${ch.name??''}信息...';
+        });
+      }
       await channelCache.cache(ch);
       await channelService.addChannel(ch, isOnlyLocal: true);
+      if(mounted){
+        setState(() {
+          _syncProcessTips='正在同步管道${ch.name??''}下游成员...';
+        });
+      }
       await sync_pin(ch);
+    }
+    if(mounted){
+      setState(() {
+        _syncProcessTips='同步完成，正在显示列表...';
+      });
     }
     _items.clear();
     await _loadChannels();
@@ -670,7 +687,7 @@ class _NetflowState extends State<Netflow> with AutomaticKeepAliveClientMixin {
               Expanded(
                 child: Center(
                   child: Text(
-                    '正在从云端同步你的管道，请稍候...',
+                    '${_syncProcessTips??''}',
                     style: TextStyle(
                       color: Colors.grey,
                     ),
