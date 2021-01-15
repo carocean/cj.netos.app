@@ -147,6 +147,13 @@ class _QrcodeSliceImagePageState extends State<QrcodeSliceImagePage> {
           'template': _templateOR,
         });
         break;
+      case 'official2':
+        slice = widget.context
+            .part('/robot/slice/image/official2', context, arguments: {
+          'slice': _qrcodeSliceOR,
+          'template': _templateOR,
+        });
+        break;
       case 'happiness':
         slice = widget.context.part('/robot/slice/image/happiness', context,
             arguments: {'slice': _qrcodeSliceOR, 'template': _templateOR});

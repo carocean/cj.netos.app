@@ -54,8 +54,10 @@ class _GeosphereEvents {
 
   void onRemoveReceptor(GeoReceptor receptor) {
     listeners.forEach((listener) {
-      listener(''
-          '', receptor);
+      listener(
+          ''
+          '',
+          receptor);
     });
   }
 }
@@ -80,6 +82,7 @@ class _GeosphereState extends State<Geosphere>
   Lock _lock;
   bool _isSyning = false;
   StreamSubscription _onlineEventStreamSubscription;
+
   @override
   bool get wantKeepAlive {
     return true;
@@ -92,26 +95,21 @@ class _GeosphereState extends State<Geosphere>
     geoLocation.start();
 
     _refreshController = EasyRefreshController();
-    _onload().then((v) {
-      setState(() {});
+    _load().then((v) {
+      if(mounted) {
+        setState(() {});
+      }
     });
 
     _listenMeidaFileDownload();
-    if(deviceStatus.state==DeviceNetState.online){
+    if (deviceStatus.state == DeviceNetState.online) {
       _listen();
-    }else{
-      _onlineEventStreamSubscription=onlineEvent.stream.listen((event) {
+    } else {
+      _onlineEventStreamSubscription = onlineEvent.stream.listen((event) {
         _listen();
       });
     }
-    syncTaskMananger.tasks['geoshpere'] = SyncTask(
-      doTask: _sync_task,
-    )..run(
-        syncName: 'geoshpere',
-        context: widget.context,
-        checkRemote: _sync_check,
-//      forceSync: true,
-      );
+
     geosphereEvents.listeners.add((action, args) {
       if (!mounted) {
         return;
@@ -143,7 +141,7 @@ class _GeosphereState extends State<Geosphere>
   void _listen() {
     if (!widget.context.isListeningMessage(matchPath: '/geosphere/receptor')) {
       widget.context.listenMessage(
-            (frame) async {
+        (frame) async {
           switch (frame.command) {
             case 'pushDocument':
               await _lock.synchronized(() async {
@@ -199,6 +197,7 @@ class _GeosphereState extends State<Geosphere>
       );
     }
   }
+
   Future<SyncArgs> _sync_check(PageContext context) async {
     var portsurl =
         context.site.getService('@.prop.ports.document.geo.receptor');
@@ -673,9 +672,22 @@ class _GeosphereState extends State<Geosphere>
     }
   }
 
+  Future<void> _load() async {
+    await _onload();
+    if (_offset < 1) {
+      syncTaskMananger.tasks['geoshpere'] = SyncTask(
+        doTask: _sync_task,
+      )..run(
+          syncName: 'geoshpere',
+          context: widget.context,
+          checkRemote: _sync_check,
+//      forceSync: true,
+        );
+    }
+  }
+
   Future<void> _onload() async {
     await _loadReceptors();
-    return;
   }
 
   Future<void> _checkMobileReceptor() async {
@@ -1004,8 +1016,6 @@ class _GeosphereState extends State<Geosphere>
       },
     );
   }
-
-
 }
 
 ///当前行政区划
@@ -1610,14 +1620,21 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
         print(e);
       }
     }
+    bool isDel = false;
     await receptorService.remove(receptor.id);
     for (var i = 0; i < _receptors.length; i++) {
       if (_receptors[i].id == receptor.id) {
         _receptors.removeAt(i);
+        isDel = true;
+        break;
+      }
+    }
+    if (isDel) {
+      if (mounted) {
+        setState(() {});
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1650,67 +1667,69 @@ class _GeoReceptorsState extends State<_GeoReceptors> {
               ),
             ],
           ),
-          ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.all(0),
-            physics: NeverScrollableScrollPhysics(),
-            children: _receptors.map((receptor) {
-              var latlng = receptor.getLocationLatLng();
-              double offset = 0.0;
-              if (_currentLatLng != null) {
-                offset = getDistance(start: _currentLatLng, end: latlng);
-              }
-              var backgroundMode;
-              switch (receptor.backgroundMode) {
-                case 'vertical':
-                  backgroundMode = BackgroundMode.vertical;
-                  break;
-                case 'horizontal':
-                  backgroundMode = BackgroundMode.horizontal;
-                  break;
-                case 'none':
-                  backgroundMode = BackgroundMode.none;
-                  break;
-              }
-              var foregroundMode;
-              switch (receptor.foregroundMode) {
-                case 'original':
-                  foregroundMode = ForegroundMode.original;
-                  break;
-                case 'white':
-                  foregroundMode = ForegroundMode.white;
-                  break;
-              }
-              return _ReceptorItem(
-                context: widget.context,
-                onDelete: () {
-                  _deleteReceptor(receptor).then((v) {
-                    setState(() {});
-                  });
-                },
-                receptor: ReceptorInfo(
-                  title: receptor.title,
-                  id: receptor.id,
-                  leading: receptor.leading,
-                  creator: receptor.creator,
-                  isMobileReceptor: receptor.category == 'mobiles',
-                  offset: offset,
-                  category: receptor.category,
-                  radius: receptor.radius,
-                  isAutoScrollMessage:
-                      receptor.isAutoScrollMessage == 'true' ? true : false,
-                  latLng: LatLng.fromJson(jsonDecode(receptor.location)),
-                  uDistance: receptor.uDistance,
-                  background: receptor.background,
-                  backgroundMode: backgroundMode,
-                  foregroundMode: foregroundMode,
-                  origin: receptor,
-                ),
-              );
-            }).toList(),
-          ),
+          _renderReceptor(),
         ],
       ),
+    );
+  }
+
+  Widget _renderReceptor() {
+    return ListView(
+      shrinkWrap: true,
+      padding: EdgeInsets.all(0),
+      physics: NeverScrollableScrollPhysics(),
+      children: _receptors.map((receptor) {
+        var latlng = receptor.getLocationLatLng();
+        double offset = 0.0;
+        if (_currentLatLng != null) {
+          offset = getDistance(start: _currentLatLng, end: latlng);
+        }
+        var backgroundMode;
+        switch (receptor.backgroundMode) {
+          case 'vertical':
+            backgroundMode = BackgroundMode.vertical;
+            break;
+          case 'horizontal':
+            backgroundMode = BackgroundMode.horizontal;
+            break;
+          case 'none':
+            backgroundMode = BackgroundMode.none;
+            break;
+        }
+        var foregroundMode;
+        switch (receptor.foregroundMode) {
+          case 'original':
+            foregroundMode = ForegroundMode.original;
+            break;
+          case 'white':
+            foregroundMode = ForegroundMode.white;
+            break;
+        }
+        return _ReceptorItem(
+          context: widget.context,
+          onDelete: () {
+            _deleteReceptor(receptor);
+          },
+          receptor: ReceptorInfo(
+            title: receptor.title,
+            id: receptor.id,
+            leading: receptor.leading,
+            creator: receptor.creator,
+            isMobileReceptor: receptor.category == 'mobiles',
+            offset: offset,
+            category: receptor.category,
+            radius: receptor.radius,
+            isAutoScrollMessage:
+                receptor.isAutoScrollMessage == 'true' ? true : false,
+            latLng: LatLng.fromJson(jsonDecode(receptor.location)),
+            uDistance: receptor.uDistance,
+            background: receptor.background,
+            backgroundMode: backgroundMode,
+            foregroundMode: foregroundMode,
+            origin: receptor,
+          ),
+        );
+      }).toList(),
     );
   }
 //
@@ -1999,12 +2018,10 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                         );
                         return;
                       }
-                      widget.context
-                          .forward(
+                      widget.context.forward(
                         '/widgets/avatar',
-                        arguments: {'file':widget.receptor.leading},
-                      )
-                          .then((path) {
+                        arguments: {'file': widget.receptor.leading},
+                      ).then((path) {
                         if (StringUtil.isEmpty(path)) {
                           return;
                         }
@@ -2094,28 +2111,30 @@ class _ReceptorItemState extends State<_ReceptorItem> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
-                          Expanded(child: Text.rich(
-                            TextSpan(
-                              text: widget.receptor.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                              ),
-                              children: [
-                                widget.receptor.offset == 0
-                                    ? TextSpan(text: '')
-                                    : TextSpan(
-                                  text:'  ${getFriendlyDistance(widget.receptor.offset)}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[500],
-                                  ),
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                text: widget.receptor.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
                                 ),
-                              ],
+                                children: [
+                                  widget.receptor.offset == 0
+                                      ? TextSpan(text: '')
+                                      : TextSpan(
+                                          text:
+                                              '  ${getFriendlyDistance(widget.receptor.offset)}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                ],
+                              ),
                             ),
-                          ),),
-
+                          ),
                         ],
                       ),
                       !_stateBar.isShow
@@ -2214,30 +2233,39 @@ class _ReceptorItemState extends State<_ReceptorItem> {
     // if (widget.receptor.origin.canDel == 'false') {
     //   return tapItem;
     // }
+    var hasFollowAction=widget.receptor.creator != widget.context.principal.person;
+    var action;
+    if(hasFollowAction) {
+      action=IconSlideAction(
+        caption: '不再关注',
+        foregroundColor: Colors.grey[500],
+        icon: Icons.remove_red_eye,
+        onTap: () {
+          if (widget.onDelete != null) {
+            widget.onDelete();
+          }
+        },
+      );
+    }else{
+      if(widget.receptor.category=='mobiles'){
+        action=SizedBox.shrink();
+      }else{
+        action=IconSlideAction(
+          caption: '删除',
+          foregroundColor: Colors.grey[500],
+          icon: Icons.delete,
+          onTap: () {
+            if (widget.onDelete != null) {
+              widget.onDelete();
+            }
+          },
+        );
+      }
+    }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
-        widget.receptor.creator == widget.context.principal.person
-            ? IconSlideAction(
-                caption: '删除',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.delete,
-                onTap: () {
-                  if (widget.onDelete != null) {
-                    widget.onDelete();
-                  }
-                },
-              )
-            : IconSlideAction(
-                caption: '不再关注',
-                foregroundColor: Colors.grey[500],
-                icon: Icons.remove_red_eye,
-                onTap: () {
-                  if (widget.onDelete != null) {
-                    widget.onDelete();
-                  }
-                },
-              ),
+       action,
       ],
       child: tapItem,
     );

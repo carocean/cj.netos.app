@@ -43,6 +43,8 @@ import 'package:netos_app/portals/gbera/pages/absorber/render/minxinpian_slice.d
 import 'package:netos_app/portals/gbera/pages/absorber/render/minxinpian_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/normal_template.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/official2_slice.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/render/official2_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/official_slice.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/official_template.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/render/wangzheruyao_slice.dart';
@@ -3068,11 +3070,29 @@ class GberaPortal {
           ),
         ),
         LogicPage(
-          title: '小确幸码片图片',
+          title: '官方码片图片',
           subtitle: '',
           icon: null,
           url: '/robot/slice/image/official',
           buildPage: (PageContext pageContext) => OfficialSliceImage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '官方码片模板2',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/template/official2',
+          buildPage: (PageContext pageContext) => Official2Template(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '官方码片图片2',
+          subtitle: '',
+          icon: null,
+          url: '/robot/slice/image/official2',
+          buildPage: (PageContext pageContext) => Official2SliceImage(
             context: pageContext,
           ),
         ),

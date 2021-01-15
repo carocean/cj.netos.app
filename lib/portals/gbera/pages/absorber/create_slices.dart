@@ -65,7 +65,7 @@ class _CreateSlicesPageState extends State<CreateSlicesPage> {
 
   Future<void> _loadTemplate() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    _selectedSliceTemplate = await robotRemote.getQrcodeSliceTemplate('official');
+    _selectedSliceTemplate = await robotRemote.getQrcodeSliceTemplate('official2');
     if (mounted) setState(() {});
   }
 

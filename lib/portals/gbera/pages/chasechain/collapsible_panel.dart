@@ -465,6 +465,15 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
         automaticallyImplyLeading: false,
         actions: <Widget>[
           IconButton(
+            icon: Icon(
+              Icons.privacy_tip_outlined,
+              size: 18,
+            ),
+            onPressed: () {
+              _tipoffItem();
+            },
+          ),
+          IconButton(
             onPressed: () {
               _isShowCommentEditor = !_isShowCommentEditor;
               if (mounted) {
