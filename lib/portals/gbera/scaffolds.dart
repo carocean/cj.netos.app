@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/main.dart';
 import 'package:netos_app/system/local/local_principals.dart';
+import 'package:netos_app/system/system.dart';
 
 import 'parts/bottoms.dart';
 import 'parts/parts.dart';
@@ -72,7 +74,7 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
       await _localPrincipalManager.online();
       isOnline = true;
     });
-    super.initState();
+
     _pageController = PageController(initialPage: this.selectedIndex);
     wallpaper = widget.context.sharedPreferences().getString('@.wallpaper',
         person: widget.context.principal.person,
@@ -86,10 +88,20 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
         arguments: {'From-Page-Url': widget.context.page.url}));
     parts.add(widget.context.part('/geosphere', context,
         arguments: {'From-Page-Url': widget.context.page.url}));
-    parts.add(widget.context.part('/chasechain', context,
-        arguments: {'From-Page-Url': widget.context.page.url}));
+    if (useSimpleLayout()) {
+      parts.add(widget.context.part('/profile', context,
+          arguments: {
+            'From-Page-Url': widget.context.page.url,
+          }));
+    } else {
+      parts.add(widget.context.part('/chasechain', context,
+          arguments: {'From-Page-Url': widget.context.page.url}));
+    }
+
     parts.add(widget.context.part('/market', context,
         arguments: {'From-Page-Url': widget.context.page.url}));
+
+    super.initState();
   }
 
   @override

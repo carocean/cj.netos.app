@@ -30,6 +30,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 
 import 'article_entities.dart';
@@ -279,15 +280,15 @@ class _ChannelPageState extends State<ChannelPage> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: () {
-              // if(Platform.isIOS){
-              //   widget.context.forward('/netflow/channel/publish_article/ios',
-              //       arguments: <String, dynamic>{
-              //         'type': 'text',
-              //         'channel': _channel,
-              //         'refreshMessages': _refreshMessages
-              //       });
-              //   return;
-              // }
+              if(useSimpleLayout()){
+                widget.context.forward('/netflow/channel/publish_article/ios',
+                    arguments: <String, dynamic>{
+                      'type': 'text',
+                      'channel': _channel,
+                      'refreshMessages': _refreshMessages
+                    });
+                return;
+              }
               widget.context.forward('/netflow/channel/publish_article',
                   arguments: <String, dynamic>{
                     'type': 'text',
@@ -881,7 +882,7 @@ class __MessageCardState extends State<_MessageCard> {
                                           ),
                                           children: [
                                             TextSpan(text: '  '),
-                                            (Platform.isIOS&&_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
+                                            (useSimpleLayout()||_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
                                             TextSpan(
                                               text:
                                                   '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',

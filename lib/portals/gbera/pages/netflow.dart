@@ -28,6 +28,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/cache/person_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:synchronized/synchronized.dart';
@@ -1637,6 +1638,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                   TextSpan(
                     children: [
                       TextSpan(text: '${atime ?? ''}'),
+                      useSimpleLayout()?TextSpan(text: ''):
                       TextSpan(
                         text: '  ¥',
                         children: [

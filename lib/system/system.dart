@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
@@ -11,6 +13,7 @@ import 'package:netos_app/portals/gbera/pages/system/about.dart';
 import 'package:netos_app/system/pages/share_main.dart';
 import 'package:netos_app/system/pages/person_card.dart';
 import 'package:netos_app/system/remote/persons.dart';
+import 'package:netos_app/system/remote/product.dart';
 
 import 'entrypoint.dart';
 import 'local/local_principals.dart';
@@ -19,6 +22,10 @@ import 'local/principals.dart';
 import 'login.dart';
 import 'register.dart';
 
+String _useSimpleLayout;
+
+bool useSimpleLayout() => _useSimpleLayout == 'simple';
+
 System buildSystem(IServiceProvider site) {
   return System(
     defaultTheme: '/grey',
@@ -26,6 +33,17 @@ System buildSystem(IServiceProvider site) {
       return <String, dynamic>{};
     },
     builderShareServices: (site) async {
+      if (Platform.isIOS) {
+        try {
+          _useSimpleLayout =
+              await _getUseLayoutOfNewestVersion(site, 'microgeo', 'ios');
+        } catch (e) {
+          _useSimpleLayout='normal';
+          print('getUseLayoutOfNewestVersion error: $e');
+        }
+      } else {
+        _useSimpleLayout = 'normal';
+      }
       return <String, dynamic>{
         "/principals": PrincipalService(),
         "/local/principals": DefaultLocalPrincipalManager(),
@@ -34,10 +52,24 @@ System buildSystem(IServiceProvider site) {
         '/cache/persons': PersonCache(),
         '/cache/channels': ChannelCache(),
         '/app/upgrade': DefaultAppUpgrade(),
+        '/remote/product': ProductRemote(),
       };
     },
     buildThemes: buildThemes,
     buildPages: buildPages,
+  );
+}
+
+Future<String> _getUseLayoutOfNewestVersion(site, String id, String os) async {
+  var remotePorts = site.getService('@.remote.ports');
+  var productPortsUrl = site.getService('@.prop.ports.uc.product');
+  return await remotePorts.portGET(
+    productPortsUrl,
+    'getUseLayoutOfNewestVersion',
+    parameters: {
+      'id': id,
+      'os': os,
+    },
   );
 }
 

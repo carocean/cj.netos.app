@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/system/system.dart';
 
 class Profile extends StatefulWidget {
   PageContext context;
@@ -192,7 +193,7 @@ class _ProfileState extends State<Profile> {
                       widget.context.findPage('/myabsorbers').icon,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -248,8 +249,8 @@ class _ProfileState extends State<Profile> {
                       child: Icon(
                         FontAwesomeIcons.qrcode,
                         size: 25,
-                        color:
-                        widget.context.style('/profile/list/item-icon.color'),
+                        color: widget.context
+                            .style('/profile/list/item-icon.color'),
                       ),
                     ),
                   ),
@@ -313,7 +314,7 @@ class _ProfileState extends State<Profile> {
                       Icons.contact_phone,
                       size: 30,
                       color:
-                      widget.context.style('/profile/list/item-icon.color'),
+                          widget.context.style('/profile/list/item-icon.color'),
                     ),
                   ),
                   Expanded(
@@ -629,7 +630,31 @@ class _ProfileState extends State<Profile> {
         ],
       ),
     );
-
+    var items = <Widget>[
+      Padding(
+        padding: EdgeInsets.only(
+          bottom: 10,
+        ),
+        child: card_10,
+      ),
+      Padding(
+        padding: EdgeInsets.only(
+          bottom: 10,
+        ),
+        child: card_3,
+      ),
+    ];
+    if (!useSimpleLayout()) {
+      items.insert(
+        0,
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 10,
+          ),
+          child: card_1,
+        ),
+      );
+    }
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -650,26 +675,7 @@ class _ProfileState extends State<Profile> {
                     top: 10,
                   ),
                   child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 10,
-                        ),
-                        child: card_1,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 10,
-                        ),
-                        child: card_10,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 10,
-                        ),
-                        child: card_3,
-                      ),
-                    ],
+                    children: items,
                   ),
                 ),
               ),
