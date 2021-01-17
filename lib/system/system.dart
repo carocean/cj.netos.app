@@ -42,7 +42,13 @@ System buildSystem(IServiceProvider site) {
           print('getUseLayoutOfNewestVersion error: $e');
         }
       } else {
-        _useSimpleLayout = 'normal';
+        try {
+          _useSimpleLayout =
+          await _getUseLayoutOfNewestVersion(site, 'microgeo', 'android');
+        } catch (e) {
+          _useSimpleLayout='normal';
+          print('getUseLayoutOfNewestVersion error: $e');
+        }
       }
       return <String, dynamic>{
         "/principals": PrincipalService(),
