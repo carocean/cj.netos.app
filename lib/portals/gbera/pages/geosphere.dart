@@ -2247,20 +2247,30 @@ class _ReceptorItemState extends State<_ReceptorItem> {
         },
       );
     }else{
-      if(widget.receptor.category=='mobiles'){
-        action=SizedBox.shrink();
-      }else{
-        action=IconSlideAction(
-          caption: '删除',
-          foregroundColor: Colors.grey[500],
-          icon: Icons.delete,
-          onTap: () {
-            if (widget.onDelete != null) {
-              widget.onDelete();
-            }
-          },
-        );
-      }
+      // if(widget.receptor.category=='mobiles'){
+      //   action=SizedBox.shrink();
+      // }else{
+      //   action=IconSlideAction(
+      //     caption: '删除',
+      //     foregroundColor: Colors.grey[500],
+      //     icon: Icons.delete,
+      //     onTap: () {
+      //       if (widget.onDelete != null) {
+      //         widget.onDelete();
+      //       }
+      //     },
+      //   );
+      // }
+      action=IconSlideAction(
+        caption: '删除',
+        foregroundColor: Colors.grey[500],
+        icon: Icons.delete,
+        onTap: () {
+          if (widget.onDelete != null) {
+            widget.onDelete();
+          }
+        },
+      );
     }
     return Slidable(
       actionPane: SlidableDrawerActionPane(),

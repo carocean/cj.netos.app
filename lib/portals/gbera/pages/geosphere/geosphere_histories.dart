@@ -1146,9 +1146,17 @@ class __MessageCardState extends State<_MessageCard> {
                   ),
                   Row(
                     //内容坠
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
+                      // widget.receptor.creator==widget.messageWrapper.message.creator?SizedBox.shrink():
+                      InkWell(
+                        onTap: (){
+                          widget.context.forward('/person/view',
+                              arguments: {'person': widget.messageWrapper.creator});
+                        },
+                        child: Text('${widget.messageWrapper.creator?.nickName??''}',style: TextStyle(fontSize: 12,color: Colors.grey[500],),),
+                      ),
                       _MessageOperatesPopupMenu(
                         messageWrapper: widget.messageWrapper,
                         context: widget.context,

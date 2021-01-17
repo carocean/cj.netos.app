@@ -89,62 +89,44 @@ class _GeospherePortalOfOwnerState extends State<GeospherePortalOfOwner> {
 
   //只装载消息体，交互区域信息可能非常长，因此采用独立的滥加载模式
   Future<void> _onloadMessages() async {
-    IGeosphereMessageService geoMessageService =
-        widget.context.site.getService('/geosphere/receptor/messages');
-    var creator = _personFilter;
-    if (StringUtil.isEmpty(creator)) {
-      creator = _receptorInfo.creator;
-    }
-    List<GeosphereMessageOL> messages = await geoMessageService.pageMyMessage(
-        _receptorInfo.id, creator, _limit, _offset);
+    IGeoReceptorRemote receptorRemote =
+    widget.context.site.getService('/remote/geo/receptors');
+
+    List<GeosphereMessageOL> messages = await receptorRemote.pageMessage(
+        _receptorInfo.id, _receptorInfo.creator, _limit, _offset);
     if (messages.isEmpty) {
       _refreshController.finishLoad(success: true, noMore: true);
       return;
     }
     _offset += messages.length;
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    var persons = <String, Person>{};
     List<_GeosphereMessageWrapper> wrappers = [];
     for (var message in messages) {
-      var c = message.creator;
-      Person creator = persons[c];
-      if (creator == null) {
-        creator = await personService.fetchPerson(c);
-        if (creator == null) {
-          continue;
-        }
-        persons[c] = creator;
-      }
-      var u = message.upstreamPerson;
-      Person upstreamPerson = persons[u];
-      if (upstreamPerson == null) {
-        upstreamPerson = await personService.fetchPerson(u);
-        if (upstreamPerson == null) {
-          upstreamPerson = creator;
-        } else {
-          persons[u] = upstreamPerson;
-        }
-      }
-      await _fillMessageWrapper(message, wrappers, creator, upstreamPerson);
+      await _fillMessageWrapper(message, wrappers);
     }
     _messageList.addAll(wrappers);
   }
 
-  Future<void> _fillMessageWrapper(
-      message, wrappers, Person creator, Person upstreamPerson) async {
+  Future<void> _fillMessageWrapper(message, wrappers) async {
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
     IGeoReceptorRemote receptorRemote =
-        widget.context.site.getService('/remote/geo/receptors');
+    widget.context.site.getService('/remote/geo/receptors');
     List<GeosphereMediaOR> medias =
-        await receptorRemote.listExtraMedia(message.id);
-
+    await receptorRemote.listExtraMedia(message.id);
+    Person creator =
+    await personService.getPerson(message.creator, isDownloadAvatar: true);
+    Person upstreamPerson;
+    if (!StringUtil.isEmpty(message.upstreamPerson)) {
+      upstreamPerson = await personService.getPerson(message.upstreamPerson,
+          isDownloadAvatar: true);
+    }
     List<MediaSrc> _medias = [];
     for (GeosphereMediaOR mediaOR in medias) {
       _medias.add(mediaOR.toMedia());
     }
 
     IWyBankPurchaserRemote purchaserRemote =
-        widget.context.site.getService('/remote/purchaser');
+    widget.context.site.getService('/remote/purchaser');
     var purchaseOR = await purchaserRemote.getPurchaseRecordPerson(
         message.creator, message.purchaseSn);
 

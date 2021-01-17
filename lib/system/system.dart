@@ -14,6 +14,7 @@ import 'package:netos_app/system/pages/share_main.dart';
 import 'package:netos_app/system/pages/person_card.dart';
 import 'package:netos_app/system/remote/persons.dart';
 import 'package:netos_app/system/remote/product.dart';
+import 'package:package_info/package_info.dart';
 
 import 'entrypoint.dart';
 import 'local/local_principals.dart';
@@ -33,10 +34,12 @@ System buildSystem(IServiceProvider site) {
       return <String, dynamic>{};
     },
     builderShareServices: (site) async {
+      var info =await PackageInfo.fromPlatform();
+      var version=info.version;
       if (Platform.isIOS) {
         try {
           _useSimpleLayout =
-              await _getUseLayoutOfNewestVersion(site, 'microgeo', 'ios');
+              await _getUseLayoutOVersion(site, 'microgeo', 'ios',version);
         } catch (e) {
           _useSimpleLayout='normal';
           print('getUseLayoutOfNewestVersion error: $e');
@@ -44,7 +47,7 @@ System buildSystem(IServiceProvider site) {
       } else {
         try {
           _useSimpleLayout =
-          await _getUseLayoutOfNewestVersion(site, 'microgeo', 'android');
+          await _getUseLayoutOVersion(site, 'microgeo', 'android',version);
         } catch (e) {
           _useSimpleLayout='normal';
           print('getUseLayoutOfNewestVersion error: $e');
@@ -66,15 +69,16 @@ System buildSystem(IServiceProvider site) {
   );
 }
 
-Future<String> _getUseLayoutOfNewestVersion(site, String id, String os) async {
+Future<String> _getUseLayoutOVersion(site, String id, String os,String version) async {
   var remotePorts = site.getService('@.remote.ports');
   var productPortsUrl = site.getService('@.prop.ports.uc.product');
   return await remotePorts.portGET(
     productPortsUrl,
-    'getUseLayoutOfNewestVersion',
+    'getUseLayoutOVersion',
     parameters: {
       'id': id,
       'os': os,
+      'version':version,
     },
   );
 }
