@@ -11,6 +11,7 @@ import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dar
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CollapsiblePanel extends StatefulWidget {
   PageContext context;
@@ -471,6 +472,61 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             ),
             onPressed: () {
               _tipoffItem();
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.share,
+              size: 18,
+            ),
+            onPressed: () async {
+              var v = await showDialog(
+                context: context,
+                child: AlertDialog(
+                  title: Text(
+                    '分享',
+                  ),
+                  content: Text(
+                    '将以浏览器打开，请使用浏览器的分享功能向微信朋友圈和好友分享该内容',
+                    style: TextStyle(fontSize: 12,),
+                  ),
+                  actions: [
+                    FlatButton(
+                      onPressed: () {
+                        widget.context.backward();
+                      },
+                      child: Text(
+                        '取消',
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    FlatButton(
+                      onPressed: () {
+                        widget.context.backward(result: 'yes');
+                      },
+                      child: Text(
+                        '确认',
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if(v==null){
+                return;
+              }
+              if(v=='yes'){
+                var url='http://www.nodespower.com/chasechain.website/pages/viewer.html?pool=${widget.pool.id}&item=${widget.doc.item.id}';
+                widget.context.backward();
+                if(await canLaunch(url)){
+                  await launch(url);
+
+                }
+              }
             },
           ),
           IconButton(
