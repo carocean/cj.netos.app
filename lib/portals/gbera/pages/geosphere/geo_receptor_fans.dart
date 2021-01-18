@@ -684,12 +684,14 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
 
   List<Widget> _getActions(Color color) {
     var actions = <Widget>[
-      _AbsorberAction(
+    ];
+    if(!useSimpleLayout()) {
+      actions.add( _AbsorberAction(
         color: color,
         context: widget.context,
         receptorInfo: _receptorInfo,
-      ),
-    ];
+      ),);
+    }
     if (!_isDenyFollowSpeak) {
       actions.add(
         GestureDetector(

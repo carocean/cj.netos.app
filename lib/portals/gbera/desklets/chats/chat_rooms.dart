@@ -21,6 +21,7 @@ import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:nineold/nine_old_frame.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:synchronized/synchronized.dart';
@@ -595,6 +596,9 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var sender = frame.head('sender-person');
 
     if (!StringUtil.isEmpty(contentType) && contentType == '/pay/absorbs') {
+      if(useSimpleLayout()){
+        return null;
+      }
       await _arriveAbsorbMessage(frame, content);
       return null;
     }

@@ -15,6 +15,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 
 import 'invest_popup.dart';
@@ -176,7 +177,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                                 ),
                               ),
                             ),
-                            // Platform.isIOS?SizedBox(height: 0,width: 0,):
+                            useSimpleLayout()?SizedBox(height: 0,width: 0,):
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () {

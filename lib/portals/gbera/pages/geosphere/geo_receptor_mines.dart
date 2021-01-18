@@ -417,6 +417,7 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
 
   List<Widget> _getActions(Color color) {
     return <Widget>[
+      useSimpleLayout()?SizedBox.shrink():
       _AbsorberAction(
         color: color,
         context: widget.context,

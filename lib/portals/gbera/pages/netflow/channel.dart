@@ -273,6 +273,7 @@ class _ChannelPageState extends State<ChannelPage> {
         backgroundColor: Colors.transparent,
         toolbarOpacity: 1,
         actions: <Widget>[
+          useSimpleLayout()?SizedBox.shrink():
           _AbsorberAction(
             context: widget.context,
             channel: _channel,
