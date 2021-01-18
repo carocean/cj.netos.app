@@ -1638,7 +1638,7 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                   TextSpan(
                     children: [
                       TextSpan(text: '${atime ?? ''}'),
-                      useSimpleLayout()?TextSpan(text: ''):
+                      (useSimpleLayout()||_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
                       TextSpan(
                         text: '  ¥',
                         children: [

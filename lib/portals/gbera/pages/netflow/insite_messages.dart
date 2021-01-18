@@ -10,6 +10,7 @@ import 'package:netos_app/portals/gbera/pages/netflow/channel_handler.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/system.dart';
 
 import '../netflow.dart';
 import 'cat_widget.dart';
@@ -321,7 +322,7 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                             !StringUtil.isEmpty(v.time)
                                                 ? TextSpan(text: '${v.time}')
                                                 : TextSpan(text: ''),
-                                            !StringUtil.isEmpty(v.money)
+                                            !StringUtil.isEmpty(v.money)&&!useSimpleLayout()
                                                 ? TextSpan(
                                                     text: '  ¥',
                                                     children: [

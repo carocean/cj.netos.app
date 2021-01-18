@@ -21,6 +21,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 
 class ChannelPortal extends StatefulWidget {
@@ -542,6 +543,7 @@ class __MessageCardState extends State<_MessageCard> {
                                   ),
                                   children: [
                                     TextSpan(text: '  '),
+                                    (useSimpleLayout()||_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
                                     TextSpan(
                                         text:
                                             '¥${((_purchaseOR?.purchAmount ?? 0.00) / 100.00).toStringAsFixed(2)}'),

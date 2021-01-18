@@ -17,6 +17,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:netos_app/system/system.dart';
 
 import 'cat_widget.dart';
 
@@ -608,6 +609,7 @@ class __DocumentRegionState extends State<_DocumentRegion> {
                       SizedBox(
                         width: 10,
                       ),
+                      (useSimpleLayout()||_purchaseOR?.principalAmount==null)?SizedBox.shrink():
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () async {

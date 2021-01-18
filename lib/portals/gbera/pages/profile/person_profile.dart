@@ -699,7 +699,7 @@ class _PersonProfileState extends State<PersonProfile> {
                               left: 20,
                             ),
                             child: Text(
-                              '${widget.context.principal.signature ?? ''}',
+                              '${_person?.signature ?? ''}',
                               style: TextStyle(
                                 color: Colors.grey[500],
                               ),

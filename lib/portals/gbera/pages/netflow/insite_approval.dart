@@ -13,6 +13,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/cache/channel_cache.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 
 import 'cat_widget.dart';
@@ -419,6 +420,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                                 TextSpan(text: '  '),
                                               ],
                                             ),
+                                            (useSimpleLayout()||_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
                                             TextSpan(
                                               text: '¥',
                                               children: [
