@@ -597,7 +597,7 @@ class __MediaSaveWidgetState extends State<_MediaSaveWidget> {
   Future<void> _doProcess() async {
     var file = widget.file;
     if (!file.startsWith('/')) {
-      var dir = await getExternalStorageDirectory();
+      var dir = await getApplicationDocumentsDirectory();
       var localFile = '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
       await widget.context.ports.download(file, localFile,
           onReceiveProgress: (i, j) {

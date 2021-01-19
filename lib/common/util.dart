@@ -256,7 +256,7 @@ Widget getAvatarWidget(String avatar, PageContext context,[defaultAssetAvatar='l
 }
 
 Future<String> checkUrlAndDownload(PageContext pageContext, String src) async {
-  var home = await getExternalStorageDirectory();
+  var home = await getApplicationDocumentsDirectory();
   var dir = '${home.path}/videos';
   var dirFile = Directory(dir);
   if (!dirFile.existsSync()) {
@@ -278,7 +278,7 @@ Future<String> copyVideoCompressFile(File srcFile)async{
   if(src.indexOf(' ')<0){
     return src;
   }
-  var home = await getExternalStorageDirectory();
+  var home = await getApplicationDocumentsDirectory();
   var dir = '${home.path}/videos';
   var dirFile = Directory(dir);
   if (!dirFile.existsSync()) {

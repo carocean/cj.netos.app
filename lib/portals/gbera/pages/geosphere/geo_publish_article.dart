@@ -466,7 +466,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               var image = await picker.getImage(
                                 source: ImageSource.gallery,
                                 imageQuality: 80,
-                                maxHeight: Adapt.screenH(),
+                                // maxHeight: Adapt.screenH(),
                               );
                               if (image == null) {
                                 return;
@@ -526,14 +526,16 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              // var videoCompress = FlutterVideoCompress();
-                              // var info = await videoCompress.compressVideo(
-                              //   image.path,
-                              //   quality: VideoQuality.MediumQuality,
-                              //   // 默认(VideoQuality.DefaultQuality)
-                              //   deleteOrigin: true, // 默认(false)
-                              //   // frameRate: 10,
-                              // );
+                              var path=image.path;
+                              if(!Platform.isIOS) {
+                                var info= await VideoCompress.compressVideo(
+                                  image.path,
+                                  quality: VideoQuality.HighestQuality,
+                                  // deleteOrigin: true, // It's false by default
+                                );
+                                var newfile=await copyVideoCompressFile(info.file);
+                                path=newfile;
+                              }
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;
@@ -541,7 +543,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               }
                               shower_key.currentState.addImage(
                                 MediaFile(
-                                  src: File(image.path),
+                                  src: File(path),
                                   type: MediaFileType.video,
                                 ),
                               );
@@ -586,7 +588,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               var image = await picker.getImage(
                                 source: ImageSource.camera,
                                 imageQuality: 80,
-                                maxHeight: Adapt.screenH(),
+                                // maxHeight: Adapt.screenH(),
                               );
                               if (image == null) {
                                 return;

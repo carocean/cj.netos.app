@@ -176,7 +176,7 @@ class DefaultAppUpgrade implements IAppUpgrade, IServiceBuilder {
     var url = _upgradeInfo.newestVersionDownloadUrl;
     var pos = url.lastIndexOf('/');
     var fn = url.substring(pos + 1);
-    var dir = await getExternalStorageDirectory();
+    var dir = await getApplicationDocumentsDirectory();
     var file = '${dir.path}';
     var localFile = '$file/$fn';
     await remotePorts.download(

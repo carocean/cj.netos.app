@@ -81,7 +81,7 @@ class _MediaWatcherState extends State<MediaWatcher> {
     setState(() {});
     var file = src.src;
     if (!file.startsWith('/')) {
-      var dir = await getExternalStorageDirectory();
+      var dir = await getApplicationDocumentsDirectory();
       var localFile = '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
       await widget.pageContext.ports.download(file, localFile,
           onReceiveProgress: (i, j) {
