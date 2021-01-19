@@ -13,6 +13,7 @@ import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/local/entities.dart';
+import 'package:netos_app/system/system.dart';
 
 import 'collapsible_panel.dart';
 
@@ -396,9 +397,9 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                                   ),
                                 ),
                                 SizedBox(
-                                  width: _purchaseOR == null ? 0 : 10,
+                                  width: useSimpleLayout()||_purchaseOR == null ? 0 : 10,
                                 ),
-                                _purchaseOR == null
+                               useSimpleLayout()|| _purchaseOR == null
                                     ? SizedBox(
                                   width: 0,
                                   height: 0,
@@ -437,6 +438,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                                 SizedBox(
                                   width: 10,
                                 ),
+                                useSimpleLayout()?SizedBox.shrink():
                                 _AbsorberAction(
                                   context: widget.context,
                                   doc: _doc,
