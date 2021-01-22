@@ -434,7 +434,7 @@ class MediaWidget extends StatelessWidget {
 }
 
 class _MediaWithLoader extends StatelessWidget {
-  const _MediaWithLoader({
+   _MediaWithLoader({
     this.src,
     this.fit = BoxFit.cover,
     this.stackFit=StackFit.expand,
@@ -448,6 +448,8 @@ class _MediaWithLoader extends StatelessWidget {
   final String accessToken;
   final BoxFit fit;
   final double loaderSize;
+  Future<String> _getUrlVideo_future;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -489,7 +491,7 @@ class _MediaWithLoader extends StatelessWidget {
           fit: BoxFit.contain,
         )
             : FadeInImage.memoryNetwork(
-          image: '$src?accessToken=$accessToken',
+          image: getUrlWithAccessToken(src, accessToken) ,
           fit: BoxFit.contain,
           placeholder: kTransparentImage,
         );
@@ -517,14 +519,17 @@ class _MediaWithLoader extends StatelessWidget {
             src: File(src),
           );
         } else {
+          if(_getUrlVideo_future==null) {
+            _getUrlVideo_future=checkUrlAndDownload(pageContext, src);
+          }
           mediaRender = FutureBuilder<String>(
-            future: checkUrlAndDownload(pageContext, src),
+            future: _getUrlVideo_future,
             builder: (ctx, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return Center(
                   child: SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 40,
+                    height: 40,
                     child: CircularProgressIndicator(),
                   ),
                 );

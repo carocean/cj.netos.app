@@ -20,10 +20,23 @@ class _VideoViewState extends State<VideoView> {
   int _currentActionIndex = 0;
   var start;
   Future<void> _future_waitfor_inited;
-
+  bool _isLoading=true;
   @override
   void initState() {
     controller = VideoPlayerController.file(widget.src);
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _currentActionIndex = 0;
+    controller.dispose();
+    start = null;
+    _future_waitfor_inited = null;
+    super.dispose();
+  }
+  Future<void> _load()async{
     if (widget.controller != null) {
       widget.controller.controller = controller;
     }
@@ -50,95 +63,75 @@ class _VideoViewState extends State<VideoView> {
         });
       }
     });
-    _future_waitfor_inited = waitfor_inited();
-    super.initState();
+    await waitfor_inited();
+    if(mounted){
+      setState(() {
+        _isLoading=false;
+      });
+    }
   }
-
-  @override
-  void dispose() {
-    _currentActionIndex = 0;
-    controller.dispose();
-    start = null;
-    _future_waitfor_inited = null;
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _future_waitfor_inited,
-      builder: (ctx, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          print('video error: ${snapshot.error}');
-          return Container(
-            width: 0,
-            height: 0,
-          );
-        }
-
-//              final Size size = controller.value.size;
-        return ClipRect(
-          child: Container(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: Stack(
-                  fit: StackFit.passthrough,
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    VideoPlayer(controller),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: SizedBox(
-                        width: 38,
-                        height: 38,
-                        child: Align(
-                          child: IndexedStack(
-                            index: _currentActionIndex,
-                            children: <Widget>[
-                              IconButton(
-                                icon: Icon(
-                                  Icons.play_circle_outline,
-                                  size: 30,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  controller.play();
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.pause,
-                                  size: 30,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  controller.pause();
-                                },
-                              )
-                            ],
+    if(_isLoading) {
+      return Center(
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    return ClipRect(
+      child: Container(
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: controller.value.aspectRatio,
+            child: Stack(
+              fit: StackFit.passthrough,
+              alignment: Alignment.center,
+              children: <Widget>[
+                VideoPlayer(controller),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: SizedBox(
+                    width: 38,
+                    height: 38,
+                    child: Align(
+                      child: IndexedStack(
+                        index: _currentActionIndex,
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(
+                              Icons.play_circle_outline,
+                              size: 30,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              controller.play();
+                            },
                           ),
-                          alignment: Alignment.bottomRight,
-                        ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.pause,
+                              size: 30,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              controller.pause();
+                            },
+                          )
+                        ],
                       ),
-                    )
-                  ],
-                ),
-              ),
+                      alignment: Alignment.bottomRight,
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

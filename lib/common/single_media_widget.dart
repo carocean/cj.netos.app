@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
 
 class SingleMediaWidget extends StatefulWidget {
   PageContext context;
@@ -35,7 +36,7 @@ class _SingleMediaWidgetState extends State<SingleMediaWidget> {
     if (src.startsWith('http')) {
       return FadeInImage.assetNetwork(
         placeholder: 'lib/portals/gbera/images/default_watting.gif',
-        image: '$src?accessToken=${widget.context.principal.accessToken}',
+        image:getUrlWithAccessToken(src, widget.context.principal.accessToken) ,
         fit: BoxFit.cover,
       );
     }

@@ -288,3 +288,11 @@ Future<String> copyVideoCompressFile(File srcFile)async{
   srcFile.copySync(localFile);
   return localFile;
 }
+
+String getUrlWithAccessToken(String url,String accessToken){
+  int pos=url.indexOf('?');
+  if(pos>-1) {
+    return '$url&accessToken=$accessToken';
+  }
+  return '$url?accessToken=$accessToken';
+}
