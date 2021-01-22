@@ -958,21 +958,22 @@ class ChasechainRecommenderRemote
   }
 
   _cacheDocument(RecommenderDocument doc) async {
-    int layout;
-    var mediaCount = doc.medias.length;
-    if (mediaCount == 0 ||
-        StringUtil.isEmpty(doc.message.content) ||
-        doc.message.content.length >= 50) {
-      layout = 0;
-    } else if (mediaCount == 1) {
-      if(doc.medias[0].type=='share'){
-        layout = 0;
-      }else {
-        layout = doc.item.id.hashCode.abs() % 3;
-      }
-    } else if (mediaCount > 1) {
-      layout = 0;
-    }
+    // int layout;
+    // var mediaCount = doc.medias.length;
+    // if (mediaCount == 0 ||
+    //     StringUtil.isEmpty(doc.message.content) ||
+    //     doc.message.content.length >= 50) {
+    //   layout = 0;
+    // } else if (mediaCount == 1) {
+    //   if(doc.medias[0].type=='share'){
+    //     layout = 0;
+    //   }else {
+    //     layout = doc.item.id.hashCode.abs() % 3;
+    //   }
+    // } else if (mediaCount > 1) {
+    //   layout = 0;
+    // }
+    int layout=0;
     doc.message.layout = layout;
     await recommenderDAO.addMessage(doc.message?.toOL(
         principal.person, layout, DateTime.now().millisecondsSinceEpoch));
