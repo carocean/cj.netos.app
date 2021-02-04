@@ -30,54 +30,56 @@ class _ProfileState extends State<Profile> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Container(
-                child: Row(
-                  children: <Widget>[
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        widget.context.forward('/profile/editor').then((v) {});
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.all(4),
-                        child: CircleAvatar(
-                          backgroundImage: FileImage(
-                            File(
-                              widget.context.principal.avatarOnLocal,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        widget.context.forward('/profile/editor');
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 5,
-                            ),
-                            child: Text(
-                              '${widget.context.principal.nickName}',
-                              style: widget.context
-                                  .style('/profile/header-face-title.text'),
-                            ),
-                          ),
-                          Text(
-                            '${widget.context.principal?.person}',
-                            style: widget.context
-                                .style('/profile/header-face-no.text'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+             Expanded(child: Row(
+               children: <Widget>[
+                 GestureDetector(
+                   behavior: HitTestBehavior.opaque,
+                   onTap: () {
+                     widget.context.forward('/profile/editor').then((v) {});
+                   },
+                   child: Padding(
+                     padding: EdgeInsets.all(4),
+                     child: CircleAvatar(
+                       backgroundImage: FileImage(
+                         File(
+                           widget.context.principal.avatarOnLocal,
+                         ),
+                       ),
+                     ),
+                   ),
+                 ),
+                 Expanded(child: GestureDetector(
+                   behavior: HitTestBehavior.opaque,
+                   onTap: () {
+                     widget.context.forward('/profile/editor');
+                   },
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: <Widget>[
+                       Padding(
+                         padding: EdgeInsets.only(
+                           bottom: 5,
+                         ),
+                         child: Text(
+                           '${widget.context.principal.nickName}',
+                           style: widget.context
+                               .style('/profile/header-face-title.text'),
+                         ),
+                       ),
+                       Row(
+                         children: [
+                           Expanded(child: Text(
+                             '${widget.context.principal?.person}',
+                             style: widget.context
+                                 .style('/profile/header-face-no.text'),
+                           ),),
+                         ],
+                       ),
+                     ],
+                   ),
+                 ),),
+               ],
+             ),),
             ],
           ),
           Row(
