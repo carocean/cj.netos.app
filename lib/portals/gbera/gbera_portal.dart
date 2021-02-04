@@ -208,6 +208,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/p2p_details.dart';
@@ -1817,6 +1818,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/absorb',
           buildPage: (PageContext pageContext) => Absorb(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏交个朋友',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf',
+          buildPage: (PageContext pageContext) => FissionMFCashierPage(
             context: pageContext,
           ),
         ),
