@@ -250,26 +250,29 @@ class _ProfileEditorState extends State<ProfileEditor> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Row(
+                        SizedBox(width: 10,),
+                        Expanded(child: Row(
                           children: <Widget>[
-                            Padding(
+                            Expanded(child: Container(
                               padding: EdgeInsets.only(
                                 right: 5,
                               ),
+                              alignment: Alignment.centerRight,
                               child: Text(
                                 widget.context.principal.person,
                                 style: TextStyle(
                                   color: Colors.grey[500],
+                                  fontSize: 12,
                                 ),
                               ),
-                            ),
+                            ),),
                             Icon(
                               Icons.content_copy,
                               size: 16,
                               color: Colors.grey[500],
                             ),
                           ],
-                        ),
+                        ),),
                       ],
                     ),
                   ),
