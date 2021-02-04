@@ -5,6 +5,7 @@ import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:amap_search_fluttify/amap_search_fluttify.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/portals.dart';
@@ -157,6 +158,14 @@ void main() => platformRun(
             'http://47.105.165.186/screen/screen.ports',
           },
           buildServices: (site) async {
+            await registerWxApi(
+                appId: "wxf7be7c1a7c5fd8ed",
+                doOnAndroid: true,
+                doOnIOS: true,
+                universalLink: "https://nodepower.cn/gbera/");//苹果才用，必须为它设置
+            var result = await isWeChatInstalled;
+            print("is installed $result");
+
             await enableFluttifyLog(false); // 关闭amaplog
             /// !注意: 只要是返回Future的方法, 一律使用`await`修饰, 确保当前方法执行完成后再执行下一行, 在不能使用`await`修饰的环境下, 在`then`方法中执行下一步.
             /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted

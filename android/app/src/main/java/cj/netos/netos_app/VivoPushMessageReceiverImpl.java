@@ -20,7 +20,15 @@ public class VivoPushMessageReceiverImpl extends OpenClientPushMessageReceiver {
      */
     @Override
     public void onReceiveRegId(Context context, String regId) {
-        MicrogeoApplication application = (MicrogeoApplication) context;
+        MicrogeoApplication application = null;
+        if (context instanceof MicrogeoApplication) {
+            application=(MicrogeoApplication) context;
+        } else if (context.getApplicationContext() instanceof MicrogeoApplication) {
+            application=(MicrogeoApplication) context.getApplicationContext();
+        }
+        if (application == null) {
+            return;
+        }
         Map<String, String> map = new HashMap<>();
         map.put("driver","vivo");
         map.put("regId",regId);

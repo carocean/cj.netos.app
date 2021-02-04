@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/core_lib/_app_keypair.dart';
 import 'package:framework/core_lib/_page_context.dart';
@@ -44,12 +45,125 @@ class _LoginPageState extends State<LoginPage> {
     if (!_localPrincipals.isEmpty && _localPrincipals[0].accessToken != null) {
       _loginMethod = _LoginMethod.existsAccount;
     }
+
+    weChatResponseEventHandler.distinct((a, b) => a == b).listen((res) {
+      if (res is WeChatAuthResponse) {
+        //返回的res.code就是授权code
+        _doWechatAuthLogin(res);
+      }
+    });
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+  }
+
+  Future<void> _doWechatAuthLogin(WeChatAuthResponse res) async {
+    if(res.errCode!=0) {
+      forwardError('验证失败');
+      return;
+    }
+    AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
+    var _appid = 'gbera.netos';
+    if (StringUtil.isEmpty(_appid)) {
+      _appid = widget.context.site.getService('@.prop.entrypoint.app');
+    }
+    appKeyPair = await appKeyPair.getAppKeyPair(_appid, widget.context.site);
+    var nonce =
+        MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
+    await widget.context.ports.callback(
+      'post ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
+      restCommand: 'authByWeChat',
+      headers: {
+        'app-id': appKeyPair.appid,
+        'app-key': appKeyPair.appKey,
+        'app-nonce': nonce,
+        'app-sign': appKeyPair.appSign(nonce),
+      },
+      content: {
+        "code": res.code,
+        "state": res.state,
+        "device": appKeyPair.device,
+      },
+      onsucceed: ({dynamic rc, dynamic response}) {
+        forwardOK(rc);
+      },
+      onerror: ({e, stack}) {
+        forwardError(e);
+      },
+      onReceiveProgress: (i, j) {
+        print('$i-$j');
+      },
+    );
+  }
+
+  void forwardOK(rc) async {
+    var map = jsonDecode(rc['dataText']);
+
+    Map<String, dynamic> subject = map['subject'];
+    Map<String, dynamic> token = map['token'];
+
+    IPlatformLocalPrincipalManager manager =
+        widget.context.site.getService('/local/principals');
+    var list = subject['roles'];
+    var roles = <String>[];
+    for (var r in list) {
+      roles.add(r);
+    }
+    Dio dio = widget.context.site.getService('@.http');
+    String localAvatarFile = await downloadPersonAvatar(
+        dio: dio,
+        avatarUrl: '${subject['avatar']}?accessToken=${token['accessToken']}');
+    await manager.add(
+      subject['person'],
+      ltime: DateTime.now().millisecondsSinceEpoch,
+      expiretime: token['expireTime'],
+      pubtime: token['pubTime'],
+      signature: subject['signature'],
+      remoteAvatar: '${subject['avatar']}',
+      localAvatar: localAvatarFile,
+      refreshToken: token['refreshToken'],
+      accessToken: token['accessToken'],
+      roles: roles,
+      appid: subject['appid'],
+      nickName: subject['nickName'],
+      accountCode: subject['accountCode'],
+      uid: subject['uid'],
+      portal: map['portal'],
+      device: token['device'],
+    );
+    await manager.setCurrent(subject['person']);
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
+    //下面调用的作用是：将登录号声明为公众的第一个用户缓冲起来
+    if (!(await personService.existsPerson(subject['person']))) {
+      await personService.addPerson(Person(
+        subject['person'],
+        subject['uid'],
+        subject['accountCode'],
+        subject['appid'],
+        localAvatarFile,
+        null,
+        subject['nickName'],
+        subject['signature'],
+        PinyinHelper.getPinyin(subject['nickName']),
+        subject['person'],
+      ));
+    }
+    widget.context.forward("/",
+        clearHistoryByPagePath: '/', scene: map['portal'] ?? 'gbera');
+  }
+
+  void forwardError(e) {
+    widget.context.forward(
+      "/error",
+      arguments: {
+        'error': e,
+      },
+      clearHistoryByPagePath: '.',
+    );
   }
 
   @override
@@ -63,6 +177,14 @@ class _LoginPageState extends State<LoginPage> {
           context: widget.context,
           onSwitchToVerifyCode: () {
             _loginMethod = _LoginMethod.verifyCode;
+            setState(() {});
+          },
+          onSwitchToWechat: () {
+            sendWeChatAuth(
+              scope: "snsapi_userinfo",
+              state: "${Uuid().v1()}",
+            );
+            _loginMethod = _LoginMethod.wechat;
             setState(() {});
           },
         );
@@ -88,7 +210,18 @@ class _LoginPageState extends State<LoginPage> {
             _loginMethod = _LoginMethod.verifyCode;
             setState(() {});
           },
+          onSwitchToWechat: () {
+            sendWeChatAuth(
+              scope: "snsapi_userinfo",
+              state: "${Uuid().v1()}",
+            );
+            _loginMethod = _LoginMethod.wechat;
+            setState(() {});
+          },
         );
+        break;
+      case _LoginMethod.wechat:
+        method = _WechatPanel();
         break;
     }
     return Scaffold(
@@ -158,14 +291,43 @@ class _LoginPageState extends State<LoginPage> {
 enum _LoginMethod {
   password,
   verifyCode,
+  wechat,
   existsAccount,
+}
+
+class _WechatPanel extends StatefulWidget {
+  @override
+  __WechatPanelState createState() => __WechatPanelState();
+}
+
+class __WechatPanelState extends State<_WechatPanel> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Center(
+          child: Text(
+            '正在使用微信登录，请稍候...',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _PasswordPanel extends StatefulWidget {
   Function() onSwitchToVerifyCode;
+  Function() onSwitchToWechat;
   PageContext context;
 
-  _PasswordPanel({this.onSwitchToVerifyCode, this.context});
+  _PasswordPanel(
+      {this.onSwitchToVerifyCode, this.onSwitchToWechat, this.context});
 
   @override
   __PasswordPanelState createState() => __PasswordPanelState();
@@ -334,8 +496,36 @@ class __PasswordPanelState extends State<_PasswordPanel> {
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            bottom: 10,
+            bottom: 5,
             top: 10,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: widget.onSwitchToWechat,
+                  child: Text(
+                    '以微信方式登录',
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 10,
+            top: 5,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -357,9 +547,6 @@ class __PasswordPanelState extends State<_PasswordPanel> {
               ),
             ],
           ),
-        ),
-        Divider(
-          height: 1,
         ),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -634,11 +821,15 @@ class __VerifyCodePanelState extends State<_VerifyCodePanel> {
 
 class _ExistsAccountPanel extends StatefulWidget {
   Function() onSwitchToVerifyCode;
+  Function() onSwitchToWechat;
   PageContext context;
   List<Principal> principals;
 
   _ExistsAccountPanel(
-      {this.onSwitchToVerifyCode, this.context, this.principals});
+      {this.onSwitchToVerifyCode,
+      this.onSwitchToWechat,
+      this.context,
+      this.principals});
 
   @override
   __ExistsAccountPanelState createState() => __ExistsAccountPanelState();
@@ -857,8 +1048,36 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            bottom: 10,
+            bottom: 5,
             top: 10,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: widget.onSwitchToWechat,
+                  child: Text(
+                    '以微信方式登录',
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 10,
+            top: 5,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
