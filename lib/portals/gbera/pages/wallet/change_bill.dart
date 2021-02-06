@@ -171,6 +171,13 @@ class _ChangeBillState extends State<ChangeBill> {
           arguments: {'transHubtails': hubTails, 'bank': wenybank},
         );
         break;
+      case 14: //模块转入账款
+        var record = await recordRemote.getModuleTransin(bill.refsn);
+        widget.context.forward(
+          '/wallet/moduleTransin/details',
+          arguments: {'record': record, 'wallet': _wallet},
+        );
+        break;
       default:
         throw FlutterError('stockBill:未知的订单类型');
     }

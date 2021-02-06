@@ -208,7 +208,9 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/module_transin_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder_bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/p2p_details.dart';
@@ -246,6 +248,7 @@ import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
@@ -336,6 +339,7 @@ class GberaPortal {
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/bills': WalletBillRemote(),
+          '/wallet/fission/mf/cashier':FissionMFCashierRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/remote/wybank': WybankRemote(),
           '/remote/purchaser': DefaultWyBankPurchaserRemote(),
@@ -1827,6 +1831,24 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf',
           buildPage: (PageContext pageContext) => FissionMFCashierPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏交个朋友',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/recharge',
+          buildPage: (PageContext pageContext) => FissionMfRechargePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '模块转入账单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/moduleTransin/details',
+          buildPage: (PageContext pageContext) => ModuleTransinDetails(
             context: pageContext,
           ),
         ),

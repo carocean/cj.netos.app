@@ -1,14 +1,17 @@
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
+import 'fission_mf_trades.dart';
 import 'wallet_trades.dart';
 
 class MyWallet {
   int total;
   int change;
   int trial;
+  int fissionMf;
   double absorb;
   int onorder;
+
   List<WenyBank> banks;
 
   String get totalYan => ((total ?? 0) / 100.00).toStringAsFixed(2);
@@ -17,12 +20,20 @@ class MyWallet {
 
   String get trialYan => ((trial ?? 0) / 100.00).toStringAsFixed(2);
 
+  String get fissionMFYan => ((fissionMf ?? 0) / 100.00).toStringAsFixed(2);
+
   String get absorbYan => ((absorb ?? 0) / 100.00).toStringAsFixed(14);
 
   String get onorderYan => ((onorder ?? 0) / 100.00).toStringAsFixed(2);
 
-  MyWallet({this.change, this.absorb, this.trial, this.onorder, this.banks}) {
-    var total = change + (absorb.floor()) + trial + onorder;
+  MyWallet(
+      {this.change,
+      this.absorb,
+      this.trial,
+      this.fissionMf,
+      this.onorder,
+      this.banks}) {
+    var total = change + (absorb.floor()) + trial + fissionMf + onorder;
     for (WenyBank bank in banks) {
       total += bank.freezen + bank.profit;
     }
@@ -46,11 +57,11 @@ class TrialFundsConfigOR {
   });
 
   TrialFundsConfigOR.parse(obj) {
-    this.id=obj['id'];
-    this.state=obj['state'];
-    this.remitAccount=obj['remitAccount'];
-    this.remitName=obj['remitName'];
-    this.trialAmount=obj['trialAmount'];
+    this.id = obj['id'];
+    this.state = obj['state'];
+    this.remitAccount = obj['remitAccount'];
+    this.remitName = obj['remitName'];
+    this.trialAmount = obj['trialAmount'];
   }
 }
 
@@ -590,10 +601,12 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
   get pricePorts => site.getService('@.prop.ports.wybank.bill.price');
 
   get bankPorts => site.getService('@.prop.ports.wybank');
+  IFissionMFCashierRemote fissionMFCashierRemote;
 
   @override
   Future<void> builder(IServiceProvider site) async {
     this.site = site;
+    fissionMFCashierRemote = site.getService('/wallet/fission/mf/cashier');
   }
 
   @override
@@ -714,11 +727,13 @@ class WalletAccountRemote implements IWalletAccountRemote, IServiceBuilder {
     if (all['trialAccount'] != null) {
       trial = (all['trialAccount']['amount'] as double).floor();
     }
+    var cashier = await fissionMFCashierRemote.getCashierBalance();
     return MyWallet(
       onorder: (root['onorderAmount'] as double).floor(),
       absorb: (all['absorbAccount']['amount'] as double),
       change: (all['balanceAccount']['amount'] as double).floor(),
       trial: trial,
+      fissionMf: cashier.balance,
       banks: banks,
     );
   }

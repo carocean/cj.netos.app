@@ -28,7 +28,12 @@ class _DepositState extends State<Deposit> {
   @override
   void initState() {
     _globalKey = GlobalKey<ScaffoldState>();
-    _amountController = TextEditingController();
+    var initAmount=widget.context.parameters['initAmount'];
+    var initAmountStr;
+    if(initAmount!=null) {
+      initAmountStr='${(initAmount/100.00).toStringAsFixed(2)}';
+    }
+    _amountController = TextEditingController(text: initAmountStr);
     _load();
     super.initState();
   }

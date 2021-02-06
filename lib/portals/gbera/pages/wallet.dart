@@ -344,7 +344,7 @@ class _WalletState extends State<Wallet> {
                               padding: EdgeInsets.only(
                                 right: 5,
                               ),
-                              child: Text('¥-'),
+                              child: Text('¥${_myWallet.fissionMFYan??'-'}'),
                             ),
                             Icon(
                               Icons.keyboard_arrow_right,

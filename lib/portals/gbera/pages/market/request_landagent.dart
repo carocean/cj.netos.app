@@ -83,19 +83,19 @@ class _RequestLandagentState extends State<RequestLandagent> {
       if (!mounted) {
         return;
       }
-      var district = await location.district;
+      var district =  location.district;
       if (StringUtil.isEmpty(district)) {
+        if(mounted) {
+          setState(() {});
+        }
         return;
       }
       geoLocation.unlisten('/market/la');
-      geoLocation.stop();
-      var list = await AmapSearch.instance.searchKeyword(district);
-      for (var item in list) {
-        _bussinessAreaTitle = item.adName;
-        _bussinessAreaCode = item.adCode;
-        await _existsBusinessAreaCode();
+      _bussinessAreaTitle = location.district;
+      _bussinessAreaCode = location.adCode;
+      await _existsBusinessAreaCode();
+      if(mounted) {
         setState(() {});
-        break;
       }
     });
     _loadWorkitem().then((v) {
@@ -1037,7 +1037,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                                     child: Text('取消'),
                                   ),
                                   showType: ShowType.pca,
-                                  locationCode: _bussinessAreaCode,
+                                  locationCode: StringUtil.isEmpty(_bussinessAreaCode)?null:_bussinessAreaCode,
                                 );
                                 if (result == null) {
                                   return;
@@ -1268,7 +1268,7 @@ class _RequestLandagentState extends State<RequestLandagent> {
                   setState(() {});
                 },
               ),
-              Text('地商(LA)运营证书许可协议条款')
+             Expanded(child:  Text('地商(LA)运营证书许可协议条款'),),
             ],
           ),
         ),

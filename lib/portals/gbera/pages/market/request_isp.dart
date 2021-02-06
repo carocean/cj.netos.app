@@ -82,13 +82,14 @@ class _RequestISPState extends State<RequestISP> {
       if (!mounted) {
         return;
       }
-      var province = await location.province;
+      var province = location.province;
       if (StringUtil.isEmpty(province)) {
         return;
       }
       geoLocation.unlisten('/market/isp');
-      geoLocation.stop();
-      var list = await AmapSearch.instance.searchKeyword(province);
+      var list = await AmapSearch.instance.searchKeyword(
+        province,
+      );
       for (var item in list) {
         _bussinessAreaTitle = item.provinceName;
         _bussinessAreaCode = item.provinceCode;
@@ -120,8 +121,11 @@ class _RequestISPState extends State<RequestISP> {
   Future<void> _existsBusinessAreaCode() async {
     ILicenceRemote licenceRemote =
         widget.context.site.getService('/remote/org/licence');
-    OrgLicenceOL licenceOL =
-        await licenceRemote.getLicenceByAreaCode(2, _bussinessAreaCode);
+    OrgLicenceOL licenceOL;
+    if (!StringUtil.isEmpty(_bussinessAreaCode)) {
+      licenceOL =
+          await licenceRemote.getLicenceByAreaCode(2, _bussinessAreaCode);
+    }
     _existsAreaCode = licenceOL == null ? false : true;
   }
 
@@ -1019,7 +1023,7 @@ class _RequestISPState extends State<RequestISP> {
                                     child: Text('取消'),
                                   ),
                                   showType: ShowType.p,
-                                  locationCode: _bussinessAreaCode,
+                                  locationCode: StringUtil.isEmpty(_bussinessAreaCode)?null:_bussinessAreaCode,
                                 );
                                 if (result == null) {
                                   return;
@@ -1276,7 +1280,7 @@ class _RequestISPState extends State<RequestISP> {
                   setState(() {});
                 },
               ),
-              Text('运营商(ISP)经营牌照许可协议条款')
+              Expanded(child: Text('运营商(ISP)经营牌照许可协议条款'),),
             ],
           ),
         ),
