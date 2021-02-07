@@ -1,7 +1,7 @@
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/landagent/remote/wybank.dart';
 
-import 'fission_mf_trades.dart';
+import 'fission_mf_cashier.dart';
 import 'wallet_trades.dart';
 
 class MyWallet {

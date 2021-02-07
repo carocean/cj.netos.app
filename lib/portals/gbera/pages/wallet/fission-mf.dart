@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
-import 'package:netos_app/portals/gbera/store/remotes/fission_mf_trades.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 
 class FissionMFCashierPage extends StatefulWidget {
@@ -126,7 +126,9 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         titleSpacing: 0,
         actions: [
           FlatButton(
-            onPressed: () {},
+            onPressed: () {
+              widget.context.forward('/wallet/fission/mf/bill');
+            },
             child: Text(
               '收益及明细',
             ),
@@ -329,61 +331,66 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                             width: 0,
                             height: 0,
                           )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.max,
+                        : InkWell(
+                      onTap: (){
+                        widget.context.forward('/wallet/fission/mf/monitor');
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    '营业参数:',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    '¥${(_cashierOR.cacAverage / 100.00).toStringAsFixed(2)}元/客',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    '预估可获取$_assessCacCount人',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    '设置',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                '营业参数:',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                               SizedBox(
                                 width: 10,
                               ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 18,
-                                color: Colors.grey,
+                              Text(
+                                '¥${(_cashierOR.cacAverage / 100.00).toStringAsFixed(2)}元/客',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                '预估可获取$_assessCacCount人',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                '设置',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ],
                           ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

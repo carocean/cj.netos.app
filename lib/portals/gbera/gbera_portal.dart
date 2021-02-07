@@ -208,6 +208,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/module_transin_details.dart';
@@ -248,7 +249,9 @@ import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
-import 'package:netos_app/portals/gbera/store/remotes/fission_mf_trades.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
@@ -300,6 +303,7 @@ import 'pages/desktop/wallpappers.dart';
 import 'pages/system/gbera_settings.dart';
 import 'pages/users/account_viewer.dart';
 import 'pages/wallet/ReceivablesRecord.dart';
+import 'pages/wallet/fission-mf-monitor.dart';
 import 'pages/wallet/receivables_details.dart';
 import 'store/remotes/channels.dart';
 import 'styles/green-styles.dart';
@@ -339,7 +343,9 @@ class GberaPortal {
           '/wallet/records': WalletRecordRemote(),
           '/wallet/trades': WalletTradeRemote(),
           '/wallet/bills': WalletBillRemote(),
-          '/wallet/fission/mf/cashier':FissionMFCashierRemote(),
+          '/wallet/fission/mf/cashier': FissionMFCashierRemote(),
+          '/wallet/fission/mf/cashier/bill': FissionMFCashierBillRemote(),
+          '/wallet/fission/mf/cashier/record': FissionMFCashierRecordRemote(),
           '/wybank/bill/prices': PriceRemote(),
           '/remote/wybank': WybankRemote(),
           '/remote/purchaser': DefaultWyBankPurchaserRemote(),
@@ -1840,6 +1846,24 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/recharge',
           buildPage: (PageContext pageContext) => FissionMfRechargePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '运营监控',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/monitor',
+          buildPage: (PageContext pageContext) => FissionMFMonitorPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '收益及账单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/bill',
+          buildPage: (PageContext pageContext) => FissionMFBillPage(
             context: pageContext,
           ),
         ),
