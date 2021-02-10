@@ -1,10 +1,14 @@
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:intl/intl.dart' as intl;
 
 class FissionMFCashierPage extends StatefulWidget {
   PageContext context;
@@ -21,8 +25,13 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   bool _isRecharging = false;
   CashierOR _cashierOR;
   int _assessCacCount = 0;
-
+  int _totalPayeeOnDay = 0, _totalPayerOnDay = 0;
+  int _totalPayeeAll = 0, _totalPayerAll = 0;
+  int _totalProfitOnDay = 0;
+  int _totalPayAmountOnDay = 0;
   bool _isLoading = true;
+  List<FissionMFPerson> _payees = [];
+  List<FissionMFPerson> _payers = [];
 
   @override
   void initState() {
@@ -39,9 +48,28 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   Future<void> _load() async {
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
+    IFissionMFCashierBillRemote cashierBillRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier/bill');
+    IFissionMFCashierRecordRemote cashierRecordRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier/record');
     _cashierOR = await cashierRemote.getCashier();
     _isOpening = _cashierOR.state == 0;
     _assessCacCount = await cashierRemote.assessCacCount();
+    var time = DateTime.now();
+    var timeStr = intl.DateFormat('yyyyMMdd').format(time);
+    _totalPayeeOnDay = await cashierRecordRemote.totalPayeeOfDay(timeStr);
+    _totalPayerOnDay = await cashierRecordRemote.totalPayerOnDay(timeStr);
+    _totalPayeeAll = await cashierRecordRemote.totalPayee();
+    _totalPayerAll = await cashierRecordRemote.totalPayer();
+    var payees = await cashierRecordRemote.pagePayeeInfo(5, 0);
+    _payees.addAll(payees);
+    var payers = await cashierRecordRemote.pagePayerInfo(5, 0);
+    _payers.addAll(payers);
+    _totalProfitOnDay = await cashierBillRemote.totalBillOfDayByOrder(
+        3, time.year, time.month, time.day);
+    _totalPayAmountOnDay = await cashierBillRemote.totalBillOfDayByOrder(
+        2, time.year, time.month, time.day);
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -174,20 +202,46 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          '今日收益',
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '今日收益',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '¥${(_totalProfitOnDay / 100.00).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(
-                          width: 5,
+                          width: 10,
                         ),
-                        Text(
-                          '¥23.83',
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '今日支出',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '¥${(_totalPayAmountOnDay / 100.00).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -196,20 +250,46 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                     ),
                     Row(
                       children: [
-                        Text(
-                          '今日获客',
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '今日进群',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '$_totalPayeeOnDay人',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(
-                          width: 5,
+                          width: 10,
                         ),
-                        Text(
-                          '128人',
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '今日加群',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '$_totalPayerOnDay个',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -325,72 +405,230 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 10,),
+                    SizedBox(
+                      height: 10,
+                    ),
                     !_isOpening
                         ? SizedBox(
                             width: 0,
                             height: 0,
                           )
                         : InkWell(
-                      onTap: (){
-                        widget.context.forward('/wallet/fission/mf/monitor');
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                '营业参数:',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
+                            onTap: () {
+                              widget.context.forward(
+                                  '/wallet/fission/mf/monitor',
+                                  arguments: {
+                                    'cashier': _cashierOR,
+                                    'wallet': _myWallet,
+                                    'assessCacCount': _assessCacCount
+                                  }).then((value) async {
+                                IFissionMFCashierRemote cashierRemote = widget
+                                    .context.site
+                                    .getService('/wallet/fission/mf/cashier');
+                                _assessCacCount =
+                                    await cashierRemote.assessCacCount();
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      '营业参数:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      '¥${(_cashierOR.cacAverage / 100.00).toStringAsFixed(2)}元/客',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Text(
+                                      '预计可拉新$_assessCacCount人',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      '设置',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                '¥${(_cashierOR.cacAverage / 100.00).toStringAsFixed(2)}元/客',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
+                                SizedBox(
+                                  width: 10,
                                 ),
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              Text(
-                                '预估可获取$_assessCacCount人',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 18,
+                                  color: Colors.grey,
                                 ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                '设置',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 18,
-                            color: Colors.grey,
-                          ),
-                        ],
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                color: Colors.white,
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '我的朋友',
+                      style: TextStyle(
+                        fontSize: 16,
                       ),
                     ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '查看你发展的朋友',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                   InkWell(
+                     onTap: (){
+                       widget.context.forward('/wallet/fission/mf/group/payees',arguments: {'wallet':_myWallet,'cashier':_cashierOR,});
+                     },
+                     child:  Padding(
+                       padding: EdgeInsets.only(top: 10,bottom: 10),
+                       child: Row(
+                         mainAxisAlignment: MainAxisAlignment.end,
+                         mainAxisSize: MainAxisSize.max,
+                         children: [
+                           Row(
+                             children: _payees.map((e) {
+                               return Padding(
+                                 padding: EdgeInsets.only(
+                                   left: 5,
+                                 ),
+                                 child: FadeInImage.assetNetwork(
+                                   width: 30,
+                                   height: 30,
+                                   image: '${e?.avatarUrl ?? ''}',
+                                   placeholder:
+                                   'lib/portals/gbera/images/default_watting.gif',
+                                 ),
+                               );
+                             }).toList(),
+                           ),
+                           SizedBox(
+                             width: 10,
+                           ),
+                           Text(
+                             '共进群$_totalPayeeAll人',
+                             style: TextStyle(
+                               fontSize: 12,
+                               color: Colors.grey[700],
+                             ),
+                           ),
+                           SizedBox(
+                             width: 10,
+                           ),
+                           Icon(
+                             Icons.arrow_forward_ios,
+                             size: 18,
+                             color: Colors.grey,
+                           ),
+                         ],
+                       ),
+                     ),
+                   ),
+                    SizedBox(
+                      height: 10,
+                      child: Divider(
+                        height: 50,
+                      ),
+                    ),
+                   InkWell(
+                     onTap: (){
+                       widget.context.forward('/wallet/fission/mf/group/payers',arguments: {'wallet':_myWallet,'cashier':_cashierOR,});
+                     },
+                     child:  Padding(
+                       padding: EdgeInsets.only(top: 10,bottom: 10),
+                       child: Row(
+                         mainAxisAlignment: MainAxisAlignment.end,
+                         mainAxisSize: MainAxisSize.max,
+                         children: [
+                           Row(
+                             children: _payers.map((e) {
+                               return Padding(
+                                 padding: EdgeInsets.only(
+                                   left: 5,
+                                 ),
+                                 child: FadeInImage.assetNetwork(
+                                   width: 30,
+                                   height: 30,
+                                   image: '${e?.avatarUrl ?? ''}',
+                                   placeholder:
+                                   'lib/portals/gbera/images/default_watting.gif',
+                                 ),
+                               );
+                             }).toList(),
+                           ),
+                           SizedBox(
+                             width: 10,
+                           ),
+                           Text(
+                             '共加群$_totalPayerAll个',
+                             style: TextStyle(
+                               fontSize: 12,
+                               color: Colors.grey[700],
+                             ),
+                           ),
+                           SizedBox(
+                             width: 10,
+                           ),
+                           Icon(
+                             Icons.arrow_forward_ios,
+                             size: 18,
+                             color: Colors.grey,
+                           ),
+                         ],
+                       ),
+                     ),
+                   )
                   ],
                 ),
               ),
@@ -549,7 +787,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         height: 5,
                       ),
                       Text(
-                        '想拉新就要正确定义你的推广策略。系统会按你的定义从你的地微钱包零钱中划扣，并充钱到红包余额',
+                        '想进群就要正确定义你的推广策略。系统会按你的定义从你的地微钱包零钱中划扣，并充钱到红包余额',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey,

@@ -209,6 +209,8 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.da
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payee.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/module_transin_details.dart';
@@ -1864,6 +1866,24 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/bill',
           buildPage: (PageContext pageContext) => FissionMFBillPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '群拉新',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/group/payees',
+          buildPage: (PageContext pageContext) => FissionMFPayeesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '加群',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/group/payers',
+          buildPage: (PageContext pageContext) => FissionMFPayersPage(
             context: pageContext,
           ),
         ),

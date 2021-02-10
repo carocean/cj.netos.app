@@ -586,8 +586,11 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                     children: <Widget>[
                                       Row(
                                         children: <Widget>[
-                                          Text(
-                                            '${bill.sn}',
+                                          Expanded(
+                                            child: Text(
+                                              '${bill.sn}',
+                                              style: TextStyle(fontSize: 14,),
+                                            ),
                                           ),
                                         ],
                                       ),

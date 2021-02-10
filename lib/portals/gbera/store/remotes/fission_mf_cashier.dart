@@ -3,6 +3,24 @@ import 'dart:convert';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
 
+class AlgorithmInfoOR {
+  int upMaxBound;
+  int baseLine;
+  int amplitude;
+
+  AlgorithmInfoOR({
+    this.upMaxBound,
+    this.baseLine,
+    this.amplitude,
+  });
+
+  AlgorithmInfoOR.parse(obj) {
+    this.upMaxBound = obj['upMaxBound'];
+    this.baseLine = obj['baseLine'];
+    this.amplitude = obj['amplitude'];
+  }
+}
+
 class CashierBalanceOR {
   String person;
   int balance;
@@ -57,7 +75,14 @@ mixin IFissionMFCashierRemote {
   Future<void> withdraw(int amount) {}
 
   Future<void> startCashier() {}
-  Future<void> stopCashier(String closedCause){}
+
+  Future<void> stopCashier(String closedCause) {}
+
+  Future<void> setCacAverage(int cac) {}
+
+  Future<void> setAmplitudeFactor(double amplitudeFactor) {}
+
+  Future<AlgorithmInfoOR> getAlgorithmInfo() {}
 }
 
 class FissionMFCashierRemote
@@ -156,21 +181,58 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<void> stopCashier(String closedCause)async {
+  Future<void> stopCashier(String closedCause) async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'stopCashier',
       parameters: {
-        'closedCause':closedCause,
+        'closedCause': closedCause,
       },
     );
   }
+
   @override
-  Future<void> startCashier()async {
+  Future<void> startCashier() async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'startCashier',
       parameters: {},
     );
+  }
+
+  @override
+  Future<void> setCacAverage(int cac) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setCacAverage',
+      parameters: {
+        'cacAverage': cac,
+      },
+    );
+  }
+
+  @override
+  Future<void> setAmplitudeFactor(double amplitudeFactor) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setAmplitudeFactor',
+      parameters: {
+        'amplitudeFactor': amplitudeFactor,
+      },
+    );
+  }
+
+  @override
+  Future<AlgorithmInfoOR> getAlgorithmInfo() async{
+    var obj=await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getAlgorithmInfo',
+      parameters: {
+      },
+    );
+    if(obj==null) {
+      return AlgorithmInfoOR(amplitude: 0,baseLine: 0,upMaxBound: 0);
+    }
+    return AlgorithmInfoOR.parse(obj);
   }
 }
