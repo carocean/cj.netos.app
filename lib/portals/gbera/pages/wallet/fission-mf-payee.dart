@@ -1,3 +1,4 @@
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -27,6 +28,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
 
   @override
   void initState() {
+    _easyRefreshController = EasyRefreshController();
     _cashierOR = widget.context.parameters['cashier'];
     _load();
     super.initState();
@@ -106,7 +108,78 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
             controller: _easyRefreshController,
             onLoad: _onload,
             child: ListView(
-              children: [],
+              children: _records.map((e) {
+                var person = e.person;
+                return Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                          left: 15, right: 15, top: 10, bottom: 10),
+                      child: Row(
+                        children: [
+                          FadeInImage.assetNetwork(
+                            placeholder: '',
+                            image: '${person.avatarUrl}',
+                            width: 40,
+                            height: 40,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${person.nickName}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 5,),
+                               Row(
+                                 children: [
+                                   Text(
+                                     '${person.gender == 1 ? '男' : person.gender == 2 ? '女' : ''}',
+                                     style: TextStyle(
+                                       fontSize: 14,
+                                       color: Colors.grey[600],
+                                     ),
+                                   ),
+                                   SizedBox(width: 10,),
+                                   Text(
+                                     '¥${(e.amount/100.00).toStringAsFixed(2)}',
+                                     style: TextStyle(
+                                       fontSize: 14,
+                                     ),
+                                   )
+                                 ],
+                               ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 10,),
+                          Text(
+                            '${TimelineUtil.format(parseStrTime(e.ctime,len: 17).millisecondsSinceEpoch,locale: 'zh')}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                      child: Divider(
+                        height: 1,
+                        indent: 50,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
         ),
