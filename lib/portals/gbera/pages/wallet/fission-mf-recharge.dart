@@ -201,11 +201,11 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                             children: [
                               Text.rich(
                                 TextSpan(
-                                  text: '可用零钱: ',
+                                  text: '零钱: ',
                                   children: [
                                     TextSpan(
                                       text:
-                                          '¥${((_myWallet.change - _amount) / 100.00).toStringAsFixed(2)}',
+                                          '¥${((_myWallet.change) / 100.00).toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.black,
