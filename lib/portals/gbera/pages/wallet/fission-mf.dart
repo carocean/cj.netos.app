@@ -22,7 +22,7 @@ class FissionMFCashierPage extends StatefulWidget {
 class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   bool _isOpening = false;
   MyWallet _myWallet;
-  bool _isRecharging = false;
+  bool _isRecharging = false, _isWithdrawing = false;
   CashierOR _cashierOR;
   int _assessCacCount = 0;
   int _totalPayeeOnDay = 0, _totalPayerOnDay = 0;
@@ -32,6 +32,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   bool _isLoading = true;
   List<FissionMFPerson> _payees = [];
   List<FissionMFPerson> _payers = [];
+  List<FissionMFTagOR> _tags = [];
 
   @override
   void initState() {
@@ -69,7 +70,34 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         3, time.year, time.month, time.day);
     _totalPayAmountOnDay = await cashierBillRemote.totalBillOfDayByOrder(
         2, time.year, time.month, time.day);
-
+    var tags = await cashierRemote.listMyPropertyTag();
+    if (tags.isNotEmpty) {
+      _tags.addAll(tags);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        showDialog(
+          context: context,
+          child: Scaffold(
+            body: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(left: 20,right: 20,bottom: 10,top: 30,),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text('请先设置您的兴趣标签再说使用，兴趣标签不仅可以给你精准引荐朋友，还可将你推荐给志同道合的人',style: TextStyle(color: Colors.red,),),),
+                    ],
+                  ),
+                ),
+                Expanded(child: widget.context.part(
+                  '/wallet/fission/mf/tag/properties',
+                  context,
+                ),),
+              ],
+            ),
+          ),
+        );
+      });
+    }
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -78,6 +106,11 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   }
 
   Future<void> _withdraw() async {
+    if (mounted) {
+      setState(() {
+        _isWithdrawing = true;
+      });
+    }
     var result = await showDialog(
       context: context,
       child: _WithdrawPopupWidget(context: widget.context, wallet: _myWallet),
@@ -89,7 +122,6 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         widget.context.site.getService('/wallet/fission/mf/cashier');
     var amount = result as int;
     await cashierRemote.withdraw(amount);
-
     Future.delayed(
         Duration(
           seconds: 1,
@@ -99,7 +131,9 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
       _myWallet.change += amount;
       _assessCacCount = await cashierRemote.assessCacCount();
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isWithdrawing = false;
+        });
       }
     });
   }
@@ -114,11 +148,6 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         widget.context.site.getService('/wallet/fission/mf/cashier');
     await cashier.recharge(amount);
 
-    if (mounted) {
-      setState(() {
-        _isRecharging = false;
-      });
-    }
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
     Future.delayed(
@@ -130,7 +159,9 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
       _myWallet.change -= amount;
       _assessCacCount = await cashierRemote.assessCacCount();
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isRecharging = false;
+        });
       }
     });
   }
@@ -149,7 +180,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('出纳柜台'),
+        title: Text('交个朋友'),
         elevation: 0,
         titleSpacing: 0,
         actions: [
@@ -205,7 +236,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         Row(
                           children: [
                             Text(
-                              '今日收益',
+                              '今日收入',
                               style: TextStyle(
                                 fontSize: 12,
                               ),
@@ -349,7 +380,55 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
             ],
           ),
           SizedBox(
-            height: 40,
+            height: 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              RaisedButton(
+                onPressed: _isRecharging
+                    ? null
+                    : () async {
+                        var v = await widget.context.forward(
+                            '/wallet/fission/mf/recharge',
+                            arguments: {'wallet': _myWallet});
+                        if (v == null) {
+                          return;
+                        }
+                        var args = v as Map;
+                        var amount = args['amount'];
+                        _recharge(amount as int);
+                      },
+                child: Text(
+                  '${_isRecharging ? '处理中...' : '充钱到红包'}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                color: Colors.green,
+                textColor: Colors.white,
+              ),
+              RaisedButton(
+                onPressed: _isWithdrawing
+                    ? null
+                    : () {
+                        _withdraw();
+                      },
+                child: Text(
+                  '${_isWithdrawing ? '处理中...' : '提取到零钱'}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                color: Colors.green,
+                textColor: Colors.white,
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10,
           ),
           Column(
             children: [
@@ -509,6 +588,183 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      '我的兴趣标签',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '兴趣标签帮助您发展有共同兴趣有爱好的朋友',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                            '/wallet/fission/mf/tag/properties',
+                            arguments: {
+                              'wallet': _myWallet,
+                              'cashier': _cashierOR,
+                            });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Wrap(
+                              children: _tags.map((tag) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.grey[300], width: 1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  padding: EdgeInsets.only(
+                                    left: 8,
+                                    right: 8,
+                                    top: 2,
+                                    bottom: 2,
+                                  ),
+                                  child: Text(
+                                    '${tag.name ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              spacing: 5,
+                              runSpacing: 5,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '设置',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                color: Colors.white,
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '广告附件',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '在用户领取你的红包时，必看该广告，支持图片、视频',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        widget.context
+                            .forward('/wallet/fission/mf/attach', arguments: {
+                          'wallet': _myWallet,
+                          'cashier': _cashierOR,
+                        });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '设置',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                color: Colors.white,
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       '我的朋友',
                       style: TextStyle(
                         fontSize: 16,
@@ -527,235 +783,118 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                     SizedBox(
                       height: 10,
                     ),
-                   InkWell(
-                     onTap: (){
-                       widget.context.forward('/wallet/fission/mf/group/payees',arguments: {'wallet':_myWallet,'cashier':_cashierOR,});
-                     },
-                     child:  Padding(
-                       padding: EdgeInsets.only(top: 10,bottom: 10),
-                       child: Row(
-                         mainAxisAlignment: MainAxisAlignment.end,
-                         mainAxisSize: MainAxisSize.max,
-                         children: [
-                           Row(
-                             children: _payees.map((e) {
-                               return Padding(
-                                 padding: EdgeInsets.only(
-                                   left: 5,
-                                 ),
-                                 child: FadeInImage.assetNetwork(
-                                   width: 30,
-                                   height: 30,
-                                   image: '${e?.avatarUrl ?? ''}',
-                                   placeholder:
-                                   'lib/portals/gbera/images/default_watting.gif',
-                                 ),
-                               );
-                             }).toList(),
-                           ),
-                           SizedBox(
-                             width: 10,
-                           ),
-                           Text(
-                             '共进群$_totalPayeeAll人',
-                             style: TextStyle(
-                               fontSize: 12,
-                               color: Colors.grey[700],
-                             ),
-                           ),
-                           SizedBox(
-                             width: 10,
-                           ),
-                           Icon(
-                             Icons.arrow_forward_ios,
-                             size: 18,
-                             color: Colors.grey,
-                           ),
-                         ],
-                       ),
-                     ),
-                   ),
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                            '/wallet/fission/mf/group/payees',
+                            arguments: {
+                              'wallet': _myWallet,
+                              'cashier': _cashierOR,
+                            });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Row(
+                              children: _payees.map((e) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 5,
+                                  ),
+                                  child: FadeInImage.assetNetwork(
+                                    width: 30,
+                                    height: 30,
+                                    image: '${e?.avatarUrl ?? ''}',
+                                    placeholder:
+                                        'lib/portals/gbera/images/default_watting.gif',
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '共进群$_totalPayeeAll人',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     SizedBox(
                       height: 10,
                       child: Divider(
                         height: 50,
                       ),
                     ),
-                   InkWell(
-                     onTap: (){
-                       widget.context.forward('/wallet/fission/mf/group/payers',arguments: {'wallet':_myWallet,'cashier':_cashierOR,});
-                     },
-                     child:  Padding(
-                       padding: EdgeInsets.only(top: 10,bottom: 10),
-                       child: Row(
-                         mainAxisAlignment: MainAxisAlignment.end,
-                         mainAxisSize: MainAxisSize.max,
-                         children: [
-                           Row(
-                             children: _payers.map((e) {
-                               return Padding(
-                                 padding: EdgeInsets.only(
-                                   left: 5,
-                                 ),
-                                 child: FadeInImage.assetNetwork(
-                                   width: 30,
-                                   height: 30,
-                                   image: '${e?.avatarUrl ?? ''}',
-                                   placeholder:
-                                   'lib/portals/gbera/images/default_watting.gif',
-                                 ),
-                               );
-                             }).toList(),
-                           ),
-                           SizedBox(
-                             width: 10,
-                           ),
-                           Text(
-                             '共加群$_totalPayerAll个',
-                             style: TextStyle(
-                               fontSize: 12,
-                               color: Colors.grey[700],
-                             ),
-                           ),
-                           SizedBox(
-                             width: 10,
-                           ),
-                           Icon(
-                             Icons.arrow_forward_ios,
-                             size: 18,
-                             color: Colors.grey,
-                           ),
-                         ],
-                       ),
-                     ),
-                   )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                color: Colors.white,
-                constraints: BoxConstraints.tightForFinite(
-                  width: double.maxFinite,
-                ),
-                padding: EdgeInsets.only(
-                  left: 15,
-                  right: 0,
-                  top: 10,
-                  bottom: 10,
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        right: 15,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '充钱到红包',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          InkWell(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Text(
-                                  '${_isRecharging ? '正在充钱，请稍候...' : '从钱包零钱划扣'}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[700],
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                            '/wallet/fission/mf/group/payers',
+                            arguments: {
+                              'wallet': _myWallet,
+                              'cashier': _cashierOR,
+                            });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Row(
+                              children: _payers.map((e) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 5,
                                   ),
-                                ),
-                                SizedBox(
-                                  width: _isRecharging ? 0 : 10,
-                                ),
-                                _isRecharging
-                                    ? SizedBox.shrink()
-                                    : Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 18,
-                                        color: Colors.grey,
-                                      ),
-                              ],
-                            ),
-                            onTap: _isRecharging
-                                ? null
-                                : () async {
-                                    var v = await widget.context.forward(
-                                        '/wallet/fission/mf/recharge',
-                                        arguments: {'wallet': _myWallet});
-                                    if (v == null) {
-                                      return;
-                                    }
-                                    var args = v as Map;
-                                    var amount = args['amount'];
-                                    _recharge(amount as int);
-                                  },
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                      child: Divider(
-                        height: 1,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        right: 15,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '退款到零钱',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              _withdraw();
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Text(
-                                  '将从当前红包余额转入零钱',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[700],
+                                  child: FadeInImage.assetNetwork(
+                                    width: 30,
+                                    height: 30,
+                                    image: '${e?.avatarUrl ?? ''}',
+                                    placeholder:
+                                        'lib/portals/gbera/images/default_watting.gif',
                                   ),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 18,
-                                  color: Colors.grey,
-                                ),
-                              ],
+                                );
+                              }).toList(),
                             ),
-                          ),
-                        ],
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '共加群$_totalPayerAll个',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),

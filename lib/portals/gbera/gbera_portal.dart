@@ -208,10 +208,18 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-attach.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-bill.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payee.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payer.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-person.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-pay.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-recharge.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-withdraw.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-around.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-condition.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-properties.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/module_transin_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/onorder.dart';
@@ -1884,6 +1892,78 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/group/payers',
           buildPage: (PageContext pageContext) => FissionMFPayersPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '兴趣标签',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/tag/properties',
+          buildPage: (PageContext pageContext) => FissionMFTagPropertiesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '拉新条件',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/tag/condition',
+          buildPage: (PageContext pageContext) => FissionMFTagConditionPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '拉新条件',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/attach',
+          buildPage: (PageContext pageContext) => FissionMFAttachPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '周边对话框',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/tag/condition/around',
+          buildPage: (PageContext pageContext) => FissionMFAroundDialog(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏充值单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/record/recharge',
+          buildPage: (PageContext pageContext) => FissionMFRecordRechargePage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏提取单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/record/withdraw',
+          buildPage: (PageContext pageContext) => FissionMFRecordWithdrawPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏支付单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/record/pay',
+          buildPage: (PageContext pageContext) => FissionMFRecordPayPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏查看用户',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/person',
+          buildPage: (PageContext pageContext) => FissionMFPersonPage(
             context: pageContext,
           ),
         ),

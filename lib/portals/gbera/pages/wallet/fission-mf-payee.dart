@@ -24,6 +24,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   List<PayPersonOR> _records = [];
   final List<ChartSampleData> chartData = <ChartSampleData>[];
   int _maxNum = 0, _minNum = 0;
+  DateTime _maxTime, _minTime;
   CashierOR _cashierOR;
 
   @override
@@ -44,6 +45,12 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
     await _onload();
   }
 
+  Future<void> _onRefresh() async {
+    _offset = 0;
+    _records.clear();
+    await _onload();
+  }
+
   Future<void> _onload() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
@@ -55,7 +62,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
       }
       return;
     }
-    _offset += _records.length;
+    _offset += records.length;
     for (var record in records) {
       if (record.amount > _maxNum) {
         _maxNum = record.amount;
@@ -64,6 +71,18 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         _minNum = record.amount;
       }
       var time = parseStrTime(record.ctime, len: 17);
+      if (_maxTime == null) {
+        _maxTime = time;
+      }
+      if (_minTime == null) {
+        _minTime = time;
+      }
+      if (time.millisecondsSinceEpoch > _maxTime.millisecondsSinceEpoch) {
+        _maxTime = time;
+      }
+      if (time.millisecondsSinceEpoch < _minTime.millisecondsSinceEpoch) {
+        _minTime = time;
+      }
       chartData.add(
         ChartSampleData(
             x: time, yValue: (record.amount / 100.00), person: record),
@@ -91,13 +110,58 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
             _renderChart(),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 10,
+                height: 20,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                padding: EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '进群成员',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                            '/wallet/fission/mf/tag/condition',
+                            arguments: {'direct': 'payer'});
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            '设置拉新条件',
+                            style: TextStyle(
+                                fontSize: 10, color: Colors.grey[600]),
+                          ),
+                          SizedBox(
+                            width: 2,
+                          ),
+                          Icon(
+                            Icons.favorite,
+                            size: 18,
+                            color: Colors.green,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             _renderTags(),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 10,
+                height: 3,
               ),
             ),
           ];
@@ -107,77 +171,89 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
           child: EasyRefresh(
             controller: _easyRefreshController,
             onLoad: _onload,
+            onRefresh: _onRefresh,
             child: ListView(
               children: _records.map((e) {
                 var person = e.person;
-                return Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: 15, right: 15, top: 10, bottom: 10),
-                      child: Row(
-                        children: [
-                          FadeInImage.assetNetwork(
-                            placeholder: '',
-                            image: '${person.avatarUrl}',
-                            width: 40,
-                            height: 40,
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${person.nickName}',
-                                  style: TextStyle(
-                                    fontSize: 16,
+                return InkWell(
+                  onTap: () {
+                    widget.context.forward('/wallet/fission/mf/person',
+                        arguments: {'record': e, 'direct': 'payer'});
+                  },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 15, right: 15, top: 10, bottom: 10),
+                        child: Row(
+                          children: [
+                            FadeInImage.assetNetwork(
+                              placeholder: '',
+                              image: '${person.avatarUrl}',
+                              width: 40,
+                              height: 40,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${person.nickName}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 5,),
-                               Row(
-                                 children: [
-                                   Text(
-                                     '${person.gender == 1 ? '男' : person.gender == 2 ? '女' : ''}',
-                                     style: TextStyle(
-                                       fontSize: 14,
-                                       color: Colors.grey[600],
-                                     ),
-                                   ),
-                                   SizedBox(width: 10,),
-                                   Text(
-                                     '¥${(e.amount/100.00).toStringAsFixed(2)}',
-                                     style: TextStyle(
-                                       fontSize: 14,
-                                     ),
-                                   )
-                                 ],
-                               ),
-                              ],
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${person.gender == 1 ? '男' : person.gender == 2 ? '女' : ''}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        '- ¥${(e.amount / 100.00).toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 10,),
-                          Text(
-                            '${TimelineUtil.format(parseStrTime(e.ctime,len: 17).millisecondsSinceEpoch,locale: 'zh')}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
+                            SizedBox(
+                              width: 10,
                             ),
-                          ),
-
-                        ],
+                            Text(
+                              '${TimelineUtil.format(parseStrTime(e.ctime, len: 17).millisecondsSinceEpoch, locale: 'zh')}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                      child: Divider(
-                        height: 1,
-                        indent: 50,
+                      SizedBox(
+                        height: 10,
+                        child: Divider(
+                          height: 1,
+                          indent: 50,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               }).toList(),
             ),
@@ -188,24 +264,30 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   }
 
   Widget _renderChart() {
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _DemoHeader(
-        child: Container(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-          ),
-          color: Colors.white,
-          child: _getLabelDateTimeAxisChart(),
+    return SliverToBoxAdapter(
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
         ),
+        height: 250,
+        color: Colors.white,
+        child: _getLabelDateTimeAxisChart(),
       ),
     );
   }
 
   Widget _renderTags() {
     return SliverToBoxAdapter(
-      child: Container(),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 15,
+          right: 15,
+        ),
+        child: Wrap(
+          children: [],
+        ),
+      ),
     );
   }
 
@@ -222,13 +304,15 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         interval: 1,
         labelIntersectAction: AxisLabelIntersectAction.rotate45,
         dateFormat: intl.DateFormat('M/d HH:mm'),
+        maximum:_maxTime==null?null: _maxTime.add(Duration(hours: 1)),
+        minimum: _minTime==null?null:_minTime.subtract(Duration(hours: 1)),
         // title: AxisTitle(text: '时间'),
       ),
       primaryYAxis: NumericAxis(
         axisLine: AxisLine(width: 0),
         majorTickLines: MajorTickLines(size: 0),
         minimum: (_minNum / 100.00),
-        maximum: (_maxNum / 100.00),
+        maximum: ((_maxNum + _cashierOR.cacAverage) / 100.00),
         interval: (_cashierOR?.cacAverage ?? 0.00) / 2.0 / 100.00,
         numberFormat: intl.NumberFormat.currency(decimalDigits: 2, name: '¥'),
         // title: AxisTitle(text: '花费'),
@@ -380,34 +464,4 @@ class ChartSampleData {
 
   /// Holds open value of the datapoint
   final num volume;
-}
-
-class _DemoHeader extends SliverPersistentHeaderDelegate {
-  Widget child;
-
-  _DemoHeader({this.child});
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Theme.of(context).backgroundColor,
-      constraints: BoxConstraints.tightForFinite(
-        width: double.maxFinite,
-      ),
-      child: child,
-    );
-  } // 头部展示内容
-
-  @override
-  double get maxExtent {
-    return 250;
-  } // 最大高度
-
-  @override
-  double get minExtent => 250.0; // 最小高度
-
-  @override
-  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) =>
-      true; // 因为所有的内容都是固定的，所以不需要更新
 }

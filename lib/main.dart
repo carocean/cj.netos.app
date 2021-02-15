@@ -157,13 +157,13 @@ void main() => platformRun(
             '@.prop.ports.operation.screen':
             'http://47.105.165.186/screen/screen.ports',
             '@.prop.ports.fission.mf.cashier':
-            'http://192.168.3.8:5830/fission-mf-cashier/cashier.ports',
+            'http://47.105.165.186/fission-mf-cashier/cashier.ports',
             '@.prop.ports.fission.mf.cashier.bill':
-            'http://192.168.3.8:5830/fission-mf-cashier/cashier/bill.ports',
+            'http://47.105.165.186/fission-mf-cashier/cashier/bill.ports',
             '@.prop.ports.fission.mf.cashier.record':
-            'http://192.168.3.8:5830/fission-mf-cashier/cashier/record.ports',
+            'http://47.105.165.186/fission-mf-cashier/cashier/record.ports',
             '@.prop.ports.fission.mf.receipt':
-            'http://192.168.3.8:5810/fission-mf-receipt/cashier.ports',
+            'http://47.105.165.186/fission-mf-receipt/cashier.ports',
           },
           buildServices: (site) async {
             await registerWxApi(

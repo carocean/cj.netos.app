@@ -80,7 +80,7 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
         ),
       ),
       TabPageView(
-        title: '提现单',
+        title: '提取单',
         view: _CashierBillTabView(
           context: widget.context,
           datePicker: _datePickerNotify.stream.asBroadcastStream(),
@@ -452,7 +452,8 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
   DateTime _selectedDateTime;
   int _order;
   StreamSubscription _date_picker_streamSubscription;
-  bool _isLoading=true;
+  bool _isLoading = true;
+
   @override
   void initState() {
     _selectedDateTime = widget.defaultDate;
@@ -466,9 +467,9 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
       }
     });
 
-    _onload().then((value){
-      if(mounted){
-        _isLoading=false;
+    _onload().then((value) {
+      if (mounted) {
+        _isLoading = false;
       }
     });
     super.initState();
@@ -522,13 +523,33 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
     }
   }
 
+  Future<void> _forward(CashierBillOR bill) async {
+    switch (bill.order) {
+      case 0: //充值
+        widget.context.forward('/wallet/fission/mf/record/recharge',
+            arguments: {'sn': bill.refsn});
+        break;
+      case 1: //提现
+        widget.context.forward('/wallet/fission/mf/record/withdraw',
+            arguments: {'sn': bill.refsn});
+        break;
+      case 2: //支出
+      case 3: //收入
+        widget.context.forward('/wallet/fission/mf/record/pay',
+            arguments: {'sn': bill.refsn});
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content;
-    if(_isLoading) {
+    if (_isLoading) {
       content = Container(
         alignment: Alignment.center,
-        margin: EdgeInsets.only(top: 30,),
+        margin: EdgeInsets.only(
+          top: 30,
+        ),
         child: Text(
           '正在加载...',
           style: TextStyle(
@@ -537,11 +558,13 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
           ),
         ),
       );
-    }else {
+    } else {
       if (_bills.isEmpty) {
         content = Container(
           alignment: Alignment.center,
-          margin: EdgeInsets.only(top: 30,),
+          margin: EdgeInsets.only(
+            top: 30,
+          ),
           child: Text(
             '没有数据',
             style: TextStyle(
@@ -560,7 +583,9 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
               return SliverToBoxAdapter(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () {},
+                  onTap: () {
+                    _forward(bill);
+                  },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -581,15 +606,17 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                               children: <Widget>[
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: <Widget>[
                                       Row(
                                         children: <Widget>[
                                           Expanded(
                                             child: Text(
                                               '${bill.sn}',
-                                              style: TextStyle(fontSize: 14,),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -602,26 +629,24 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                         child: Wrap(
                                           spacing: 5,
                                           crossAxisAlignment:
-                                          WrapCrossAlignment.end,
+                                              WrapCrossAlignment.end,
                                           children: <Widget>[
                                             widget.order > -1
                                                 ? SizedBox(
-                                              height: 0,
-                                              width: 0,
-                                            )
+                                                    height: 0,
+                                                    width: 0,
+                                                  )
                                                 : Text(
-                                              '类型:${_getOrderType(bill)}',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 12,
-                                                color: Colors.grey[500],
-                                              ),
-                                            ),
+                                                    '类型:${_getOrderType(bill)}',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontSize: 12,
+                                                      color: Colors.grey[500],
+                                                    ),
+                                                  ),
                                             Text(
-                                              '${intl.DateFormat(
-                                                  'yyyy/MM/dd HH:mm:ss').format(
-                                                  parseStrTime(
-                                                      bill.ctime, len: 14))}',
+                                              '${intl.DateFormat('yyyy/MM/dd HH:mm:ss').format(parseStrTime(bill.ctime, len: 14))}',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w500,
                                                 color: Colors.grey[500],
@@ -639,7 +664,7 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                         child: Wrap(
                                           spacing: 5,
                                           crossAxisAlignment:
-                                          WrapCrossAlignment.end,
+                                              WrapCrossAlignment.end,
                                           children: <Widget>[
                                             Text(
                                               '金额:',
@@ -648,8 +673,7 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                               ),
                                             ),
                                             Text(
-                                              '¥${((bill.amount ?? 0.0) /
-                                                  100.00).toStringAsFixed(2)}',
+                                              '¥${((bill.amount ?? 0.0) / 100.00).toStringAsFixed(2)}',
                                             ),
                                           ],
                                         ),
@@ -662,7 +686,7 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                         child: Wrap(
                                           spacing: 5,
                                           crossAxisAlignment:
-                                          WrapCrossAlignment.end,
+                                              WrapCrossAlignment.end,
                                           children: <Widget>[
                                             Text(
                                               '余额:',
@@ -671,8 +695,7 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
                                               ),
                                             ),
                                             Text(
-                                              '¥${((bill.balance ?? 0.0) /
-                                                  100.00).toStringAsFixed(2)}',
+                                              '¥${((bill.balance ?? 0.0) / 100.00).toStringAsFixed(2)}',
                                             ),
                                           ],
                                         ),
@@ -727,7 +750,7 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
       case 0:
         return '充值单';
       case 1:
-        return '提现单';
+        return '提取单';
       case 2:
         return '支出单';
       case 3:

@@ -3,6 +3,75 @@ import 'dart:convert';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
 
+class FissionMFAttachmentOR {
+  String person;
+  String src;
+  String type;
+  String note;
+  String ctime;
+
+  FissionMFAttachmentOR({
+    this.person,
+    this.src,
+    this.type,
+    this.ctime,
+    this.note,
+  });
+
+  FissionMFAttachmentOR.parse(obj) {
+    this.person = obj['person'];
+    this.src = obj['src'];
+    this.type = obj['type'];
+    this.ctime = obj['ctime'];
+    this.note = obj['note'];
+  }
+}
+
+class FissionMFLimitAreaOR {
+  String person;
+  String areaType;
+  String areaCode;
+  String areaTitle;
+  String direct;
+
+  FissionMFLimitAreaOR({
+    this.person,
+    this.areaType,
+    this.areaCode,
+    this.areaTitle,
+    this.direct,
+  });
+
+  FissionMFLimitAreaOR.parse(obj) {
+    this.person = obj['person'];
+    this.areaType = obj['areaType'];
+    this.areaCode = obj['areaCode'];
+    this.areaTitle = obj['areaTitle'];
+    this.direct = obj['direct'];
+  }
+}
+
+class FissionMFTagOR {
+  String id;
+  String name;
+  String opposite;
+  int sort;
+
+  FissionMFTagOR({
+    this.id,
+    this.name,
+    this.opposite,
+    this.sort,
+  });
+
+  FissionMFTagOR.parse(obj) {
+    this.id = obj['id'];
+    this.name = obj['name'];
+    this.opposite = obj['opposite'];
+    this.sort = obj['sort'];
+  }
+}
+
 class AlgorithmInfoOR {
   int upMaxBound;
   int baseLine;
@@ -83,6 +152,39 @@ mixin IFissionMFCashierRemote {
   Future<void> setAmplitudeFactor(double amplitudeFactor) {}
 
   Future<AlgorithmInfoOR> getAlgorithmInfo() {}
+
+  Future<List<FissionMFTagOR>> listAllTag();
+
+  Future<void> addPropertyTag(String tagId) {}
+
+  Future<void> removePropertyTag(String tagId) {}
+
+  Future<List<FissionMFTagOR>> listMyPropertyTag() {}
+
+  Future<FissionMFTagOR> getTag(String opposite) {}
+
+  Future<void> addLimitTag(String tagId, String direct) {}
+
+  Future<void> removeLimitTag(String tagId, String direct) {}
+
+  Future<List<FissionMFTagOR>> listLimitTag(String direct) {}
+
+  Future<void> setLimitArea(
+      String direct, String areaType, String areaTitle, String areaCode) {}
+
+  Future<void> emptyLimitArea(String direct) {}
+
+  Future<FissionMFLimitAreaOR> getLimitArea(String direct) {}
+
+  Future<void> setAttachment(String src, String type) {}
+
+  Future<void> emptyAttachment() {}
+
+  Future<FissionMFAttachmentOR> getAttachment() {}
+
+  Future<void> setAdvert(String note) {}
+
+  Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) {}
 }
 
 class FissionMFCashierRemote
@@ -223,16 +325,222 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<AlgorithmInfoOR> getAlgorithmInfo() async{
-    var obj=await remotePorts.portPOST(
+  Future<AlgorithmInfoOR> getAlgorithmInfo() async {
+    var obj = await remotePorts.portPOST(
       fissionMfCashierPorts,
       'getAlgorithmInfo',
-      parameters: {
-      },
+      parameters: {},
     );
-    if(obj==null) {
-      return AlgorithmInfoOR(amplitude: 0,baseLine: 0,upMaxBound: 0);
+    if (obj == null) {
+      return AlgorithmInfoOR(amplitude: 0, baseLine: 0, upMaxBound: 0);
     }
     return AlgorithmInfoOR.parse(obj);
   }
+
+  @override
+  Future<List<FissionMFTagOR>> listAllTag() async {
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listAllTag',
+      parameters: {},
+    );
+    var tags = <FissionMFTagOR>[];
+    for (var obj in list) {
+      tags.add(FissionMFTagOR.parse(obj));
+    }
+    return tags;
+  }
+
+  @override
+  Future<void> addPropertyTag(String tagId) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'addPropertyTag',
+      parameters: {
+        'tagId': tagId,
+      },
+    );
+  }
+
+  @override
+  Future<void> removePropertyTag(String tagId) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'removePropertyTag',
+      parameters: {
+        'tagId': tagId,
+      },
+    );
+  }
+
+  @override
+  Future<List<FissionMFTagOR>> listMyPropertyTag() async {
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listMyPropertyTag',
+      parameters: {},
+    );
+    var tags = <FissionMFTagOR>[];
+    for (var obj in list) {
+      tags.add(FissionMFTagOR.parse(obj));
+    }
+    return tags;
+  }
+
+  @override
+  Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) async{
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listPropertyTagOfPerson',
+      parameters: {
+        'person':person,
+      },
+    );
+    var tags = <FissionMFTagOR>[];
+    for (var obj in list) {
+      tags.add(FissionMFTagOR.parse(obj));
+    }
+    return tags;
+  }
+  @override
+  Future<FissionMFTagOR> getTag(String opposite) async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getTag',
+      parameters: {
+        'tagId': opposite,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return FissionMFTagOR.parse(obj);
+  }
+
+  @override
+  Future<void> addLimitTag(String tagId, String direct) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'addLimitTag',
+      parameters: {
+        'tagId': tagId,
+        'direct': direct,
+      },
+    );
+  }
+
+  @override
+  Future<void> emptyLimitArea(String direct) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'emptyLimitArea',
+      parameters: {
+        'direct': direct,
+      },
+    );
+  }
+
+  @override
+  Future<FissionMFLimitAreaOR> getLimitArea(String direct) async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getLimitArea',
+      parameters: {
+        'direct': direct,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return FissionMFLimitAreaOR.parse(obj);
+  }
+
+  @override
+  Future<List<FissionMFTagOR>> listLimitTag(String direct) async {
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listLimitTag',
+      parameters: {
+        'direct': direct,
+      },
+    );
+    var tags = <FissionMFTagOR>[];
+    for (var obj in list) {
+      tags.add(FissionMFTagOR.parse(obj));
+    }
+    return tags;
+  }
+
+  @override
+  Future<void> removeLimitTag(String tagId, String direct) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'removeLimitTag',
+      parameters: {
+        'direct': direct,
+        'tagId': tagId,
+      },
+    );
+  }
+
+  @override
+  Future<void> setLimitArea(
+      String direct, String areaType, String areaTitle, String areaCode) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setLimitArea',
+      parameters: {
+        'direct': direct,
+        'areaType': areaType,
+        'areaTitle': areaTitle,
+        'areaCode': areaCode,
+      },
+    );
+  }
+
+  @override
+  Future<void> emptyAttachment() async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'emptyAttachment',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<FissionMFAttachmentOR> getAttachment() async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getAttachment',
+      parameters: {},
+    );
+    if (obj == null) {
+      return null;
+    }
+    return FissionMFAttachmentOR.parse(obj);
+  }
+
+  @override
+  Future<void> setAdvert(String note) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setAdvert',
+      parameters: {
+        'note': note,
+      },
+    );
+  }
+
+  @override
+  Future<void> setAttachment(String src, String type) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setAttachment',
+      parameters: {
+        'src': src,
+        'type': type,
+      },
+    );
+  }
+
 }

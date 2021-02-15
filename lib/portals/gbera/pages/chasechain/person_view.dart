@@ -370,6 +370,7 @@ class _PoolPageState extends State<PersonViewPage> {
                   height: 4,
                 ),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
                       '公号',
@@ -380,12 +381,12 @@ class _PoolPageState extends State<PersonViewPage> {
                     SizedBox(
                       width: 4,
                     ),
-                    Text(
+                    Expanded(child: Text(
                       '${_person.official}',
                       style: TextStyle(
                         color: Colors.grey[500],
                       ),
-                    ),
+                    ),),
                   ],
                 ),
                 SizedBox(

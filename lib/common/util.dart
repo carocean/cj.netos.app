@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:city_pickers/meta/_province.dart';
+import 'package:city_pickers/meta/province.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/framework.dart';
@@ -295,4 +297,27 @@ String getUrlWithAccessToken(String url,String accessToken){
     return '$url&accessToken=$accessToken';
   }
   return '$url?accessToken=$accessToken';
+}
+
+
+String findProvinceCode(String provinceName) {
+  var provinces = provincesData;
+  for (var code in provinces.keys) {
+    var name = provinces[code];
+    if (name == provinceName) {
+      return code;
+    }
+  }
+  return null;
+}
+
+String findCityCode(String provinceCode,String cityName) {
+  var cities = citysData[provinceCode];
+  for (var code in cities.keys) {
+    var name = cities[code];
+    if (name == cityName) {
+      return code;
+    }
+  }
+  return null;
 }

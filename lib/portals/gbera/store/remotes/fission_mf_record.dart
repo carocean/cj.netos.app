@@ -1,6 +1,99 @@
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 
+class FissionMFRechargeRecordOR {
+  String sn;
+  String recharger;
+  String nickName;
+  String currency;
+  int amount;
+  int rechargeStrategy;
+  int dayLimitAmount;
+  int state;
+  String ctime;
+  String refOrderSn;
+  String refOrderTitle;
+  String refPaySn;
+  int status;
+  String message;
+  String note;
+
+  FissionMFRechargeRecordOR({
+    this.sn,
+    this.recharger,
+    this.nickName,
+    this.currency,
+    this.amount,
+    this.rechargeStrategy,
+    this.dayLimitAmount,
+    this.state,
+    this.ctime,
+    this.refOrderSn,
+    this.refOrderTitle,
+    this.refPaySn,
+    this.status,
+    this.message,
+    this.note,
+  });
+
+  FissionMFRechargeRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.recharger = obj['recharger'];
+    this.nickName = obj['nickName'];
+    this.currency = obj['currency'];
+    this.amount = obj['amount'];
+    this.rechargeStrategy = obj['rechargeStrategy'];
+    this.dayLimitAmount = obj['dayLimitAmount'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.refOrderSn = obj['refOrderSn'];
+    this.refOrderTitle = obj['refOrderTitle'];
+    this.refPaySn = obj['refPaySn'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.note = obj['note'];
+  }
+}
+
+class FissionMFWithdrawRecordOR {
+  String sn;
+  String withdrawer;
+  String nickName;
+  String currency;
+  int amount;
+  int state;
+  String ctime;
+  int status;
+  String message;
+  String note;
+
+  FissionMFWithdrawRecordOR({
+    this.sn,
+    this.withdrawer,
+    this.nickName,
+    this.currency,
+    this.amount,
+    this.state,
+    this.ctime,
+    this.status,
+    this.message,
+    this.note,
+  });
+
+  FissionMFWithdrawRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.withdrawer = obj['withdrawer'];
+    this.nickName = obj['nickName'];
+    this.currency = obj['currency'];
+    this.amount = obj['amount'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.note = obj['note'];
+  }
+}
+
 class FissionMFPerson {
   String id;
 
@@ -55,7 +148,7 @@ class FissionMFPerson {
   }
 }
 
-class PayRecordOR {
+class FissionMFPayRecordOR {
   String sn;
   String payer;
   String payerName;
@@ -69,7 +162,7 @@ class PayRecordOR {
   String message;
   String note;
 
-  PayRecordOR({
+  FissionMFPayRecordOR({
     this.sn,
     this.payer,
     this.payerName,
@@ -84,30 +177,32 @@ class PayRecordOR {
     this.note,
   });
 
-  PayRecordOR.parse(obj){
-    this.sn=obj['sn'];
-    this.payer=obj['payer'];
-    this.payerName=obj['payerName'];
-    this.payee=obj['payee'];
-    this.payeeName=obj['payeeName'];
-    this.currency=obj['currency'];
-    this.amount=obj['amount'];
-    this.state=obj['state'];
-    this.ctime=obj['ctime'];
-    this.status=obj['status'];
-    this.message=obj['message'];
-    this.note=obj['note'];
+  FissionMFPayRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.payer = obj['payer'];
+    this.payerName = obj['payerName'];
+    this.payee = obj['payee'];
+    this.payeeName = obj['payeeName'];
+    this.currency = obj['currency'];
+    this.amount = obj['amount'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.note = obj['note'];
   }
 }
-class PayPersonOR extends PayRecordOR{
+
+class PayPersonOR extends FissionMFPayRecordOR {
   FissionMFPerson person;
 
   PayPersonOR({this.person});
 
-  PayPersonOR.parse(obj):super.parse(obj){
-    this.person=FissionMFPerson.parse(obj['person']);
+  PayPersonOR.parse(obj) : super.parse(obj) {
+    this.person = FissionMFPerson.parse(obj['person']);
   }
 }
+
 mixin IFissionMFCashierRecordRemote {
   Future<int> totalPayee() {}
 
@@ -124,6 +219,12 @@ mixin IFissionMFCashierRecordRemote {
   Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset) {}
 
   Future<List<FissionMFPerson>> pagePayerInfo(int limit, int offset) {}
+
+  Future<FissionMFRechargeRecordOR> getRechargeRecord(String sn);
+
+  Future<FissionMFWithdrawRecordOR> getWithdrawRecord(String sn);
+
+  Future<FissionMFPayRecordOR> getPayRecord(String sn);
 }
 
 class FissionMFCashierRecordRemote
@@ -220,7 +321,7 @@ class FissionMFCashierRecordRemote
   }
 
   @override
-  Future<List<FissionMFPerson>> pagePayerInfo(int limit, int offset)async {
+  Future<List<FissionMFPerson>> pagePayerInfo(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
       'pagePayerInfo',
@@ -237,7 +338,7 @@ class FissionMFCashierRecordRemote
   }
 
   @override
-  Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset)async {
+  Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
       'pagePayeeInfo',
@@ -251,5 +352,50 @@ class FissionMFCashierRecordRemote
       persons.add(FissionMFPerson.parse(obj));
     }
     return persons;
+  }
+
+  @override
+  Future<FissionMFPayRecordOR> getPayRecord(String sn) async {
+    var obj = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'getPayRecord',
+      parameters: {
+        'sn': sn,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return FissionMFPayRecordOR.parse(obj);
+  }
+
+  @override
+  Future<FissionMFRechargeRecordOR> getRechargeRecord(String sn) async {
+    var obj = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'getRechargeRecord',
+      parameters: {
+        'sn': sn,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return FissionMFRechargeRecordOR.parse(obj);
+  }
+
+  @override
+  Future<FissionMFWithdrawRecordOR> getWithdrawRecord(String sn) async {
+    var obj = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'getWithdrawRecord',
+      parameters: {
+        'sn': sn,
+      },
+    );
+    if(obj==null) {
+      return null;
+    }
+    return FissionMFWithdrawRecordOR.parse(obj);
   }
 }
