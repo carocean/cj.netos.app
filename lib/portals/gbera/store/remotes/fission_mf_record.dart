@@ -1,3 +1,4 @@
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/core_lib/_utimate.dart';
 import 'package:framework/framework.dart';
 
@@ -109,7 +110,7 @@ class FissionMFPerson {
   String city;
   String district;
   String town;
-  String location;
+  LatLng location;
   String language;
 
   String ctime;
@@ -141,7 +142,7 @@ class FissionMFPerson {
     this.city = obj['city'];
     this.district = obj['district'];
     this.town = obj['town'];
-    this.location = obj['location'];
+    this.location = obj['location'] == null ? null : LatLng.fromJson(obj['location']);
     this.language = obj['language'];
     this.ctime = obj['ctime'];
     this.openid = obj['openid'];
