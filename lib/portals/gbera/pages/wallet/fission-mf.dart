@@ -1,9 +1,14 @@
+import 'package:amap_search_fluttify/amap_search_fluttify.dart';
+import 'package:city_pickers/meta/_province.dart';
+import 'package:city_pickers/meta/province.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
@@ -53,6 +58,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         widget.context.site.getService('/wallet/fission/mf/cashier/bill');
     IFissionMFCashierRecordRemote cashierRecordRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
+    _updateLocation(cashierRemote); //异步更新
     _cashierOR = await cashierRemote.getCashier();
     _isOpening = _cashierOR.state == 0;
     _assessCacCount = await cashierRemote.assessCacCount();
@@ -81,17 +87,31 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
             body: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.only(left: 20,right: 20,bottom: 10,top: 30,),
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    bottom: 10,
+                    top: 30,
+                  ),
                   child: Row(
                     children: [
-                      Expanded(child: Text('请先设置您的兴趣标签再说使用，兴趣标签不仅可以给你精准引荐朋友，还可将你推荐给志同道合的人',style: TextStyle(color: Colors.red,),),),
+                      Expanded(
+                        child: Text(
+                          '请先设置您的兴趣标签再说使用，兴趣标签不仅可以给你精准引荐朋友，还可将你推荐给志同道合的人',
+                          style: TextStyle(
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Expanded(child: widget.context.part(
-                  '/wallet/fission/mf/tag/properties',
-                  context,
-                ),),
+                Expanded(
+                  child: widget.context.part(
+                    '/wallet/fission/mf/tag/properties',
+                    context,
+                  ),
+                ),
               ],
             ),
           ),
@@ -103,6 +123,19 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _updateLocation(IFissionMFCashierRemote cashierRemote) async {
+    var location = await geoLocation.location;
+    var latLng = location.latLng;
+    var recode =
+        await AmapSearch.instance.searchReGeocode(latLng, radius: 200.0);
+    var towncode = recode.townCode;
+    var adcode = recode.adCode;
+    var province = findProvinceCode(recode.provinceName);
+    var city = findCityCode(province, recode.cityName);
+    await cashierRemote.updateLocation(latLng,
+        city: city, district: adcode, province: province, town: towncode);
   }
 
   Future<void> _withdraw() async {

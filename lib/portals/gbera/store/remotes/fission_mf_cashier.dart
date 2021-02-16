@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
 
@@ -183,6 +184,9 @@ mixin IFissionMFCashierRemote {
   Future<FissionMFAttachmentOR> getAttachment() {}
 
   Future<void> setAdvert(String note) {}
+
+  Future<void> updateLocation(LatLng location,
+      {String province, String city, String district, String town}) {}
 
   Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) {}
 }
@@ -388,12 +392,12 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) async{
+  Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) async {
     var list = await remotePorts.portPOST(
       fissionMfCashierPorts,
       'listPropertyTagOfPerson',
       parameters: {
-        'person':person,
+        'person': person,
       },
     );
     var tags = <FissionMFTagOR>[];
@@ -402,6 +406,7 @@ class FissionMFCashierRemote
     }
     return tags;
   }
+
   @override
   Future<FissionMFTagOR> getTag(String opposite) async {
     var obj = await remotePorts.portPOST(
@@ -543,4 +548,21 @@ class FissionMFCashierRemote
     );
   }
 
+  @override
+  Future<void> updateLocation(LatLng location,
+      {String province, String city, String district, String town}) async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'updateLocation',
+      parameters: {
+        'province': province,
+        'city': city,
+        'district': district,
+        'town': town,
+      },
+      data: {
+        'location': jsonEncode(location.toJson()),
+      },
+    );
+  }
 }
