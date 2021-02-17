@@ -186,7 +186,7 @@ mixin IFissionMFCashierRemote {
   Future<void> setAdvert(String note) {}
 
   Future<void> updateLocation(LatLng location,
-      {String province,String provinceName, String city,String cityName, String district,String districtName, String town,String townName}) {}
+      {String province,String provinceCode, String city,String cityCode, String district,String districtCode, String town,String townCode}) {}
 
   Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) {}
 }
@@ -550,7 +550,7 @@ class FissionMFCashierRemote
 
   @override
   Future<void> updateLocation(LatLng location,
-      {String province,String provinceName, String city,String cityName, String district,String districtName, String town,String townName}) async {
+      {String province,String provinceCode, String city,String cityCode, String district,String districtCode, String town,String townCode}) async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'updateLocation',
@@ -559,10 +559,10 @@ class FissionMFCashierRemote
         'city': city,
         'district': district,
         'town': town,
-        'provinceName': provinceName,
-        'cityName': cityName,
-        'districtName': districtName,
-        'townName': townName,
+        'provinceCode': provinceCode,
+        'cityCode': cityCode,
+        'districtCode': districtCode,
+        'townCode': townCode,
       },
       data: {
         'location': jsonEncode(location.toJson()),

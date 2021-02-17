@@ -136,14 +136,14 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
     var city = findCityCode(province, recode.cityName);
     await cashierRemote.updateLocation(
       latLng,
-      city: city,
-      district: adcode,
-      province: province,
-      town: towncode,
-      cityName: recode.cityName,
-      districtName: recode.districtName,
-      provinceName: recode.provinceName,
-      townName: recode.township,
+      city: recode.cityName,
+      district: recode.districtName,
+      province: recode.provinceName,
+      town: recode.township,
+      cityCode: city,
+      districtCode: adcode,
+      provinceCode: province,
+      townCode: towncode,
     );
   }
 
