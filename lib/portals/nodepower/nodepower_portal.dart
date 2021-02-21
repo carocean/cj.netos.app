@@ -15,6 +15,7 @@ import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
@@ -192,6 +193,7 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/feedback/tipoff': TipOffRemote(),
           '/feedback/tiptool': TipToolRemote(),
           '/operation/screen': DefaultScreenRemote(),
+          '/wallet/fission/mf/cashier': FissionMFCashierRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[

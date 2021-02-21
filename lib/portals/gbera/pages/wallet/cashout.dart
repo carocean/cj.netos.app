@@ -504,7 +504,7 @@ class _CashoutState extends State<Cashout> {
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {
+                    onTap:e.code=='wechatpay'?null: () {
                       widget.context.backward(result: e);
                     },
                     child: _rendPayChannel(e),
@@ -523,7 +523,7 @@ class _CashoutState extends State<Cashout> {
   }
 
   _rendPayChannel(PayChannel e) {
-    return Container(
+    dynamic panel = Container(
       padding: EdgeInsets.only(
         left: 10,
         right: 10,
@@ -561,7 +561,7 @@ class _CashoutState extends State<Cashout> {
                         ),
                       ),
                       Text(
-                        '单日交易限额 ¥ 10000.00',
+                        '单日交易限额：无',
                         style: widget.context.style(
                             '/wallet/change/deposit/method/subtitle.text'),
                       ),
@@ -582,6 +582,36 @@ class _CashoutState extends State<Cashout> {
         ],
       ),
     );
+    if (e.code == 'wechatpay') {
+      panel = Stack(
+        children: [
+          panel,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            child: Container(
+              color: Colors.white70,
+              alignment: Alignment.center,
+              child: Container(
+                color: Colors.red,
+                constraints: BoxConstraints.tightFor(),
+                padding: EdgeInsets.only(left: 4,right: 4,bottom: 1,top: 1,),
+                child: Text(
+                  '暂不支持提现到微信，开通时间预计在今年6、7月份',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.yellow,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return panel;
   }
 }
 
@@ -593,7 +623,7 @@ getPayChannelIcon(PayChannel selected) {
         size: 35,
         color: Colors.blueAccent,
       );
-    case 'wechat':
+    case 'wechatpay':
       return Icon(
         FontAwesomeIcons.weixin,
         size: 35,

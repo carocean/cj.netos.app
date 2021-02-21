@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
@@ -74,6 +75,9 @@ class _PlatformFundPageState extends State<PlatformFundPage> {
     }
     _accounts.addAll(list);
     _offset += list.length;
+    _accounts.sort((a,b){
+      return a.channel.compareTo(b.channel);
+    });
     if (mounted) {
       setState(() {});
     }
@@ -188,134 +192,139 @@ class _PlatformFundPageState extends State<PlatformFundPage> {
     var list = <Widget>[];
     for (var account in _accounts) {
       list.add(
-        Slidable(
-          actionPane: SlidableDrawerActionPane(),
-          secondaryActions: <Widget>[
-            IconSlideAction(
-              caption: '删除',
-              foregroundColor: Colors.grey[500],
-              icon: Icons.delete,
-              onTap: () {
-                _onDeleteAccount(account.id);
-              },
-            ),
-          ],
-          child: Container(
-            color: Colors.white,
-            padding: EdgeInsets.only(
-              left: 15,
-              right: 15,
-            ),
-            child: FutureBuilder<PayChannel>(
-              future: _loadChannel(account.channel),
-              builder: (ctx, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return Text('...');
-                }
-                var ch = snapshot.data;
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+        Column(
+          children: [
+            Slidable(
+              actionPane: SlidableDrawerActionPane(),
+              secondaryActions: <Widget>[
+                IconSlideAction(
+                  caption: '删除',
+                  foregroundColor: Colors.grey[500],
+                  icon: Icons.delete,
                   onTap: () {
-                    widget.context.forward('/claf/channel/account',
-                        arguments: {'account': account, 'payChannel': ch});
+                    _onDeleteAccount(account.id);
                   },
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 10, bottom: 10),
-                    child: Column(
-                      children: [
-                        Row(
+                ),
+              ],
+              child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                ),
+                child: FutureBuilder<PayChannel>(
+                  future: _loadChannel(account.channel),
+                  builder: (ctx, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Text('...');
+                    }
+                    var ch = snapshot.data;
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        widget.context.forward('/claf/channel/account',
+                            arguments: {'account': account, 'payChannel': ch});
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Column(
                           children: [
-                            Text(
-                              '账户',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Text(
-                                '${account.id}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '渠道',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    '${ch.name}',
-                                    style: TextStyle(
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 2,
-                                  ),
-                                  Text('(${ch.code})'),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
                             Row(
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                        '¥${(account.balanceAmount / 100.00).toStringAsFixed(2)}'),
-                                    Text(
-                                      '${intl.DateFormat('yyyy-HH-mm hh:mm:ss').format(
-                                        parseStrTime(
-                                          account.balanceUtime,
-                                          len: 17,
-                                        ),
-                                      )}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  '账户',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 18,
-                                  color: Colors.grey,
+                                Expanded(
+                                  child: Text(
+                                    '${account.id}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '渠道',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        '${ch.name}',
+                                        style: TextStyle(
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 2,
+                                      ),
+                                      Text('(${account.applyTerminal??'app'}池)',style: TextStyle(fontSize: 12,color: Colors.grey[600]),),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                            '¥${(account.balanceAmount / 100.00).toStringAsFixed(2)}'),
+                                        Text(
+                                          '${intl.DateFormat('yyyy-HH-mm hh:mm:ss').format(
+                                            parseStrTime(
+                                              account.balanceUtime,
+                                              len: 17,
+                                            ),
+                                          )}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 18,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
+            Divider(height: 1,),
+          ],
         ),
       );
     }

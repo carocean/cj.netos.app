@@ -147,33 +147,64 @@ class PayChannel {
 class ChannelAccountOR {
   String id;
   String appId;
+  String mchId;
   String channel;
+  String applyTerminal;
   int balanceAmount;
   String balanceUtime;
   int limitAmount;
   String serviceUrl;
-  String notifyUrl;
+  String payNotifyUrl;
+  String transNotifyUrl;
   String keyPubtime;
   int keyExpire;
   String publicKey;
   String privateKey;
+  String apiV3Key;
+  String mchSerialNo;
   String note;
 
   ChannelAccountOR({
     this.id,
     this.appId,
+    this.mchId,
     this.channel,
+    this.applyTerminal,
     this.balanceAmount,
     this.balanceUtime,
     this.limitAmount,
     this.serviceUrl,
-    this.notifyUrl,
+    this.payNotifyUrl,
+    this.transNotifyUrl,
     this.keyPubtime,
     this.keyExpire,
     this.publicKey,
     this.privateKey,
+    this.apiV3Key,
+    this.mchSerialNo,
     this.note,
   });
+
+  ChannelAccountOR.parse(obj){
+    this.id=obj['id'];
+    this.appId=obj['appId'];
+    this.mchId=obj['mchId'];
+    this.channel=obj['channel'];
+    this.applyTerminal=obj['applyTerminal'];
+    this.balanceAmount=obj['balanceAmount'];
+    this.balanceUtime=obj['balanceUtime'];
+    this.limitAmount=obj['limitAmount'];
+    this.serviceUrl=obj['serviceUrl'];
+    this.payNotifyUrl=obj['payNotifyUrl'];
+    this.transNotifyUrl=obj['transNotifyUrl'];
+    this.keyPubtime=obj['keyPubtime'];
+    this.keyExpire=obj['keyExpire'];
+    this.publicKey=obj['publicKey'];
+    this.privateKey=obj['privateKey'];
+    this.apiV3Key=obj['apiV3Key'];
+    this.mchSerialNo=obj['mchSerialNo'];
+    this.note=obj['note'];
+  }
 }
 
 class ChannelBillOR {

@@ -151,7 +151,33 @@ class _ChannelAccountDetailsPageState extends State<ChannelAccountDetailsPage> {
                       child: Row(
                         children: [
                           SizedBox(
-                            child: Text('应用'),
+                            child: Text('金池'),
+                            width: 60,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Text('${_accountOR.applyTerminal??'app'}'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 10,
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            child: Text('应用标识'),
                             width: 60,
                           ),
                           SizedBox(
@@ -159,6 +185,32 @@ class _ChannelAccountDetailsPageState extends State<ChannelAccountDetailsPage> {
                           ),
                           Expanded(
                             child: Text('${_accountOR.appId}'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 10,
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            child: Text('商户号'),
+                            width: 60,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Text('${_accountOR.mchId??'无'}'),
                           ),
                         ],
                       ),
@@ -253,14 +305,40 @@ class _ChannelAccountDetailsPageState extends State<ChannelAccountDetailsPage> {
                       child: Row(
                         children: [
                           SizedBox(
-                            child: Text('异步通知地址'),
+                            child: Text('异步支付通知地址'),
                             width: 60,
                           ),
                           SizedBox(
                             width: 10,
                           ),
                           Expanded(
-                            child: Text('${_accountOR.notifyUrl}'),
+                            child: Text('${_accountOR.payNotifyUrl}'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 10,
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            child: Text('异步转账通知地址'),
+                            width: 60,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Text('${_accountOR.transNotifyUrl}'),
                           ),
                         ],
                       ),

@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
+import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:tobias/tobias.dart' as tobias;
+import 'package:fluwx/fluwx.dart' as fluwx;
 
 class Deposit extends StatefulWidget {
   PageContext context;
@@ -24,14 +27,14 @@ class _DepositState extends State<Deposit> {
   PayChannel _selected;
   bool _isLoading = false;
   GlobalKey<ScaffoldState> _globalKey;
-
+  StreamSubscription _wechatpayStreamSubscription;
   @override
   void initState() {
     _globalKey = GlobalKey<ScaffoldState>();
-    var initAmount=widget.context.parameters['initAmount'];
+    var initAmount = widget.context.parameters['initAmount'];
     var initAmountStr;
-    if(initAmount!=null) {
-      initAmountStr='${(initAmount/100.00).toStringAsFixed(2)}';
+    if (initAmount != null) {
+      initAmountStr = '${(initAmount / 100.00).toStringAsFixed(2)}';
     }
     _amountController = TextEditingController(text: initAmountStr);
     _load();
@@ -41,6 +44,7 @@ class _DepositState extends State<Deposit> {
   @override
   void dispose() {
     _amountController?.dispose();
+    _wechatpayStreamSubscription?.cancel();
     super.dispose();
   }
 
@@ -69,24 +73,85 @@ class _DepositState extends State<Deposit> {
     int amount = (double.parse(_amountController.text) * 100).floor();
     String result =
         await tradeRemote.recharge("CNY", amount, _selected.code, null);
-    var map = await tobias.aliPay(result);
-    print('-------$map');
-    if (map == null) {
-      _globalKey.currentState.showSnackBar(SnackBar(
-        content: Container(
-          child: Text('没有返回结果，请到钱包中心查看是否成功充值'),
-        ),
-      ));
-      return;
-    }
+
     switch (_selected.code) {
       case 'alipay':
+        var map = await tobias.aliPay(result);
+        print('-------$map');
+        if (map == null) {
+          _globalKey.currentState.showSnackBar(SnackBar(
+            content: Container(
+              child: Text('没有返回结果，请到钱包中心查看是否成功充值'),
+            ),
+          ));
+          return;
+        }
         doResultAlipay(map);
+        break;
+      case 'wechatpay':
+        var map = jsonDecode(result);
+        var ret = await fluwx.payWithWeChat(
+          appId: map['appid'],
+          //为微信分配的我方的移动应用号
+          partnerId: map['partnerid'],
+          //为商户号，我们是：1606337815
+          prepayId: map['prepayid'],
+          //预订单标识
+          packageValue: map['package'],
+          //一般为固定：Sign=WXPay
+          nonceStr: map['noncestr'],
+          timeStamp: map['timestamp'],
+          sign: map['sign'], //注意：签名方式一定要与统一下单接口使用的一致
+        );
+        if(_wechatpayStreamSubscription==null) {
+          _wechatpayStreamSubscription=  fluwx.weChatResponseEventHandler.listen((data) {
+            print(data.errCode);
+            if (data.errCode == 0) {
+              print("微信支付成功");
+              doSussResultWechatpay(map);
+            } else {
+              print("微信支付失败");
+              doFailResultWechatpay(map,data);
+            }
+          });
+        }
+
         break;
       default:
         print('暂不支持渠道：${_selected.name}');
         break;
     }
+  }
+  Future<void> doFailResultWechatpay(map,BaseWeChatResponse data) async {
+    var record_sn = map['record_sn'];
+    var message=data.errStr;
+    switch(data.errCode){
+      case -2:
+        message='用户中途取消';
+        break;
+    }
+    widget.context.forward('/wallet/rechargeResult',
+        arguments: {'record_sn': record_sn, 'message': message},
+        clearHistoryByPagePath: '/wallet/change/');
+  }
+  Future<void> doSussResultWechatpay(Map map) async {
+    var record_sn = map['record_sn'];
+    IWalletRecordRemote recordRemote =
+        widget.context.site.getService("/wallet/records");
+    var record = await recordRemote.getRechargeRecord(record_sn);
+
+    StreamController changeController =
+    widget.context.parameters['changeController'];
+    if (changeController != null && !changeController.isClosed) {
+      changeController?.add({});
+    }
+
+   var message =
+    '订单支付成功。金额: ¥${(record.demandAmount / 100.00).toStringAsFixed(2)}';
+    widget.context.forward('/wallet/rechargeResult',
+        arguments: {'record_sn': record_sn, 'message': message},
+        clearHistoryByPagePath: '/wallet/change/');
+
   }
 
   @override
@@ -420,7 +485,7 @@ class _DepositState extends State<Deposit> {
                         ),
                       ),
                       Text(
-                        '单日交易限额 ¥ 10000.00',
+                        '单日交易限额：无',
                         style: widget.context.style(
                             '/wallet/change/deposit/method/subtitle.text'),
                       ),
@@ -446,7 +511,7 @@ class _DepositState extends State<Deposit> {
   doResultAlipay(Map map) {
     var status = map['resultStatus'];
     var result;
-    var response={};
+    var response = {};
     if (!StringUtil.isEmpty(map['result'])) {
       result = jsonDecode(map['result']);
       response = result['alipay_trade_app_pay_response'];
@@ -498,7 +563,7 @@ getPayChannelIcon(PayChannel selected) {
         size: 35,
         color: Colors.blueAccent,
       );
-    case 'wechat':
+    case 'wechatpay':
       return Icon(
         FontAwesomeIcons.weixin,
         size: 35,

@@ -354,21 +354,7 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
     if (obj == null) {
       return null;
     }
-    return ChannelAccountOR(
-      note: obj['note'],
-      appId: obj['appId'],
-      balanceAmount: obj['balanceAmount'],
-      balanceUtime: obj['balanceUtime'],
-      channel: obj['channel'],
-      id: obj['id'],
-      keyExpire: obj['keyExpire'],
-      keyPubtime: obj['keyPubtime'],
-      limitAmount: obj['limitAmount'],
-      notifyUrl: obj['notifyUrl'],
-      privateKey: obj['privateKey'],
-      publicKey: obj['publicKey'],
-      serviceUrl: obj['serviceUrl'],
-    );
+    return ChannelAccountOR.parse(obj);
   }
 
   @override
@@ -384,21 +370,7 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
     var accounts = <ChannelAccountOR>[];
     for (var obj in list) {
       accounts.add(
-        ChannelAccountOR(
-          note: obj['note'],
-          appId: obj['appId'],
-          balanceAmount: obj['balanceAmount'],
-          balanceUtime: obj['balanceUtime'],
-          channel: obj['channel'],
-          id: obj['id'],
-          keyExpire: obj['keyExpire'],
-          keyPubtime: obj['keyPubtime'],
-          limitAmount: obj['limitAmount'],
-          notifyUrl: obj['notifyUrl'],
-          privateKey: obj['privateKey'],
-          publicKey: obj['publicKey'],
-          serviceUrl: obj['serviceUrl'],
-        ),
+        ChannelAccountOR.parse(obj),
       );
     }
     return accounts;
@@ -419,21 +391,7 @@ class PayChannelRemote implements IPayChannelRemote, IServiceBuilder {
     var accounts = <ChannelAccountOR>[];
     for (var obj in list) {
       accounts.add(
-        ChannelAccountOR(
-          note: obj['note'],
-          appId: obj['appId'],
-          balanceAmount: obj['balanceAmount'],
-          balanceUtime: obj['balanceUtime'],
-          channel: obj['channel'],
-          id: obj['id'],
-          keyExpire: obj['keyExpire'],
-          keyPubtime: obj['keyPubtime'],
-          limitAmount: obj['limitAmount'],
-          notifyUrl: obj['notifyUrl'],
-          privateKey: obj['privateKey'],
-          publicKey: obj['publicKey'],
-          serviceUrl: obj['serviceUrl'],
-        ),
+        ChannelAccountOR.parse(obj),
       );
     }
     return accounts;
