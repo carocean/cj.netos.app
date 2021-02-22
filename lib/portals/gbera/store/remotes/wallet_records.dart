@@ -134,6 +134,7 @@ class RechargeOR {
   String toChannelAccount;
   String payChannel;
   String payAccount;
+  String payTerminal;
   int state;
   String ctime;
   String lutime;
@@ -141,22 +142,43 @@ class RechargeOR {
   String message;
   String note;
 
-  RechargeOR(
-      {this.sn,
-      this.person,
-      this.personName,
-      this.currency,
-      this.demandAmount,
-      this.realAmount,
-      this.toChannelAccount,
-      this.payChannel,
-      this.payAccount,
-      this.state,
-      this.ctime,
-      this.lutime,
-      this.status,
-      this.message,
-      this.note});
+  RechargeOR({
+    this.sn,
+    this.person,
+    this.personName,
+    this.currency,
+    this.demandAmount,
+    this.realAmount,
+    this.toChannelAccount,
+    this.payChannel,
+    this.payAccount,
+    this.payTerminal,
+    this.state,
+    this.ctime,
+    this.lutime,
+    this.status,
+    this.message,
+    this.note,
+  });
+
+  RechargeOR.parse(obj){
+    this.sn=obj['sn'];
+    this.person=obj['person'];
+    this.personName=obj['personName'];
+    this.currency=obj['currency'];
+    this.demandAmount=obj['demandAmount'];
+    this.realAmount=obj['realAmount'];
+    this.toChannelAccount=obj['toChannelAccount'];
+    this.payChannel=obj['payChannel'];
+    this.payAccount=obj['payAccount'];
+    this.payTerminal=obj['payTerminal'];
+    this.state=obj['state'];
+    this.ctime=obj['ctime'];
+    this.lutime=obj['lutime'];
+    this.status=obj['status'];
+    this.message=obj['message'];
+    this.note=obj['note'];
+  }
 }
 
 class RechargeActivityOR {
@@ -926,7 +948,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<List<ModuleTransinActivityOR>> getModuleTransinActivies(sn) async{
+  Future<List<ModuleTransinActivityOR>> getModuleTransinActivies(sn) async {
     var list = await remotePorts.portGET(
       walletRecordPorts,
       'getModuleTransinActivies',
@@ -1162,7 +1184,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
   }
 
   @override
-  Future<ModuleTransinOR> getModuleTransin(String sn) async{
+  Future<ModuleTransinOR> getModuleTransin(String sn) async {
     var obj = await remotePorts.portGET(
       walletRecordPorts,
       'getModuleTransin',
@@ -1307,23 +1329,7 @@ class WalletRecordRemote implements IWalletRecordRemote, IServiceBuilder {
     if (obj == null) {
       return null;
     }
-    return RechargeOR(
-      ctime: obj['ctime'],
-      lutime: obj['lutime'],
-      state: obj['state'],
-      message: obj['message'],
-      note: obj['note'],
-      sn: obj['sn'],
-      status: obj['status'],
-      personName: obj['personName'],
-      currency: obj['currency'],
-      person: obj['person'],
-      demandAmount: obj['demandAmount'],
-      realAmount: obj['realAmount'],
-      toChannelAccount: obj['toChannelAccount'],
-      payAccount: obj['payAccount'],
-      payChannel: obj['payChannel'],
-    );
+    return RechargeOR.parse(obj);
   }
 
   @override

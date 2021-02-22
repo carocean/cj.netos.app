@@ -250,8 +250,17 @@ class _RechargeDetailsState extends State<RechargeDetails> {
                         return Text('-');
                       }
                       var ch = snapshot.data;
+                      var payTerminal;
+                      switch(recharge.payTerminal){
+                        case 'app':
+                          payTerminal='移动应用端';
+                          break;
+                        case 'jsapi':
+                          payTerminal='微信浏览器端';
+                          break;
+                      }
                       return Text(
-                        '${ch?.name ?? '-'}',
+                        '${ch?.name ?? '-'}  ${payTerminal??''}',
                       );
                     },
                   ),
