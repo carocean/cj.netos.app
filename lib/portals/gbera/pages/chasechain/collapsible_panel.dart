@@ -481,7 +481,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
             ),
             onPressed: () async {
               // widget.context.backward();
-              showModalBottomSheet(
+              await showModalBottomSheet(
                   context: context,
                   builder: (ctx) {
                     var url =
@@ -511,6 +511,7 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
                       ),
                     );
                   });
+              widget.context.backward();
             },
           ),
           IconButton(
