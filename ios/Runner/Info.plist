@@ -36,15 +36,28 @@
 				<string>gbera</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>weixin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wxf7be7c1a7c5fd8ed</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>iosamap</string>
+		<string>weixin</string>
+		<string>weixinULAPI</string>
 		<string>amapuri</string>
 		<string>qqmap</string>
-        <string>baidumap</string>
+		<string>baidumap</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -55,7 +68,7 @@
 		<key>NSAllowsArbitraryLoadsForMedia</key>
 		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
-        <true/>
+		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>若不允许,你将无法在地微中发送及保存照片</string>
@@ -109,7 +122,5 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<string>YES</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 </dict>
 </plist>

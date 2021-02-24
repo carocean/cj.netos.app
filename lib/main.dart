@@ -170,7 +170,7 @@ void main() => platformRun(
                 appId: "wxf7be7c1a7c5fd8ed",
                 doOnAndroid: true,
                 doOnIOS: true,
-                universalLink: "https://nodepower.cn/gbera/");//苹果才用，必须为它设置
+                universalLink: "https://nodespower.com/app/");//苹果才用，必须为它设置
             var result = await isWeChatInstalled;
             print("is installed $result");
 
