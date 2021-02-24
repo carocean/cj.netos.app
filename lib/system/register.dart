@@ -1,13 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
+import 'package:lpinyin/lpinyin.dart';
+import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/local_principals.dart' as lp;
 import 'package:uuid/uuid.dart';
+
+import 'local/entities.dart';
+import 'local/local_principals.dart';
 
 class RegisterPage extends StatefulWidget {
   PageContext context;
@@ -41,6 +49,118 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() {});
       }
     });
+    weChatResponseEventHandler.distinct((a, b) => a == b).listen((res) {
+      if (res is WeChatAuthResponse) {
+        //返回的res.code就是授权code
+        _doWechatAuthLogin(res);
+      }
+    });
+  }
+
+  Future<void> _doWechatAuthLogin(WeChatAuthResponse res) async {
+    if(res.errCode!=0) {
+      forwardError('验证失败');
+      return;
+    }
+    AppKeyPair appKeyPair = widget.context.site.getService('@.appKeyPair');
+    var _appid = 'gbera.netos';
+    if (StringUtil.isEmpty(_appid)) {
+      _appid = widget.context.site.getService('@.prop.entrypoint.app');
+    }
+    appKeyPair = await appKeyPair.getAppKeyPair(_appid, widget.context.site);
+    var nonce =
+    MD5Util.MD5('${Uuid().v1()}${DateTime.now().millisecondsSinceEpoch}');
+    await widget.context.ports.callback(
+      'post ${widget.context.site.getService('@.prop.ports.uc.auth')} http/1.1',
+      restCommand: 'authByWeChat',
+      headers: {
+        'app-id': appKeyPair.appid,
+        'app-key': appKeyPair.appKey,
+        'app-nonce': nonce,
+        'app-sign': appKeyPair.appSign(nonce),
+      },
+      content: {
+        "code": res.code,
+        "state": res.state,
+        "device": appKeyPair.device,
+      },
+      onsucceed: ({dynamic rc, dynamic response}) {
+        forwardOK(rc);
+      },
+      onerror: ({e, stack}) {
+        forwardError(e);
+      },
+      onReceiveProgress: (i, j) {
+        print('$i-$j');
+      },
+    );
+  }
+
+  void forwardOK(rc) async {
+    var map = jsonDecode(rc['dataText']);
+
+    Map<String, dynamic> subject = map['subject'];
+    Map<String, dynamic> token = map['token'];
+
+    IPlatformLocalPrincipalManager manager =
+    widget.context.site.getService('/local/principals');
+    var list = subject['roles'];
+    var roles = <String>[];
+    for (var r in list) {
+      roles.add(r);
+    }
+    Dio dio = widget.context.site.getService('@.http');
+    String localAvatarFile = await downloadPersonAvatar(
+        dio: dio,
+        avatarUrl: '${subject['avatar']}?accessToken=${token['accessToken']}');
+    await manager.add(
+      subject['person'],
+      ltime: DateTime.now().millisecondsSinceEpoch,
+      expiretime: token['expireTime'],
+      pubtime: token['pubTime'],
+      signature: subject['signature'],
+      remoteAvatar: '${subject['avatar']}',
+      localAvatar: localAvatarFile,
+      refreshToken: token['refreshToken'],
+      accessToken: token['accessToken'],
+      roles: roles,
+      appid: subject['appid'],
+      nickName: subject['nickName'],
+      accountCode: subject['accountCode'],
+      uid: subject['uid'],
+      portal: map['portal'],
+      device: token['device'],
+    );
+    await manager.setCurrent(subject['person']);
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    //下面调用的作用是：将登录号声明为公众的第一个用户缓冲起来
+    if (!(await personService.existsPerson(subject['person']))) {
+      await personService.addPerson(Person(
+        subject['person'],
+        subject['uid'],
+        subject['accountCode'],
+        subject['appid'],
+        localAvatarFile,
+        null,
+        subject['nickName'],
+        subject['signature'],
+        PinyinHelper.getPinyin(subject['nickName']),
+        subject['person'],
+      ));
+    }
+    widget.context.forward("/",
+        clearHistoryByPagePath: '/', scene: map['portal'] ?? 'gbera');
+  }
+
+  void forwardError(e) {
+    widget.context.forward(
+      "/error",
+      arguments: {
+        'error': e,
+      },
+      clearHistoryByPagePath: '.',
+    );
   }
 
   Future<void> _anonymous() async {
@@ -431,8 +551,8 @@ class _RegisterPageState extends State<RegisterPage> {
             onTap: !_buttonEnabled
                 ? null
                 : () {
-                    _doRegister();
-                  },
+              _doRegister();
+            },
             child: Container(
               margin: EdgeInsets.only(
                 left: 20,
@@ -451,6 +571,37 @@ class _RegisterPageState extends State<RegisterPage> {
                 style: TextStyle(
                   fontSize: 18,
                   color: _buttonEnabled ? Colors.white : Colors.grey[500],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 20,),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap:() {
+              sendWeChatAuth(
+                scope: "snsapi_userinfo",
+                state: "${Uuid().v1()}",
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.only(
+                left: 20,
+                right: 20,
+              ),
+              height: 45,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.green ,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(4),
+                ),
+              ),
+              child: Text(
+                '无需注册，直接以微信登录',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
                 ),
               ),
             ),

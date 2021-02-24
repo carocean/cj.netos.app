@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_k_chart/utils/date_format_util.dart';
 import 'package:flutter_plugin_record/flutter_plugin_record.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:image_picker/image_picker.dart';
@@ -228,10 +229,10 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
     IPersonService personService =
         widget.context.site.getService('/gbera/persons');
     String receptor;
-    if(StringUtil.isEmpty(message.upstreamReceptor)){
-      receptor=message.receptor;
-    }else{
-      receptor=message.upstreamReceptor;
+    if (StringUtil.isEmpty(message.upstreamReceptor)) {
+      receptor = message.receptor;
+    } else {
+      receptor = message.upstreamReceptor;
     }
     List<GeosphereMediaOL> medias =
         await mediaService.listMedia(receptor, message.id);
@@ -486,16 +487,17 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
 
   List<Widget> _getActions(Color color) {
     return <Widget>[
-      useSimpleLayout()?SizedBox.shrink():
-      _AbsorberAction(
-        color: color,
-        context: widget.context,
-        receptorInfo: _receptorInfo,
-      ),
+      useSimpleLayout()
+          ? SizedBox.shrink()
+          : _AbsorberAction(
+              color: color,
+              context: widget.context,
+              receptorInfo: _receptorInfo,
+            ),
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () {
-          if(useSimpleLayout()){
+          if (useSimpleLayout()) {
             widget.context.forward('/geosphere/publish_article/ios',
                 arguments: <String, dynamic>{
                   'type': 'text',
@@ -575,7 +577,7 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
                 ],
               ),
             ).then<void>((value) {
-              if(value==null) {
+              if (value == null) {
                 return;
               }
               widget.context
@@ -938,7 +940,7 @@ class _HeaderWidgetState extends State<_HeaderWidget> {
                           if (widget.refresh != null) {
                             await widget.refresh();
                             _arrivedMessageCount = 0;
-                            if(mounted){
+                            if (mounted) {
                               setState(() {});
                             }
                           }
@@ -1160,10 +1162,10 @@ class __MessageCardState extends State<_MessageCard> {
 
   _setTitleLabel() {
     if (_upstreamReceptor != null) {
-      if(_upstreamReceptor.id!=widget.receptor.id){
+      if (_upstreamReceptor.id != widget.receptor.id) {
         _titleLabel = _upstreamReceptor.title;
         _leading = _upstreamReceptor.leading;
-      }else{
+      } else {
         _titleLabel = widget.messageWrapper.creator.nickName;
         _leading = widget.messageWrapper.creator.avatar;
       }
@@ -1403,35 +1405,46 @@ class __MessageCardState extends State<_MessageCard> {
                                 ),
                                 children: [
                                   TextSpan(text: '  '),
-                                  (useSimpleLayout()||widget.messageWrapper.purchaseOR?.principalAmount==null)?TextSpan(text: ''):
-                                  TextSpan(
-                                    text:
-                                        '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        if (widget.messageWrapper.purchaseOR ==
-                                            null) {
-                                          return;
-                                        }
-                                        IWyBankPurchaserRemote purchaserRemote =
-                                            widget.context.site.getService(
-                                                '/remote/purchaser');
-                                        WenyBank bank = await purchaserRemote
-                                            .getWenyBank(widget.messageWrapper
-                                                .purchaseOR.bankid);
-                                        widget.context.forward(
-                                          '/wybank/purchase/details',
-                                          arguments: {
-                                            'purch': widget
-                                                .messageWrapper.purchaseOR,
-                                            'bank': bank
-                                          },
-                                        );
-                                      },
-                                  ),
+                                  (useSimpleLayout() ||
+                                          widget.messageWrapper.purchaseOR
+                                                  ?.principalAmount ==
+                                              null)
+                                      ? TextSpan(text: '')
+                                      : TextSpan(
+                                          text:
+                                              '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () async {
+                                              if (widget.messageWrapper
+                                                      .purchaseOR ==
+                                                  null) {
+                                                return;
+                                              }
+                                              IWyBankPurchaserRemote
+                                                  purchaserRemote = widget
+                                                      .context.site
+                                                      .getService(
+                                                          '/remote/purchaser');
+                                              WenyBank bank =
+                                                  await purchaserRemote
+                                                      .getWenyBank(widget
+                                                          .messageWrapper
+                                                          .purchaseOR
+                                                          .bankid);
+                                              widget.context.forward(
+                                                '/wybank/purchase/details',
+                                                arguments: {
+                                                  'purch': widget.messageWrapper
+                                                      .purchaseOR,
+                                                  'bank': bank
+                                                },
+                                              );
+                                            },
+                                        ),
                                 ],
                               ),
                             ),
@@ -1485,6 +1498,7 @@ class __MessageCardState extends State<_MessageCard> {
                     ),
                     _MessageOperatesPopupMenu(
                       titleLabel: _titleLabel,
+                      leading: _leading,
                       messageWrapper: widget.messageWrapper,
                       context: widget.context,
                       onDeleted: () {
@@ -1679,6 +1693,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onliked;
   void Function() onUnliked;
   String titleLabel;
+  String leading;
 
   _MessageOperatesPopupMenu({
     this.messageWrapper,
@@ -1688,6 +1703,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
     this.onliked,
     this.onUnliked,
     this.titleLabel,
+    this.leading,
   });
 
   @override
@@ -1758,6 +1774,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
       );
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -1883,10 +1900,39 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               if (mounted) {
                 setState(() {});
               }
-              Share.share(
-                widget.messageWrapper.message.text ?? '',
-                subject: widget.titleLabel,
-              );
+              showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) {
+                    var webshareSite = widget.context.site
+                        .getService('@.prop.website.webshare.geosphere-viewer');
+                    String imgSrc;
+                    if(widget.messageWrapper.medias.isNotEmpty){
+                      var img=widget.messageWrapper.medias[0];
+                      if(img.type=='image'){
+                        imgSrc=img.src;
+                      }
+                    }
+                    if(StringUtil.isEmpty(imgSrc)) {
+                      imgSrc=widget.leading;
+                    }
+                    return Container(
+                      height: 100,
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
+                      ),
+                      child: widget.context.part(
+                        '/external/share',
+                        context,
+                        arguments: {
+                          'title': widget.titleLabel,
+                          'desc': widget.messageWrapper.message.text ?? '',
+                          'imgSrc': imgSrc,
+                          'link':
+                              '$webshareSite?docid=${widget.messageWrapper.message.id}',
+                        },
+                      ),
+                    );
+                  });
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -2424,7 +2470,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
       }
     }).listen((event) async {
       var v = await event;
-      if(v==null) {
+      if (v == null) {
         return;
       }
       if (v && !_streamController.isClosed) {

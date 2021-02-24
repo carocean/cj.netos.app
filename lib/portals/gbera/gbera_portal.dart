@@ -163,6 +163,7 @@ import 'package:netos_app/portals/gbera/pages/profile/person_profile.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart';
 import 'package:netos_app/portals/gbera/pages/screen/screen_popup.dart';
 import 'package:netos_app/portals/gbera/pages/screen/screen_popup2.dart';
+import 'package:netos_app/portals/gbera/pages/share/share-external.dart';
 import 'package:netos_app/portals/gbera/pages/site/friend_site.dart';
 import 'package:netos_app/portals/gbera/pages/site/insite_request.dart';
 import 'package:netos_app/portals/gbera/pages/site/marchant_site.dart';
@@ -3420,6 +3421,15 @@ class GberaPortal {
           icon: null,
           url: '/chatroom/talk/location',
           buildPage: (PageContext pageContext) => GisMapWidget(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '向外分享',
+          subtitle: '',
+          icon: null,
+          url: '/external/share',
+          buildPage: (PageContext pageContext) => ShareExternalDialog(
             context: pageContext,
           ),
         ),

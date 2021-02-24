@@ -243,3 +243,6 @@ flutter:
     - family: gis_map
       fonts:
         - asset: lib/portals/gbera/fonts/gis_map.ttf
+    - family: webshare
+      fonts:
+        - asset: lib/portals/gbera/fonts/webshare.ttf

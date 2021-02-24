@@ -2088,6 +2088,76 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               ],
             ),
           ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) {
+                    var webshareSite = widget.context.site
+                        .getService('@.prop.website.webshare.geosphere-viewer');
+                    String imgSrc;
+                    if(widget.messageWrapper.medias.isNotEmpty){
+                      var img=widget.messageWrapper.medias[0];
+                      if(img.type=='image'){
+                        imgSrc=img.src;
+                      }
+                    }
+                    if(StringUtil.isEmpty(imgSrc)) {
+                      imgSrc=widget.messageWrapper.creator.avatar;
+                    }
+                    return Container(
+                      height: 100,
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
+                      ),
+                      child: widget.context.part(
+                        '/external/share',
+                        context,
+                        arguments: {
+                          'title': widget.messageWrapper.creator.nickName,
+                          'desc': widget.messageWrapper.message.text ?? '',
+                          'imgSrc': imgSrc,
+                          'link':
+                          '$webshareSite?docid=${widget.messageWrapper.message.id}',
+                        },
+                      ),
+                    );
+                  });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '分享',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ];
         actions.add(
           SizedBox(

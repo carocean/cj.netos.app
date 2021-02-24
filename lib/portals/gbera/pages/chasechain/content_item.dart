@@ -384,21 +384,21 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(
-                                  '${TimelineUtil.format(
-                                    _doc.message.ctime,
-                                    locale: 'zh',
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: useSimpleLayout()||_purchaseOR == null ? 0 : 10,
-                                ),
+                                // Text(
+                                //   '${TimelineUtil.format(
+                                //     _doc.message.ctime,
+                                //     locale: 'zh',
+                                //     dayFormat: DayFormat.Simple,
+                                //   )}',
+                                //   style: TextStyle(
+                                //     fontSize: 10,
+                                //     color: Colors.grey[600],
+                                //     fontWeight: FontWeight.w600,
+                                //   ),
+                                // ),
+                                // SizedBox(
+                                //   width: useSimpleLayout()||_purchaseOR == null ? 0 : 10,
+                                // ),
                                useSimpleLayout()|| _purchaseOR == null
                                     ? SizedBox(
                                   width: 0,
@@ -615,21 +615,21 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(
-                                  '${TimelineUtil.format(
-                                    _doc.message.ctime,
-                                    locale: 'zh',
-                                    dayFormat: DayFormat.Simple,
-                                  )}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: _purchaseOR == null ? 0 : 10,
-                                ),
+                                // Text(
+                                //   '${TimelineUtil.format(
+                                //     _doc.message.ctime,
+                                //     locale: 'zh',
+                                //     dayFormat: DayFormat.Simple,
+                                //   )}',
+                                //   style: TextStyle(
+                                //     fontSize: 10,
+                                //     color: Colors.grey[600],
+                                //     fontWeight: FontWeight.w600,
+                                //   ),
+                                // ),
+                                // SizedBox(
+                                //   width: _purchaseOR == null ? 0 : 10,
+                                // ),
                                 _purchaseOR == null
                                     ? SizedBox(
                                         width: 0,

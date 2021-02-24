@@ -182,6 +182,69 @@ class _WalletState extends State<Wallet> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
+              onTap: () => widget.context.forward('/wallet/fission/mf', arguments: {
+                'wallet': _myWallet,
+              }),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Icon(
+                      Icons.share_outlined,
+                      size: 30,
+                      color:
+                      widget.context.style('/profile/list/item-icon.color'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '裂变游戏·交个朋友',
+                          style: widget.context
+                              .style('/profile/list/item-title.text'),
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                right: 5,
+                              ),
+                              child: Text('¥${_myWallet.fissionMFYan??'-'}'),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_right,
+                              size: 20,
+                              color: Colors.grey[400],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(
+            height: 1,
+            indent: 40,
+          ),
+          Container(
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => widget.context.forward('/wallet/trial', arguments: {
                 'wallet': _myWallet,
               }),
@@ -297,69 +360,7 @@ class _WalletState extends State<Wallet> {
               ),
             ),
           ),
-          Divider(
-            height: 1,
-            indent: 40,
-          ),
-          Container(
-            padding: EdgeInsets.only(
-              top: 15,
-              bottom: 15,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => widget.context.forward('/wallet/fission/mf', arguments: {
-                'wallet': _myWallet,
-              }),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Icon(
-                      Icons.share_outlined,
-                      size: 30,
-                      color:
-                      widget.context.style('/profile/list/item-icon.color'),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          '裂变游戏·交个朋友',
-                          style: widget.context
-                              .style('/profile/list/item-title.text'),
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Text('¥${_myWallet.fissionMFYan??'-'}'),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_right,
-                              size: 20,
-                              color: Colors.grey[400],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+
           Divider(
             height: 1,
             indent: 40,

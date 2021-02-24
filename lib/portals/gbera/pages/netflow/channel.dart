@@ -273,15 +273,16 @@ class _ChannelPageState extends State<ChannelPage> {
         backgroundColor: Colors.transparent,
         toolbarOpacity: 1,
         actions: <Widget>[
-          useSimpleLayout()?SizedBox.shrink():
-          _AbsorberAction(
-            context: widget.context,
-            channel: _channel,
-          ),
+          useSimpleLayout()
+              ? SizedBox.shrink()
+              : _AbsorberAction(
+                  context: widget.context,
+                  channel: _channel,
+                ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: () {
-              if(useSimpleLayout()){
+              if (useSimpleLayout()) {
                 widget.context.forward('/netflow/channel/publish_article/ios',
                     arguments: <String, dynamic>{
                       'type': 'text',
@@ -343,7 +344,7 @@ class _ChannelPageState extends State<ChannelPage> {
                     ],
                   ),
                 ).then<void>((value) {
-                  if(value==null) {
+                  if (value == null) {
                     return;
                   }
                   value['channel'] = _channel;
@@ -361,7 +362,8 @@ class _ChannelPageState extends State<ChannelPage> {
         footer: easyRefreshFooter(),
         controller: _refreshController,
 //        onRefresh: _onRefresh,//注释掉onRefresh则不支持下拉
-        onLoad: _onload, //onload是上拉
+        onLoad: _onload,
+        //onload是上拉
 //        footer: BallPulseFooter(),
         slivers: slivers,
       ),
@@ -590,6 +592,7 @@ class __MessageCardState extends State<_MessageCard> {
   PurchaseOR _purchaseOR;
   bool _isLoaded = false;
   AbsorberResultOR _absorberResultOR;
+  String _shareImg;
 
   @override
   void initState() {
@@ -673,6 +676,9 @@ class __MessageCardState extends State<_MessageCard> {
     var medias = await channelMediaService.getMedias(widget.message.id);
     List<MediaSrc> list = [];
     for (var media in medias) {
+      if (StringUtil.isEmpty(_shareImg) && 'image' == media.type) {
+        _shareImg = media.src;
+      }
       list.add(media.toMediaSrc());
     }
     return list;
@@ -883,35 +889,43 @@ class __MessageCardState extends State<_MessageCard> {
                                           ),
                                           children: [
                                             TextSpan(text: '  '),
-                                            (useSimpleLayout()||_purchaseOR?.principalAmount==null)?TextSpan(text: ''):
-                                            TextSpan(
-                                              text:
-                                                  '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                                              style: TextStyle(
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                              recognizer: TapGestureRecognizer()
-                                                ..onTap = () async {
-                                                  IWyBankPurchaserRemote
-                                                      purchaserRemote = widget
-                                                          .context.site
-                                                          .getService(
-                                                              '/remote/purchaser');
-                                                  WenyBank bank =
-                                                      await purchaserRemote
-                                                          .getWenyBank(
-                                                              _purchaseOR
-                                                                  .bankid);
-                                                  widget.context.forward(
-                                                    '/wybank/purchase/details',
-                                                    arguments: {
-                                                      'purch': _purchaseOR,
-                                                      'bank': bank
-                                                    },
-                                                  );
-                                                },
-                                            ),
+                                            (useSimpleLayout() ||
+                                                    _purchaseOR
+                                                            ?.principalAmount ==
+                                                        null)
+                                                ? TextSpan(text: '')
+                                                : TextSpan(
+                                                    text:
+                                                        '¥${((_purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                                    style: TextStyle(
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                    ),
+                                                    recognizer:
+                                                        TapGestureRecognizer()
+                                                          ..onTap = () async {
+                                                            IWyBankPurchaserRemote
+                                                                purchaserRemote =
+                                                                widget.context
+                                                                    .site
+                                                                    .getService(
+                                                                        '/remote/purchaser');
+                                                            WenyBank bank =
+                                                                await purchaserRemote
+                                                                    .getWenyBank(
+                                                                        _purchaseOR
+                                                                            .bankid);
+                                                            widget.context
+                                                                .forward(
+                                                              '/wybank/purchase/details',
+                                                              arguments: {
+                                                                'purch':
+                                                                    _purchaseOR,
+                                                                'bank': bank
+                                                              },
+                                                            );
+                                                          },
+                                                  ),
                                           ],
                                         ),
                                         softWrap: true,
@@ -963,6 +977,9 @@ class __MessageCardState extends State<_MessageCard> {
                       _MessageOperatesPopupMenu(
                         message: widget.message,
                         context: widget.context,
+                        channel: widget.channel,
+                        shareImg: _shareImg,
+                        creator: _person,
                         onDeleted: () {
                           if (widget.onDeleted != null) {
                             widget.onDeleted(widget.message);
@@ -1122,6 +1139,9 @@ class __CommentEditorState extends State<_CommentEditor> {
 class _MessageOperatesPopupMenu extends StatefulWidget {
   ChannelMessage message;
   PageContext context;
+  Channel channel;
+  Person creator;
+  String shareImg;
   void Function() onDeleted;
   void Function() onComment;
   void Function() onliked;
@@ -1136,6 +1156,9 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
     this.onliked,
     this.onUnliked,
     this.onViewFlow,
+    this.channel,
+    this.creator,
+    this.shareImg,
   });
 
   @override
@@ -1384,6 +1407,71 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                 ),
                 Text(
                   '流程',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 10,
+            height: 14,
+            child: VerticalDivider(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (mounted) {
+                setState(() {});
+              }
+              showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) {
+                    var webshareSite = widget.context.site
+                        .getService('@.prop.website.webshare.netflow-viewer');
+                    String imgSrc = widget.channel.leading;
+                    if (!StringUtil.isEmpty(widget.shareImg)) {
+                      imgSrc = widget.shareImg;
+                    }
+                    return Container(
+                      height: 100,
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
+                      ),
+                      child: widget.context.part(
+                        '/external/share',
+                        context,
+                        arguments: {
+                          'title': widget.channel.name,
+                          'desc': widget.message.text ?? '',
+                          'imgSrc': imgSrc,
+                          'link':
+                              '$webshareSite?creator=${widget.message.creator}&docid=${widget.message.id}',
+                        },
+                      ),
+                    );
+                  });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(right: 2, top: 5, bottom: 5),
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                ),
+                Text(
+                  '分享',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -1929,9 +2017,9 @@ class __AbsorberActionState extends State<_AbsorberAction> {
 
   Future<bool> _load() async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    var sourceCreator=widget.channel.sourceCreator;
-    if(StringUtil.isEmpty(sourceCreator)) {
-      sourceCreator=widget.channel.owner;
+    var sourceCreator = widget.channel.sourceCreator;
+    if (StringUtil.isEmpty(sourceCreator)) {
+      sourceCreator = widget.channel.owner;
     }
     var absorbabler = '$sourceCreator/${widget.channel.id}';
     var absorberResultOR =

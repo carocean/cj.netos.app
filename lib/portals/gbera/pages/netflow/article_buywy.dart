@@ -14,7 +14,7 @@ class BuyWYArticle extends StatefulWidget {
 }
 
 class _BuyWYArticleState extends State<BuyWYArticle> {
-  int _amount = 100;
+  int _amount = 5000;
   int _method = 0; //0零钱；1体验金
   PurchaseInfo _purchaseInfo;
 
@@ -245,9 +245,9 @@ class _BuyWYArticleState extends State<BuyWYArticle> {
                             child: Slider(
                               label: '${(_amount / 100.00).toStringAsFixed(2)}',
                               value: _amount / 100.00,
-                              min: 1.0,
-                              max: 20.00,
-                              divisions: 19,
+                              min: 50.0,
+                              max: 500.00,
+                              divisions: 9,
                               onChanged: (v) {
                                 setState(() {
                                   _amount = (v * 100).floor();

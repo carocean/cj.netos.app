@@ -164,6 +164,8 @@ void main() => platformRun(
             'http://47.105.165.186/fission-mf-cashier/cashier/record.ports',
             '@.prop.ports.fission.mf.receipt':
             'http://47.105.165.186/fission-mf-receipt/cashier.ports',
+            '@.prop.website.webshare.netflow-viewer':'https://www.nodespower.com/webshare/pages/netflow-viewer.html',
+            '@.prop.website.webshare.geosphere-viewer':'https://www.nodespower.com/webshare/pages/geosphere-viewer.html',
           },
           buildServices: (site) async {
             await registerWxApi(

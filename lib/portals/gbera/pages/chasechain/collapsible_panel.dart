@@ -480,53 +480,37 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
               size: 18,
             ),
             onPressed: () async {
-              var v = await showDialog(
-                context: context,
-                child: AlertDialog(
-                  title: Text(
-                    '分享',
-                  ),
-                  content: Text(
-                    '将以浏览器打开，请使用浏览器的分享功能向微信朋友圈和好友分享该内容',
-                    style: TextStyle(fontSize: 12,),
-                  ),
-                  actions: [
-                    FlatButton(
-                      onPressed: () {
-                        widget.context.backward();
-                      },
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
+              // widget.context.backward();
+              showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) {
+                    var url =
+                        'http://www.nodespower.com/chasechain.website/pages/viewer.html?pool=${widget.pool.id}&item=${widget.doc.item.id}';
+                    String imgSrc = _contentBox.pointer.leading;
+                    var medias = widget.doc.medias;
+                    if (medias.isNotEmpty && 'image' == medias[0].type) {
+                      imgSrc = medias[0].src;
+                    }
+                    if (StringUtil.isEmpty(imgSrc)) {
+                      imgSrc = _itemProvider.avatar;
+                    }
+                    return Container(
+                      height: 100,
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
                       ),
-                    ),
-                    FlatButton(
-                      onPressed: () {
-                        widget.context.backward(result: 'yes');
-                      },
-                      child: Text(
-                        '确认',
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
+                      child: widget.context.part(
+                        '/external/share',
+                        context,
+                        arguments: {
+                          'title': _contentBox.pointer.title,
+                          'desc': widget.doc.message.content ?? '',
+                          'imgSrc': imgSrc,
+                          'link': url,
+                        },
                       ),
-                    ),
-                  ],
-                ),
-              );
-              if(v==null){
-                return;
-              }
-              if(v=='yes'){
-                var url='http://www.nodespower.com/chasechain.website/pages/viewer.html?pool=${widget.pool.id}&item=${widget.doc.item.id}';
-                widget.context.backward();
-                if(await canLaunch(url)){
-                  await launch(url);
-
-                }
-              }
+                    );
+                  });
             },
           ),
           IconButton(

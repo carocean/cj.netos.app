@@ -40,7 +40,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   bool _isLoaded = false;
   String _districtCode;
   String _districtTitle;
-  int _purchse_amount = 100; //单位为分
+  int _purchse_amount = 5000; //单位为分
   int _purchase_method = 0; //0是零钱；1为体验金
   String _label = '';
   PurchaseInfo _purchaseInfo;

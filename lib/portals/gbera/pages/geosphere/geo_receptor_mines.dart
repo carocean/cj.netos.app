@@ -1357,6 +1357,7 @@ class __MessageCardState extends State<_MessageCard> {
                     _MessageOperatesPopupMenu(
                       messageWrapper: widget.messageWrapper,
                       titleLabel: _titleLabel,
+                      leading: _leading,
                       context: widget.context,
                       onDeleted: () {
                         if (widget.onDeleted != null) {
@@ -1550,7 +1551,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
   void Function() onliked;
   void Function() onUnliked;
   String titleLabel;
-
+  String leading;
   _MessageOperatesPopupMenu({
     this.messageWrapper,
     this.context,
@@ -1559,6 +1560,7 @@ class _MessageOperatesPopupMenu extends StatefulWidget {
     this.onComment,
     this.onliked,
     this.onUnliked,
+    this.leading,
   });
 
   @override
@@ -1762,10 +1764,39 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
               if (mounted) {
                 setState(() {});
               }
-              Share.share(
-                widget.messageWrapper.message.text ?? '',
-                subject: widget.titleLabel,
-              );
+              showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) {
+                    var webshareSite = widget.context.site
+                        .getService('@.prop.website.webshare.geosphere-viewer');
+                    String imgSrc;
+                    if(widget.messageWrapper.medias.isNotEmpty){
+                      var img=widget.messageWrapper.medias[0];
+                      if(img.type=='image'){
+                        imgSrc=img.src;
+                      }
+                    }
+                    if(StringUtil.isEmpty(imgSrc)) {
+                      imgSrc=widget.leading;
+                    }
+                    return Container(
+                      height: 100,
+                      constraints: BoxConstraints.tightForFinite(
+                        width: double.maxFinite,
+                      ),
+                      child: widget.context.part(
+                        '/external/share',
+                        context,
+                        arguments: {
+                          'title': widget.titleLabel,
+                          'desc': widget.messageWrapper.message.text ?? '',
+                          'imgSrc': imgSrc,
+                          'link':
+                          '$webshareSite?docid=${widget.messageWrapper.message.id}',
+                        },
+                      ),
+                    );
+                  });
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
