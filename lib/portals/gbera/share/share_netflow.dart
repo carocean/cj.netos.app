@@ -38,7 +38,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
   Channel _selector;
   TextEditingController _commentController = TextEditingController();
   PurchaseInfo _purchaseInfo;
-  int _purchse_amount = 100; //单位为分
+  int _purchse_amount = 5000; //单位为分
   int _purchase_method = 0; //0是零钱；1为体验金
   bool _canPublish = false;
   bool _isEnoughMoney = true;
