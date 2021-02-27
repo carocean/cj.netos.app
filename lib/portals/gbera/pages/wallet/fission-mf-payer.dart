@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -25,6 +27,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
   List<PayPersonOR> _records = [];
   final List<ChartSampleData> chartData = <ChartSampleData>[];
   int _maxNum = 0, _minNum = 0;
+  int _payersCount = 0, _payersAmount = 0;
   DateTime _maxTime, _minTime;
   CashierOR _cashierOR;
 
@@ -43,16 +46,24 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
   }
 
   Future<void> _load() async {
+    IFissionMFCashierRecordRemote cashierRecordRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier/record');
+    IFissionMFCashierBillRemote cashierBillRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier/bill');
+    _payersCount = await cashierRecordRemote.totalPayer();
+    _payersAmount = await cashierBillRemote.totalBillOfAll(3);
     await _onload();
   }
-  Future<void> _onRefresh()async{
-    _offset=0;
+
+  Future<void> _onRefresh() async {
+    _offset = 0;
     _records.clear();
     await _onload();
   }
+
   Future<void> _onload() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
-    widget.context.site.getService('/wallet/fission/mf/cashier/record');
+        widget.context.site.getService('/wallet/fission/mf/cashier/record');
     var records = await cashierRecordRemote.pagePayerDetails(_limit, _offset);
     if (records.isEmpty) {
       _easyRefreshController.finishLoad(noMore: true, success: true);
@@ -128,15 +139,43 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                         fontSize: 20,
                       ),
                     ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            '加群:$_payersCount个',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            '收入:${(_payersAmount / 100.00).toStringAsFixed(2)}元',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                     InkWell(
                       onTap: () {
-                        widget.context.forward('/wallet/fission/mf/tag/condition',arguments: {'direct':'payee'});
+                        widget.context.forward(
+                            '/wallet/fission/mf/tag/condition',
+                            arguments: {'direct': 'payee'});
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            '设置拉新条件',
+                            '推荐群主条件',
                             style: TextStyle(
                                 fontSize: 10, color: Colors.grey[600]),
                           ),
@@ -173,9 +212,9 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
               children: _records.map((e) {
                 var person = e.person;
                 return InkWell(
-                  onTap: (){
-                    widget.context.forward('/wallet/fission/mf/person',arguments: {'record':e,'direct':'payee'});
-
+                  onTap: () {
+                    widget.context.forward('/wallet/fission/mf/person',
+                        arguments: {'record': e, 'direct': 'payee'});
                   },
                   child: Column(
                     children: [
@@ -183,6 +222,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                         padding: EdgeInsets.only(
                             left: 15, right: 15, top: 10, bottom: 10),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FadeInImage.assetNetwork(
                               placeholder: '',
@@ -209,22 +249,24 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                                   Row(
                                     children: [
                                       Text(
-                                        '${person.gender == 1 ? '男' : person.gender == 2 ? '女' : ''}',
+                                        '${TimelineUtil.format(
+                                          parseStrTime(e.ctime, len: 17)
+                                              .millisecondsSinceEpoch,
+                                          locale: 'zh',
+                                          dayFormat: DayFormat.Full,
+                                        )}',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey[600],
                                         ),
                                       ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Text(
-                                        '+ ¥${(e.amount / 100.00).toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      )
                                     ],
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    children: _renderPersonInfo(e),
                                   ),
                                 ],
                               ),
@@ -233,7 +275,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                               width: 10,
                             ),
                             Text(
-                              '${TimelineUtil.format(parseStrTime(e.ctime, len: 17).millisecondsSinceEpoch, locale: 'zh')}',
+                              '¥${(e.amount / 100.00).toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -242,6 +284,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                           ],
                         ),
                       ),
+
                       SizedBox(
                         height: 10,
                         child: Divider(
@@ -258,6 +301,50 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
         ),
       ),
     );
+  }
+
+  List<Widget> _renderPersonInfo(PayPersonOR payPersonOR) {
+    FissionMFPerson person = payPersonOR.person;
+    var items = <Widget>[];
+    if (!StringUtil.isEmpty(person.province)) {
+      items.add(
+        Text(
+          '${person.province}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+    }
+    if (!StringUtil.isEmpty(person.city)) {
+      items.add(
+        Text(
+          '·${person.city}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+    }
+    if (!StringUtil.isEmpty(person.district)) {
+      items.add(
+        Text(
+          '·${person.district}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+      items.add(
+        SizedBox(
+          width: 5,
+        ),
+      );
+    }
+    return items;
   }
 
   Widget _renderChart() {
@@ -296,20 +383,20 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
 
       /// X axis as date time axis placed here.
       primaryXAxis: DateTimeAxis(
-        intervalType: DateTimeIntervalType.hours,
+        intervalType: DateTimeIntervalType.days,
         majorGridLines: MajorGridLines(width: 0),
         interval: 1,
         labelIntersectAction: AxisLabelIntersectAction.rotate45,
-        dateFormat: intl.DateFormat('M/d HH:mm'),
-        maximum:_maxTime==null?null: _maxTime.add(Duration(hours: 1)),
-        minimum: _minTime==null?null:_minTime.subtract(Duration(hours: 1)),
+        dateFormat: intl.DateFormat('M/d'),
+        maximum: _maxTime == null ? null : _maxTime.add(Duration(days: 1)),
+        minimum: _minTime == null ? null : _minTime.subtract(Duration(days: 1)),
         // title: AxisTitle(text: '时间'),
       ),
       primaryYAxis: NumericAxis(
         axisLine: AxisLine(width: 0),
         majorTickLines: MajorTickLines(size: 0),
         minimum: (_minNum / 100.00),
-        maximum: ((_maxNum+ _cashierOR.cacAverage) / 100.00),
+        maximum: ((_maxNum + _cashierOR.cacAverage) / 100.00),
         interval: (_cashierOR?.cacAverage ?? 0.00) / 2.0 / 100.00,
         numberFormat: intl.NumberFormat.currency(decimalDigits: 2, name: '¥'),
         // title: AxisTitle(text: '花费'),

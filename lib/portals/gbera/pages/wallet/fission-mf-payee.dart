@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -24,6 +26,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   List<PayPersonOR> _records = [];
   final List<ChartSampleData> chartData = <ChartSampleData>[];
   int _maxNum = 0, _minNum = 0;
+  int _payeesCount = 0, _payeesAmount = 0;
   DateTime _maxTime, _minTime;
   CashierOR _cashierOR;
 
@@ -42,6 +45,12 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   }
 
   Future<void> _load() async {
+    IFissionMFCashierRecordRemote cashierRecordRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier/record');
+    IFissionMFCashierBillRemote cashierBillRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier/bill');
+    _payeesCount = await cashierRecordRemote.totalPayee();
+    _payeesAmount = await cashierBillRemote.totalBillOfAll(2);
     await _onload();
   }
 
@@ -129,6 +138,28 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                         fontSize: 20,
                       ),
                     ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(width: 10,),
+                          Text(
+                            '成员:$_payeesCount人',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(width: 10,),
+                          Text(
+                            '支出:${(_payeesAmount / 100.00).toStringAsFixed(2)}元',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                     InkWell(
                       onTap: () {
                         widget.context.forward(
@@ -139,7 +170,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            '设置拉新条件',
+                            '推荐成员条件',
                             style: TextStyle(
                                 fontSize: 10, color: Colors.grey[600]),
                           ),
@@ -186,6 +217,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                         padding: EdgeInsets.only(
                             left: 15, right: 15, top: 10, bottom: 10),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FadeInImage.assetNetwork(
                               placeholder: '',
@@ -212,22 +244,24 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                                   Row(
                                     children: [
                                       Text(
-                                        '${person.gender == 1 ? '男' : person.gender == 2 ? '女' : ''}',
+                                        '${TimelineUtil.format(
+                                          parseStrTime(e.ctime, len: 17)
+                                              .millisecondsSinceEpoch,
+                                          locale: 'zh',
+                                          dayFormat: DayFormat.Full,
+                                        )}',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey[600],
                                         ),
                                       ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Text(
-                                        '- ¥${(e.amount / 100.00).toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      )
                                     ],
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    children:  _renderPersonInfo(e),
                                   ),
                                 ],
                               ),
@@ -236,7 +270,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                               width: 10,
                             ),
                             Text(
-                              '${TimelineUtil.format(parseStrTime(e.ctime, len: 17).millisecondsSinceEpoch, locale: 'zh')}',
+                              '¥-${(e.amount / 100.00).toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -262,7 +296,49 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
       ),
     );
   }
-
+  List<Widget> _renderPersonInfo(PayPersonOR payPersonOR) {
+    FissionMFPerson person = payPersonOR.person;
+    var items = <Widget>[];
+    if (!StringUtil.isEmpty(person.province)) {
+      items.add(
+        Text(
+          '${person.province}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+    }
+    if (!StringUtil.isEmpty(person.city)) {
+      items.add(
+        Text(
+          '·${person.city}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+    }
+    if (!StringUtil.isEmpty(person.district)) {
+      items.add(
+        Text(
+          '·${person.district}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+      items.add(
+        SizedBox(
+          width: 5,
+        ),
+      );
+    }
+    return items;
+  }
   Widget _renderChart() {
     return SliverToBoxAdapter(
       child: Container(
@@ -299,13 +375,13 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
 
       /// X axis as date time axis placed here.
       primaryXAxis: DateTimeAxis(
-        intervalType: DateTimeIntervalType.hours,
+        intervalType: DateTimeIntervalType.days,
         majorGridLines: MajorGridLines(width: 0),
         interval: 1,
         labelIntersectAction: AxisLabelIntersectAction.rotate45,
-        dateFormat: intl.DateFormat('M/d HH:mm'),
-        maximum:_maxTime==null?null: _maxTime.add(Duration(hours: 1)),
-        minimum: _minTime==null?null:_minTime.subtract(Duration(hours: 1)),
+        dateFormat: intl.DateFormat('M/d'),
+        maximum:_maxTime==null?null: _maxTime.add(Duration(days: 1)),
+        minimum: _minTime==null?null:_minTime.subtract(Duration(days: 1)),
         // title: AxisTitle(text: '时间'),
       ),
       primaryYAxis: NumericAxis(

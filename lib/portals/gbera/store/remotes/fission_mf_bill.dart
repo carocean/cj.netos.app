@@ -67,8 +67,9 @@ mixin IFissionMFCashierBillRemote {
   Future<List<CashierBillOR>> getBillOfMonth(
       int year, int month, int limit, int offset) {}
 
-  Future<int>totalBillOfDayByOrder(int order, int year, int month, int day) {}
+  Future<int> totalBillOfDayByOrder(int order, int year, int month, int day) {}
 
+  Future<int> totalBillOfAll(int order) {}
 }
 
 class FissionMFCashierBillRemote
@@ -168,15 +169,27 @@ class FissionMFCashierBillRemote
   }
 
   @override
-  Future<int> totalBillOfDayByOrder(int order, int year, int month, int day) async{
+  Future<int> totalBillOfDayByOrder(
+      int order, int year, int month, int day) async {
     return await remotePorts.portPOST(
       fissionMfBillPorts,
       'totalBillOfDayByOrder',
       parameters: {
-        'order':order,
-        'year':year,
-        'month':month,
-        'day':day,
+        'order': order,
+        'year': year,
+        'month': month,
+        'day': day,
+      },
+    );
+  }
+
+  @override
+  Future<int> totalBillOfAll(int order) async{
+    return await remotePorts.portPOST(
+      fissionMfBillPorts,
+      'totalBillOfAll',
+      parameters: {
+        'order': order,
       },
     );
   }

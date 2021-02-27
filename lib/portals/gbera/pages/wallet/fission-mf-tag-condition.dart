@@ -124,7 +124,7 @@ class _FissionMFTagConditionPageState extends State<FissionMFTagConditionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('拉新条件'),
+        title: Text('条件设置'),
         elevation: 0,
         titleSpacing: 0,
       ),

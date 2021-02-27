@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_bill.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
@@ -38,6 +39,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   List<FissionMFPerson> _payees = [];
   List<FissionMFPerson> _payers = [];
   List<FissionMFTagOR> _tags = [];
+  GlobalKey<ScaffoldState> _key = GlobalKey();
 
   @override
   void initState() {
@@ -221,6 +223,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       appBar: AppBar(
         title: Text('交个朋友'),
         elevation: 0,
@@ -498,7 +501,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                       height: 5,
                     ),
                     Text(
-                      '营业中状态表示系统会将你推荐给其他用户，用户通过点你头像，从而会消耗你的红包余额；停止营业则不会扣费，系统也不会向其他用户推荐你',
+                      '营业中状态表示系统会将你推荐给其他用户，停止营业系统便不再向其他用户推荐你',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -518,6 +521,16 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         Switch.adaptive(
                           value: _isOpening,
                           onChanged: (v) {
+                            if (_myWallet.fissionMf < 5000) {
+                              _key.currentState.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '余额不足以停止营业！如果想继续停止营业，余额至少有50元。去挣钱或充值。',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
                             setState(() {
                               _isOpening = v;
                             });
@@ -741,7 +754,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                       height: 5,
                     ),
                     Text(
-                      '在用户领取你的红包时，必看该广告，支持图片、视频',
+                      '附件将在用户点你的头像时弹出，用于展示你的商品，支持的格式有：图片，视频等',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
