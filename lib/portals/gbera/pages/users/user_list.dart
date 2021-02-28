@@ -30,7 +30,7 @@ class UserAndAccountList extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(
@@ -51,79 +51,87 @@ class UserAndAccountList extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Column(
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 5,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '${this.context.principal.nickName}',
-                                    style: TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 5,
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          '${this.context.principal.nickName}',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 5,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 5,
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                      ),
+                                      text: '用户号:',
                                     ),
-                                    text: '用户号:',
-                                  ),
-                                  TextSpan(
-                                    text: '${this.context.principal.uid}',
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
+                                    TextSpan(
+                                      text: '${this.context.principal.uid}',
+                                      style: TextStyle(
+                                        color: Colors.blueGrey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 5,
-                              bottom: 2,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints.tightForFinite(
+                                width: double.maxFinite,
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: 5,
+                                  bottom: 2,
+                                ),
+                                child: Text.rich(
                                   TextSpan(
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
-                                    ),
-                                    text: '登录账号:',
+                                    children: [
+                                      TextSpan(
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                        ),
+                                        text: '登录账号:',
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            '${this.context.principal.accountCode}',
+                                        style: TextStyle(
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  TextSpan(
-                                    text:
-                                        '${this.context.principal.accountCode}',
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                          ],
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
                       ),
                     ],
                   ),
@@ -224,12 +232,13 @@ class UserAndAccountList extends StatelessWidget {
         children: <Widget>[
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: (){
-              lp.IPlatformLocalPrincipalManager manager=this.context.site.getService('/local/principals');
-              manager.emptyRefreshToken().then((v){
-                this.context.forward('/public/entrypoint',scene: '/',clearHistoryByPagePath: '/');
+            onTap: () {
+              lp.IPlatformLocalPrincipalManager manager =
+                  this.context.site.getService('/local/principals');
+              manager.emptyRefreshToken().then((v) {
+                this.context.forward('/public/entrypoint',
+                    scene: '/', clearHistoryByPagePath: '/');
               });
-
             },
             child: Padding(
               padding: EdgeInsets.only(

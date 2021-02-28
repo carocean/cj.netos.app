@@ -187,56 +187,61 @@ class __CurrentAppCardState extends State<_CurrentAppCard> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: 5,
-                    ),
-                    child: Image.network(
-                      '${account['avatar']}?accessToken=${widget.context.principal.accessToken}',
-                      width: 40,
-                      height: 40,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 5,
-                        ),
-                        child: Text(
-                          '${account['accountCode']}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+              Expanded(
+                child: Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(
+                        right: 5,
                       ),
-                      Row(
+                      child: Image.network(
+                        '${account['avatar']}?accessToken=${widget.context.principal.accessToken}',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Padding(
                             padding: EdgeInsets.only(
-                              right: 5,
-                            ),
-                            child: _nameKindIcon,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 5,
+                              bottom: 5,
                             ),
                             child: Text(
-                              account['nickName'],
+                              '${account['accountCode']}',
                               style: TextStyle(
-                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
                               ),
                             ),
                           ),
+                          Row(
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  right: 5,
+                                ),
+                                child: _nameKindIcon,
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  right: 5,
+                                ),
+                                child: Text(
+                                  account['nickName'],
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
               Row(
                 children: <Widget>[

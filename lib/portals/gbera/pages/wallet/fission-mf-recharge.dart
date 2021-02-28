@@ -19,7 +19,7 @@ class FissionMfRechargePage extends StatefulWidget {
 }
 
 class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
-  int _amount = 100;
+  int _amount = 10000;
   MyWallet _myWallet;
   StreamController _rechargeController;
   StreamSubscription _rechargeHandler;
@@ -47,17 +47,17 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
       _rechargeHandler = _rechargeController.stream.listen((event) async {
         // print('---充值返回---$event');
         IWyBankPurchaserRemote purchaserRemote =
-        widget.context.site.getService('/remote/purchaser');
-        var location=await geoLocation.location;
-        var _districtCode=location.adCode;
+            widget.context.site.getService('/remote/purchaser');
+        var location = await geoLocation.location;
+        var _districtCode = location.adCode;
         var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
         if (purchaseInfo.bankInfo == null) {
           return;
         }
         if (purchaseInfo.myWallet.change >= _amount) {
-          _amount=purchaseInfo.myWallet.change;
-          _myWallet.change=purchaseInfo.myWallet.change;
-          _myWallet.total=purchaseInfo.myWallet.total;
+          _amount = purchaseInfo.myWallet.change;
+          _myWallet.change = purchaseInfo.myWallet.change;
+          _myWallet.total = purchaseInfo.myWallet.total;
           if (mounted) {
             setState(() {});
           }
@@ -65,8 +65,10 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
         }
       });
     }
-    widget.context.forward('/wallet/change/deposit',
-        arguments: {'changeController': _rechargeController,'initAmount':(_amount-_myWallet.change)});
+    widget.context.forward('/wallet/change/deposit', arguments: {
+      'changeController': _rechargeController,
+      'initAmount': (_amount - _myWallet.change)
+    });
   }
 
   @override
@@ -141,7 +143,32 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                         Text.rich(
                           TextSpan(
                             text: '选择充值金额',
-                            children: [],
+                            children: [
+                              TextSpan(
+                                text:
+                                '  ¥',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              TextSpan(
+                                text:
+                                    '${(_amount / 100.00).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              TextSpan(
+                                text:
+                                '元',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 12,
@@ -176,9 +203,9 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                             child: Slider(
                               label: '${(_amount / 100.00).toStringAsFixed(2)}',
                               value: _amount / 100.00,
-                              min: 1.0,
+                              min: 100.00,
                               max: 2000.00,
-                              divisions: 1999,
+                              divisions: ((2000-100)/100).floor(),
                               onChanged: (v) {
                                 setState(() {
                                   _amount = (v * 100).floor();

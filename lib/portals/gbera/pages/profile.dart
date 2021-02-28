@@ -70,8 +70,10 @@ class _ProfileState extends State<Profile> {
                          children: [
                            Expanded(child: Text(
                              '${widget.context.principal?.person}',
-                             style: widget.context
-                                 .style('/profile/header-face-no.text'),
+                             style: TextStyle(
+                               fontSize: 12,
+                               color: Colors.grey[500],
+                             ),
                            ),),
                          ],
                        ),

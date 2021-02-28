@@ -160,6 +160,9 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
       child: _WithdrawPopupWidget(context: widget.context, wallet: _myWallet),
     );
     if (result == null) {
+      setState(() {
+        _isWithdrawing = false;
+      });
       return;
     }
     IFissionMFCashierRemote cashierRemote =
@@ -521,7 +524,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         Switch.adaptive(
                           value: _isOpening,
                           onChanged: (v) {
-                            if (_myWallet.fissionMf < 5000) {
+                            if (!v&&_myWallet.fissionMf < 5000) {
                               _key.currentState.showSnackBar(
                                 SnackBar(
                                   content: Text(
