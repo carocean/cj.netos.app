@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/channel.dart';
+import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
 import 'package:netos_app/portals/gbera/parts/CardItem.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -246,7 +247,27 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     await chatRoomService.sealRoom(_chatRoom.creator,_chatRoom.id);
     _chatRoom.isSeal = 'true';
   }
-
+  Future<void> _tipoffItem() async {
+    var content=_model.displayRoomTitle(widget.context.principal);
+    showDialog(
+        context: context,
+        child: widget.context.part('/system/tip_off/item', context, arguments: {
+          'item': TipOffItemArgs(
+            id: _chatRoom.id,
+            type: 'chatroom',
+            desc: '聊天室：${content??''}',
+          )
+        })).then((value) {
+      if (value == null) {
+        return;
+      }
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('举报事项已提交'),
+        ),
+      );
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -494,6 +515,26 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
                     ),
                   ),
                 ),
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white,
+              margin: EdgeInsets.only(
+                bottom: 10,
+              ),
+              child: Column(
+                children: <Widget>[
+                  CardItem(
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    title: '投诉或举报',
+                    onItemTap: () {
+                      _tipoffItem();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Container(
               color: Colors.white,
