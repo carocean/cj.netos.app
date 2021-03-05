@@ -619,7 +619,7 @@ abstract class IRoomMemberDAO {
   @insert
   Future<void> addMember(RoomMember roomMember) {}
 
-  @Query('SELECT *  FROM RoomMember where sandbox=:sandbox and room=:roomcode ')
+  @Query('SELECT *  FROM RoomMember where sandbox=:sandbox and room=:roomcode LIMIT 10')
   Future<List<RoomMember>> topMember10(String sandbox, String roomcode) {}
 
   @Query('delete FROM RoomMember WHERE room = :roomCode AND sandbox=:sandbox')

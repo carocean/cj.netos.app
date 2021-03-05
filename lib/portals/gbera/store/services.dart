@@ -67,6 +67,8 @@ mixin IPersonService {
   Future<void> updateSignature(official, String signature) {}
 
   Future<void> updatePyname(official, String pyname) {}
+
+
 }
 mixin IChannelService {
   ///地圈管道标识

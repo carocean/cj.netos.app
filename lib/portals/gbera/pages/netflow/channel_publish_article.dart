@@ -123,7 +123,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
     return purchaseInfo;
   }
-
+/*
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
       if(_rechargeController==null) {
@@ -202,7 +202,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       }
     });
   }
-
+ */
   Future<AbsorberResultOR> _getAbsorberByAbsorbabler(String absorbabler) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
@@ -218,6 +218,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         _publishingState = 1;
       });
     }
+    /*
     var purchaseOR = await _purchaseImpl(user, msgid);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -257,8 +258,17 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       print('发布完成');
       widget.context.backward();
     });
+     */
+    await _publishImpl(user, content, msgid);
+    if (mounted) {
+      setState(() {
+        _publishingState = 0;
+      });
+    }
+    print('发布完成');
+    widget.context.backward();
   }
-
+/*
   Future<PurchaseOR> _purchaseImpl(user, msgid) async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -272,7 +282,8 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
     return purchaseOR;
   }
 
-  _publishImpl(user, content, msgid, purchaseOR) async {
+ */
+  _publishImpl(user, content, msgid) async {
     var images = shower_key.currentState.files;
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
@@ -299,7 +310,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
         null,
         'sended',
         content,
-        purchaseOR.sn,
+        null,
         null,
         absorberResultOR?.absorber?.id,
         widget.context.principal.person,
@@ -341,7 +352,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       'creator': user.person,
       'content': content,
       'Location': null,
-      'purchaseSn': purchaseOR.sn,
+      'purchaseSn': null,
     };
     var portsUrl =
         widget.context.site.getService('@.prop.ports.document.network.channel');
@@ -363,9 +374,6 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
 
   bool _isDisableButton() {
     return !_canPublish ||
-        (_purchaseInfo != null &&
-            _purchaseInfo.myWallet.change < _purchse_amount) ||
-        _publishingState > 0 ||
         StringUtil.isEmpty(_contentController.text) ||
         StringUtil.isEmpty(_districtCode);
   }
@@ -695,6 +703,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                         ],
                       ),
                     ),
+                    /*
                     Divider(
                       height: 1,
                     ),
@@ -778,6 +787,7 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
                               _buywy();
                             },
                     ),
+                     */
                     Divider(
                       height: 1,
                       indent: 30,

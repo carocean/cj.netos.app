@@ -133,7 +133,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       setState(() {});
     }
   }
-
+/*
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
       if (_rechargeController == null) {
@@ -213,7 +213,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       }
     });
   }
-
+ */
   Future<PurchaseInfo> _getPurchaseInfo() async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -231,6 +231,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         _publishingState = 1;
       });
     }
+    /*
     var purchaseOR = await _purchaseImpl(user, msgid);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -271,8 +272,18 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
 
       widget.context.backward(result: msgid);
     });
-  }
+     */
+    await _publishImpl(user, content, msgid);
+    if (mounted) {
+      setState(() {
+        _publishingState = 0;
+      });
+    }
+    print('发布完成');
 
+    widget.context.backward(result: msgid);
+  }
+/*
   Future<PurchaseOR> _purchaseImpl(user, msgid) async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -285,8 +296,8 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         '在地理感知器${_receptorObj.title}');
     return purchaseOR;
   }
-
-  Future<void> _publishImpl(user, content, msgid, purchaseOR) async {
+ */
+  Future<void> _publishImpl(user, content, msgid) async {
     var content = _contentController.text;
     var location = jsonEncode(_poi.latLng.toJson());
 
@@ -313,7 +324,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
         null,
         'sended',
         content,
-        purchaseOR.sn,
+        null,
         location,
         _receptorObj.channel,
         _receptorObj.category,
@@ -351,9 +362,6 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
   bool _isDisableButton() {
     return !_canPublish ||
         _poi == null ||
-        (_purchaseInfo != null &&
-            _purchaseInfo.myWallet.change < _purchse_amount) ||
-        _publishingState > 0 ||
         StringUtil.isEmpty(_contentController.text) ||
         StringUtil.isEmpty(_districtCode);
   }
@@ -699,6 +707,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                         ],
                       ),
                     ),
+                    /*
                     Divider(
                       height: 1,
                     ),
@@ -782,6 +791,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               _buywy();
                             },
                     ),
+                     */
                     Divider(
                       height: 1,
                       indent: 30,

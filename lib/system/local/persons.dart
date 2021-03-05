@@ -52,6 +52,13 @@ class PersonService implements IPersonService, IServiceBuilder {
       if (person == null) {
         person =
             await fetchPerson(official, isDownloadAvatar: isDownloadAvatar);
+        if (person != null) {
+          try {
+            await this.personDAO.addPerson(person);
+          } catch (e) {
+            print('persons:$e');
+          }
+        }
       }
     }
     return person;
@@ -70,36 +77,36 @@ class PersonService implements IPersonService, IServiceBuilder {
   @override
   Future<Function> update(Person person) async {
     await personDAO.updateAny(person.nickName, person.avatar, person.signature,
-        person.pyname,  principal.person, person.official);
+        person.pyname, principal.person, person.official);
   }
 
   @override
-  Future<void> updateAvatar(official, String avatar) async{
-    if(StringUtil.isEmpty(avatar)) {
+  Future<void> updateAvatar(official, String avatar) async {
+    if (StringUtil.isEmpty(avatar)) {
       return;
     }
     await personDAO.updateAvatar(avatar, principal.person, official);
   }
 
   @override
-  Future<void> updateNickName(official, String nickName) async{
-    if(StringUtil.isEmpty(nickName)) {
+  Future<void> updateNickName(official, String nickName) async {
+    if (StringUtil.isEmpty(nickName)) {
       return;
     }
     await personDAO.updateNickName(nickName, principal.person, official);
   }
 
   @override
-  Future<void> updateSignature(official, String signature) async{
-    if(StringUtil.isEmpty(signature)) {
+  Future<void> updateSignature(official, String signature) async {
+    if (StringUtil.isEmpty(signature)) {
       return;
     }
     await personDAO.updateSignature(signature, principal.person, official);
   }
 
   @override
-  Future<void> updatePyname(official, String pyname) async{
-    if(StringUtil.isEmpty(pyname)) {
+  Future<void> updatePyname(official, String pyname) async {
+    if (StringUtil.isEmpty(pyname)) {
       return;
     }
     await personDAO.updatePyname(pyname, principal.person, official);
@@ -136,6 +143,7 @@ class PersonService implements IPersonService, IServiceBuilder {
     return obj;
   }
 
+
   @override
   Future<Person> fetchPerson(official, {bool isDownloadAvatar = false}) async {
     var response = await _dio.get(
@@ -164,7 +172,7 @@ class PersonService implements IPersonService, IServiceBuilder {
       return null;
     }
     var lavatar = obj['avatar'];
-    if (isDownloadAvatar) {
+    if (!StringUtil.isEmpty(lavatar) && isDownloadAvatar) {
       lavatar = '${obj['avatar']}?accessToken=${principal.accessToken}';
       lavatar = await downloadPersonAvatar(dio: _dio, avatarUrl: lavatar);
     }
@@ -279,5 +287,4 @@ class PersonService implements IPersonService, IServiceBuilder {
     var person = await personDAO.getPerson(official, principal?.person);
     return person == null ? false : true;
   }
-
 }

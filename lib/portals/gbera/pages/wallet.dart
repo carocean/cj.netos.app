@@ -860,6 +860,7 @@ class _WalletState extends State<Wallet> {
                 child: card_op,
               ),
             ),
+            /*
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.only(
@@ -868,12 +869,14 @@ class _WalletState extends State<Wallet> {
                 child: card_apply,
               ),
             ),
-            ..._renderWenyPanel(),
+             ..._renderWenyPanel(),
+             */
           ],
         ),
       ),
     );
   }
+  /*
   List<Widget> _renderWenyPanel(){
     var items=<Widget>[];
     if (_myWallet?.banks == null || _myWallet?.banks?.isEmpty) {
@@ -947,6 +950,8 @@ class _WalletState extends State<Wallet> {
     ),);
     return items;
   }
+
+   */
 }
 
 class WenyItemWidget extends StatefulWidget {

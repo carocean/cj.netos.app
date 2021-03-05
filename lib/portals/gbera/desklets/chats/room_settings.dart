@@ -34,7 +34,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   int _limit = 20, _offset = 0;
   ChatRoomNotice _newestNotice;
   bool _isForegroundWhite = false;
-  bool _isSeal=false;
+  bool _isSeal = false;
   var _globalKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -42,7 +42,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _model = widget.context.parameters['model'];
     _chatRoom = _model.chatRoom;
     _isForegroundWhite = _chatRoom.isForegoundWhite == 'true' ? true : false;
-    _isSeal=_chatRoom.isSeal == 'true' ? true : false;
+    _isSeal = _chatRoom.isSeal == 'true' ? true : false;
     _isRoomCreator = _chatRoom.creator == widget.context.principal.person;
     super.initState();
     _loadMembers().then((v) {
@@ -125,10 +125,14 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       //   continue;
       // }
       var person = await personService.getPerson(member.person);
-      if (person != null && _chatRoom.creator == person.official) {
+      if (person == null) {
+        continue;
+      }
+      if (_chatRoom.creator == person.official) {
         _memberModels.insert(0, _MemberModel(person: person, member: member));
         continue;
       }
+
       _memberModels.add(_MemberModel(person: person, member: member));
     }
   }
@@ -234,28 +238,29 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
     _chatRoom.isForegoundWhite = _isForegroundWhite == true ? 'true' : 'false';
   }
 
-  Future<void> _unsealRoom()async{
+  Future<void> _unsealRoom() async {
     IChatRoomService chatRoomService =
-    widget.context.site.getService('/chat/rooms');
-    await chatRoomService.unsealRoom(_chatRoom.creator,_chatRoom.id);
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.unsealRoom(_chatRoom.creator, _chatRoom.id);
     _chatRoom.isSeal = 'false';
   }
 
-  Future<void> _sealRoom()async{
+  Future<void> _sealRoom() async {
     IChatRoomService chatRoomService =
-    widget.context.site.getService('/chat/rooms');
-    await chatRoomService.sealRoom(_chatRoom.creator,_chatRoom.id);
+        widget.context.site.getService('/chat/rooms');
+    await chatRoomService.sealRoom(_chatRoom.creator, _chatRoom.id);
     _chatRoom.isSeal = 'true';
   }
+
   Future<void> _tipoffItem() async {
-    var content=_model.displayRoomTitle(widget.context.principal);
+    var content = _model.displayRoomTitle(widget.context.principal);
     showDialog(
         context: context,
         child: widget.context.part('/system/tip_off/item', context, arguments: {
           'item': TipOffItemArgs(
             id: _chatRoom.id,
             type: 'chatroom',
-            desc: '聊天室：${content??''}',
+            desc: '聊天室：${content ?? ''}',
           )
         })).then((value) {
       if (value == null) {
@@ -268,6 +273,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
       );
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -750,25 +756,25 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
             child: Switch.adaptive(
               value: _isSeal,
               onChanged: (v) {
-                if(v){
+                if (v) {
                   _sealRoom();
-                }else{
+                } else {
                   _unsealRoom();
                 }
-               setState(() {
-                 _isSeal=v;
-               });
+                setState(() {
+                  _isSeal = v;
+                });
               },
             ),
           ),
           onItemTap: () {
-            if(_isSeal) {
+            if (_isSeal) {
               _unsealRoom();
-            }else{
+            } else {
               _sealRoom();
             }
             setState(() {
-              _isSeal=!_isSeal;
+              _isSeal = !_isSeal;
             });
           },
         ),
@@ -792,7 +798,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         title = member.nickName;
       } else {
         title =
-            '${(member.isShowNick == 'true') ? (member.nickName ?? person.nickName) : person.nickName}';
+            '${(member.isShowNick == 'true') ? (member.nickName ?? person?.nickName ?? '') : person?.nickName ?? ''}';
       }
       var avatar =
           StringUtil.isEmpty(member.leading) ? person?.avatar : member.leading;
@@ -908,7 +914,7 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
         items.add(panel);
       }
     }
-    if(_isManager()||_chatRoom.isSeal!='true'){
+    if (_isManager() || _chatRoom.isSeal != 'true') {
       items.add(plusMemberButton);
     }
     if (_isManager()) {
@@ -1052,7 +1058,6 @@ class _ChatRoomSettingsState extends State<ChatRoomSettings> {
   }
 
   Widget _renderPlusMemberButton() {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
@@ -1203,21 +1208,25 @@ class __SyncMemberPanelState extends State<_SyncMemberPanel> {
       if (exists) {
         continue;
       }
-      var person =
-          await personService.getPerson(m.person, isDownloadAvatar: true);
-      var nickName = person?.nickName ?? m.nickName;
-      await chatRoomService.addMember(
-          RoomMember(
-            m.room,
-            m.person,
-            nickName,
-            m.isShowNick ? 'true' : 'false',
-            person?.avatar,
-            'person',
-            m.atime,
-            widget.context.principal.person,
-          ),
-          isOnlySaveLocal: true);
+      try {
+        var person =
+            await personService.getPerson(m.person, isDownloadAvatar: true);
+        var nickName = person?.nickName ?? m.nickName;
+        await chatRoomService.addMember(
+            RoomMember(
+              m.room,
+              m.person,
+              nickName,
+              m.isShowNick ? 'true' : 'false',
+              person?.avatar,
+              'person',
+              m.atime,
+              widget.context.principal.person,
+            ),
+            isOnlySaveLocal: true);
+      } catch (e) {
+        print('room_settings:$e');
+      }
     }
   }
 

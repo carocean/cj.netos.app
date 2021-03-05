@@ -2964,7 +2964,7 @@ class _$IRoomMemberDAO extends IRoomMemberDAO {
   @override
   Future<List<RoomMember>> topMember10(String sandbox, String roomcode) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM RoomMember where sandbox=? and room=?',
+        'SELECT * FROM RoomMember where sandbox=? and room=? LIMIT 10',
         arguments: <dynamic>[sandbox, roomcode],
         mapper: _roomMemberMapper);
   }

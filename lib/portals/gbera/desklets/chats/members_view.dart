@@ -84,6 +84,9 @@ class _ChatMemberViewPageState extends State<ChatMemberViewPage> {
     _offset += members.length;
     for (RoomMember member in members) {
       var person = await personService.getPerson(member.person);
+      if(person==null) {
+        continue;
+      }
       _memberModels.add(_MemberModel(person: person, member: member));
     }
     if (mounted) {
