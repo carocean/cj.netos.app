@@ -456,6 +456,7 @@ class _MediaWithLoader extends StatelessWidget {
       fit:stackFit==null? StackFit.expand:stackFit,
       alignment: Alignment.center,
       children: <Widget>[
+       ( 'video'==src?.type)?SizedBox.shrink():
         Container(
           // color: Colors.grey,
           child: Center(
@@ -466,6 +467,7 @@ class _MediaWithLoader extends StatelessWidget {
             ),
           ),
         ),
+
         _getMediaRender(src, accessToken, pageContext),
       ],
     );
@@ -514,33 +516,10 @@ class _MediaWithLoader extends StatelessWidget {
         );
         break;
       case 'video':
-        if (src.startsWith('/')) {
-          mediaRender = VideoView(
-            src: File(src),
-          );
-        } else {
-          if(_getUrlVideo_future==null) {
-            _getUrlVideo_future=checkUrlAndDownload(pageContext, src);
-          }
-          mediaRender = FutureBuilder<String>(
-            future: _getUrlVideo_future,
-            builder: (ctx, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              var srcLocal = snapshot.data;
-              return VideoView(
-                src: File(srcLocal),
-              );
-            },
-          );
-        }
+        mediaRender = VideoView(
+          src: src,
+          context: pageContext,
+        );
         break;
       case 'audio':
         mediaRender = MyAudioWidget(

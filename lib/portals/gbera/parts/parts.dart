@@ -177,7 +177,8 @@ class _PageSelectorState extends State<PageSelector> {
                   break;
                 case 'video':
                   mediaRender = VideoView(
-                    src: File(src),
+                    src: src,
+                    context: widget.context,
                   );
                   break;
                 case 'audio':

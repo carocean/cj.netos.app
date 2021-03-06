@@ -1014,7 +1014,8 @@ class _MediaShowerState extends State<_MediaShower> {
               mediaRegion = AspectRatio(
                 aspectRatio: 16 / 9,
                 child: VideoView(
-                  src: mediaFile.src,
+                  src: mediaFile.src.path,
+                  context: widget.context,
                 ),
               );
               break;

@@ -60,19 +60,42 @@ class _EasyTalkSharePageState extends State<EasyTalkSharePage> {
         widget.context.site.getService('/chat/rooms');
     IFriendService friendService =
         widget.context.site.getService("/gbera/friends");
+    IPersonService personService =
+    widget.context.site.getService("/gbera/persons");
     List<ChatRoom> rooms = await chatRoomService.listChatRoom();
     for (var room in rooms) {
-      List<RoomMember> members = await chatRoomService.listMember(room.id);
+      List<RoomMember> members = await chatRoomService.topMember10(room.id);
       List<Friend> friends = [];
-      for (var member in members) {
-        if (!StringUtil.isEmpty(member.type) && member.type != 'person') {
-          continue;
+      List<String> officials = [];
+      for (RoomMember member in members) {
+        officials.add(member.person);
+      }
+      var localFriends = await friendService.listMembersIn(officials);
+      friends.addAll(localFriends);
+      if (officials.length != localFriends.length) {
+        for (var friend in localFriends) {
+          officials.remove(friend.official);
         }
-        var f = await friendService.getFriend(member.person);
-        if (f == null) {
-          continue;
+        var localPersons = await personService.listPersonWith(officials);
+        for (var person in localPersons) {
+          friends.add(Friend.formPerson(person));
         }
-        friends.add(f);
+        if (localPersons.length != officials.length) {
+          for (var person in localPersons) {
+            officials.remove(person.official);
+          }
+          try {
+            for(var id in officials){
+              var person= await personService.getPerson(id);
+              if(person==null){
+                continue;
+              }
+              friends.add(Friend.formPerson(person));
+            }
+          } catch (e) {
+            print('chat_room:$e');
+          }
+        }
       }
       _roomList.add(
         ChatRoomModel(

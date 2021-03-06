@@ -76,13 +76,17 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
     if (mounted) {
       setState(() {});
     }
-    await _loadMoney();
+    // await _loadMoney();
+    //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
+    _canPublish = true;
     _loadState = -1;
     if (mounted) {
       setState(() {});
     }
   }
-
+/*
   Future<void> _loadMoney() async {
     //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
     var result = await AmapLocation.instance.fetchLocation();
@@ -120,7 +124,8 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
     var purchaseInfo = await purchaserRemote.getPurchaseInfo(_districtCode);
     return purchaseInfo;
   }
-
+ */
+/*
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
       if (_rechargeController == null) {
@@ -202,6 +207,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
     });
   }
 
+ */
   Future<void> _loadChannels() async {
     IChannelService channelService =
         widget.context.site.getService('/netflow/channels');
@@ -213,7 +219,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
     return _selector != null &&
         _canPublish &&
         !StringUtil.isEmpty(_commentController.text) &&
-        (_purchaseInfo.myWallet.change >= _purchse_amount &&
+        (
             _publishingState < 1) &&
         !StringUtil.isEmpty(_districtCode);
   }
@@ -236,6 +242,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
         _publishingState = 1;
       });
     }
+    /*
     var purchaseOR = await _purchaseImpl(ch, user, msgid);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -284,8 +291,25 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
       );
       await _forwardDialog();
     });
-  }
 
+     */
+    await _publishImpl(ch, user, content, msgid);
+    _publishingState = 0;
+    if (mounted) {
+      setState(() {
+
+      });
+    }
+    print('发布完成');
+    await widget.context.forward(
+      '/netflow/channel',
+      arguments: {
+        'channel': ch,
+      },
+    );
+    await _forwardDialog();
+  }
+/*
   Future<PurchaseOR> _purchaseImpl(Channel channel, user, msgid) async {
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -298,14 +322,14 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
         '在管道${channel.name}');
     return purchaseOR;
   }
-
+ */
   Future<AbsorberResultOR> _getAbsorberByAbsorbabler(String absorbabler) async {
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
     return await robotRemote.getAbsorberByAbsorbabler(absorbabler);
   }
 
   Future<void> _publishImpl(
-      Channel channel, user, content, msgid, purchaseOR) async {
+      Channel channel, user, content, msgid) async {
     IChannelMessageService channelMessageService =
         widget.context.site.getService('/channel/messages');
     IChannelMediaService channelMediaService =
@@ -331,7 +355,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
         null,
         'sended',
         content,
-        purchaseOR.sn,
+        null,
         null,
         absorberResultOR?.absorber?.id,
         widget.context.principal.person,
@@ -369,8 +393,9 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
       'creator': user.person,
       'content': content,
       'Location': null,
-      'purchaseSn': purchaseOR.sn,
+      'purchaseSn':null,
     };
+
     var portsUrl =
         widget.context.site.getService('@.prop.ports.document.network.channel');
     widget.context.ports.portTask.addPortPOSTTask(
@@ -496,6 +521,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    /*
                     Column(
                       children: [
                         InkWell(
@@ -572,6 +598,8 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
                     SizedBox(
                       height: 15,
                     ),
+
+                     */
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -798,16 +826,7 @@ class _NetflowSharePageState extends State<NetflowSharePage> {
       var tips = '';
       switch (_publishingState) {
         case 1:
-          tips = '正在申购发文服务..';
-          break;
-        case 2:
-          tips = '申购完成，正在发表';
-          break;
-        case 3:
-          tips = _purchaseError;
-          break;
-        case 4:
-          tips = '成功发表';
+          tips = '正在发布..';
           break;
       }
       items.add(

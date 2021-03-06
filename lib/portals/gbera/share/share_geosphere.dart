@@ -81,14 +81,34 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
         _loadState = 1;
       });
     }
-    await _loadMoney();
+    // await _loadMoney();
+    await _posLocation();
+    _canPublish = true;
     if (mounted) {
       setState(() {
         _loadState = -1;
       });
     }
   }
-
+  Future<void >_posLocation()async{
+    var result = await AmapLocation.instance.fetchLocation();
+    _districtCode = result.adCode;
+    if (StringUtil.isEmpty(_districtCode)) {
+      return;
+    }
+    var latlng = result.latLng;
+//    var city = await result.city;
+    String title = result.poiName;
+    String address = result.address;
+    var poiId = result.adCode;
+    _poi = AmapPoi(
+      title: title,
+      latLng: latlng,
+      address: address,
+      poiId: poiId,
+    );
+  }
+/*
   Future<void> _loadMoney() async {
     //由于此分享代码段只有android才用，所以可以采用高德的一次性获取定位插件，因此在ios一次性定位与连续定位才冲突
     var result = await AmapLocation.instance.fetchLocation();
@@ -131,6 +151,8 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
     _canPublish = true;
   }
 
+ */
+
   Future<void> _loadReceptors() async {
     IGeoReceptorService receptorService =
         widget.context.site.getService('/geosphere/receptors');
@@ -153,7 +175,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
     return _selector != null &&
         _canPublish &&
         !StringUtil.isEmpty(_commentController.text) &&
-        (_purchaseInfo.myWallet.change >= _purchse_amount &&
+        (
             _publishingState < 1) &&
         !StringUtil.isEmpty(_districtCode);
   }
@@ -176,6 +198,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
         _publishingState = 1;
       });
     }
+    /*
     var purchaseOR = await _purchaseImpl(receptor, user, msgid);
     IWyBankPurchaserRemote purchaserRemote =
         widget.context.site.getService('/remote/purchaser');
@@ -226,6 +249,29 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
       });
       await _forwardDialog();
     });
+
+     */
+    await _publishImpl(receptor, user, content, msgid);
+    _publishingState = 0;
+    if (mounted) {
+      setState(() {});
+    }
+    print('发布完成');
+    var url;
+    if (receptor.creator == widget.context.principal.person) {
+      //每人只能有一个手机行人地圈
+      if (receptor.category == 'mobiles') {
+        url = '/geosphere/receptor.lord';
+      } else {
+        url = '/geosphere/receptor.mines';
+      }
+    } else {
+      url = '/geosphere/receptor.fans';
+    }
+    await widget.context.forward(url, arguments: {
+      'receptor': ReceptorInfo.create(receptor),
+    });
+    await _forwardDialog();
   }
 
   Future<PurchaseOR> _purchaseImpl(GeoReceptor receptor, user, msgid) async {
@@ -242,7 +288,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
   }
 
   Future<void> _publishImpl(
-      GeoReceptor receptor, user, content, msgid, purchaseOR) async {
+      GeoReceptor receptor, user, content, msgid) async {
     var content = _commentController.text;
     var location = jsonEncode(_poi.latLng.toJson());
 
@@ -268,7 +314,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
         null,
         'sended',
         content,
-        purchaseOR.sn,
+        null,
         location,
         receptor.channel,
         receptor.category,
@@ -292,7 +338,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
     );
     await mediaService.addMediaNotPush(media);
   }
-
+/*
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
       if (_rechargeController == null) {
@@ -381,6 +427,8 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
     return purchaseInfo;
   }
 
+
+ */
   Future<void> _forwardDialog() async {
     await showDialog(
       context: context,
@@ -493,6 +541,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
                   children: [
                     Column(
                       children: [
+                        /*
                         InkWell(
                           onTap: StringUtil.isEmpty(_districtCode)
                               ? null
@@ -560,6 +609,8 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
                           height: 1,
                           indent: 15,
                         ),
+
+                         */
                         InkWell(
                           onTap: () {
                             widget.context.forward('/geosphere/amap/near',
@@ -861,16 +912,7 @@ class _GeosphereSharePageState extends State<GeosphereSharePage> {
       var tips = '';
       switch (_publishingState) {
         case 1:
-          tips = '正在申购发文服务..';
-          break;
-        case 2:
-          tips = '申购完成，正在发表';
-          break;
-        case 3:
-          tips = _purchaseError;
-          break;
-        case 4:
-          tips = '成功发表';
+          tips = '正在发布...';
           break;
       }
       items.add(

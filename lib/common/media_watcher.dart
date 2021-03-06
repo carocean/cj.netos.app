@@ -270,32 +270,11 @@ class _MediaWatcherState extends State<MediaWatcher> {
   }
 
   Widget _renderVideo(PageContext pageContext, src) {
-    if (src.startsWith('/')) {
-      return _VideoWatcher(
-        autoPlay: true,
-        src: File(src),
-      );
-    } else {
-      return FutureBuilder<String>(
-        future: checkUrlAndDownload(pageContext, src),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          var srcLocal = snapshot.data;
-          return _VideoWatcher(
-            autoPlay: true,
-            src: File(srcLocal),
-          );
-        },
-      );
-    }
+    return _VideoWatcher(
+      autoPlay: true,
+      src: src,
+      context: pageContext,
+    );
   }
 
   Widget _renderSaveButton() {
@@ -325,9 +304,9 @@ class _MediaWatcherState extends State<MediaWatcher> {
 
 class _VideoWatcher extends StatefulWidget {
   bool autoPlay;
-  File src;
-
-  _VideoWatcher({this.autoPlay, this.src});
+  String src;
+  PageContext context;
+  _VideoWatcher({this.autoPlay, this.context,this.src});
 
   @override
   __VideoWatcherState createState() => __VideoWatcherState();
@@ -341,7 +320,12 @@ class __VideoWatcherState extends State<_VideoWatcher> {
 
   @override
   void initState() {
-    controller = VideoPlayerController.file(widget.src);
+    String src=widget.src;
+    if(src.startsWith('/')) {
+      controller = VideoPlayerController.file(File(src));
+    }else{
+      controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+    }
     controller.addListener(() {
       if (controller.value.isPlaying) {
         if (_currentActionIndex == 1) {
@@ -379,10 +363,14 @@ class __VideoWatcherState extends State<_VideoWatcher> {
   }
 
   Future<void> waitfor_inited() async {
-    await controller.initialize();
-    start = controller.value.position;
-    if (widget.autoPlay) {
-      controller.play();
+    try {
+      await controller.initialize();
+      start = controller.value.position;
+      if (widget.autoPlay) {
+        controller.play();
+      }
+    }catch(e){
+      print('视频初始化失败:$e');
     }
   }
 
@@ -435,7 +423,7 @@ class __VideoWatcherState extends State<_VideoWatcher> {
         ),
         Positioned(
           bottom: 42,
-          right: 17,
+          right: 15,
           child: SizedBox(
             width: 40,
             height: 40,

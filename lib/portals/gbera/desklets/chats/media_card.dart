@@ -66,30 +66,10 @@ class MediaCard extends StatelessWidget {
         break;
 
       case 'video':
-        if (src.startsWith('/')) {
-          mediaRender = VideoView(
-            src: File(src),
-          );
-        } else {
-          mediaRender = FutureBuilder<String>(
-            future: checkUrlAndDownload(pageContext, src),
-            builder: (ctx, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              var srcLocal = snapshot.data;
-              return VideoView(
-                src: File(srcLocal),
-              );
-            },
-          );
-        }
+        mediaRender = VideoView(
+          src: src,
+          context: pageContext,
+        );
         break;
       case 'audio':
         mediaRender = MyAudioWidget(
@@ -291,32 +271,11 @@ class _RoomMediaViewerState extends State<RoomMediaViewer> {
   Widget _renderVideo(PageContext pageContext) {
     var media = _medias[_index];
     var src = media.src;
-    if (src.startsWith('/')) {
-      return _VideoWatcher(
-        autoPlay: true,
-        src: File(src),
-      );
-    } else {
-      return FutureBuilder<String>(
-        future: checkUrlAndDownload(pageContext, src),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          var srcLocal = snapshot.data;
-          return _VideoWatcher(
-            autoPlay: true,
-            src: File(srcLocal),
-          );
-        },
-      );
-    }
+    return _VideoWatcher(
+      src: src,
+      autoPlay: true,
+      context: pageContext,
+    );
   }
 
   List<Widget> _renderToolbars() {
@@ -410,9 +369,9 @@ class _RoomMediaViewerState extends State<RoomMediaViewer> {
 
 class _VideoWatcher extends StatefulWidget {
   bool autoPlay;
-  File src;
-
-  _VideoWatcher({this.autoPlay, this.src});
+  String src;
+  PageContext context;
+  _VideoWatcher({this.autoPlay, this.context,this.src});
 
   @override
   __VideoWatcherState createState() => __VideoWatcherState();
@@ -426,7 +385,12 @@ class __VideoWatcherState extends State<_VideoWatcher> {
 
   @override
   void initState() {
-    controller = VideoPlayerController.file(widget.src);
+    String src=widget.src;
+    if(src.startsWith('/')) {
+      controller = VideoPlayerController.file(File(src));
+    }else{
+      controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+    }
     controller.addListener(() {
       if (controller.value.isPlaying) {
         if (_currentActionIndex == 1) {
@@ -520,7 +484,7 @@ class __VideoWatcherState extends State<_VideoWatcher> {
         ),
         Positioned(
           bottom: 42,
-          right: 17,
+          right: 15,
           child: SizedBox(
             width: 40,
             height: 40,

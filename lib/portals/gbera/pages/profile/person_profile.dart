@@ -55,7 +55,7 @@ class _PersonProfileState extends State<PersonProfile> {
         'cjtoken': widget.context.principal.accessToken,
       },
       parameters: {
-        'person':_person.official,
+        'person': _person.official,
       },
       onsucceed: ({rc, response}) async {
         var json = rc['dataText'];
@@ -265,25 +265,34 @@ class _PersonProfileState extends State<PersonProfile> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Text(
-                                _person.official,
-                                style: TextStyle(
-                                  color: Colors.grey[500],
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.only(
+                                    right: 5,
+                                  ),
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    _person.official,
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Icon(
-                              Icons.content_copy,
-                              size: 16,
-                              color: Colors.grey[500],
-                            ),
-                          ],
+                              Icon(
+                                Icons.content_copy,
+                                size: 16,
+                                color: Colors.grey[500],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

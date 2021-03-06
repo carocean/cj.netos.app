@@ -492,11 +492,19 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     // TODO: implement dispose
     super.dispose();
   }
-
   Future<void> _loadSrcFile() async {
-    IChasechainRecommenderRemote recommender =
-        widget.context.site.getService('/remote/chasechain/recommender');
-    _src = await recommender.getAndCacheMedia(widget.src);
+    _src=widget.src;
+    if(_src.type=='audio') {
+      IChasechainRecommenderRemote recommender =
+          widget.context.site.getService('/remote/chasechain/recommender');
+      _src = await recommender.getAndCacheMedia(widget.src);
+      return;
+    }
+    var path=_src?.src;
+    if(!StringUtil.isEmpty(path)&&!path.startsWith('/')){
+      path='$path?accessToken=${widget.context.principal.accessToken}';
+      _src.src=path;
+    }
   }
 
   @override
@@ -505,6 +513,7 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
       fit: StackFit.expand,
       alignment: Alignment.center,
       children: <Widget>[
+        _src!=null&&_src.type=='video'?SizedBox.shrink():
         Container(
           color: _src == null ? Colors.black : Colors.transparent,
           alignment: Alignment.centerLeft,
@@ -540,13 +549,23 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
   var src = media?.src;
   switch (media.type) {
     case 'image':
-      mediaRender = ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-        child: Image.file(
-          File(src),
-          fit: BoxFit.cover,
-        ),
-      );
+      if(src.startsWith('/')) {
+        mediaRender = ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          child: Image.file(
+            File(src),
+            fit: BoxFit.cover,
+          ),
+        );
+      }else{
+        mediaRender = ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          child: CachedNetworkImage(
+            imageUrl: src,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
       break;
     case 'share':
       mediaRender = renderShareCard(
@@ -560,8 +579,9 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
     case 'video':
       mediaRender = ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(8)),
-        child: _RecommenderVideoView(
-          src: File(src),
+        child: VideoView(
+          src: src,
+          context: pageContext,
         ),
       );
       break;
@@ -580,163 +600,3 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
   return mediaRender;
 }
 
-class _RecommenderVideoView extends StatefulWidget {
-  File src;
-  bool autoPlay = false;
-
-  _RecommenderVideoView({this.src, this.autoPlay = false});
-
-  @override
-  _RecommenderVideoViewState createState() => _RecommenderVideoViewState();
-}
-
-class _RecommenderVideoViewState extends State<_RecommenderVideoView> {
-  VideoPlayerController controller;
-  int _currentActionIndex = 0;
-  var start;
-  bool _isLoading=true;
-  @override
-  void initState() {
-    _load();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _currentActionIndex = 0;
-    start = null;
-    controller?.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(_RecommenderVideoView oldWidget) {
-    if (oldWidget.src.path != widget.src.path) {
-      oldWidget.src = widget.src;
-      _currentActionIndex = 0;
-      start = null;
-      controller?.dispose();
-      _load();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  _load() async{
-    controller = VideoPlayerController.file(widget.src);
-    controller.addListener(() {
-      if (controller.value.isPlaying) {
-        if (_currentActionIndex == 1) {
-          return;
-        }
-        setState(() {
-          _currentActionIndex = 1;
-        });
-      } else {
-        if (_currentActionIndex == 0) {
-          return;
-        }
-        setState(() {
-          _currentActionIndex = 0;
-          //检测到结尾必须得停止，否则重定位后会继续播放
-          controller.pause().whenComplete(() {
-            if (start != null) {
-              controller.seekTo(start);
-            }
-          });
-        });
-      }
-    });
-    await waitfor_inited();
-    if(mounted){
-      setState(() {
-        _isLoading=false;
-      });
-    }
-  }
-
-  Future<void> waitfor_inited() async {
-    try {
-      await controller.initialize();
-      start = controller.value.position;
-      if (widget.autoPlay) {
-        controller.play();
-      }
-    } catch (e) {
-      print('视频初始化失败:$e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if(_isLoading){
-      return Center(child: SizedBox(height: 40,width: 40,child: CircularProgressIndicator(),),);
-    }
-    return ClipRect(
-      child: Container(
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: controller.value.aspectRatio,
-            child: Stack(
-              fit: StackFit.passthrough,
-              alignment: Alignment.center,
-              children: <Widget>[
-                VideoPlayer(controller),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: SizedBox(
-                    width: 38,
-                    height: 38,
-                    child: Align(
-                      child: IndexedStack(
-                        index: _currentActionIndex,
-                        children: <Widget>[
-                          IconButton(
-                            icon: Icon(
-                              Icons.play_circle_outline,
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              controller.play();
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.pause,
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              controller.pause();
-                            },
-                          )
-                        ],
-                      ),
-                      alignment: Alignment.bottomRight,
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class VideoController {
-  VideoPlayerController controller;
-  var start;
-
-  stop() {
-    if (controller != null) {
-      controller.pause().whenComplete(() {
-        if (start != null) {
-          controller.seekTo(start);
-        }
-      });
-    }
-  }
-}

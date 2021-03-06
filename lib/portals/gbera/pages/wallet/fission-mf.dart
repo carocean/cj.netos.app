@@ -168,7 +168,41 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
     var amount = result as int;
-    await cashierRemote.withdraw(amount);
+    try {
+      await cashierRemote.withdraw(amount);
+    } catch (e) {
+      // _key.currentState.showSnackBar(SnackBar(
+      //   content: Text('$e'),
+      // ),);
+      showDialog(
+          context: context,
+          child: AlertDialog(
+            title: Text('温馨提示'),
+            content: Container(
+              child: Text(
+                '$e',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+              padding: EdgeInsets.all(10),
+            ),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  widget.context.backward();
+                },
+                child: Text(
+                  '取消',
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
+          ));
+      return;
+    }
     Future.delayed(
         Duration(
           seconds: 1,
@@ -524,7 +558,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         Switch.adaptive(
                           value: _isOpening,
                           onChanged: (v) {
-                            if (!v&&_myWallet.fissionMf < 5000) {
+                            if (!v && _myWallet.fissionMf < 5000) {
                               _key.currentState.showSnackBar(
                                 SnackBar(
                                   content: Text(

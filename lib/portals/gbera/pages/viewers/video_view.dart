@@ -1,15 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoView extends StatefulWidget {
-  File src;
+  String src;
   bool autoPlay = false;
+  PageContext context;
   VideoController controller;
 
-  VideoView({this.src, this.autoPlay = false, this.controller});
+  VideoView({this.src,this.context, this.autoPlay = false, this.controller});
 
   @override
   _VideoViewState createState() => _VideoViewState();
@@ -19,13 +21,33 @@ class _VideoViewState extends State<VideoView> {
   VideoPlayerController controller;
   int _currentActionIndex = 0;
   var start;
-  Future<void> _future_waitfor_inited;
   bool _isLoading=true;
   @override
   void initState() {
-    controller = VideoPlayerController.file(widget.src);
+    String src=widget.src;
+    if(src.startsWith('/')) {
+      controller = VideoPlayerController.file(File(src));
+    }else{
+      controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+    }
     _load();
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(VideoView oldWidget) {
+    if(oldWidget.src!=widget.src) {
+      oldWidget.src=widget.src;
+      String src=oldWidget.src;
+      if(src.startsWith('/')) {
+        controller = VideoPlayerController.file(File(src));
+      }else{
+        controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+      }
+      _load();
+    }
+    super.didUpdateWidget(oldWidget);
+
   }
 
   @override
@@ -33,7 +55,6 @@ class _VideoViewState extends State<VideoView> {
     _currentActionIndex = 0;
     controller.dispose();
     start = null;
-    _future_waitfor_inited = null;
     super.dispose();
   }
   Future<void> _load()async{
@@ -136,13 +157,17 @@ class _VideoViewState extends State<VideoView> {
   }
 
   Future<void> waitfor_inited() async {
-    await controller.initialize();
-    start = controller.value.position;
-    if (widget.controller != null) {
-      widget.controller.start = start;
-    }
-    if (widget.autoPlay) {
-      controller.play();
+    try {
+      await controller.initialize();
+      start = controller.value.position;
+      if (widget.controller != null) {
+        widget.controller.start = start;
+      }
+      if (widget.autoPlay) {
+        controller.play();
+      }
+    }catch(e){
+      print('视频加载失败:$e');
     }
   }
 }

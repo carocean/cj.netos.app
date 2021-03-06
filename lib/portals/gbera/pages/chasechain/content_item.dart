@@ -46,7 +46,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
   Person _provider;
   ContentBoxOR _contentBox;
   ItemBehavior _itemInnerBehavior;
-  PurchaseOR _purchaseOR;
+  // PurchaseOR _purchaseOR;
   StreamController _streamController;
   StreamSubscription _streamSubscription;
 
@@ -94,10 +94,10 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
     _provider = await _getPerson(widget.context.site, _doc.message.creator);
     _contentBox = await _getContentBox();
     _itemInnerBehavior = await _getItemInnerBehavior();
-    _purchaseOR = await _getPurchase();
+    // _purchaseOR = await _getPurchase();
     if (mounted) setState(() {});
   }
-
+/*
   Future<PurchaseOR> _getPurchase() async {
     var sn = _doc?.message?.purchaseSn;
     if (StringUtil.isEmpty(sn)) {
@@ -109,6 +109,8 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
         _doc?.message?.creator, sn);
   }
 
+
+ */
   Future<TrafficPool> _getPool() async {
     IChasechainRecommenderRemote recommender =
         widget.context.site.getService('/remote/chasechain/recommender');
@@ -450,37 +452,37 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: <Widget>[
-                                _itemInnerBehavior == null
-                                    ? SizedBox(
-                                  width: 0,
-                                  height: 0,
-                                )
-                                    : Row(
-                                  children: <Widget>[
-                                    Text(
-                                      '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      '${parseInt(_itemInnerBehavior.comments, 2)}个评',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
+                                // _itemInnerBehavior == null
+                                //     ? SizedBox(
+                                //   width: 0,
+                                //   height: 0,
+                                // )
+                                //     : Row(
+                                //   children: <Widget>[
+                                //     Text(
+                                //       '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
+                                //       style: TextStyle(
+                                //         fontSize: 10,
+                                //         color: Colors.grey[600],
+                                //         fontWeight: FontWeight.w500,
+                                //       ),
+                                //     ),
+                                //     SizedBox(
+                                //       width: 4,
+                                //     ),
+                                //     Text(
+                                //       '${parseInt(_itemInnerBehavior.comments, 2)}个评',
+                                //       style: TextStyle(
+                                //         fontSize: 10,
+                                //         color: Colors.grey[600],
+                                //         fontWeight: FontWeight.w500,
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                // SizedBox(
+                                //   width: 5,
+                                // ),
                                 GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
@@ -683,37 +685,37 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: <Widget>[
-                                _itemInnerBehavior == null
-                                    ? SizedBox(
-                                        width: 0,
-                                        height: 0,
-                                      )
-                                    : Row(
-                                        children: <Widget>[
-                                          Text(
-                                            '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 4,
-                                          ),
-                                          Text(
-                                            '${parseInt(_itemInnerBehavior.comments, 2)}个评',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                SizedBox(
-                                  width: 5,
-                                ),
+                                // _itemInnerBehavior == null
+                                //     ? SizedBox(
+                                //         width: 0,
+                                //         height: 0,
+                                //       )
+                                //     : Row(
+                                //         children: <Widget>[
+                                //           Text(
+                                //             '${parseInt(_itemInnerBehavior.likes, 2)}个赞',
+                                //             style: TextStyle(
+                                //               fontSize: 10,
+                                //               color: Colors.grey[600],
+                                //               fontWeight: FontWeight.w500,
+                                //             ),
+                                //           ),
+                                //           SizedBox(
+                                //             width: 4,
+                                //           ),
+                                //           Text(
+                                //             '${parseInt(_itemInnerBehavior.comments, 2)}个评',
+                                //             style: TextStyle(
+                                //               fontSize: 10,
+                                //               color: Colors.grey[600],
+                                //               fontWeight: FontWeight.w500,
+                                //             ),
+                                //           ),
+                                //         ],
+                                //       ),
+                                // SizedBox(
+                                //   width: 5,
+                                // ),
                                 GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
@@ -744,7 +746,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
 
                                       Icon(
                                         Icons.pool,
-                                        size: 14,
+                                        size: 13,
                                         color: _pool.isGeosphere
                                             ? Colors.green
                                             : Colors.grey[600],
@@ -752,7 +754,7 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                                       Text(
                                         '${_pool.title}',
                                         style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: 13,
                                           color: Colors.grey[600],
                                           fontWeight: FontWeight.w600,
                                           decoration: TextDecoration.underline,
