@@ -492,10 +492,14 @@ class _MediaWithLoader extends StatelessWidget {
           File(src),
           fit: BoxFit.contain,
         )
-            : FadeInImage.memoryNetwork(
-          image: getUrlWithAccessToken(src, accessToken) ,
+        //     : FadeInImage.memoryNetwork(
+        //   image: getUrlWithAccessToken(src, accessToken) ,
+        //   fit: BoxFit.contain,
+        //   placeholder: kTransparentImage,
+        // );
+        :CachedNetworkImage(
+          imageUrl:  getUrlWithAccessToken(src, accessToken) ,
           fit: BoxFit.contain,
-          placeholder: kTransparentImage,
         );
         break;
       case 'share':
