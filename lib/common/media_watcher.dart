@@ -324,7 +324,7 @@ class __VideoWatcherState extends State<_VideoWatcher> {
     if(src.startsWith('/')) {
       controller = VideoPlayerController.file(File(src));
     }else{
-      controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+      controller = VideoPlayerController.network(getUrlWithAccessToken(src,widget.context.principal.accessToken));
     }
     controller.addListener(() {
       if (controller.value.isPlaying) {

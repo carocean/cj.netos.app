@@ -465,11 +465,7 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
 
   @override
   void initState() {
-    _loadSrcFile().then((value) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _loadSrcFile();
     super.initState();
   }
 
@@ -478,11 +474,7 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     if (oldWidget.src?.src != widget.src?.src) {
       oldWidget.src = widget.src;
       oldWidget.accessToken = widget.accessToken;
-      _loadSrcFile().then((value) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
+      _loadSrcFile();
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -496,17 +488,11 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     _src=widget.src;
     if(_src.type=='audio') {
       IChasechainRecommenderRemote recommender =
-          widget.context.site.getService('/remote/chasechain/recommender');
+      widget.context.site.getService('/remote/chasechain/recommender');
       _src = await recommender.getAndCacheMedia(widget.src);
       return;
     }
-    var path=_src?.src;
-    if(!StringUtil.isEmpty(path)&&!path.startsWith('/')){
-      path='$path?accessToken=${widget.context.principal.accessToken}';
-      _src.src=path;
-    }
   }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -561,7 +547,7 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
         mediaRender = ClipRRect(
           borderRadius: BorderRadius.all(Radius.circular(8)),
           child: CachedNetworkImage(
-            imageUrl: src,
+            imageUrl:  getUrlWithAccessToken(src, accessToken) ,
             fit: BoxFit.cover,
           ),
         );

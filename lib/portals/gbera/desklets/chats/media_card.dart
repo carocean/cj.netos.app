@@ -164,7 +164,7 @@ class _RoomMediaViewerState extends State<RoomMediaViewer> {
     var src = _medias[_index];
     var file = src.src;
     if (!file.startsWith('/')) {
-      var dir = await getApplicationDocumentsDirectory();
+      var dir = await getExternalStorageDirectory();
       var localFile = '${dir.path}/${MD5Util.MD5(file)}.${fileExt(file)}';
       await widget.pageContext.ports.download(file, localFile,
           onReceiveProgress: (i, j) {

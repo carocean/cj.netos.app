@@ -28,7 +28,7 @@ class _VideoViewState extends State<VideoView> {
     if(src.startsWith('/')) {
       controller = VideoPlayerController.file(File(src));
     }else{
-      controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
+      controller = VideoPlayerController.network(getUrlWithAccessToken(src,widget.context.principal.accessToken));
     }
     _load();
     super.initState();
