@@ -1013,16 +1013,20 @@ class ChasechainRecommenderRemote
     if (!dirFile.existsSync()) {
       dirFile.createSync(recursive: true);
     }
-    var localFile = '${dirFile.path}/${MD5Util.MD5(Uuid().v1())}';
+    var localFileName= '${dirFile.path}/${MD5Util.MD5(getPath(src))}';
     var ext = fileExt(src);
     if (!StringUtil.isEmpty(ext)) {
-      localFile = '$localFile.$ext';
+      localFileName = '$localFileName.$ext';
+    }
+    var localFile=File(localFileName);
+    if(localFile.existsSync()) {
+      return localFileName;
     }
     print('准备下载多媒体文件:${src}');
     await remotePorts.download(
-        '${src}?accessToken=${principal.accessToken}', localFile);
-    print('完成下载多媒体文件:${src}存储到：$localFile');
-    return localFile;
+        '${src}?accessToken=${principal.accessToken}', localFileName);
+    print('完成下载多媒体文件:${src}存储到：$localFileName');
+    return localFileName;
   }
 
   @override

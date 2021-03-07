@@ -11,7 +11,7 @@ class VideoView extends StatefulWidget {
   PageContext context;
   VideoController controller;
 
-  VideoView({this.src,this.context, this.autoPlay = false, this.controller});
+  VideoView({this.src, this.context, this.autoPlay = false, this.controller});
 
   @override
   _VideoViewState createState() => _VideoViewState();
@@ -21,43 +21,56 @@ class _VideoViewState extends State<VideoView> {
   VideoPlayerController controller;
   int _currentActionIndex = 0;
   var start;
-  bool _isLoading=true;
+  bool _isLoading = true;
+
   @override
   void initState() {
-    String src=widget.src;
-    if(src.startsWith('/')) {
-      controller = VideoPlayerController.file(File(src));
-    }else{
-      controller = VideoPlayerController.network(getUrlWithAccessToken(src,widget.context.principal.accessToken));
-    }
     _load();
     super.initState();
   }
 
   @override
   void didUpdateWidget(VideoView oldWidget) {
-    if(oldWidget.src!=widget.src) {
-      oldWidget.src=widget.src;
-      String src=oldWidget.src;
-      if(src.startsWith('/')) {
-        controller = VideoPlayerController.file(File(src));
-      }else{
-        controller = VideoPlayerController.network('$src?accessToken=${widget.context.principal.accessToken}');
-      }
+    if (oldWidget.src != widget.src) {
+      oldWidget.src = widget.src;
+      //重新加载会导致VideoPlayerController实体太多没释放，会报错:Failed to initialize decoder: OMX.hisi.video.decoder.avc
+      //可是注掉又不能刷新了
       _load();
     }
     super.didUpdateWidget(oldWidget);
-
   }
 
   @override
   void dispose() {
     _currentActionIndex = 0;
-    controller.dispose();
     start = null;
+    try{
+      controller.dispose();
+    }catch(e){
+
+    }
     super.dispose();
   }
-  Future<void> _load()async{
+
+  Future<void> _load() async {
+    if (controller != null) {
+      VideoPlayerController oldController = controller;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        try {
+          oldController.dispose();
+        } catch (e) {}
+      });
+      setState(() {
+        controller=null;
+      });
+    }
+    String src = widget.src;
+    if (src.startsWith('/')) {
+      controller = VideoPlayerController.file(File(src));
+    } else {
+      controller = VideoPlayerController.network(
+          getUrlWithAccessToken(src, widget.context.principal.accessToken));
+    }
     if (widget.controller != null) {
       widget.controller.controller = controller;
     }
@@ -85,15 +98,30 @@ class _VideoViewState extends State<VideoView> {
       }
     });
     await waitfor_inited();
-    if(mounted){
+    if (mounted) {
       setState(() {
-        _isLoading=false;
+        _isLoading = false;
       });
+    }
+  }
+
+  Future<void> waitfor_inited() async {
+    try {
+      await controller.initialize();
+      start = controller.value.position;
+      if (widget.controller != null) {
+        widget.controller.start = start;
+      }
+      if (widget.autoPlay) {
+        await controller.play();
+      }
+    } catch (e) {
+      print('视频加载失败:$e');
     }
   }
   @override
   Widget build(BuildContext context) {
-    if(_isLoading) {
+    if (_isLoading) {
       return Center(
         child: SizedBox(
           width: 40,
@@ -156,20 +184,6 @@ class _VideoViewState extends State<VideoView> {
     );
   }
 
-  Future<void> waitfor_inited() async {
-    try {
-      await controller.initialize();
-      start = controller.value.position;
-      if (widget.controller != null) {
-        widget.controller.start = start;
-      }
-      if (widget.autoPlay) {
-        controller.play();
-      }
-    }catch(e){
-      print('视频加载失败:$e');
-    }
-  }
 }
 
 class VideoController {

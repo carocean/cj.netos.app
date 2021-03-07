@@ -21,6 +21,7 @@ import 'package:uuid/uuid.dart';
 import 'media_watcher.dart';
 import 'util.dart';
 
+const double _aspectRatio = 16 / 9;
 class MediaWidget extends StatelessWidget {
   const MediaWidget(
     this.medias,
@@ -64,19 +65,17 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        // maxHeight: 296,
-        maxWidth: 296,
+      constraints: BoxConstraints.expand(
+        height:medias[0]?.type=='share'?90: 166,
       ),
-      child: _aspectRatioImage(context, index: 0, aspectRatio: 16 / 9),
+      child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
     );
   }
 
   Widget _buildTwoImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 148,
+      constraints: BoxConstraints.expand(
+        height: 96,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,9 +90,8 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildThreeImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 200,
+      constraints: BoxConstraints.expand(
+        height: 142,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -118,11 +116,12 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildFourImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 296,
+      constraints: BoxConstraints.expand(
+        height: 206,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -146,11 +145,12 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildFiveImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 248,
+      constraints: BoxConstraints.expand(
+        height: 176,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -176,13 +176,12 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildSixImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 200,
+      constraints: BoxConstraints.expand(
+        height: 146,
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -210,11 +209,12 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildSevenImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 296,
+      constraints: BoxConstraints.expand(
+        height: 206,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -252,11 +252,11 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildEightImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 296,
+      constraints: BoxConstraints.expand(
+        height: 206,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -294,11 +294,11 @@ class MediaWidget extends StatelessWidget {
 
   Widget _buildNineImages(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: 296,
-        maxHeight: 296,
+      constraints: BoxConstraints.expand(
+        height: 206,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -344,10 +344,10 @@ class MediaWidget extends StatelessWidget {
   }
 
   Widget _plusMorePictures(
-    BuildContext context, {
-    int valueCount,
-    Widget child,
-  }) {
+      BuildContext context, {
+        int valueCount,
+        Widget child,
+      }) {
     if (valueCount <= 0) {
       return child;
     } else {
@@ -360,14 +360,14 @@ class MediaWidget extends StatelessWidget {
               _openGalleryWatcher(context, 9);
             },
             child: AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: _aspectRatio,
               child: Container(
                 color: Colors.white30,
                 child: Center(
                   child: Text(
                     "+$valueCount",
                     style:
-                        TextStyle(fontSize: 32, fontFamily: "Poppins-Regular"),
+                    TextStyle(fontSize: 32, fontFamily: "Poppins-Regular"),
                   ),
                 ),
               ),
@@ -387,7 +387,7 @@ class MediaWidget extends StatelessWidget {
   Widget _aspectRatioImage(
     BuildContext context, {
     int index,
-    double aspectRatio = 1,
+        double aspectRatio = _aspectRatio,
   }) {
     var media=medias[index];
     if('share'==media.type){
@@ -448,12 +448,11 @@ class _MediaWithLoader extends StatelessWidget {
   final String accessToken;
   final BoxFit fit;
   final double loaderSize;
-  Future<String> _getUrlVideo_future;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
-      fit:stackFit==null? StackFit.expand:stackFit,
+      fit: StackFit.expand,
       alignment: Alignment.center,
       children: <Widget>[
        ( 'video'==src?.type)?SizedBox.shrink():
@@ -490,7 +489,7 @@ class _MediaWithLoader extends StatelessWidget {
         mediaRender = src.startsWith('/')
             ? Image.file(
           File(src),
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
         )
         //     : FadeInImage.memoryNetwork(
         //   image: getUrlWithAccessToken(src, accessToken) ,
@@ -499,7 +498,11 @@ class _MediaWithLoader extends StatelessWidget {
         // );
         :CachedNetworkImage(
           imageUrl:  getUrlWithAccessToken(src, accessToken) ,
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
+        );
+        mediaRender=ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+            child: mediaRender,
         );
         break;
       case 'share':
@@ -524,10 +527,18 @@ class _MediaWithLoader extends StatelessWidget {
           src: src,
           context: pageContext,
         );
+        mediaRender = ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          child: mediaRender,
+        );
         break;
       case 'audio':
         mediaRender = MyAudioWidget(
           audioFile: src,
+        );
+        mediaRender = ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          child: mediaRender,
         );
         break;
       default:

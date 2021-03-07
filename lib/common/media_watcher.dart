@@ -8,6 +8,7 @@ import 'package:framework/core_lib/_utimate.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
+import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -306,7 +307,8 @@ class _VideoWatcher extends StatefulWidget {
   bool autoPlay;
   String src;
   PageContext context;
-  _VideoWatcher({this.autoPlay, this.context,this.src});
+  VideoController controller;
+  _VideoWatcher({this.autoPlay,this.controller, this.context,this.src});
 
   @override
   __VideoWatcherState createState() => __VideoWatcherState();
@@ -316,15 +318,58 @@ class __VideoWatcherState extends State<_VideoWatcher> {
   VideoPlayerController controller;
   int _currentActionIndex = 0;
   var start;
-  Future<void> _future_waitfor_inited;
+  bool _isLoading=true;
 
   @override
   void initState() {
-    String src=widget.src;
-    if(src.startsWith('/')) {
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _currentActionIndex = 0;
+    start = null;
+    try{
+      controller.dispose();
+    }catch(e){
+
+    }
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_VideoWatcher oldWidget) {
+    if(oldWidget.src!=widget.src) {
+      oldWidget.src=widget.src;
+      //重新加载会导致VideoPlayerController实体太多没释放，会报错:Failed to initialize decoder: OMX.hisi.video.decoder.avc
+      //可是注掉又不能刷新了
+      _load();
+    }
+    super.didUpdateWidget(oldWidget);
+
+  }
+  Future<void> _load() async {
+    if (controller != null) {
+      VideoPlayerController oldController = controller;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        try {
+          oldController.dispose();
+        } catch (e) {}
+      });
+      setState(() {
+        controller=null;
+      });
+    }
+    String src = widget.src;
+    if (src.startsWith('/')) {
       controller = VideoPlayerController.file(File(src));
-    }else{
-      controller = VideoPlayerController.network(getUrlWithAccessToken(src,widget.context.principal.accessToken));
+    } else {
+      controller = VideoPlayerController.network(
+          getUrlWithAccessToken(src, widget.context.principal.accessToken));
+    }
+    if (widget.controller != null) {
+      widget.controller.controller = controller;
     }
     controller.addListener(() {
       if (controller.value.isPlaying) {
@@ -349,33 +394,54 @@ class __VideoWatcherState extends State<_VideoWatcher> {
         });
       }
     });
-    _future_waitfor_inited = waitfor_inited();
-    super.initState();
+    await waitfor_inited();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-
-  @override
-  void dispose() {
-    _currentActionIndex = 0;
-    controller?.dispose();
-    start = null;
-    _future_waitfor_inited = null;
-    super.dispose();
-  }
-
   Future<void> waitfor_inited() async {
     try {
       await controller.initialize();
       start = controller.value.position;
+      if (widget.controller != null) {
+        widget.controller.start = start;
+      }
       if (widget.autoPlay) {
-        controller.play();
+        await controller.play();
       }
     }catch(e){
-      print('视频初始化失败:$e');
+      print('视频加载失败:$e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    dynamic display;
+    if(_isLoading){
+      display=Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }else{
+      display=ClipRect(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.black,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: controller.value.aspectRatio,
+              child: VideoPlayer(controller),
+            ),
+          ),
+        ),
+      );
+    }
     return Stack(
       fit: StackFit.passthrough,
       alignment: Alignment.center,
@@ -386,40 +452,7 @@ class __VideoWatcherState extends State<_VideoWatcher> {
             minWidth: 100,
             maxHeight: Adapt.screenH() - 70,
           ),
-          child: FutureBuilder(
-            future: _future_waitfor_inited,
-            builder: (ctx, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              if (snapshot.hasError) {
-                print('video error: ${snapshot.error}');
-                return Container(
-                  width: 0,
-                  height: 0,
-                );
-              }
-              return ClipRect(
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black,
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: controller.value.aspectRatio,
-                      child: VideoPlayer(controller),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+          child: display,
         ),
         Positioned(
           bottom: 42,

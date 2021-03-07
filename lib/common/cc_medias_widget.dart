@@ -485,13 +485,9 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     super.dispose();
   }
   Future<void> _loadSrcFile() async {
-    _src=widget.src;
-    if(_src.type=='audio') {
-      IChasechainRecommenderRemote recommender =
-      widget.context.site.getService('/remote/chasechain/recommender');
-      _src = await recommender.getAndCacheMedia(widget.src);
-      return;
-    }
+    IChasechainRecommenderRemote recommender =
+    widget.context.site.getService('/remote/chasechain/recommender');
+    _src = await recommender.getAndCacheMedia(widget.src);
   }
   @override
   Widget build(BuildContext context) {
