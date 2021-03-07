@@ -225,7 +225,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FadeInImage.assetNetwork(
-                              placeholder: '',
+                              placeholder: 'lib/portals/gbera/images/default_watting.gif',
                               image: '${person.avatarUrl}',
                               width: 40,
                               height: 40,
@@ -265,9 +265,12 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                                   SizedBox(
                                     height: 5,
                                   ),
-                                  Row(
-                                    children: _renderPersonInfo(e),
-                                  ),
+                                  FittedBox(
+                                    fit: BoxFit.contain,
+                                    child: Row(
+                                      children: _renderPersonInfo(e),
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
@@ -419,7 +422,7 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
         //         Row(
         //           children: <Widget>[
         //             FadeInImage.assetNetwork(
-        //               placeholder: '',
+        //               placeholder: 'lib/portals/gbera/images/default_watting.gif',
         //               image: '${person.avatarUrl}',
         //               width: 30,
         //               height: 30,

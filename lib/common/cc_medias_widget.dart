@@ -72,7 +72,7 @@ class RecommenderMediaWidget extends StatelessWidget {
   Widget _buildSingleImage(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints.expand(
-        height:medias[0]?.type=='share'?90: 166,
+        height: medias[0]?.type == 'share' ? 90 : 166,
       ),
       child: _aspectRatioImage(context, index: 0, aspectRatio: 1),
     );
@@ -395,8 +395,8 @@ class RecommenderMediaWidget extends StatelessWidget {
     int index,
     double aspectRatio = _aspectRatio,
   }) {
-    var media=medias[index];
-    if('share'==media.type){
+    var media = medias[index];
+    if ('share' == media.type) {
       return _MediaCacheAndLoader(
         src: medias[index],
         accessToken: pageContext.principal.accessToken,
@@ -484,35 +484,41 @@ class __MediaCacheAndLoaderState extends State<_MediaCacheAndLoader> {
     // TODO: implement dispose
     super.dispose();
   }
+
   Future<void> _loadSrcFile() async {
     IChasechainRecommenderRemote recommender =
-    widget.context.site.getService('/remote/chasechain/recommender');
+        widget.context.site.getService('/remote/chasechain/recommender');
     _src = await recommender.getAndCacheMedia(widget.src);
+    if (mounted) {
+      setState(() {});
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       alignment: Alignment.center,
       children: <Widget>[
-        _src!=null&&_src.type=='video'?SizedBox.shrink():
-        Container(
-          color: _src == null ? Colors.black : Colors.transparent,
-          alignment: Alignment.centerLeft,
-          child: Center(
-            child: SizedBox(
-              width: widget.loaderSize,
-              height: widget.loaderSize,
-              child: _buildCircularProgressIndicator(),
-            ),
-          ),
-        ),
+        _src != null && _src.type == 'video'
+            ? SizedBox.shrink()
+            : Container(
+                color: _src == null ? Colors.black : Colors.transparent,
+                alignment: Alignment.centerLeft,
+                child: Center(
+                  child: SizedBox(
+                    width: widget.loaderSize,
+                    height: widget.loaderSize,
+                    child: _buildCircularProgressIndicator(),
+                  ),
+                ),
+              ),
         _src == null
             ? SizedBox(
                 width: 0,
                 height: 0,
               )
-            : _getMediaRender(widget.context,_src, widget.accessToken),
+            : _getMediaRender(widget.context, _src, widget.accessToken),
       ],
     );
   }
@@ -526,12 +532,13 @@ CircularProgressIndicator _buildCircularProgressIndicator() {
   );
 }
 
-Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String accessToken) {
+Widget _getMediaRender(
+    PageContext pageContext, RecommenderMediaOR media, String accessToken) {
   var mediaRender;
   var src = media?.src;
   switch (media.type) {
     case 'image':
-      if(src.startsWith('/')) {
+      if (src.startsWith('/')) {
         mediaRender = ClipRRect(
           borderRadius: BorderRadius.all(Radius.circular(8)),
           child: Image.file(
@@ -539,11 +546,11 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
             fit: BoxFit.cover,
           ),
         );
-      }else{
+      } else {
         mediaRender = ClipRRect(
           borderRadius: BorderRadius.all(Radius.circular(8)),
           child: CachedNetworkImage(
-            imageUrl:  getUrlWithAccessToken(src, accessToken) ,
+            imageUrl: getUrlWithAccessToken(src, accessToken),
             fit: BoxFit.cover,
           ),
         );
@@ -555,7 +562,7 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
         href: media.src,
         leading: media.leading,
         context: pageContext,
-        margin: EdgeInsets.only(left: 0,right: 0),
+        margin: EdgeInsets.only(left: 0, right: 0),
       );
       break;
     case 'video':
@@ -581,4 +588,3 @@ Widget _getMediaRender(PageContext pageContext,RecommenderMediaOR media, String 
   }
   return mediaRender;
 }
-

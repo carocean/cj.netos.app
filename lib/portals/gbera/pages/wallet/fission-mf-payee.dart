@@ -204,6 +204,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
             onLoad: _onload,
             onRefresh: _onRefresh,
             child: ListView(
+
               children: _records.map((e) {
                 var person = e.person;
                 return InkWell(
@@ -220,7 +221,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FadeInImage.assetNetwork(
-                              placeholder: '',
+                              placeholder: 'lib/portals/gbera/images/default_watting.gif',
                               image: '${person.avatarUrl}',
                               width: 40,
                               height: 40,
@@ -260,9 +261,12 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                                   SizedBox(
                                     height: 5,
                                   ),
-                                  Row(
-                                    children:  _renderPersonInfo(e),
-                                  ),
+                                  FittedBox(
+                                    fit: BoxFit.contain,
+                                    child: Row(
+                                      children: _renderPersonInfo(e),
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
@@ -411,7 +415,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         //         Row(
         //           children: <Widget>[
         //             FadeInImage.assetNetwork(
-        //               placeholder: '',
+        //               placeholder: 'lib/portals/gbera/images/default_watting.gif',
         //               image: '${person.avatarUrl}',
         //               width: 30,
         //               height: 30,
