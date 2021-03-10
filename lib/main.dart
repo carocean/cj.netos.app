@@ -22,7 +22,7 @@ final deviceStatus = DeviceStatus(
   unreadCount: 0,
   reconnectTrytimes: 0,
 );
-final onlineEvent=StreamController.broadcast();
+final onlineEvent = StreamController.broadcast();
 
 class ProgressTaskBar {
   Function(double percent) _target;
@@ -155,24 +155,26 @@ void main() => platformRun(
             '@.prop.ports.feedback.tiptool':
                 'http://47.105.165.186/feedback/tiptool.ports',
             '@.prop.ports.operation.screen':
-            'http://47.105.165.186/screen/screen.ports',
+                'http://47.105.165.186/screen/screen.ports',
             '@.prop.ports.fission.mf.cashier':
-            'http://47.105.165.186/fission-mf-cashier/cashier.ports',
+                'http://47.105.165.186/fission-mf-cashier/cashier.ports',
             '@.prop.ports.fission.mf.cashier.bill':
-            'http://47.105.165.186/fission-mf-cashier/cashier/bill.ports',
+                'http://47.105.165.186/fission-mf-cashier/cashier/bill.ports',
             '@.prop.ports.fission.mf.cashier.record':
-            'http://47.105.165.186/fission-mf-cashier/cashier/record.ports',
+                'http://47.105.165.186/fission-mf-cashier/cashier/record.ports',
             '@.prop.ports.fission.mf.receipt':
-            'http://47.105.165.186/fission-mf-receipt/cashier.ports',
-            '@.prop.website.webshare.netflow-viewer':'https://www.nodespower.com/webshare/pages/netflow-viewer.html',
-            '@.prop.website.webshare.geosphere-viewer':'https://www.nodespower.com/webshare/pages/geosphere-viewer.html',
+                'http://47.105.165.186/fission-mf-receipt/cashier.ports',
+            '@.prop.website.webshare.netflow-viewer':
+                'https://www.nodespower.com/webshare/pages/netflow-viewer.html',
+            '@.prop.website.webshare.geosphere-viewer':
+                'https://www.nodespower.com/webshare/pages/geosphere-viewer.html',
           },
           buildServices: (site) async {
             await registerWxApi(
                 appId: "wxf7be7c1a7c5fd8ed",
                 doOnAndroid: true,
                 doOnIOS: true,
-                universalLink: "https://nodespower.com/app/");//苹果才用，必须为它设置
+                universalLink: "https://nodespower.com/app/"); //苹果才用，必须为它设置
             var result = await isWeChatInstalled;
             print("is installed $result");
 
@@ -181,7 +183,8 @@ void main() => platformRun(
             /// 初始化 iOS在init方法中设置, android需要去AndroidManifest.xml里去设置, 详见 https://lbs.amap.com/api/android-sdk/gettingstarted
             if (Platform.isIOS) {
               try {
-                await AmapLocation.instance.init(iosKey: 'd01465eb6d15b8df1ee56e5df1f6e1f6');
+                await AmapLocation.instance
+                    .init(iosKey: 'd01465eb6d15b8df1ee56e5df1f6e1f6');
                 await requestPermission();
               } catch (e) {
                 print('amap on main error: $e');
@@ -352,7 +355,7 @@ class _WindowState extends State<Window> {
         child: TaskBar(widget.site, _progressTaskBar),
       ),
     ];
-    if (Platform.isAndroid&&
+    if (Platform.isAndroid &&
         _upgradeInfo != null &&
         !_upgradeInfo.isHide &&
         _upgradeInfo.canUpgrade) {
@@ -413,6 +416,30 @@ class _WindowState extends State<Window> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: _renderFunctionList(),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8)),
+                ),
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Text(
+                  '提示:请到手机自带的应用商店更新更快。在应用商店搜索栏中输入：地微',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                  ),
                 ),
               ),
               Container(
@@ -585,7 +612,8 @@ class _StatusBarState extends State<StatusBar> {
         stateText = '重试${deviceStatus.reconnectTrytimes}次';
         break;
     }
-    if (deviceStatus.state == DeviceNetState.online && deviceStatus.unreadCount < 1) {
+    if (deviceStatus.state == DeviceNetState.online &&
+        deviceStatus.unreadCount < 1) {
       return SizedBox(
         width: 0,
         height: 0,
