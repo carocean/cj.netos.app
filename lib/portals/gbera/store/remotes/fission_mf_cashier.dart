@@ -138,6 +138,7 @@ mixin IFissionMFCashierRemote {
 
   Future<CashierBalanceOR> getCashierBalance();
 
+  Future<int> getStayBalance() {}
   Future<CashierOR> getCashier() {}
 
   Future<int> assessCacCount() {}
@@ -189,6 +190,8 @@ mixin IFissionMFCashierRemote {
       {String province,String provinceCode, String city,String cityCode, String district,String districtCode, String town,String townCode}) {}
 
   Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) {}
+
+
 }
 
 class FissionMFCashierRemote
@@ -237,6 +240,19 @@ class FissionMFCashierRemote
         'details': jsonEncode(details),
       },
     );
+  }
+
+  @override
+  Future<int> getStayBalance()async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getStayBalance',
+      parameters: {},
+    );
+    if (obj == null) {
+      return 0;
+    }
+    return obj;
   }
 
   @override

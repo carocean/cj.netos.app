@@ -1099,12 +1099,13 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
   TextEditingController _amountController = TextEditingController();
   MyWallet _myWallet;
   String _errorText;
+  int _stayBalance;
+  bool _isLoading = true;
 
   @override
   void initState() {
     _myWallet = widget.wallet;
-    _amountController.text =
-        '${(_myWallet.fissionMf / 100.00).toStringAsFixed(2)}';
+    _loadStayBalance();
     super.initState();
   }
 
@@ -1114,12 +1115,33 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
     super.dispose();
   }
 
+  Future<void> _loadStayBalance() async {
+    IFissionMFCashierRemote cashierRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier');
+    _stayBalance = await cashierRemote.getStayBalance();
+    _amountController.text =
+        '${((_myWallet.fissionMf - _stayBalance) / 100.00).toStringAsFixed(2)}';
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   bool _isValid() {
+    if (_isLoading) {
+      //留存余额还在加载
+      return false;
+    }
+    if (_myWallet.fissionMf < _stayBalance) {
+      //如果账上已小于留存余额，则不可提
+      return false;
+    }
     var v = _amountController.text;
     if (!StringUtil.isEmpty(v)) {
       try {
         var amount = double.parse(v);
-        if (amount * 100 <= _myWallet.fissionMf) {
+        if (amount * 100 <= _myWallet.fissionMf - _stayBalance) {
           return true;
         }
       } catch (e) {}
@@ -1153,54 +1175,198 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
         elevation: 0,
         titleSpacing: 0,
       ),
-      body: Container(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 40,
-        ),
-        child: TextField(
-          controller: _amountController,
-          keyboardType: TextInputType.numberWithOptions(
-            signed: true,
-            decimal: true,
-          ),
-          decoration: InputDecoration(
-            labelText: '提取金额',
-            hintText: '输入金额...',
-            prefixIcon: Icon(
-              FontAwesomeIcons.yenSign,
-              size: 14,
-            ),
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey[100],
+      body: _renderBody(),
+    );
+  }
+
+  _renderBody() {
+    if (_isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Center(
+            child: Text(
+              '正在计算可提资金...',
+              style: TextStyle(
+                color: Colors.grey[600],
               ),
             ),
-            errorText: _errorText,
           ),
-          onChanged: (v) {
-            if (!StringUtil.isEmpty(v)) {
-              _errorText = null;
-              if (!v.endsWith('.')) {
-                try {
-                  double amount = double.parse(v);
-                  if (amount * 100 > _myWallet.fissionMf) {
-                    _errorText = '超出余额';
+        ],
+      );
+    }
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.only(
+            left: 30,
+            right: 30,
+            top: 40,
+          ),
+          child: TextField(
+            controller: _amountController,
+            keyboardType: TextInputType.numberWithOptions(
+              signed: true,
+              decimal: true,
+            ),
+            decoration: InputDecoration(
+              labelText: '提取金额',
+              labelStyle: TextStyle(
+                fontSize: 18,
+              ),
+              hintText: '输入金额...',
+              hintStyle: TextStyle(
+                fontSize: 18,
+              ),
+              prefix: Padding(
+                padding: EdgeInsets.only(right: 5,top: 10,),
+                child: Icon(
+                  FontAwesomeIcons.yenSign,
+                  size: 40,
+                ),
+              ),
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.grey[100],
+                ),
+              ),
+              errorText: _errorText,
+            ),
+            style: TextStyle(
+              fontSize: 30,
+            ),
+            onChanged: (v) {
+              if (!StringUtil.isEmpty(v)) {
+                _errorText = null;
+                if (!v.endsWith('.')) {
+                  try {
+                    double amount = double.parse(v);
+                    if (amount * 100 > _myWallet.fissionMf - _stayBalance) {
+                      _errorText = '超出可提金额';
+                      _amountController.text = '';
+                    }
+                  } catch (e) {
+                    _errorText = '不是合法的输入值';
                     _amountController.text = '';
                   }
-                } catch (e) {
-                  _errorText = '不是合法的输入值';
-                  _amountController.text = '';
                 }
               }
-            }
-            if (mounted) {
-              setState(() {});
-            }
-          },
+              if (mounted) {
+                setState(() {});
+              }
+            },
+          ),
         ),
-      ),
+        SizedBox(
+          height: 40,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              width: 1,
+              color: Colors.grey[300],
+            ),
+          ),
+          padding: EdgeInsets.all(20),
+          margin: EdgeInsets.only(
+            left: 20,
+            right: 20,
+          ),
+          child: Stack(
+            overflow: Overflow.visible,
+            children: [
+              Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '可提金额:',
+                        style: TextStyle(
+                          color: Colors.black54,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        '¥',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.red,
+                        ),
+                      ),
+                      Text(
+                        '${((_myWallet.fissionMf - _stayBalance) / 100.00).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 25,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Text('='),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text.rich(
+                        TextSpan(
+                          text:
+                              '¥${(_myWallet.fissionMf / 100.00).toStringAsFixed(2)}',
+                          children: [
+                            TextSpan(
+                              text: '(红包余额)',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text('+'),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text.rich(
+                        TextSpan(
+                          text:
+                              '¥${(_stayBalance / 100.00).toStringAsFixed(2)}',
+                          children: [
+                            TextSpan(
+                              text: '(留存金额)',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Positioned(
+                top: -30,
+                left: -5,
+                child: Text(
+                  '说明',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
