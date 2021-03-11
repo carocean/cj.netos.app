@@ -421,9 +421,6 @@ class _WindowState extends State<Window> {
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8)),
                 ),
                 constraints: BoxConstraints.tightForFinite(
                   width: double.maxFinite,

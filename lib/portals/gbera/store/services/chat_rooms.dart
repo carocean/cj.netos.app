@@ -44,7 +44,6 @@ class FriendService implements IFriendService, IServiceBuilder {
     if (friend != null) {
       return friend;
     }
-    print('-------2------');
     var person = await personService.getPerson(official);
     if (person == null) {
       return null;
