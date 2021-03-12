@@ -16,6 +16,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
 import 'package:netos_app/system/local/local_principals.dart';
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 
@@ -492,6 +493,7 @@ class __PasswordPanelState extends State<_PasswordPanel> {
         Divider(
           height: 1,
         ),
+        useSimpleLayout()?SizedBox.shrink():
         Padding(
           padding: EdgeInsets.only(
             left: 20,
@@ -1044,6 +1046,7 @@ class __ExistsAccountPanelState extends State<_ExistsAccountPanel> {
         Divider(
           height: 1,
         ),
+        useSimpleLayout()?SizedBox.shrink():
         Padding(
           padding: EdgeInsets.only(
             left: 20,

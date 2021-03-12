@@ -12,6 +12,7 @@ import 'package:lpinyin/lpinyin.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/local_principals.dart' as lp;
+import 'package:netos_app/system/system.dart';
 import 'package:uuid/uuid.dart';
 
 import 'local/entities.dart';
@@ -576,6 +577,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           SizedBox(height: 20,),
+          useSimpleLayout()?SizedBox.shrink():
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap:() {
