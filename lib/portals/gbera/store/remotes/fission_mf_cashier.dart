@@ -120,7 +120,9 @@ class CashierOR {
   String areaMaster;
   int stage;
   int level;
-
+  int isRequest;
+  int becomeAgent;
+ String phone;
   CashierOR({
     this.person,
     this.state,
@@ -138,6 +140,9 @@ class CashierOR {
     this.areaMaster,
     this.stage,
     this.level,
+    this.becomeAgent,
+    this.isRequest,
+    this.phone,
   });
 
   CashierOR.parse(obj) {
@@ -157,6 +162,9 @@ class CashierOR {
     this.areaMaster = obj['areaMaster'];
     this.stage = obj['stage'];
     this.level = obj['level'];
+    this.becomeAgent=obj['becomeAgent'];
+    this.isRequest=obj['isRequest'];
+    this.phone=obj['phone'];
   }
 }
 
@@ -337,8 +345,9 @@ mixin IFissionMFCashierRemote {
 
   Future<List<BusinessIncomeRatioOR>> listBusinessIncomeRatio() {}
 
-  Future<void>setSalesman(String official) {}
+  Future<void> setSalesman(String official) {}
 
+  Future<void> setRequirement(int becomeAgent, String phone) {}
 }
 
 class FissionMFCashierRemote
@@ -446,12 +455,24 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<Function> setSalesman(String official) async{
+  Future<Function> setRequirement(int becomeAgent, String phone)async {
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setRequirement',
+      parameters: {
+        'becomeAgent': becomeAgent,
+        'phone':phone,
+      },
+    );
+  }
+
+  @override
+  Future<Function> setSalesman(String official) async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'setSalesman',
       parameters: {
-        'person':official,
+        'person': official,
       },
     );
   }

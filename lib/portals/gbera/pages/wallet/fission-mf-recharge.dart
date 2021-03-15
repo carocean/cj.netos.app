@@ -398,6 +398,9 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                 initAmount: _data[0],
               ),
             );
+            if(amount==null) {
+              return;
+            }
             _amount = amount;
             _selectedRatio = _findRatio(_amount);
             if (mounted) {
@@ -534,8 +537,83 @@ class _AgentOptionsDialog extends StatefulWidget {
 }
 
 class __AgentOptionsDialogState extends State<_AgentOptionsDialog> {
+  CashierOR _cashierOR;
+  bool _isLoading=true;
+  @override
+  void initState() {
+    _load();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    IFissionMFCashierRemote cashierRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier');
+    _cashierOR = await cashierRemote.getCashier();
+    if (mounted) {
+      setState(() {
+        _isLoading=false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var items=<Widget>[];
+    if(!_isLoading){
+      items.addAll(<Widget>[Expanded(
+        child: Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            children: [
+              CardItem(
+                title: '指定代理人',
+                tipsText: '如果你认识代理人',
+                onItemTap: () async {
+                  await widget.context.forward('/wallet/fission/mf/agent');
+                  widget.context.backward();
+                },
+              ),
+              Divider(
+                height: 1,
+              ),
+              CardItem(
+                title: '平台推荐',
+                tipsText:
+                '${(_cashierOR.isRequest ?? 0) == 1 ? '已提交需求' : '如果你不认识代理人'}',
+                onItemTap: () async {
+                  await widget.context
+                      .forward('/wallet/fission/mf/contact');
+                  widget.context.backward();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+        SizedBox(
+          height: 10,
+        ),
+        InkWell(
+          onTap: () {
+            widget.context.backward();
+          },
+          child: Container(
+            padding: EdgeInsets.only(top: 15, bottom: 15),
+            color: Colors.white,
+            alignment: Alignment.center,
+            child: Text('不需要代理人'),
+          ),
+        ),],);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('选择'),
@@ -543,54 +621,7 @@ class __AgentOptionsDialogState extends State<_AgentOptionsDialog> {
         automaticallyImplyLeading: false,
       ),
       body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-              ),
-              child: Column(
-                children: [
-                  CardItem(
-                    title: '指定代理人',
-                    tipsText: '如果你认识代理人',
-                    onItemTap: () async {
-                      await widget.context.forward('/wallet/fission/mf/agent');
-                      widget.context.backward();
-                    },
-                  ),
-                  Divider(
-                    height: 1,
-                  ),
-                  CardItem(
-                    title: '平台推荐',
-                    tipsText: '如果你不认识代理人',
-                    onItemTap: () async {
-                      await widget.context
-                          .forward('/wallet/fission/mf/contact');
-                      widget.context.backward();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          InkWell(
-            onTap: () {
-              widget.context.backward();
-            },
-            child: Container(
-              padding: EdgeInsets.only(top: 15, bottom: 15),
-              color: Colors.white,
-              alignment: Alignment.center,
-              child: Text('不需要代理人'),
-            ),
-          ),
-        ],
+        children: items,
       ),
     );
   }

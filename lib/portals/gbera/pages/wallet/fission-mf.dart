@@ -229,13 +229,12 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         _isRecharging = true;
       });
     }
-    IFissionMFCashierRemote cashier =
-        widget.context.site.getService('/wallet/fission/mf/cashier');
-    String salesman = 'cj@gbera.netos'; //客户经理
-    await cashier.recharge(amount, salesman);
-
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
+    _cashierOR = await cashierRemote.getCashier();
+    String salesman = _cashierOR.salesman; //客户经理
+    await cashierRemote.recharge(amount, salesman);
+
     Future.delayed(
         Duration(
           seconds: 1,
