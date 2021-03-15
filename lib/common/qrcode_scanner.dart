@@ -114,7 +114,7 @@ class QrcodeScanner {
     switch (selected) {
       case 'yes':
         if (qraction.doit != null) {
-          await qraction.doit(info);
+         return await qraction.doit(info);
         }
         break;
       case 'no':
@@ -126,7 +126,7 @@ class QrcodeScanner {
 
 class QrcodeAction {
   Future<QrcodeInfo> Function(String itis, String data) parse;
-  Future<void> Function(QrcodeInfo info) doit;
+  Future<dynamic> Function(QrcodeInfo info) doit;
 
   QrcodeAction({this.parse, this.doit});
 }

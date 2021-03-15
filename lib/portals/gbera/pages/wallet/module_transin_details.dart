@@ -357,6 +357,25 @@ class _ModuleTransinDetailsState extends State<ModuleTransinDetails> {
                           ],
                         ),
                         ..._renderPayer(),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: 70,
+                              ),
+                              child: Text(
+                                '备注:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text('${record.note ?? ''}'),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

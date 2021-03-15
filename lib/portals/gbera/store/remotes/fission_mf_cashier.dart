@@ -111,6 +111,15 @@ class CashierOR {
   int cacAverage;
   double amplitudeFactor;
   String closedCause;
+  int checkedWithdrawPt;
+  int stayBalance;
+  String referrer;
+  String referrerName;
+  int supportsChatroom;
+  String salesman;
+  String areaMaster;
+  int stage;
+  int level;
 
   CashierOR({
     this.person,
@@ -120,6 +129,15 @@ class CashierOR {
     this.cacAverage,
     this.amplitudeFactor,
     this.closedCause,
+    this.checkedWithdrawPt,
+    this.stayBalance,
+    this.referrer,
+    this.referrerName,
+    this.supportsChatroom,
+    this.salesman,
+    this.areaMaster,
+    this.stage,
+    this.level,
   });
 
   CashierOR.parse(obj) {
@@ -130,15 +148,134 @@ class CashierOR {
     this.cacAverage = obj['cacAverage'];
     this.amplitudeFactor = obj['amplitudeFactor'];
     this.closedCause = obj['closedCause'];
+    this.checkedWithdrawPt = obj['checkedWithdrawPt'];
+    this.stayBalance = obj['stayBalance'];
+    this.referrer = obj['referrer'];
+    this.referrerName = obj['referrerName'];
+    this.supportsChatroom = obj['supportsChatroom'];
+    this.salesman = obj['salesman'];
+    this.areaMaster = obj['areaMaster'];
+    this.stage = obj['stage'];
+    this.level = obj['level'];
+  }
+}
+
+class MFSettingsOR {
+  String id;
+  int stayBalance;
+  double withdrawIncomeRatio;
+  double withdrawAbsorbRatio;
+  double withdrawCommRatio;
+  double withdrawShuntRatio;
+  int refundLimitDay;
+  double commissionStage1;
+  double commissionStage2;
+  double commissionStage3;
+  double platformReturnLevel2;
+  double platformReturnCityRatio;
+  double platformReturnProvinceRatio;
+
+  MFSettingsOR({
+    this.id,
+    this.stayBalance,
+    this.withdrawIncomeRatio,
+    this.withdrawAbsorbRatio,
+    this.withdrawCommRatio,
+    this.withdrawShuntRatio,
+    this.refundLimitDay,
+    this.commissionStage1,
+    this.commissionStage2,
+    this.commissionStage3,
+    this.platformReturnLevel2,
+    this.platformReturnCityRatio,
+    this.platformReturnProvinceRatio,
+  });
+
+  MFSettingsOR.parse(obj) {
+    this.id = obj['id'];
+    this.stayBalance = obj['stayBalance'];
+    this.withdrawIncomeRatio = obj['withdrawIncomeRatio'];
+    this.withdrawAbsorbRatio = obj['withdrawAbsorbRatio'];
+    this.withdrawCommRatio = obj['withdrawCommRatio'];
+    this.withdrawShuntRatio = obj['withdrawShuntRatio'];
+    this.refundLimitDay = obj['refundLimitDay'];
+    this.commissionStage1 = obj['commissionStage1'];
+    this.commissionStage2 = obj['commissionStage2'];
+    this.commissionStage3 = obj['commissionStage3'];
+    this.platformReturnLevel2 = obj['platformReturnLevel2'];
+    this.platformReturnCityRatio = obj['platformReturnCityRatio'];
+    this.platformReturnProvinceRatio = obj['platformReturnProvinceRatio'];
+  }
+}
+
+class WithdrawShuntOR {
+  int gainAmount;
+  int shuntAmount;
+  int absorbAmount;
+  int commissionAmount;
+  int incomeAmount;
+  double withdrawIncomeRatio;
+  double withdrawAbsorbRatio;
+  double withdrawCommRatio;
+  double withdrawShuntRatio;
+
+  WithdrawShuntOR({
+    this.gainAmount,
+    this.shuntAmount,
+    this.absorbAmount,
+    this.commissionAmount,
+    this.incomeAmount,
+    this.withdrawIncomeRatio,
+    this.withdrawAbsorbRatio,
+    this.withdrawCommRatio,
+    this.withdrawShuntRatio,
+  });
+
+  WithdrawShuntOR.parse(obj) {
+    this.gainAmount = obj['gainAmount'];
+    this.shuntAmount = obj['shuntAmount'];
+    this.absorbAmount = obj['absorbAmount'];
+    this.commissionAmount = obj['commissionAmount'];
+    this.incomeAmount = obj['incomeAmount'];
+    this.withdrawIncomeRatio = obj['withdrawIncomeRatio'];
+    this.withdrawAbsorbRatio = obj['withdrawAbsorbRatio'];
+    this.withdrawCommRatio = obj['withdrawCommRatio'];
+    this.withdrawShuntRatio = obj['withdrawShuntRatio'];
+  }
+}
+
+class BusinessIncomeRatioOR {
+  String id;
+  int minAmountEdge;
+  int maxAmountEdge;
+  double ratio;
+
+  BusinessIncomeRatioOR({
+    this.id,
+    this.minAmountEdge,
+    this.maxAmountEdge,
+    this.ratio,
+  });
+
+  BusinessIncomeRatioOR.parse(obj) {
+    this.id = obj['id'];
+    this.minAmountEdge = obj['minAmountEdge'];
+    this.maxAmountEdge = obj['maxAmountEdge'];
+    this.ratio = obj['ratio'];
   }
 }
 
 mixin IFissionMFCashierRemote {
-  Future<void> recharge(int amount);
+  Future<MFSettingsOR> getSettings();
+
+  Future<WithdrawShuntOR> computeWithdrawShuntInfo(int amount);
+
+  Future<void> recharge(int amount, String salesman);
 
   Future<CashierBalanceOR> getCashierBalance();
 
   Future<int> getStayBalance() {}
+
   Future<CashierOR> getCashier() {}
 
   Future<int> assessCacCount() {}
@@ -187,10 +324,20 @@ mixin IFissionMFCashierRemote {
   Future<void> setAdvert(String note) {}
 
   Future<void> updateLocation(LatLng location,
-      {String province,String provinceCode, String city,String cityCode, String district,String districtCode, String town,String townCode}) {}
+      {String province,
+      String provinceCode,
+      String city,
+      String cityCode,
+      String district,
+      String districtCode,
+      String town,
+      String townCode}) {}
 
   Future<List<FissionMFTagOR>> listPropertyTagOfPerson(String person) {}
 
+  Future<List<BusinessIncomeRatioOR>> listBusinessIncomeRatio() {}
+
+  Future<void>setSalesman(String official) {}
 
 }
 
@@ -217,7 +364,7 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<void> recharge(int amount) async {
+  Future<void> recharge(int amount, String salesman) async {
     var details = <String, dynamic>{
       "payeeCode": "${principal.person}",
       "payeeName": "${principal.nickName}",
@@ -226,6 +373,7 @@ class FissionMFCashierRemote
       "orderTitle": "付款到${principal.nickName}的裂变游戏·交个朋友出纳柜台",
       "serviceid": "fission/mf",
       "serviceName": "裂变游戏·交个朋友",
+      "salesman": salesman,
       "note": "推广费"
     };
     await remotePorts.portPOST(
@@ -243,7 +391,7 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<int> getStayBalance()async {
+  Future<int> getStayBalance() async {
     var obj = await remotePorts.portPOST(
       fissionMfCashierPorts,
       'getStayBalance',
@@ -266,6 +414,59 @@ class FissionMFCashierRemote
       return null;
     }
     return CashierBalanceOR.parse(obj);
+  }
+
+  @override
+  Future<WithdrawShuntOR> computeWithdrawShuntInfo(int amount) async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'computeWithdrawShuntInfo',
+      parameters: {
+        'amount': amount,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return WithdrawShuntOR.parse(obj);
+  }
+
+  @override
+  Future<List<BusinessIncomeRatioOR>> listBusinessIncomeRatio() async {
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listBusinessIncomeRatio',
+      parameters: {},
+    );
+    List<BusinessIncomeRatioOR> ratios = [];
+    for (var obj in list) {
+      ratios.add(BusinessIncomeRatioOR.parse(obj));
+    }
+    return ratios;
+  }
+
+  @override
+  Future<Function> setSalesman(String official) async{
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'setSalesman',
+      parameters: {
+        'person':official,
+      },
+    );
+  }
+
+  @override
+  Future<MFSettingsOR> getSettings() async {
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getSettings',
+      parameters: {},
+    );
+    if (obj == null) {
+      return null;
+    }
+    return MFSettingsOR.parse(obj);
   }
 
   @override
@@ -566,7 +767,14 @@ class FissionMFCashierRemote
 
   @override
   Future<void> updateLocation(LatLng location,
-      {String province,String provinceCode, String city,String cityCode, String district,String districtCode, String town,String townCode}) async {
+      {String province,
+      String provinceCode,
+      String city,
+      String cityCode,
+      String district,
+      String districtCode,
+      String town,
+      String townCode}) async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'updateLocation',

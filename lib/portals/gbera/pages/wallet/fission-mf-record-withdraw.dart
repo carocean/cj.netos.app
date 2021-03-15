@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:framework/core_lib/_page_context.dart';
+import 'package:framework/core_lib/_utimate.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
+
 class FissionMFRecordWithdrawPage extends StatefulWidget {
   PageContext context;
 
   FissionMFRecordWithdrawPage({this.context});
 
   @override
-  _FissionMFRecordWithdrawPageState createState() => _FissionMFRecordWithdrawPageState();
+  _FissionMFRecordWithdrawPageState createState() =>
+      _FissionMFRecordWithdrawPageState();
 }
 
-class _FissionMFRecordWithdrawPageState extends State<FissionMFRecordWithdrawPage> {
+class _FissionMFRecordWithdrawPageState
+    extends State<FissionMFRecordWithdrawPage> {
   FissionMFWithdrawRecordOR _record;
   bool _isLoading = true;
 
@@ -31,7 +37,7 @@ class _FissionMFRecordWithdrawPageState extends State<FissionMFRecordWithdrawPag
 
   Future<void> _load() async {
     IFissionMFCashierRecordRemote recordRemote =
-    widget.context.site.getService('/wallet/fission/mf/cashier/record');
+        widget.context.site.getService('/wallet/fission/mf/cashier/record');
     var sn = widget.context.parameters['sn'];
     _record = await recordRemote.getWithdrawRecord(sn);
     if (mounted) {
@@ -146,7 +152,6 @@ class _FissionMFRecordWithdrawPageState extends State<FissionMFRecordWithdrawPag
     );
   }
 
-
   Widget _DetailsCard() {
     var minWidth = 70.00;
     return Container(
@@ -199,7 +204,7 @@ class _FissionMFRecordWithdrawPageState extends State<FissionMFRecordWithdrawPag
                     minWidth: minWidth,
                   ),
                   child: Text(
-                    '充值者:',
+                    '提现者:',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                     ),
@@ -208,6 +213,154 @@ class _FissionMFRecordWithdrawPageState extends State<FissionMFRecordWithdrawPag
                 Expanded(
                   child: Text(
                     '${_record.nickName}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '实际获得:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(_record.gainAmount / 100.00).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '服务费:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(_record.incomeAmount / 100.00).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '发招财猫:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(_record.absorbAmount / 100.00).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '发给老板:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: StringUtil.isEmpty(_record.referrer)?null: ()async{
+                          IPersonService personService =
+                          widget.context.site.getService('/gbera/persons');
+                         var _referrer =
+                          await personService.getPerson('${_record.referrer}@gbera.netos');
+                          widget.context.forward('/person/view',
+                              arguments: {'person': _referrer});
+                        },
+                        child: Text(
+                          '${_record.referrerName ?? '-'}',
+                          style: TextStyle(
+                            decoration: StringUtil.isEmpty(_record.referrerName)
+                                ? TextDecoration.none
+                                : TextDecoration.underline,
+                            color: StringUtil.isEmpty(_record.referrerName)
+                                ? null
+                                : Colors.blueGrey,
+                              fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        '¥${(_record.commissionAmount / 100.00).toStringAsFixed(2)}',
+                      ),
+                    ],
                   ),
                 ),
               ],

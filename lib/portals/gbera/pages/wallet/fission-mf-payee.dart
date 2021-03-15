@@ -46,9 +46,9 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
 
   Future<void> _load() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
-    widget.context.site.getService('/wallet/fission/mf/cashier/record');
+        widget.context.site.getService('/wallet/fission/mf/cashier/record');
     IFissionMFCashierBillRemote cashierBillRemote =
-    widget.context.site.getService('/wallet/fission/mf/cashier/bill');
+        widget.context.site.getService('/wallet/fission/mf/cashier/bill');
     _payeesCount = await cashierRecordRemote.totalPayee();
     _payeesAmount = await cashierBillRemote.totalBillOfAll(2);
     await _onload();
@@ -141,7 +141,9 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                     Expanded(
                       child: Row(
                         children: [
-                          SizedBox(width: 10,),
+                          SizedBox(
+                            width: 10,
+                          ),
                           Text(
                             '成员:$_payeesCount人',
                             style: TextStyle(
@@ -149,7 +151,9 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                               color: Colors.grey[600],
                             ),
                           ),
-                          SizedBox(width: 10,),
+                          SizedBox(
+                            width: 10,
+                          ),
                           Text(
                             '支出:${(_payeesAmount / 100.00).toStringAsFixed(2)}元',
                             style: TextStyle(
@@ -204,7 +208,6 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
             onLoad: _onload,
             onRefresh: _onRefresh,
             child: ListView(
-
               children: _records.map((e) {
                 var person = e.person;
                 return InkWell(
@@ -214,14 +217,18 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                   },
                   child: Column(
                     children: [
-                      Padding(
+                      Container(
                         padding: EdgeInsets.only(
                             left: 15, right: 15, top: 10, bottom: 10),
+                        constraints: BoxConstraints.tightForFinite(
+                          width: double.maxFinite,
+                        ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FadeInImage.assetNetwork(
-                              placeholder: 'lib/portals/gbera/images/default_watting.gif',
+                              placeholder:
+                                  'lib/portals/gbera/images/default_watting.gif',
                               image: '${person.avatarUrl}',
                               width: 40,
                               height: 40,
@@ -261,12 +268,14 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                                   SizedBox(
                                     height: 5,
                                   ),
-                                  FittedBox(
-                                    fit: BoxFit.contain,
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints.tightForFinite(
+                                      width: double.maxFinite,
+                                    ),
                                     child: Row(
                                       children: _renderPersonInfo(e),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -300,13 +309,14 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
       ),
     );
   }
+
   List<Widget> _renderPersonInfo(PayPersonOR payPersonOR) {
     FissionMFPerson person = payPersonOR.person;
-    var items = <Widget>[];
+    var items = <TextSpan>[];
     if (!StringUtil.isEmpty(person.province)) {
       items.add(
-        Text(
-          '${person.province}',
+        TextSpan(
+          text: '${person.province}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
@@ -316,8 +326,8 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
     }
     if (!StringUtil.isEmpty(person.city)) {
       items.add(
-        Text(
-          '·${person.city}',
+        TextSpan(
+          text: '·${person.city}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
@@ -327,22 +337,28 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
     }
     if (!StringUtil.isEmpty(person.district)) {
       items.add(
-        Text(
-          '·${person.district}',
+        TextSpan(
+          text: '·${person.district}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
           ),
         ),
       );
-      items.add(
-        SizedBox(
-          width: 5,
-        ),
-      );
     }
-    return items;
+    return [
+      Expanded(
+        child: Text.rich(
+          TextSpan(
+            text: '',
+            children: items,
+          ),
+        ),
+      ),
+      SizedBox(width: 5,),
+    ];
   }
+
   Widget _renderChart() {
     return SliverToBoxAdapter(
       child: Container(
@@ -384,8 +400,8 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         interval: 1,
         labelIntersectAction: AxisLabelIntersectAction.rotate45,
         dateFormat: intl.DateFormat('M/d'),
-        maximum:_maxTime==null?null: _maxTime.add(Duration(days: 1)),
-        minimum: _minTime==null?null:_minTime.subtract(Duration(days: 1)),
+        maximum: _maxTime == null ? null : _maxTime.add(Duration(days: 1)),
+        minimum: _minTime == null ? null : _minTime.subtract(Duration(days: 1)),
         // title: AxisTitle(text: '时间'),
       ),
       primaryYAxis: NumericAxis(

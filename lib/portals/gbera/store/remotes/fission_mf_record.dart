@@ -62,10 +62,20 @@ class FissionMFWithdrawRecordOR {
   String nickName;
   String currency;
   int amount;
+  double incomeRatio;
+  double commissionRatio;
+  double absorbRatio;
+  double shuntRatio;
+  int incomeAmount;
+  int absorbAmount;
+  int commissionAmount;
+  int gainAmount;
   int state;
   String ctime;
   int status;
   String message;
+   String referrer;
+String referrerName;
   String note;
 
   FissionMFWithdrawRecordOR({
@@ -74,10 +84,20 @@ class FissionMFWithdrawRecordOR {
     this.nickName,
     this.currency,
     this.amount,
+    this.incomeRatio,
+    this.commissionRatio,
+    this.absorbRatio,
+    this.shuntRatio,
+    this.incomeAmount,
+    this.absorbAmount,
+    this.commissionAmount,
+    this.gainAmount,
     this.state,
     this.ctime,
     this.status,
     this.message,
+    this.referrer,
+    this.referrerName,
     this.note,
   });
 
@@ -87,10 +107,20 @@ class FissionMFWithdrawRecordOR {
     this.nickName = obj['nickName'];
     this.currency = obj['currency'];
     this.amount = obj['amount'];
+    this.incomeRatio=obj['incomeRatio'];
+    this.commissionRatio=obj['commissionRatio'];
+    this.absorbRatio=obj['absorbRatio'];
+    this.shuntRatio=obj['shuntRatio'];
+    this.incomeAmount=obj['incomeAmount'];
+    this.absorbAmount=obj['absorbAmount'];
+    this.commissionAmount=obj['commissionAmount'];
+    this.gainAmount=obj['gainAmount'];
     this.state = obj['state'];
     this.ctime = obj['ctime'];
     this.status = obj['status'];
     this.message = obj['message'];
+    this.referrer = obj['referrer'];
+    this.referrerName = obj['referrerName'];
     this.note = obj['note'];
   }
 }
@@ -142,7 +172,8 @@ class FissionMFPerson {
     this.city = obj['city'];
     this.district = obj['district'];
     this.town = obj['town'];
-    this.location = obj['location'] == null ? null : LatLng.fromJson(obj['location']);
+    this.location =
+        obj['location'] == null ? null : LatLng.fromJson(obj['location']);
     this.language = obj['language'];
     this.ctime = obj['ctime'];
     this.openid = obj['openid'];
@@ -364,7 +395,7 @@ class FissionMFCashierRecordRemote
         'sn': sn,
       },
     );
-    if(obj==null) {
+    if (obj == null) {
       return null;
     }
     return FissionMFPayRecordOR.parse(obj);
@@ -379,7 +410,7 @@ class FissionMFCashierRecordRemote
         'sn': sn,
       },
     );
-    if(obj==null) {
+    if (obj == null) {
       return null;
     }
     return FissionMFRechargeRecordOR.parse(obj);
@@ -394,7 +425,7 @@ class FissionMFCashierRecordRemote
         'sn': sn,
       },
     );
-    if(obj==null) {
+    if (obj == null) {
       return null;
     }
     return FissionMFWithdrawRecordOR.parse(obj);

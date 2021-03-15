@@ -218,9 +218,12 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                   },
                   child: Column(
                     children: [
-                      Padding(
+                      Container(
                         padding: EdgeInsets.only(
                             left: 15, right: 15, top: 10, bottom: 10),
+                        constraints: BoxConstraints.tightForFinite(
+                          width: double.maxFinite,
+                        ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -265,12 +268,12 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
                                   SizedBox(
                                     height: 5,
                                   ),
-                                  FittedBox(
-                                    fit: BoxFit.contain,
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints.tightForFinite(width: double.maxFinite,),
                                     child: Row(
                                       children: _renderPersonInfo(e),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -308,11 +311,11 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
 
   List<Widget> _renderPersonInfo(PayPersonOR payPersonOR) {
     FissionMFPerson person = payPersonOR.person;
-    var items = <Widget>[];
+    var items = <TextSpan>[];
     if (!StringUtil.isEmpty(person.province)) {
       items.add(
-        Text(
-          '${person.province}',
+        TextSpan(
+          text: '${person.province}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
@@ -322,8 +325,8 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
     }
     if (!StringUtil.isEmpty(person.city)) {
       items.add(
-        Text(
-          '·${person.city}',
+        TextSpan(
+          text: '·${person.city}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
@@ -333,21 +336,26 @@ class _FissionMFPayersPageState extends State<FissionMFPayersPage> {
     }
     if (!StringUtil.isEmpty(person.district)) {
       items.add(
-        Text(
-          '·${person.district}',
+        TextSpan(
+          text: '·${person.district}',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
           ),
         ),
       );
-      items.add(
-        SizedBox(
-          width: 5,
-        ),
-      );
     }
-    return items;
+    return [
+      Expanded(
+        child: Text.rich(
+          TextSpan(
+            text: '',
+            children: items,
+          ),
+        ),
+      ),
+      SizedBox(width: 5,),
+    ];
   }
 
   Widget _renderChart() {

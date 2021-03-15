@@ -209,8 +209,11 @@ import 'package:netos_app/portals/gbera/pages/wallet/deposit_absorb_details.dart
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_hubtails_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/deposit_trial_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/exchange_details.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-agent.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-attach.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-bill.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-boss.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-contact.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payee.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-person.dart';
@@ -1965,6 +1968,33 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/person',
           buildPage: (PageContext pageContext) => FissionMFPersonPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏我也做老板',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/become/boss',
+          buildPage: (PageContext pageContext) => FissionMFBecomeBossPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏查找代理人',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/agent',
+          buildPage: (PageContext pageContext) => FissionMFFindAgentPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏查找代理人',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/contact',
+          buildPage: (PageContext pageContext) => FissionMFContactUSPage(
             context: pageContext,
           ),
         ),

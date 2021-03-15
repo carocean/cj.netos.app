@@ -15,6 +15,8 @@ import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 
 class FissionMFCashierPage extends StatefulWidget {
   PageContext context;
@@ -207,9 +209,11 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
         Duration(
           seconds: 1,
         ), () async {
-      var balance = await cashierRemote.getCashierBalance();
-      _myWallet.fissionMf = balance.balance;
-      _myWallet.change += amount;
+      IWalletAccountRemote walletAccountService =
+          widget.context.site.getService('/wallet/accounts');
+      var wallet = await walletAccountService.getAllAcounts();
+      _myWallet.fissionMf = wallet.fissionMf;
+      _myWallet.change = wallet.change;
       _assessCacCount = await cashierRemote.assessCacCount();
       if (mounted) {
         setState(() {
@@ -227,7 +231,8 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
     }
     IFissionMFCashierRemote cashier =
         widget.context.site.getService('/wallet/fission/mf/cashier');
-    await cashier.recharge(amount);
+    String salesman = 'cj@gbera.netos'; //客户经理
+    await cashier.recharge(amount, salesman);
 
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
@@ -1101,11 +1106,13 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
   String _errorText;
   int _stayBalance;
   bool _isLoading = true;
+  WithdrawShuntOR _shuntOR;
+  Person _referrer;
 
   @override
   void initState() {
     _myWallet = widget.wallet;
-    _loadStayBalance();
+    _load();
     super.initState();
   }
 
@@ -1115,16 +1122,33 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
     super.dispose();
   }
 
-  Future<void> _loadStayBalance() async {
+  Future<void> _load() async {
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
+    IPersonService personService =
+        widget.context.site.getService('/gbera/persons');
     _stayBalance = await cashierRemote.getStayBalance();
-    _amountController.text =
-        '${((_myWallet.fissionMf - _stayBalance) / 100.00).toStringAsFixed(2)}';
+    int amount = _myWallet.fissionMf - _stayBalance;
+    _shuntOR = await cashierRemote.computeWithdrawShuntInfo(amount);
+    var cashier = await cashierRemote.getCashier();
+    if (!StringUtil.isEmpty(cashier.referrer)) {
+      _referrer =
+          await personService.getPerson('${cashier.referrer}@gbera.netos');
+    }
+    _amountController.text = '${(amount / 100.00).toStringAsFixed(2)}';
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _recomputeShunt(int amount) async {
+    IFissionMFCashierRemote cashierRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier');
+    _shuntOR = await cashierRemote.computeWithdrawShuntInfo(amount);
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -1141,7 +1165,8 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
     if (!StringUtil.isEmpty(v)) {
       try {
         var amount = double.parse(v);
-        if (amount * 100 <= _myWallet.fissionMf - _stayBalance) {
+        if (amount * 100 <= _myWallet.fissionMf - _stayBalance &&
+            amount * 100 >= 100) {
           return true;
         }
       } catch (e) {}
@@ -1152,6 +1177,7 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text('提取到零钱'),
         actions: [
@@ -1165,7 +1191,7 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                     widget.context.backward(result: result);
                   },
             child: Text(
-              '确认',
+              '完成',
               style: TextStyle(
                 color: !_isValid() ? Colors.grey[400] : Colors.green,
               ),
@@ -1221,7 +1247,10 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                 fontSize: 18,
               ),
               prefix: Padding(
-                padding: EdgeInsets.only(right: 5,top: 10,),
+                padding: EdgeInsets.only(
+                  right: 5,
+                  top: 10,
+                ),
                 child: Icon(
                   FontAwesomeIcons.yenSign,
                   size: 40,
@@ -1246,6 +1275,12 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                     if (amount * 100 > _myWallet.fissionMf - _stayBalance) {
                       _errorText = '超出可提金额';
                       _amountController.text = '';
+                    } else {
+                      if (amount * 100 < 100) {
+                        _errorText = '至少1元起';
+                      } else {
+                        _recomputeShunt((amount * 100).floor());
+                      }
                     }
                   } catch (e) {
                     _errorText = '不是合法的输入值';
@@ -1295,15 +1330,15 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                       Text(
                         '¥',
                         style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.red,
+                          fontSize: 14,
+                          color: Colors.black,
                         ),
                       ),
                       Text(
                         '${((_myWallet.fissionMf - _stayBalance) / 100.00).toStringAsFixed(2)}',
                         style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.red,
+                          fontSize: 20,
+                          color: Colors.black,
                         ),
                       ),
                     ],
@@ -1332,7 +1367,7 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                       SizedBox(
                         width: 10,
                       ),
-                      Text('+'),
+                      Text('-'),
                       SizedBox(
                         width: 10,
                       ),
@@ -1356,7 +1391,7 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                 top: -30,
                 left: -5,
                 child: Text(
-                  '说明',
+                  '政策',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -1364,6 +1399,178 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                 ),
               ),
             ],
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Container(
+          padding: EdgeInsets.only(
+            left: 10,
+            bottom: 5,
+          ),
+          alignment: Alignment.bottomLeft,
+          child: Text(
+            '提取金分账',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.only(
+              left: 15,
+              right: 15,
+              top: 15,
+            ),
+            color: Colors.white,
+            constraints: BoxConstraints.tightForFinite(
+              width: double.maxFinite,
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 100,
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '应得金额',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${(_shuntOR.gainAmount / 100.00).toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        '服务费',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Text(
+                        '¥${(_shuntOR.incomeAmount / 100.00).toStringAsFixed(2)}')
+                  ],
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        '发招财猫',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Text(
+                        '¥${(_shuntOR.absorbAmount / 100.00).toStringAsFixed(2)}')
+                  ],
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        '发给老板',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: _referrer == null
+                          ? null
+                          : () {
+                              widget.context.forward('/person/view',
+                                  arguments: {'person': _referrer});
+                            },
+                      child: Text(
+                        '${_referrer?.nickName ?? '-'}',
+                        style: TextStyle(
+                          decoration: _referrer == null
+                              ? TextDecoration.none
+                              : TextDecoration.underline,
+                          color: _referrer == null ? null : Colors.blueGrey,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                        '¥${(_shuntOR.commissionAmount / 100.00).toStringAsFixed(2)}')
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        InkWell(
+          onTap: () {
+            widget.context.forward('/wallet/fission/mf/become/boss');
+          },
+          child: Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(
+              top: 15,
+              bottom: 15,
+              left: 20,
+              right: 20,
+            ),
+            constraints: BoxConstraints.tightForFinite(
+              width: double.maxFinite,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '我也要做老板',
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
