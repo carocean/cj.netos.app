@@ -275,7 +275,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
               widget.context.forward('/wallet/fission/mf/bill');
             },
             child: Text(
-              '收益及明细',
+              '账单',
             ),
           ),
         ],
@@ -1306,8 +1306,8 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
           ),
           padding: EdgeInsets.all(20),
           margin: EdgeInsets.only(
-            left: 20,
-            right: 20,
+            left: 10,
+            right: 10,
           ),
           child: Stack(
             overflow: Overflow.visible,
@@ -1354,11 +1354,11 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                       Text.rich(
                         TextSpan(
                           text:
-                              '¥${(_myWallet.fissionMf / 100.00).toStringAsFixed(2)}',
+                          '¥${(_myWallet.fissionMf / 100.00).toStringAsFixed(2)}',
                           children: [
                             TextSpan(
                               text: '(红包余额)',
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: TextStyle(color: Colors.grey[600],fontSize: 10,),
                             ),
                           ],
                         ),
@@ -1373,11 +1373,11 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
                       Text.rich(
                         TextSpan(
                           text:
-                              '¥${(_stayBalance / 100.00).toStringAsFixed(2)}',
+                          '¥${(_stayBalance / 100.00).toStringAsFixed(2)}',
                           children: [
                             TextSpan(
                               text: '(留存金额)',
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: TextStyle(color: Colors.grey[600],fontSize: 10,),
                             ),
                           ],
                         ),

@@ -122,7 +122,8 @@ class CashierOR {
   int level;
   int isRequest;
   int becomeAgent;
- String phone;
+  String phone;
+
   CashierOR({
     this.person,
     this.state,
@@ -162,9 +163,9 @@ class CashierOR {
     this.areaMaster = obj['areaMaster'];
     this.stage = obj['stage'];
     this.level = obj['level'];
-    this.becomeAgent=obj['becomeAgent'];
-    this.isRequest=obj['isRequest'];
-    this.phone=obj['phone'];
+    this.becomeAgent = obj['becomeAgent'];
+    this.isRequest = obj['isRequest'];
+    this.phone = obj['phone'];
   }
 }
 
@@ -273,6 +274,36 @@ class BusinessIncomeRatioOR {
   }
 }
 
+class BossInfoOR {
+  int balance;
+  int payeeAmount;
+  int commission;
+  int payeeCount;
+  int empCount;
+  int payerCount;
+  List<String> membersTop5;
+
+  BossInfoOR({
+    this.balance,
+    this.payeeAmount,
+    this.commission,
+    this.payeeCount,
+    this.empCount,
+    this.payerCount,
+    this.membersTop5,
+  });
+
+  BossInfoOR.parse(obj){
+    this.balance=obj['balance'];
+    this.payeeAmount=obj['payeeAmount'];
+    this.commission=obj['commission'];
+    this.payeeCount=obj['payeeCount'];
+    this.empCount=obj['empCount'];
+    this.payerCount=obj['payerCount'];
+    this.membersTop5=(obj['membersTop5'] as List).cast<String>();
+  }
+}
+
 mixin IFissionMFCashierRemote {
   Future<MFSettingsOR> getSettings();
 
@@ -348,6 +379,8 @@ mixin IFissionMFCashierRemote {
   Future<void> setSalesman(String official) {}
 
   Future<void> setRequirement(int becomeAgent, String phone) {}
+
+  Future<BossInfoOR> getBossInfo() {}
 }
 
 class FissionMFCashierRemote
@@ -455,13 +488,13 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<Function> setRequirement(int becomeAgent, String phone)async {
+  Future<Function> setRequirement(int becomeAgent, String phone) async {
     await remotePorts.portPOST(
       fissionMfCashierPorts,
       'setRequirement',
       parameters: {
         'becomeAgent': becomeAgent,
-        'phone':phone,
+        'phone': phone,
       },
     );
   }
@@ -488,6 +521,19 @@ class FissionMFCashierRemote
       return null;
     }
     return MFSettingsOR.parse(obj);
+  }
+
+  @override
+  Future<BossInfoOR> getBossInfo() async{
+    var obj = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'getBossInfo',
+      parameters: {},
+    );
+    if (obj == null) {
+      return null;
+    }
+    return BossInfoOR.parse(obj);
   }
 
   @override

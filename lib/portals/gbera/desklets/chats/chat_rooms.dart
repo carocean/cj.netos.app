@@ -443,7 +443,11 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       null,
       widget.context.principal.person,
     );
-    await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+    try {
+      await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+    }catch(e){
+      print(e);
+    }
     chatroomNotifyStreamController
         .add({'action': 'arrivePushMessageCommand', 'message': message});
 
