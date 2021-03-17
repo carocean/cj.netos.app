@@ -8,7 +8,6 @@ import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/tiptool_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_view.dart';
-import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
@@ -22,8 +21,6 @@ import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
-import 'package:netos_app/portals/landagent/pages/desktop.dart';
-import 'package:netos_app/portals/landagent/pages/event_details.dart';
 import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -48,8 +45,11 @@ import 'package:netos_app/portals/nodepower/pages/feedback/tipoff_object_flow.da
 import 'package:netos_app/portals/nodepower/pages/feedback/tiptool_create.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/tiptool_main.dart';
 import 'package:netos_app/portals/nodepower/pages/feedback/wo_flows.dart';
-import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
+import 'package:netos_app/portals/nodepower/pages/fission/FissionMFAbsorbAccountPage.dart';
+import 'package:netos_app/portals/nodepower/pages/fission/FissionMFBusinessAccountPage.dart';
+import 'package:netos_app/portals/nodepower/pages/fission/FissionMFIncomeAccountPage.dart';
 import 'package:netos_app/portals/nodepower/pages/mine.dart';
+import 'package:netos_app/portals/nodepower/pages/platform_fund.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/create_subject.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/popup_rule.dart';
 import 'package:netos_app/portals/nodepower/pages/screen/screen_main.dart';
@@ -91,6 +91,8 @@ import 'package:netos_app/portals/nodepower/pages/workflow_details.dart';
 import 'package:netos_app/portals/nodepower/pages/workflow_manager.dart';
 import 'package:netos_app/portals/nodepower/pages/workgroup_details.dart';
 import 'package:netos_app/portals/nodepower/pages/workgroup_manager.dart';
+import 'package:netos_app/portals/nodepower/remote/fission-mf-accounts.dart';
+import 'package:netos_app/portals/nodepower/remote/fission-mf-records.dart';
 import 'package:netos_app/portals/nodepower/remote/uc_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workflow_remote.dart';
 import 'package:netos_app/portals/nodepower/remote/workgroup_remote.dart';
@@ -194,6 +196,8 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/feedback/tiptool': TipToolRemote(),
           '/operation/screen': DefaultScreenRemote(),
           '/wallet/fission/mf/cashier': FissionMFCashierRemote(),
+          '/wallet/fission/mf/account': FissionMFAccountRemote(),
+          '/wallet/fission/mf/account/records': FissionMFRecordRemote(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -906,6 +910,33 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/qrcode/scanner',
           buildPage: (PageContext pageContext) => QrScannerDialog(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '营业账户',
+          subtitle: '',
+          icon: null,
+          url: '/wallet/fission/mf/account/business',
+          buildPage: (PageContext pageContext) => FissionMFBusinessAccountPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '营业账户',
+          subtitle: '',
+          icon: null,
+          url: '/wallet/fission/mf/account/income',
+          buildPage: (PageContext pageContext) => FissionMFIncomeAccountPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '营业账户',
+          subtitle: '',
+          icon: null,
+          url: '/wallet/fission/mf/account/absorb',
+          buildPage: (PageContext pageContext) => FissionMFAbsorbAccountPage(
             context: pageContext,
           ),
         ),

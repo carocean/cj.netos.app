@@ -156,5 +156,41 @@ Workbench nodePowerWorkbench = Workbench(
         ),
       ],
     ),
+    Menu(
+      id: 'fissionMFService',
+      title: '裂变游戏·交个朋友',
+      items: [
+        MenuItem(
+          title: '营业账户',
+          id: 'fission.mf.account.business',
+          icon: 'http://47.105.165.186:7100/app/system/yingyeshouru.png',
+          onTap: (context) {
+            context.forward(
+              '/wallet/fission/mf/account/business',
+            );
+          },
+        ),
+        MenuItem(
+          title: '收益账户',
+          id: 'fission.mf.account.income',
+          icon: 'http://47.105.165.186:7100/app/system/shouyi.png',
+          onTap: (context) {
+            context.forward(
+              '/wallet/fission/mf/account/income',
+            );
+          },
+        ),
+        MenuItem(
+          title: '洇金账户',
+          id: 'fission.mf.account.absorb',
+          icon: 'http://47.105.165.186:7100/app/system/zhaocaimao.png',
+          onTap: (context) {
+            context.forward(
+              '/wallet/fission/mf/account/absorb',
+            );
+          },
+        ),
+      ],
+    ),
   ],
 );

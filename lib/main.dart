@@ -164,6 +164,10 @@ void main() => platformRun(
                 'http://47.105.165.186/fission-mf-cashier/cashier/record.ports',
             '@.prop.ports.fission.mf.receipt':
                 'http://47.105.165.186/fission-mf-receipt/cashier.ports',
+            '@.prop.ports.fission.mf.account':
+            'http://192.168.3.8:5850/fission-mf-account/account.ports',
+            '@.prop.ports.fission.mf.account.records':
+            'http://192.168.3.8:5850/fission-mf-account/record.ports',
             '@.prop.website.webshare.netflow-viewer':
                 'https://www.nodespower.com/webshare/pages/netflow-viewer.html',
             '@.prop.website.webshare.geosphere-viewer':
