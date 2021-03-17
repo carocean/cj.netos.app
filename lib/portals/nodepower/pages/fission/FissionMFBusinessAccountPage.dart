@@ -29,6 +29,7 @@ class _FissionMFBusinessAccountPageState
   FissionMFAccountOR _businessAccount;
   List<BusinessInRecord> _records = [];
   int _limit = 10, _offset = 0;
+  Map<String, Person> _caches = {};
 
   @override
   void initState() {
@@ -74,12 +75,12 @@ class _FissionMFBusinessAccountPageState
   }
 
   Future<Person> _loadPerson(String salesman) async {
-    int pos=salesman.lastIndexOf('@');
-    if(pos<0) {
-      salesman='$salesman@gbera.netos';
+    int pos = salesman.lastIndexOf('@');
+    if (pos < 0) {
+      salesman = '$salesman@gbera.netos';
     }
     IPersonService personService =
-    widget.context.site.getService('/gbera/persons');
+        widget.context.site.getService('/gbera/persons');
     return await personService.getPerson(salesman);
   }
 
@@ -193,7 +194,7 @@ class _FissionMFBusinessAccountPageState
                         ),
                         TextSpan(
                           text:
-                              '${_isLoading?'...':((_businessAccount.balance) / 100.00).toStringAsFixed(2)}',
+                              '${_isLoading ? '...' : ((_businessAccount.balance) / 100.00).toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 30,
                           ),
@@ -232,7 +233,7 @@ class _FissionMFBusinessAccountPageState
                   ),
                   InkWell(
                     onTap: () async {
-                      _filter = await showDialog(
+                      var filter = await showDialog(
                         context: context,
                         child: SimpleDialog(
                           title: Text('分账状态'),
@@ -259,9 +260,13 @@ class _FissionMFBusinessAccountPageState
                           ],
                         ),
                       );
-                      if (mounted) {
-                        setState(() {});
+                      if (filter == null) {
+                        return;
                       }
+                      _filter = filter;
+                      _offset = 0;
+                      _records.clear();
+                      _load();
                     },
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -345,6 +350,45 @@ class _FissionMFBusinessAccountPageState
       return items;
     }
     for (var record in _records) {
+      var person = _caches['${record.person}@gbera.netos'];
+      dynamic avatar;
+      if (person != null) {
+        avatar = InkWell(
+          onTap: () {
+            widget.context.forward('/person/view',
+                arguments: {'person': person});
+          },
+          child: getAvatarWidget(person.avatar, widget.context),
+        );
+      } else {
+        avatar = FutureBuilder<Person>(
+          future: _loadPerson(record.person),
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return Icon(
+                FontAwesomeIcons.moneyCheck,
+                color: Colors.grey,
+              );
+            }
+            var person = snapshot.data;
+            if (person == null) {
+              return Icon(
+                FontAwesomeIcons.moneyCheck,
+                color: Colors.grey,
+              );
+            }
+            _caches[person.official] = person;
+            return InkWell(
+              onTap: () {
+                widget.context.forward('/person/view',
+                    arguments: {'person': person});
+              },
+              child: getAvatarWidget(person.avatar, widget.context),
+            );
+          },
+        );
+      }
+
       items.add(
         Padding(
           padding: EdgeInsets.only(
@@ -359,27 +403,9 @@ class _FissionMFBusinessAccountPageState
               SizedBox(
                 height: 40,
                 width: 40,
-                child:ClipRRect(
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child:  FutureBuilder<Person>(
-                    future: _loadPerson(record.person),
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Icon(
-                          FontAwesomeIcons.moneyCheck,
-                          color: Colors.grey,
-                        );
-                      }
-                      var person = snapshot.data;
-                      if (person == null) {
-                        return Icon(
-                          FontAwesomeIcons.moneyCheck,
-                          color: Colors.grey,
-                        );
-                      }
-                      return getAvatarWidget(person.avatar, widget.context);
-                    },
-                  ),
+                  child: avatar,
                 ),
               ),
               SizedBox(
@@ -392,10 +418,16 @@ class _FissionMFBusinessAccountPageState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '${record.nickName ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16,
+                          InkWell(
+                            onTap: () {
+                              widget.context.forward('/person/view',
+                                  arguments: {'person': person});
+                            },
+                            child: Text(
+                              '${record.nickName ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                           SizedBox(
@@ -457,26 +489,33 @@ class _FissionMFBusinessAccountPageState
                           SizedBox(
                             height: 4,
                           ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '充值单：',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  '${record.refsn}',
+                          InkWell(
+                            onTap: () {
+                              widget.context.forward(
+                                  '/wallet/fission/mf/record/recharge',
+                                  arguments: {'sn': record.refsn});
+                            },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '充值单：',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blueGrey,
-                                    decoration: TextDecoration.underline,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
-                              ),
-                            ],
+                                Expanded(
+                                  child: Text(
+                                    '${record.refsn}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blueGrey,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           SizedBox(
                             height: 4,
@@ -489,52 +528,7 @@ class _FissionMFBusinessAccountPageState
                                   color: Colors.grey[600],
                                 ),
                               ),
-                              StringUtil.isEmpty(record.salesman)
-                                  ? Text(
-                                      '无',
-                                      style: TextStyle(
-                                        color: Colors.blueGrey,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    )
-                                  : InkWell(
-                                      onTap: () {},
-                                      child: FutureBuilder<Person>(
-                                        future: _loadPerson(record.salesman),
-                                        builder: (ctx, snapshot) {
-                                          if (snapshot.connectionState !=
-                                              ConnectionState.done) {
-                                            return Text(
-                                              '...',
-                                              style: TextStyle(
-                                                color: Colors.blueGrey,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                            );
-                                          }
-                                          var person = snapshot.data;
-                                          if (person == null) {
-                                            return Text(
-                                              '不存在：${record.salesman}',
-                                              style: TextStyle(
-                                                color: Colors.blueGrey,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                            );
-                                          }
-                                          return Text(
-                                            '${person.nickName}',
-                                            style: TextStyle(
-                                              color: Colors.blueGrey,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
+                              _renderSalesman(record),
                             ],
                           ),
                         ],
@@ -546,7 +540,7 @@ class _FissionMFBusinessAccountPageState
                     Column(
                       children: [
                         Text(
-                          '¥${(record.amount/100.00).toStringAsFixed(2)}',
+                          '¥${(record.amount / 100.00).toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.red,
@@ -607,5 +601,70 @@ class _FissionMFBusinessAccountPageState
       return '已分订单';
     }
     return '所有订单';
+  }
+
+  Widget _renderSalesman(BusinessInRecord record) {
+    if (StringUtil.isEmpty(record.salesman)) {
+      return Text(
+        '无',
+        style: TextStyle(
+          color: Colors.blueGrey,
+          decoration: TextDecoration.underline,
+        ),
+      );
+    }
+    var person = _caches['${record.salesman}@gbera.netos'];
+    if (person != null) {
+      return InkWell(
+        onTap: () {
+          widget.context.forward('/person/view', arguments: {'person': person});
+        },
+        child: Text(
+          '${person.nickName}',
+          style: TextStyle(
+            color: Colors.blueGrey,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      );
+    }
+    return FutureBuilder<Person>(
+      future: _loadPerson(record.salesman),
+      builder: (ctx, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return Text(
+            '...',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              decoration: TextDecoration.underline,
+            ),
+          );
+        }
+        var person = snapshot.data;
+        if (person == null) {
+          return Text(
+            '不存在：${record.salesman}',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              decoration: TextDecoration.underline,
+            ),
+          );
+        }
+        _caches[person.official] = person;
+        return InkWell(
+          onTap: () {
+            widget.context
+                .forward('/person/view', arguments: {'person': person});
+          },
+          child: Text(
+            '${person.nickName}',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        );
+      },
+    );
   }
 }

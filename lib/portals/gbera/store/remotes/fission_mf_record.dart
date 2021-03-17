@@ -8,6 +8,10 @@ class FissionMFRechargeRecordOR {
   String nickName;
   String currency;
   int amount;
+  double shuntRatio;
+  int shuntAmount;
+  int remnantAmount;
+  String salesman;
   int rechargeStrategy;
   int dayLimitAmount;
   int state;
@@ -25,6 +29,10 @@ class FissionMFRechargeRecordOR {
     this.nickName,
     this.currency,
     this.amount,
+    this.shuntRatio,
+    this.shuntAmount,
+    this.remnantAmount,
+    this.salesman,
     this.rechargeStrategy,
     this.dayLimitAmount,
     this.state,
@@ -53,6 +61,10 @@ class FissionMFRechargeRecordOR {
     this.status = obj['status'];
     this.message = obj['message'];
     this.note = obj['note'];
+    this.shuntRatio=obj['shuntRatio'];
+    this.shuntAmount=obj['shuntAmount'];
+    this.remnantAmount=obj['remnantAmount'];
+    this.salesman=obj['salesman'];
   }
 }
 
@@ -74,8 +86,8 @@ class FissionMFWithdrawRecordOR {
   String ctime;
   int status;
   String message;
-   String referrer;
-String referrerName;
+  String referrer;
+  String referrerName;
   String note;
 
   FissionMFWithdrawRecordOR({
@@ -107,14 +119,14 @@ String referrerName;
     this.nickName = obj['nickName'];
     this.currency = obj['currency'];
     this.amount = obj['amount'];
-    this.incomeRatio=obj['incomeRatio'];
-    this.commissionRatio=obj['commissionRatio'];
-    this.absorbRatio=obj['absorbRatio'];
-    this.shuntRatio=obj['shuntRatio'];
-    this.incomeAmount=obj['incomeAmount'];
-    this.absorbAmount=obj['absorbAmount'];
-    this.commissionAmount=obj['commissionAmount'];
-    this.gainAmount=obj['gainAmount'];
+    this.incomeRatio = obj['incomeRatio'];
+    this.commissionRatio = obj['commissionRatio'];
+    this.absorbRatio = obj['absorbRatio'];
+    this.shuntRatio = obj['shuntRatio'];
+    this.incomeAmount = obj['incomeAmount'];
+    this.absorbAmount = obj['absorbAmount'];
+    this.commissionAmount = obj['commissionAmount'];
+    this.gainAmount = obj['gainAmount'];
     this.state = obj['state'];
     this.ctime = obj['ctime'];
     this.status = obj['status'];

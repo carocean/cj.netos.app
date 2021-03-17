@@ -1,26 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/avatar.dart';
+import 'package:netos_app/common/icons.dart';
+import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/box_view.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/content_box.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/content_provider.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/person_view.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/pool_view.dart';
+import 'package:netos_app/portals/gbera/pages/chasechain/traffic_pools.dart';
 import 'package:netos_app/portals/gbera/pages/screen/screen_popup.dart';
 import 'package:netos_app/portals/gbera/pages/system/fq_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/tiptool_view.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_flow.dart';
 import 'package:netos_app/portals/gbera/pages/system/wo_view.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/recharge_details.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/withdraw_details.dart';
+import 'package:netos_app/portals/gbera/store/remotes/channels.dart';
+import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_helper.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tipoff.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/feedback_woflow.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
+import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_trades.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_prices.dart';
+import 'package:netos_app/portals/gbera/store/services/channel_pin.dart';
+import 'package:netos_app/portals/gbera/store/services/channels.dart';
 import 'package:netos_app/portals/landagent/remote/bills.dart';
 import 'package:netos_app/portals/landagent/remote/records.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -198,6 +213,12 @@ var buildPortal = (IServiceProvider site) => Portal(
           '/wallet/fission/mf/cashier': FissionMFCashierRemote(),
           '/wallet/fission/mf/account': FissionMFAccountRemote(),
           '/wallet/fission/mf/account/records': FissionMFRecordRemote(),
+          '/wallet/fission/mf/cashier/record': FissionMFCashierRecordRemote(),
+          '/remote/chasechain/recommender': ChasechainRecommenderRemote(),
+          '/remote/geo/receptors': GeoReceptorRemote(),
+          '/remote/channels': ChannelRemote(),
+          '/netflow/channels': ChannelService(),
+          '/channel/pin': ChannelPinService(),
         };
       },
       buildPages: (site) => <LogicPage>[
@@ -937,6 +958,78 @@ var buildPortal = (IServiceProvider site) => Portal(
           icon: null,
           url: '/wallet/fission/mf/account/absorb',
           buildPage: (PageContext pageContext) => FissionMFAbsorbAccountPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '用户视图',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/person/view',
+          buildPage: (PageContext pageContext) => PersonViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '流量中国',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/traffic/pools',
+          buildPage: (PageContext pageContext) => TrafficPoolsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容盒',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/box',
+          buildPage: (PageContext pageContext) => ContentBoxPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容提供商',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/provider',
+          buildPage: (PageContext pageContext) => ContentProviderPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '流量池信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/pool/view',
+          buildPage: (PageContext pageContext) => PoolViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '内容盒信息',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/chasechain/box/view',
+          buildPage: (PageContext pageContext) => ContentBoxViewPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '位置地图',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/gbera/location',
+          buildPage: (PageContext pageContext) => LocationMapPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏充值单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/record/recharge',
+          buildPage: (PageContext pageContext) => FissionMFRecordRechargePage(
             context: pageContext,
           ),
         ),

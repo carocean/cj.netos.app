@@ -4,6 +4,8 @@ import 'package:framework/core_lib/_page_context.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:netos_app/portals/gbera/store/services.dart';
+import 'package:netos_app/system/local/entities.dart';
 class FissionMFRecordRechargePage extends StatefulWidget {
   PageContext context;
 
@@ -43,6 +45,15 @@ class _FissionMFRecordRechargePageState
     }
   }
 
+  Future<Person> _loadPerson(String salesman) async {
+    int pos=salesman.lastIndexOf('@');
+    if(pos<0) {
+      salesman='$salesman@gbera.netos';
+    }
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    return await personService.getPerson(salesman);
+  }
   @override
   Widget build(BuildContext context) {
     List<Widget> items = [];
@@ -210,6 +221,161 @@ class _FissionMFRecordRechargePageState
                 Expanded(
                   child: Text(
                     '${_record.nickName}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '充入余额:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(_record.remnantAmount/100.00).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '服务费:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '¥${(_record.shuntAmount/100.00).toStringAsFixed(2)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '账比:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '${(_record.shuntRatio*100.00).toStringAsFixed(2)}%',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 40,
+              right: 40,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: minWidth,
+                  ),
+                  child: Text(
+                    '经手人:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: FutureBuilder<Person>(
+                    future: _loadPerson(_record.salesman),
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState !=
+                          ConnectionState.done) {
+                        return Text(
+                          '...',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            decoration:
+                            TextDecoration.underline,
+                          ),
+                        );
+                      }
+                      var person = snapshot.data;
+                      if (person == null) {
+                        return Text(
+                          '不存在：${_record.salesman}',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            decoration:
+                            TextDecoration.underline,
+                          ),
+                        );
+                      }
+                      return InkWell(
+                        onTap: (){
+                          widget.context.forward('/person/view',
+                              arguments: {'person': person});
+                        },
+                        child: Text(
+                          '${person.nickName}',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            decoration:
+                            TextDecoration.underline,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
