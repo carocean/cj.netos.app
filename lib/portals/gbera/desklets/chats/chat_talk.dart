@@ -429,7 +429,7 @@ class _ChatTalkState extends State<ChatTalk> {
                 title: Text.rich(
                   TextSpan(
                     text:
-                        '${_model.displayRoomTitle(widget.context.principal)}',
+                    '${_model.displayRoomTitle(widget.context.principal)}',
                     children: [],
                   ),
                 ),
@@ -474,14 +474,14 @@ class _ChatTalkState extends State<ChatTalk> {
                       switch (notification.command) {
                         case 'delete':
                           _p2pMessages.removeWhere(
-                              (element) => element == notification.message);
+                                  (element) => element == notification.message);
                           if (mounted) {
                             setState(() {});
                           }
                           break;
                         case 'cancelMessage':
                           var msg = _p2pMessages.singleWhere(
-                              (element) => element == notification.message);
+                                  (element) => element == notification.message);
                           if (msg != null) {
                             msg.isCanceled = 'true';
                             if (mounted) {
@@ -502,10 +502,10 @@ class _ChatTalkState extends State<ChatTalk> {
                     onRefresh: _offset < _limit
                         ? null
                         : () async {
-                            _onRefresh().then((v) {
-                              setState(() {});
-                            });
-                          },
+                      _onRefresh().then((v) {
+                        setState(() {});
+                      });
+                    },
                     slivers: _getSlivers(),
                   ),
                 ),
@@ -513,27 +513,27 @@ class _ChatTalkState extends State<ChatTalk> {
             ),
             !_isVideoCompressing
                 ? SizedBox(
-                    height: 0,
-                    width: 0,
-                  )
+              height: 0,
+              width: 0,
+            )
                 : Container(
-                    padding: EdgeInsets.only(
-                      top: 20,
-                      bottom: 20,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '正在压缩视频...',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+              padding: EdgeInsets.only(
+                top: 20,
+                bottom: 20,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '正在压缩视频...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
                     ),
                   ),
+                ],
+              ),
+            ),
             _ChatSendPannel(
               context: widget.context,
               onTapEvents: _onTapEvents,

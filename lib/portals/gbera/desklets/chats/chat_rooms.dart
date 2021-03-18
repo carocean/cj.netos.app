@@ -695,6 +695,17 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           setState(() {});
         }
         break;
+      case 'slidebar':
+        //添加到slidebar消息列表
+      print('------slidebar');
+      // chatroomNotifyStreamController
+      //     .add({'action': 'arrivePushMessageCommand', 'message': message});
+      await chatRoomService.updateRoomUtime(room);
+      await _topChatroom(room);
+      if (mounted) {
+        setState(() {});
+      }
+        break;
       case 'share':
         var message = ChatMessage(
           msgid,
