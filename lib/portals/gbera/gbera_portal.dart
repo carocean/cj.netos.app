@@ -218,6 +218,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payee.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-person.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-commission.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-pay.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-withdraw.dart';
@@ -1959,6 +1960,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/record/pay',
           buildPage: (PageContext pageContext) => FissionMFRecordPayPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '裂变游戏支付单',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/record/commission',
+          buildPage: (PageContext pageContext) => FissionMFRecordCommissionPage(
             context: pageContext,
           ),
         ),

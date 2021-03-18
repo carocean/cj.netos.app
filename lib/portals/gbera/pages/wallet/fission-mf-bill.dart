@@ -29,7 +29,9 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
   int _total_order0 = 0,
       _total_order1 = 0,
       _total_order2 = 0,
-      _total_order3 = 0;
+      _total_order3 = 0,
+      _total_order5 = 0;
+
   StreamController _datePickerNotify;
 
   @override
@@ -71,6 +73,15 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
         ),
       ),
       TabPageView(
+        title: '佣金单',
+        view: _CashierBillTabView(
+          context: widget.context,
+          datePicker: _datePickerNotify.stream.asBroadcastStream(),
+          defaultDate: _selected,
+          order: 5,
+        ),
+      ),
+      TabPageView(
         title: '充值单',
         view: _CashierBillTabView(
           context: widget.context,
@@ -80,7 +91,7 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
         ),
       ),
       TabPageView(
-        title: '提取单',
+        title: '提现单',
         view: _CashierBillTabView(
           context: widget.context,
           datePicker: _datePickerNotify.stream.asBroadcastStream(),
@@ -114,6 +125,8 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
         2, _selected.year, _selected.month);
     _total_order3 = await cashierBillRemote.totalBillOfMonthByOrder(
         3, _selected.year, _selected.month);
+    _total_order5 = await cashierBillRemote.totalBillOfMonthByOrder(
+        5, _selected.year, _selected.month);
     if (mounted) {
       setState(() {});
     }
@@ -333,6 +346,43 @@ class _FissionMFBillPageState extends State<FissionMFBillPage>
                                   ),
                                 ],
                               ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          right: 5,
+                                        ),
+                                        child: Text(
+                                          '佣金',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '¥${((_total_order5 ?? 0) / 100.00).toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  SizedBox(
+                                    width: 90,
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -536,6 +586,10 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
       case 2: //支出
       case 3: //收入
         widget.context.forward('/wallet/fission/mf/record/pay',
+            arguments: {'sn': bill.refsn});
+        break;
+      case 5: //拥金
+        widget.context.forward('/wallet/fission/mf/record/commission',
             arguments: {'sn': bill.refsn});
         break;
     }

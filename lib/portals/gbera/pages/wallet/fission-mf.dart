@@ -1563,9 +1563,10 @@ class __WithdrawPopupWidgetState extends State<_WithdrawPopupWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '我也要做老板',
+                  '做老板赚佣金',
                   style: TextStyle(
                     color: Colors.blueGrey,
+                    decoration: TextDecoration.underline,
                   ),
                 ),
               ],

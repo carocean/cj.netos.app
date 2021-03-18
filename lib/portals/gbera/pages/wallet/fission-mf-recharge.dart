@@ -33,23 +33,18 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
   Person _agent;
   var _data = [
     100,
-    299900,
-    399900,
-    499900,
-    599900,
-    699900,
-    799900,
-    899900,
-    999900,
-    1999900,
-    2999900,
-    3999900,
-    4999900,
-    5999900,
-    7999900,
-    10000000,
-    20000000,
-    50000000,
+    20000,
+    30000,
+    40000,
+    50000,
+    150000,
+    200000,
+    300000,
+    400000,
+    800000,
+    1000000,
+    2000000,
+    5000000,
   ];
   List<BusinessIncomeRatioOR> _ratios = [];
   double _selectedRatio;
@@ -202,7 +197,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                         width: 10,
                       ),
                       Text(
-                        '服务费',
+                        '税金',
                         style: TextStyle(
                           fontSize: 12,
                         ),
@@ -220,7 +215,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                         width: 10,
                       ),
                       Text(
-                        '费率',
+                        '税点',
                         style: TextStyle(
                           fontSize: 12,
                         ),
@@ -250,6 +245,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _renderAmountPanel(),
+                  /*
                   SizedBox(
                     height: 20,
                   ),
@@ -279,6 +275,8 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                   SizedBox(
                     height: 30,
                   ),
+
+                   */
                   Expanded(
                     child: Column(
                       children: [],
@@ -294,7 +292,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
   }
 
   double _findRatio(int amount) {
-    double result = 0.2000;
+    double result = 0.0100;
     for (var ratio in _ratios) {
       if (amount >= ratio.minAmountEdge && amount < ratio.maxAmountEdge) {
         result = ratio.ratio;
@@ -366,7 +364,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                   ),
                   Text.rich(
                     TextSpan(
-                      text: '费率 ',
+                      text: '税点 ',
                       children: [
                         TextSpan(
                           text: '${(ratio * 100.00).toStringAsFixed(2)}%',

@@ -97,68 +97,14 @@ class _FissionMFBusinessAccountPageState
               titleSpacing: 0,
               pinned: true,
               actions: [
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_horiz,
-                  ),
-                  offset: Offset(
-                    0,
-                    50,
-                  ),
-                  onSelected: (value) async {
-                    if (value == null) return;
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    PopupMenuItem(
-                      value: 'partners',
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: Icon(
-                              Icons.group,
-                              color: Colors.grey[500],
-                              size: 15,
-                            ),
-                          ),
-                          Text(
-                            '伙伴',
-                            style: TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
+                FlatButton(
+                  onPressed: () {},
+                  child: Text(
+                    '账单',
+                    style: TextStyle(
+                      fontSize: 14,
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'bills',
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: Icon(
-                              Icons.list_alt,
-                              color: Colors.grey[500],
-                              size: 15,
-                            ),
-                          ),
-                          Text(
-                            '账单',
-                            style: TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -217,6 +163,33 @@ class _FissionMFBusinessAccountPageState
             SizedBox(
               height: 10,
             ),
+            InkWell(
+              onTap: () {},
+              child: Container(
+
+                width: 100,
+                padding: EdgeInsets.only(top: 5, bottom: 5),
+                margin: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                ),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '提现',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
             Container(
               padding: EdgeInsets.only(
                 left: 15,
@@ -226,7 +199,7 @@ class _FissionMFBusinessAccountPageState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '进项',
+                    '订单',
                     style: TextStyle(
                       fontSize: 25,
                     ),
@@ -355,8 +328,8 @@ class _FissionMFBusinessAccountPageState
       if (person != null) {
         avatar = InkWell(
           onTap: () {
-            widget.context.forward('/person/view',
-                arguments: {'person': person});
+            widget.context
+                .forward('/person/view', arguments: {'person': person});
           },
           child: getAvatarWidget(person.avatar, widget.context),
         );
@@ -380,8 +353,8 @@ class _FissionMFBusinessAccountPageState
             _caches[person.official] = person;
             return InkWell(
               onTap: () {
-                widget.context.forward('/person/view',
-                    arguments: {'person': person});
+                widget.context
+                    .forward('/person/view', arguments: {'person': person});
               },
               child: getAvatarWidget(person.avatar, widget.context),
             );
@@ -545,33 +518,6 @@ class _FissionMFBusinessAccountPageState
                             fontSize: 16,
                             color: Colors.red,
                           ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            SizedBox(
-                              height: 25,
-                              width: 70,
-                              child: RaisedButton(
-                                onPressed: () {},
-                                padding: EdgeInsets.only(
-                                  left: 10,
-                                  right: 10,
-                                ),
-                                color: Colors.green,
-                                textColor: Colors.white,
-                                child: Text(
-                                  '分账',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

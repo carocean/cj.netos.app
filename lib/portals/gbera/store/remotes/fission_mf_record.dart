@@ -61,10 +61,10 @@ class FissionMFRechargeRecordOR {
     this.status = obj['status'];
     this.message = obj['message'];
     this.note = obj['note'];
-    this.shuntRatio=obj['shuntRatio'];
-    this.shuntAmount=obj['shuntAmount'];
-    this.remnantAmount=obj['remnantAmount'];
-    this.salesman=obj['salesman'];
+    this.shuntRatio = obj['shuntRatio'];
+    this.shuntAmount = obj['shuntAmount'];
+    this.remnantAmount = obj['remnantAmount'];
+    this.salesman = obj['salesman'];
   }
 }
 
@@ -237,6 +237,48 @@ class FissionMFPayRecordOR {
   }
 }
 
+class FissionMFCommissionRecordOR {
+  String sn;
+  String person;
+  String nickName;
+  String currency;
+  int amount;
+  int state;
+  String ctime;
+  int status;
+  String message;
+  String refsn;
+  String note;
+
+  FissionMFCommissionRecordOR({
+    this.sn,
+    this.person,
+    this.nickName,
+    this.currency,
+    this.amount,
+    this.state,
+    this.ctime,
+    this.status,
+    this.message,
+    this.refsn,
+    this.note,
+  });
+
+  FissionMFCommissionRecordOR.parse(obj){
+    this.sn=obj['sn'];
+    this.person=obj['person'];
+    this.nickName=obj['nickName'];
+    this.currency=obj['currency'];
+    this.amount=obj['amount'];
+    this.state=obj['state'];
+    this.ctime=obj['ctime'];
+    this.status=obj['status'];
+    this.message=obj['message'];
+    this.refsn=obj['refsn'];
+    this.note=obj['note'];
+  }
+}
+
 class PayPersonOR extends FissionMFPayRecordOR {
   FissionMFPerson person;
 
@@ -269,6 +311,8 @@ mixin IFissionMFCashierRecordRemote {
   Future<FissionMFWithdrawRecordOR> getWithdrawRecord(String sn);
 
   Future<FissionMFPayRecordOR> getPayRecord(String sn);
+
+  Future<FissionMFCommissionRecordOR> getDepositCommissionRecord(String sn);
 }
 
 class FissionMFCashierRecordRemote
@@ -396,6 +440,21 @@ class FissionMFCashierRecordRemote
       persons.add(FissionMFPerson.parse(obj));
     }
     return persons;
+  }
+
+  @override
+  Future<FissionMFCommissionRecordOR> getDepositCommissionRecord(String sn) async{
+    var obj = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'getDepositCommissionRecord',
+      parameters: {
+        'sn': sn,
+      },
+    );
+    if (obj == null) {
+      return null;
+    }
+    return FissionMFCommissionRecordOR.parse(obj);
   }
 
   @override
