@@ -264,18 +264,18 @@ class FissionMFCommissionRecordOR {
     this.note,
   });
 
-  FissionMFCommissionRecordOR.parse(obj){
-    this.sn=obj['sn'];
-    this.person=obj['person'];
-    this.nickName=obj['nickName'];
-    this.currency=obj['currency'];
-    this.amount=obj['amount'];
-    this.state=obj['state'];
-    this.ctime=obj['ctime'];
-    this.status=obj['status'];
-    this.message=obj['message'];
-    this.refsn=obj['refsn'];
-    this.note=obj['note'];
+  FissionMFCommissionRecordOR.parse(obj) {
+    this.sn = obj['sn'];
+    this.person = obj['person'];
+    this.nickName = obj['nickName'];
+    this.currency = obj['currency'];
+    this.amount = obj['amount'];
+    this.state = obj['state'];
+    this.ctime = obj['ctime'];
+    this.status = obj['status'];
+    this.message = obj['message'];
+    this.refsn = obj['refsn'];
+    this.note = obj['note'];
   }
 }
 
@@ -290,7 +290,13 @@ class PayPersonOR extends FissionMFPayRecordOR {
 }
 
 mixin IFissionMFCashierRecordRemote {
+  Future<int> totalPersonAmount() {}
+
+  Future<int> totalPayeeAmount() {}
+
   Future<int> totalPayee() {}
+
+  Future<int> totalPerson() {}
 
   Future<int> totalPayer() {}
 
@@ -298,11 +304,19 @@ mixin IFissionMFCashierRecordRemote {
 
   Future<int> totalPayerOnDay(String timeStr) {}
 
+  Future<int> totalPersonOnDay(String timeStr) {}
+
+  Future<int> totalCommissionOnDay(String timeStr) {}
+
   Future<List<PayPersonOR>> pagePayeeDetails(int limit, int offset) {}
+
+  Future<List<PayPersonOR>> pagePersonDetails(int limit, int offset) {}
 
   Future<List<PayPersonOR>> pagePayerDetails(int limit, int offset) {}
 
   Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset) {}
+
+  Future<List<FissionMFPerson>> pagePersonInfo(int limit, int offset) {}
 
   Future<List<FissionMFPerson>> pagePayerInfo(int limit, int offset) {}
 
@@ -339,10 +353,37 @@ class FissionMFCashierRecordRemote
   }
 
   @override
+  Future<int> totalPayeeAmount() async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalPayeeAmount',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<int> totalPersonAmount() async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalPersonAmount',
+      parameters: {},
+    );
+  }
+
+  @override
   Future<int> totalPayee() async {
     return await remotePorts.portGET(
       fissionMfRecordPorts,
-      'totalPayee',
+      'totalPayee2',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<int> totalPerson() async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalPerson',
       parameters: {},
     );
   }
@@ -351,7 +392,7 @@ class FissionMFCashierRecordRemote
   Future<int> totalPayer() async {
     return await remotePorts.portGET(
       fissionMfRecordPorts,
-      'totalPayer',
+      'totalPayer2',
       parameters: {},
     );
   }
@@ -360,8 +401,17 @@ class FissionMFCashierRecordRemote
   Future<int> totalPayeeOfDay(String day) async {
     return await remotePorts.portGET(
       fissionMfRecordPorts,
-      'totalPayeeOfDay',
+      'totalPayeeOfDay2',
       parameters: {'dayTime': day},
+    );
+  }
+
+  @override
+  Future<int> totalPersonOnDay(String timeStr) async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalPersonOfDay',
+      parameters: {'dayTime': timeStr},
     );
   }
 
@@ -369,7 +419,16 @@ class FissionMFCashierRecordRemote
   Future<int> totalPayerOnDay(String timeStr) async {
     return await remotePorts.portGET(
       fissionMfRecordPorts,
-      'totalPayerOnDay',
+      'totalPayerOnDay2',
+      parameters: {'dayTime': timeStr},
+    );
+  }
+
+  @override
+  Future<int> totalCommissionOnDay(String timeStr) async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalCommissionOnDay',
       parameters: {'dayTime': timeStr},
     );
   }
@@ -378,7 +437,24 @@ class FissionMFCashierRecordRemote
   Future<List<PayPersonOR>> pagePayeeDetails(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
-      'pagePayeeDetails',
+      'pagePayeeDetails2',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<PayPersonOR> persons = [];
+    for (var obj in list) {
+      persons.add(PayPersonOR.parse(obj));
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<PayPersonOR>> pagePersonDetails(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'pagePersonDetails',
       parameters: {
         'limit': limit,
         'offset': offset,
@@ -395,7 +471,7 @@ class FissionMFCashierRecordRemote
   Future<List<PayPersonOR>> pagePayerDetails(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
-      'pagePayerDetails',
+      'pagePayerDetails2',
       parameters: {
         'limit': limit,
         'offset': offset,
@@ -412,7 +488,7 @@ class FissionMFCashierRecordRemote
   Future<List<FissionMFPerson>> pagePayerInfo(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
-      'pagePayerInfo',
+      'pagePayerInfo2',
       parameters: {
         'limit': limit,
         'offset': offset,
@@ -429,7 +505,7 @@ class FissionMFCashierRecordRemote
   Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset) async {
     var list = await remotePorts.portGET(
       fissionMfRecordPorts,
-      'pagePayeeInfo',
+      'pagePayeeInfo2',
       parameters: {
         'limit': limit,
         'offset': offset,
@@ -443,7 +519,25 @@ class FissionMFCashierRecordRemote
   }
 
   @override
-  Future<FissionMFCommissionRecordOR> getDepositCommissionRecord(String sn) async{
+  Future<List<FissionMFPerson>> pagePersonInfo(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'pagePersonInfo',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<FissionMFPerson> persons = [];
+    for (var obj in list) {
+      persons.add(FissionMFPerson.parse(obj));
+    }
+    return persons;
+  }
+
+  @override
+  Future<FissionMFCommissionRecordOR> getDepositCommissionRecord(
+      String sn) async {
     var obj = await remotePorts.portGET(
       fissionMfRecordPorts,
       'getDepositCommissionRecord',

@@ -11,16 +11,16 @@ import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class FissionMFPayeesPage extends StatefulWidget {
+class FissionMFPublicsPage extends StatefulWidget {
   PageContext context;
 
-  FissionMFPayeesPage({this.context});
+  FissionMFPublicsPage({this.context});
 
   @override
-  _FissionMFPayeesPageState createState() => _FissionMFPayeesPageState();
+  _FissionMFPublicsPageState createState() => _FissionMFPublicsPageState();
 }
 
-class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
+class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
   EasyRefreshController _easyRefreshController;
   int _limit = 20, _offset = 0;
   List<PayPersonOR> _records = [];
@@ -49,8 +49,8 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
     // IFissionMFCashierBillRemote cashierBillRemote =
     //     widget.context.site.getService('/wallet/fission/mf/cashier/bill');
-    _payeesCount = await cashierRecordRemote.totalPayee();
-    _payeesAmount = await cashierRecordRemote.totalPayeeAmount();
+    _payeesCount = await cashierRecordRemote.totalPerson();
+    _payeesAmount = await cashierRecordRemote.totalPersonAmount();
     await _onload();
   }
 
@@ -63,7 +63,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   Future<void> _onload() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
-    var records = await cashierRecordRemote.pagePayeeDetails(_limit, _offset);
+    var records = await cashierRecordRemote.pagePersonDetails(_limit, _offset);
     if (records.isEmpty) {
       _easyRefreshController.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -111,7 +111,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
         headerSliverBuilder: (ctx, s) {
           return [
             SliverAppBar(
-              title: Text('群拉新'),
+              title: Text('发展的公众'),
               pinned: true,
               elevation: 0,
               titleSpacing: 0,
@@ -133,7 +133,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '进群成员',
+                      '公众',
                       style: TextStyle(
                         fontSize: 20,
                       ),
@@ -145,7 +145,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                             width: 10,
                           ),
                           Text(
-                            '成员:$_payeesCount人',
+                            '$_payeesCount人',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -174,7 +174,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            '推荐成员条件',
+                            '推荐公众条件',
                             style: TextStyle(
                                 fontSize: 10, color: Colors.grey[600]),
                           ),
@@ -391,7 +391,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
   SfCartesianChart _getLabelDateTimeAxisChart() {
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
-      title: ChartTitle(text: '用户进群分布'),
+      title: ChartTitle(text: '公众入场分布'),
 
       /// X axis as date time axis placed here.
       primaryXAxis: DateTimeAxis(

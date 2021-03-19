@@ -112,6 +112,9 @@ class _ChatTalkState extends State<ChatTalk> {
             setState(() {});
           }
           break;
+        case 'arriveSystemMessageCommand':
+          _arrivePushMessageCommand(message);
+          break;
         default:
           print('不支持的命令:${command['action']}');
           break;
@@ -1557,6 +1560,7 @@ class _ReceiveMessageItemState extends State<_ReceiveMessageItem> {
     dynamic display;
     switch (widget.p2pMessage.contentType ?? '') {
       case '':
+      case 'joinPerson':
       case 'text':
         var text = widget.p2pMessage.content ?? '';
         var json = [

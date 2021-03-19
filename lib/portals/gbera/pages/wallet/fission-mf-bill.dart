@@ -809,6 +809,8 @@ class _CashierBillTabViewState extends State<_CashierBillTabView> {
         return '支出单';
       case 3:
         return '收入单';
+      case 5:
+        return '佣金单';
     }
     return '';
   }

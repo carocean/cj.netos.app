@@ -217,6 +217,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-contact.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payee.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-payer.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-person.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-publics.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-commission.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-pay.dart';
@@ -1888,6 +1889,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/group/payees',
           buildPage: (PageContext pageContext) => FissionMFPayeesPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '发展公众',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/group/publics',
+          buildPage: (PageContext pageContext) => FissionMFPublicsPage(
             context: pageContext,
           ),
         ),

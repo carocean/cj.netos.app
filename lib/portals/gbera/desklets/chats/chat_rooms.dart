@@ -308,6 +308,14 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
           }
         });
         break;
+      case 'pushSystemMessage':
+        await _lock.synchronized(() async {
+          await _arriveSystemMessageCommand(frame);
+          if (mounted) {
+            setState(() {});
+          }
+        });
+        break;
     }
   }
 
@@ -586,6 +594,77 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     }
   }
 
+  Future<void> _arriveSystemMessageCommand(Frame frame) async {
+    var content = frame.contentText;
+    if (StringUtil.isEmpty(content)) {
+      print('消息为空，被丢弃。');
+      return null;
+    }
+    var room = frame.parameter('room');
+    var contentType = frame.parameter('contentType');
+    var msgid = frame.parameter('msgid');
+    var ctime = frame.parameter('ctime');
+    var roomCreator = frame.parameter('roomCreator');
+    var sender = frame.head('sender-person');
+
+    IChatRoomService chatRoomService =
+    widget.context.site.getService('/chat/rooms');
+    var chatRoom = await chatRoomService.get(room, isOnlyLocal: true);
+    if (chatRoom == null) {
+      //添加聊天室
+      chatRoom = await chatRoomService.fetchAndSaveRoom(
+        roomCreator,
+        room,
+      );
+      await chatRoomService.loadAndSaveRoomMembers(room, roomCreator);
+      _models.clear();
+      await _loadChatrooms();
+    }
+    IPersonService personService =
+    widget.context.site.getService('/gbera/persons');
+    if (!(await personService.existsPerson(sender))) {
+      var sendPerson =
+      await personService.fetchPerson(sender, isDownloadAvatar: true);
+      if (sendPerson != null) {
+        personService.addPerson(sendPerson, isOnlyLocal: true);
+      }
+    }
+    IP2PMessageService messageService =
+    widget.context.site.getService('/chat/p2p/messages');
+    switch (contentType ?? '') {
+      case '':
+      case 'joinPerson':
+        var message = ChatMessage(
+          msgid,
+          sender,
+          room,
+          contentType,
+          content,
+          'arrived',
+          'false',
+          StringUtil.isEmpty(ctime)
+              ? DateTime
+              .now()
+              .millisecondsSinceEpoch
+              : int.parse(ctime),
+          DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          null,
+          null,
+          widget.context.principal.person,
+        );
+        await messageService.addMessage(sender, message, isOnlySaveLocal: true);
+        chatroomNotifyStreamController
+            .add({'action': 'arriveSystemMessageCommand', 'message': message});
+        await chatRoomService.updateRoomUtime(room);
+        await _topChatroom(room);
+        if (mounted) {
+          setState(() {});
+        }
+        break;
+    }
+  }
   Future<void> _arrivePushMessageCommand(Frame frame) async {
     var content = frame.contentText;
     if (StringUtil.isEmpty(content)) {
@@ -610,6 +689,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
       await _arriveTrialMessage(frame, content);
       return null;
     }
+
     if (frame.head('sender-person') == widget.context.principal.person) {
 //      print('自已的消息又发给自己，被丢弃。');
       return null;
@@ -694,17 +774,6 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
         if (mounted) {
           setState(() {});
         }
-        break;
-      case 'slidebar':
-        //添加到slidebar消息列表
-      print('------slidebar');
-      // chatroomNotifyStreamController
-      //     .add({'action': 'arrivePushMessageCommand', 'message': message});
-      await chatRoomService.updateRoomUtime(room);
-      await _topChatroom(room);
-      if (mounted) {
-        setState(() {});
-      }
         break;
       case 'share':
         var message = ChatMessage(
@@ -1302,6 +1371,7 @@ class __ChatroomItemState extends State<_ChatroomItem> {
     }
     switch (message?.contentType ?? '') {
       case '':
+      case 'joinPerson':
       case 'text':
         _stateBar.tips = '$whois:${message?.content}';
         break;
