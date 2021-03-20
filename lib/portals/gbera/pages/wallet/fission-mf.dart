@@ -1000,32 +1000,33 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            Wrap(
-                              children: _tags.map((tag) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.grey[300], width: 1),
-                                    borderRadius: BorderRadius.circular(4),
+                            Expanded(child:   Wrap(
+                            children: _tags.map((tag) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.grey[300], width: 1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                padding: EdgeInsets.only(
+                                  left: 8,
+                                  right: 8,
+                                  top: 2,
+                                  bottom: 2,
+                                ),
+                                child: Text(
+                                  '${tag.name ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black,
                                   ),
-                                  padding: EdgeInsets.only(
-                                    left: 8,
-                                    right: 8,
-                                    top: 2,
-                                    bottom: 2,
-                                  ),
-                                  child: Text(
-                                    '${tag.name ?? ''}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                              spacing: 5,
-                              runSpacing: 5,
-                            ),
+                                ),
+                              );
+                            }).toList(),
+                            spacing: 5,
+                            runSpacing: 5,
+                              alignment: WrapAlignment.end,
+                          ),),
                             SizedBox(
                               width: 10,
                             ),
