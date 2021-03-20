@@ -14,12 +14,11 @@ class FissionMFPersonPage extends StatefulWidget {
 }
 
 class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
-  PayPersonOR _payPersonOR;
+  FissionMFPerson _person;
   List<FissionMFTagOR> _tags = [];
-
   @override
   void initState() {
-    _payPersonOR = widget.context.parameters['record'];
+    _person = widget.context.parameters['person'];
     _load();
     super.initState();
   }
@@ -34,7 +33,7 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
     var tags =
-        await cashierRemote.listPropertyTagOfPerson(_payPersonOR.person.id);
+        await cashierRemote.listPropertyTagOfPerson(_person.id);
     _tags.addAll(tags);
     if (mounted) {
       setState(() {});
@@ -77,7 +76,7 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
                     height: 50,
                     placeholder: 'lib/portals/gbera/images/default_watting.gif',
                     image:
-                        '${_payPersonOR.person.avatarUrl}?accessToken=${widget.context.principal.accessToken}',
+                        '${_person.avatarUrl}?accessToken=${widget.context.principal.accessToken}',
                   ),
                 ),
                 SizedBox(
@@ -88,23 +87,25 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${_payPersonOR.person.nickName}',
+                        '${_person.nickName}',
                         style: TextStyle(
                           fontSize: 16,
                         ),
                       ),
+
                       SizedBox(
                         height: 5,
                       ),
-                      Text(
-                          '${_payPersonOR.payee == _payPersonOR.person.id ? '支出' : '收入'} ¥${(_payPersonOR.amount / 100.00).toStringAsFixed(2)}'),
+                      _renderPropTags(),
+                      // Text(
+                      //     '${_direct == 'payer' ? '支出' : (_direct == 'payee' ?'收入':'他为我赚得佣金')} ¥${((_amount??0) / 100.00).toStringAsFixed(2)}'),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          _renderPropTags(),
+
           SizedBox(
             height: 10,
           ),
@@ -114,7 +115,7 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
                 InkWell(
                   onTap: () {
                     widget.context.forward('/person/view', arguments: {
-                      'official': '${_payPersonOR.person.id}@gbera.netos'
+                      'official': '${_person.id}@gbera.netos'
                     });
                   },
                   child: Container(
@@ -165,7 +166,7 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
     }
     return Container(
       padding: EdgeInsets.only(
-        left: 45,
+        left: 0,
         right: 15,
         top: 10,
         bottom: 10,
@@ -175,6 +176,7 @@ class _FissionMFPersonPageState extends State<FissionMFPersonPage> {
         width: double.maxFinite,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '标签',

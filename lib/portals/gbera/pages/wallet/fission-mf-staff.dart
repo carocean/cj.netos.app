@@ -1,4 +1,5 @@
 import 'package:common_utils/common_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -11,25 +12,25 @@ import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class FissionMFPublicsPage extends StatefulWidget {
+class FissionMFStaffPage extends StatefulWidget {
   PageContext context;
 
-  FissionMFPublicsPage({this.context});
+  FissionMFStaffPage({this.context});
 
   @override
-  _FissionMFPublicsPageState createState() => _FissionMFPublicsPageState();
+  _FissionMFStaffPageState createState() => _FissionMFStaffPageState();
 }
 
-class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
+class _FissionMFStaffPageState extends State<FissionMFStaffPage> {
   EasyRefreshController _easyRefreshController;
   int _limit = 20, _offset = 0;
-  List<PayPersonOR> _records = [];
-  final List<ChartSampleData> chartData = <ChartSampleData>[];
+  List<StaffOR> _records = [];
+  final List<ChartSampleData> _chartData = <ChartSampleData>[];
   int _maxNum = 0, _minNum = 0;
   int _payeesCount = 0, _payeesAmount = 0;
   DateTime _maxTime, _minTime;
   CashierOR _cashierOR;
-
+  String _filter = 'current'; //current当下的伙伴；histories历史伙伴
   @override
   void initState() {
     _easyRefreshController = EasyRefreshController();
@@ -47,23 +48,34 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
   Future<void> _load() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
-    // IFissionMFCashierBillRemote cashierBillRemote =
-    //     widget.context.site.getService('/wallet/fission/mf/cashier/bill');
-    _payeesCount = await cashierRecordRemote.totalPerson();
-    _payeesAmount = await cashierRecordRemote.totalPersonAmount();
+    IFissionMFCashierRemote cashierRemote =
+        widget.context.site.getService('/wallet/fission/mf/cashier');
+    if(_filter=='histories') {
+      _payeesCount = await cashierRecordRemote.totalAllStaff();
+      _payeesAmount = await cashierRecordRemote.totalAllStaffAmount();
+    }else{
+      _payeesCount = await cashierRemote.totalStaff();
+      _payeesAmount = await cashierRecordRemote.totalStaffAmount();
+    }
     await _onload();
   }
 
   Future<void> _onRefresh() async {
     _offset = 0;
     _records.clear();
+    _chartData.clear();
     await _onload();
   }
 
   Future<void> _onload() async {
     IFissionMFCashierRecordRemote cashierRecordRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier/record');
-    var records = await cashierRecordRemote.pagePersonDetails(_limit, _offset);
+    dynamic records;
+    if(_filter=='histories') {
+      records = await cashierRecordRemote.pageAllStaffDetails(_limit, _offset);
+    }else{
+      records = await cashierRecordRemote.pageStaffDetails(_limit, _offset);
+    }
     if (records.isEmpty) {
       _easyRefreshController.finishLoad(noMore: true, success: true);
       if (mounted) {
@@ -92,7 +104,7 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
       if (time.millisecondsSinceEpoch < _minTime.millisecondsSinceEpoch) {
         _minTime = time;
       }
-      chartData.add(
+      _chartData.add(
         ChartSampleData(
             x: time, yValue: (record.amount / 100.00), person: record),
       );
@@ -111,10 +123,24 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
         headerSliverBuilder: (ctx, s) {
           return [
             SliverAppBar(
-              title: Text('发展的公众'),
+              title: Text('我是老板'),
               pinned: true,
               elevation: 0,
               titleSpacing: 0,
+              actions: [
+                FlatButton(
+                  onPressed: () {
+                    widget.context.forward('/wallet/fission/mf/become/boss');
+                  },
+                  textColor: Colors.green,
+                  child: Text(
+                    '发展伙伴',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
             _renderChart(),
             SliverToBoxAdapter(
@@ -133,7 +159,7 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '公众',
+                      '伙伴',
                       style: TextStyle(
                         fontSize: 20,
                       ),
@@ -155,7 +181,7 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
                             width: 10,
                           ),
                           Text(
-                            '支出:${(_payeesAmount / 100.00).toStringAsFixed(2)}元',
+                            '收佣:${(_payeesAmount / 100.00).toStringAsFixed(2)}元',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -165,25 +191,80 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
                       ),
                     ),
                     InkWell(
-                      onTap: () {
-                        widget.context.forward(
-                            '/wallet/fission/mf/tag/condition',
-                            arguments: {'direct': 'payer'});
+                      onTap: () async {
+                        var filter = await showCupertinoModalPopup(
+                            context: context,
+                            builder: (ctx) {
+                              return CupertinoActionSheet(
+                                actions: <Widget>[
+                                  CupertinoActionSheetAction(
+                                    child: Text(
+                                      '现有伙伴',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(
+                                        ctx,
+                                        'current',
+                                      );
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text(
+                                      '所有伙伴',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(
+                                        ctx,
+                                        'histories',
+                                      );
+                                    },
+                                  ),
+                                ],
+                                cancelButton: FlatButton(
+                                  child: Text(
+                                    '取消',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(
+                                      ctx,
+                                      'cancel',
+                                    );
+                                  },
+                                ),
+                              );
+                            });
+                        if (StringUtil.isEmpty(filter)) {
+                          return;
+                        }
+                        _filter = filter;
+                        _onRefresh();
                       },
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '推荐公众条件',
+                            '${_renderFilter()}',
                             style: TextStyle(
-                                fontSize: 10, color: Colors.grey[600]),
+                                fontSize: 12, color: Colors.grey[600]),
                           ),
                           SizedBox(
                             width: 2,
                           ),
                           Icon(
-                            Icons.favorite,
-                            size: 18,
+                            Icons.filter_alt,
+                            size: 25,
                             color: Colors.green,
                           ),
                         ],
@@ -212,8 +293,13 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
                 var person = e.person;
                 return InkWell(
                   onTap: () {
+                    // widget.context..forward('/person/view', arguments: {'official': '${e.person.id}@gbera.netos'});
                     widget.context.forward('/wallet/fission/mf/person',
-                        arguments: {'person': e.person});
+                        arguments: {
+                          'person': e.person,
+                          'amount': e.amount,
+                          'direct': 'commission'
+                        });
                   },
                   child: Column(
                     children: [
@@ -260,6 +346,40 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
                                         )}',
                                         style: TextStyle(
                                           fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text(
+                                        '(加我为伙伴)',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${e.count ?? 0}次',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text(
+                                        '(为我赚取佣金)',
+                                        style: TextStyle(
+                                          fontSize: 12,
                                           color: Colors.grey[600],
                                         ),
                                       ),
@@ -310,8 +430,8 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
     );
   }
 
-  List<Widget> _renderPersonInfo(PayPersonOR payPersonOR) {
-    FissionMFPerson person = payPersonOR.person;
+  List<Widget> _renderPersonInfo(StaffOR staff) {
+    FissionMFPerson person = staff.person;
     var items = <TextSpan>[];
     if (!StringUtil.isEmpty(person.province)) {
       items.add(
@@ -355,7 +475,9 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
           ),
         ),
       ),
-      SizedBox(width: 5,),
+      SizedBox(
+        width: 5,
+      ),
     ];
   }
 
@@ -391,7 +513,7 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
   SfCartesianChart _getLabelDateTimeAxisChart() {
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
-      title: ChartTitle(text: '公众入场分布'),
+      title: ChartTitle(text: '伙伴入场分布'),
 
       /// X axis as date time axis placed here.
       primaryXAxis: DateTimeAxis(
@@ -488,11 +610,22 @@ class _FissionMFPublicsPageState extends State<FissionMFPublicsPage> {
       ScatterSeries<ChartSampleData, DateTime>(
           opacity: 0.8,
           markerSettings: MarkerSettings(height: 15, width: 15),
-          dataSource: chartData,
+          dataSource: _chartData,
           xValueMapper: (ChartSampleData data, _) => data.x,
           yValueMapper: (ChartSampleData data, _) => data.yValue,
           color: const Color.fromRGBO(232, 84, 84, 1))
     ];
+  }
+
+  _renderFilter() {
+    switch (_filter) {
+      case 'current':
+        return '现有伙伴';
+      case 'histories':
+        return '所有伙伴';
+      default:
+        return '';
+    }
   }
 }
 
@@ -517,7 +650,7 @@ class ChartSampleData {
     this.person,
   });
 
-  final PayPersonOR person;
+  final StaffOR person;
 
   /// Holds x value of the datapoint
   final dynamic x;

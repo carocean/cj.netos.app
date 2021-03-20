@@ -223,6 +223,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-commissio
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-pay.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-recharge.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-record-withdraw.dart';
+import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-staff.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-around.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-condition.dart';
 import 'package:netos_app/portals/gbera/pages/wallet/fission-mf-tag-properties.dart';
@@ -1898,6 +1899,15 @@ class GberaPortal {
           icon: GalleryIcons.shrine,
           url: '/wallet/fission/mf/group/publics',
           buildPage: (PageContext pageContext) => FissionMFPublicsPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '我是老板',
+          subtitle: '',
+          icon: GalleryIcons.shrine,
+          url: '/wallet/fission/mf/group/staff',
+          buildPage: (PageContext pageContext) => FissionMFStaffPage(
             context: pageContext,
           ),
         ),

@@ -197,7 +197,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                         width: 10,
                       ),
                       Text(
-                        '税金',
+                        '服务费',
                         style: TextStyle(
                           fontSize: 12,
                         ),
@@ -215,7 +215,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                         width: 10,
                       ),
                       Text(
-                        '税点',
+                        '费率',
                         style: TextStyle(
                           fontSize: 12,
                         ),
@@ -364,7 +364,7 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
                   ),
                   Text.rich(
                     TextSpan(
-                      text: '税点 ',
+                      text: '费率 ',
                       children: [
                         TextSpan(
                           text: '${(ratio * 100.00).toStringAsFixed(2)}%',

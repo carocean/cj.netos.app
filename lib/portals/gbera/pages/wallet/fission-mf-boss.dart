@@ -251,7 +251,7 @@ class _FissionMFBecomeBossPageState extends State<FissionMFBecomeBossPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '成为老板，让别人为你赚钱！',
+                              '成为老板，让伙伴为你赚钱！',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.red,
@@ -261,7 +261,7 @@ class _FissionMFBecomeBossPageState extends State<FissionMFBecomeBossPage> {
                               height: 5,
                             ),
                             Text(
-                              '把二维码分享到微信群或朋友圈，别人通过扫你的二维码抢红包就算是你的员工了，而且是永久员工。这样他抢的红包在每次提现时都有你的分账，爽歪歪吧，快来做老板吧！',
+                              '把二维码分享到微信群或朋友圈，别人通过扫你的二维码抢红包就算是你的伙伴了，而且是永久伙伴。这样他抢的红包在每次提现时都有你的分账，爽歪歪吧，快来做老板吧！',
                               style: TextStyle(
                                 fontSize: 12,
                               ),

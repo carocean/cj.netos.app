@@ -4,6 +4,8 @@ import 'package:amap_location_fluttify/amap_location_fluttify.dart';
 import 'package:framework/framework.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fission_mf_record.dart';
+
 class FissionMFAttachmentOR {
   String person;
   String src;
@@ -293,14 +295,14 @@ class BossInfoOR {
     this.membersTop5,
   });
 
-  BossInfoOR.parse(obj){
-    this.balance=obj['balance'];
-    this.payeeAmount=obj['payeeAmount'];
-    this.commission=obj['commission'];
-    this.payeeCount=obj['payeeCount'];
-    this.empCount=obj['empCount'];
-    this.payerCount=obj['payerCount'];
-    this.membersTop5=(obj['membersTop5'] as List).cast<String>();
+  BossInfoOR.parse(obj) {
+    this.balance = obj['balance'];
+    this.payeeAmount = obj['payeeAmount'];
+    this.commission = obj['commission'];
+    this.payeeCount = obj['payeeCount'];
+    this.empCount = obj['empCount'];
+    this.payerCount = obj['payerCount'];
+    this.membersTop5 = (obj['membersTop5'] as List).cast<String>();
   }
 }
 
@@ -381,6 +383,10 @@ mixin IFissionMFCashierRemote {
   Future<void> setRequirement(int becomeAgent, String phone) {}
 
   Future<BossInfoOR> getBossInfo() {}
+
+  Future<int> totalStaff() {}
+
+  Future<List<FissionMFPerson>> pageStaffInfo(int limit, int offset) {}
 }
 
 class FissionMFCashierRemote
@@ -524,7 +530,7 @@ class FissionMFCashierRemote
   }
 
   @override
-  Future<BossInfoOR> getBossInfo() async{
+  Future<BossInfoOR> getBossInfo() async {
     var obj = await remotePorts.portPOST(
       fissionMfCashierPorts,
       'getBossInfo',
@@ -858,6 +864,32 @@ class FissionMFCashierRemote
       data: {
         'location': jsonEncode(location.toJson()),
       },
+    );
+  }
+
+  @override
+  Future<List<FissionMFPerson>> pageStaffInfo(int limit, int offset) async {
+    var list = await remotePorts.portGET(
+      fissionMfCashierPorts,
+      'pageStaffInfo',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<FissionMFPerson> persons = [];
+    for (var obj in list) {
+      persons.add(FissionMFPerson.parse(obj));
+    }
+    return persons;
+  }
+
+  @override
+  Future<int> totalStaff() async {
+    return await remotePorts.portGET(
+      fissionMfCashierPorts,
+      'totalStaff',
+      parameters: {},
     );
   }
 }

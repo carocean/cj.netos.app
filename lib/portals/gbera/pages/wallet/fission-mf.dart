@@ -34,7 +34,10 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   CashierOR _cashierOR;
   int _assessCacCount = 0;
   int _totalPayeeOnDay = 0, _totalPayerOnDay = 0, _totalPersonOnDay = 0;
-  int _totalPayeeAll = 0, _totalPayerAll = 0, _totalPersonAll = 0;
+  int _totalPayeeAll = 0,
+      _totalPayerAll = 0,
+      _totalPersonAll = 0,
+      _totalStaffAll = 0;
   int _totalProfitOnDay = 0;
   int _totalPayAmountOnDay = 0;
   int _totalCommissionAmountOnDay = 0;
@@ -42,6 +45,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
   List<FissionMFPerson> _payees = [];
   List<FissionMFPerson> _payers = [];
   List<FissionMFPerson> _persons = [];
+  List<FissionMFPerson> _staffs = [];
   List<FissionMFTagOR> _tags = [];
   GlobalKey<ScaffoldState> _key = GlobalKey();
 
@@ -78,12 +82,15 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
     _totalPayeeAll = await cashierRecordRemote.totalPayee();
     _totalPayerAll = await cashierRecordRemote.totalPayer();
     _totalPersonAll = await cashierRecordRemote.totalPerson();
+    _totalStaffAll = await cashierRemote.totalStaff();
     var payees = await cashierRecordRemote.pagePayeeInfo(5, 0);
     _payees.addAll(payees);
     var payers = await cashierRecordRemote.pagePayerInfo(5, 0);
     _payers.addAll(payers);
     var persons = await cashierRecordRemote.pagePersonInfo(5, 0);
     _persons.addAll(persons);
+    var staffs = await cashierRemote.pageStaffInfo(5, 0);
+    _staffs.addAll(staffs);
     _totalProfitOnDay = await cashierBillRemote.totalBillOfDayByOrder(
         3, time.year, time.month, time.day);
     _totalPayAmountOnDay = await cashierBillRemote.totalBillOfDayByOrder(
@@ -692,109 +699,6 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '我的兴趣标签',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      '兴趣标签帮助您发展有共同兴趣有爱好的朋友',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        widget.context.forward(
-                            '/wallet/fission/mf/tag/properties',
-                            arguments: {
-                              'wallet': _myWallet,
-                              'cashier': _cashierOR,
-                            });
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 10, bottom: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Wrap(
-                              children: _tags.map((tag) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.grey[300], width: 1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  padding: EdgeInsets.only(
-                                    left: 8,
-                                    right: 8,
-                                    top: 2,
-                                    bottom: 2,
-                                  ),
-                                  child: Text(
-                                    '${tag.name ?? ''}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                              spacing: 5,
-                              runSpacing: 5,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              '设置',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 18,
-                              color: Colors.grey,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                color: Colors.white,
-                constraints: BoxConstraints.tightForFinite(
-                  width: double.maxFinite,
-                ),
-                padding: EdgeInsets.only(
-                  left: 15,
-                  right: 15,
-                  top: 10,
-                  bottom: 10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
                       '我的朋友',
                       style: TextStyle(
                         fontSize: 16,
@@ -813,7 +717,61 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                     SizedBox(
                       height: 10,
                     ),
-
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward('/wallet/fission/mf/group/staff',
+                            arguments: {
+                              'wallet': _myWallet,
+                              'cashier': _cashierOR,
+                            });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Row(
+                              children: _staffs.map((e) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 5,
+                                  ),
+                                  child: FadeInImage.assetNetwork(
+                                    width: 30,
+                                    height: 30,
+                                    image: '${e?.avatarUrl ?? ''}',
+                                    placeholder:
+                                        'lib/portals/gbera/images/default_watting.gif',
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '现有伙伴$_totalStaffAll人',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
                     InkWell(
                       onTap: () {
                         widget.context.forward(
@@ -840,7 +798,7 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                                     height: 30,
                                     image: '${e?.avatarUrl ?? ''}',
                                     placeholder:
-                                    'lib/portals/gbera/images/default_watting.gif',
+                                        'lib/portals/gbera/images/default_watting.gif',
                                   ),
                                 );
                               }).toList(),
@@ -985,7 +943,108 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                         ),
                       ),
                     ),
-
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                color: Colors.white,
+                constraints: BoxConstraints.tightForFinite(
+                  width: double.maxFinite,
+                ),
+                padding: EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '我的兴趣标签',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '兴趣标签帮助您发展有共同兴趣有爱好的朋友',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        widget.context.forward(
+                            '/wallet/fission/mf/tag/properties',
+                            arguments: {
+                              'wallet': _myWallet,
+                              'cashier': _cashierOR,
+                            });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Wrap(
+                              children: _tags.map((tag) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.grey[300], width: 1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  padding: EdgeInsets.only(
+                                    left: 8,
+                                    right: 8,
+                                    top: 2,
+                                    bottom: 2,
+                                  ),
+                                  child: Text(
+                                    '${tag.name ?? ''}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              spacing: 5,
+                              runSpacing: 5,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              '设置',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

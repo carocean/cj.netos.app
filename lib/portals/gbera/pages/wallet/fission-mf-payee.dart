@@ -213,7 +213,7 @@ class _FissionMFPayeesPageState extends State<FissionMFPayeesPage> {
                 return InkWell(
                   onTap: () {
                     widget.context.forward('/wallet/fission/mf/person',
-                        arguments: {'record': e, 'direct': 'payer'});
+                        arguments: {'person': e.person, 'direct': 'payer'});
                   },
                   child: Column(
                     children: [

@@ -289,10 +289,30 @@ class PayPersonOR extends FissionMFPayRecordOR {
   }
 }
 
+class StaffOR {
+  FissionMFPerson person;
+  String ctime;
+  int amount;
+  int count;
+  StaffOR({this.person, this.ctime, this.amount,this.count});
+
+  StaffOR.parse(obj) {
+    var p = obj['person'];
+    this.person = FissionMFPerson.parse(p);
+    this.amount = obj['amount'];
+    this.count = obj['count'];
+    this.ctime = obj['ctime'];
+  }
+}
+
 mixin IFissionMFCashierRecordRemote {
   Future<int> totalPersonAmount() {}
 
   Future<int> totalPayeeAmount() {}
+
+  Future<int> totalStaffAmount() {}
+  Future<int>  totalAllStaffAmount() {}
+  Future<int> totalAllStaff() {}
 
   Future<int> totalPayee() {}
 
@@ -312,6 +332,10 @@ mixin IFissionMFCashierRecordRemote {
 
   Future<List<PayPersonOR>> pagePersonDetails(int limit, int offset) {}
 
+  Future<List<StaffOR>> pageStaffDetails(int limit, int offset) {}
+
+  Future<List<StaffOR>> pageAllStaffDetails(int limit, int offset) {}
+
   Future<List<PayPersonOR>> pagePayerDetails(int limit, int offset) {}
 
   Future<List<FissionMFPerson>> pagePayeeInfo(int limit, int offset) {}
@@ -327,6 +351,12 @@ mixin IFissionMFCashierRecordRemote {
   Future<FissionMFPayRecordOR> getPayRecord(String sn);
 
   Future<FissionMFCommissionRecordOR> getDepositCommissionRecord(String sn);
+
+
+
+
+
+
 }
 
 class FissionMFCashierRecordRemote
@@ -357,6 +387,33 @@ class FissionMFCashierRecordRemote
     return await remotePorts.portGET(
       fissionMfRecordPorts,
       'totalPayeeAmount',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<int> totalStaffAmount() async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalStaffAmount',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<int> totalAllStaffAmount()async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalAllStaffAmount',
+      parameters: {},
+    );
+  }
+
+  @override
+  Future<int> totalAllStaff()async {
+    return await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'totalAllStaff',
       parameters: {},
     );
   }
@@ -446,6 +503,40 @@ class FissionMFCashierRecordRemote
     List<PayPersonOR> persons = [];
     for (var obj in list) {
       persons.add(PayPersonOR.parse(obj));
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<StaffOR>> pageStaffDetails(int limit, int offset)async {
+    var list = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'pageStaffDetails',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<StaffOR> persons = [];
+    for (var obj in list) {
+      persons.add(StaffOR.parse(obj));
+    }
+    return persons;
+  }
+
+  @override
+  Future<List<StaffOR>> pageAllStaffDetails(int limit, int offset)async {
+    var list = await remotePorts.portGET(
+      fissionMfRecordPorts,
+      'pageAllStaffDetails',
+      parameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    List<StaffOR> persons = [];
+    for (var obj in list) {
+      persons.add(StaffOR.parse(obj));
     }
     return persons;
   }
