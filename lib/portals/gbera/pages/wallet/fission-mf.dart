@@ -771,6 +771,9 @@ class _FissionMFCashierPageState extends State<FissionMFCashierPage> {
                     ),
                     SizedBox(
                       height: 10,
+                      child: Divider(
+                        height: 50,
+                      ),
                     ),
                     InkWell(
                       onTap: () {
