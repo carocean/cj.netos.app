@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
@@ -266,7 +267,41 @@ class _ChannelPublishArticleState extends State<ChannelPublishArticle> {
       });
     }
     print('发布完成');
+
+    await _checkFissionMFTask();
+
     widget.context.backward();
+  }
+  Future<void> _checkFissionMFTask()async{
+    IFissionMFCashierRemote cashierRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask=await cashierRemote.isTask("publishChDoc");
+    if(!isTask) {
+      return;
+    }
+    await cashierRemote.doneTask();
+    await showDialog(
+      context: context,
+      child: AlertDialog(
+        title: Text(
+          '裂变游戏·交个朋友',
+        ),
+        content: Text('任务处理完毕，请去微信继续抢红包！'),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.context.backward();
+            },
+            child: Text(
+              '好',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 /*
   Future<PurchaseOR> _purchaseImpl(user, msgid) async {

@@ -12,6 +12,7 @@ import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/netflow/article_entities.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wybank_purchaser.dart';
@@ -133,6 +134,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
       setState(() {});
     }
   }
+
 /*
   Future<void> _buywy() async {
     if (!_isEnoughMoney) {
@@ -274,6 +276,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     });
      */
     await _publishImpl(user, content, msgid);
+
     if (mounted) {
       setState(() {
         _publishingState = 0;
@@ -281,7 +284,40 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
     }
     print('发布完成');
 
+    await _checkFissionMFTask();
+
     widget.context.backward(result: msgid);
+  }
+  Future<void> _checkFissionMFTask()async{
+    IFissionMFCashierRemote cashierRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask=await cashierRemote.isTask("publishGeoDoc");
+    if(!isTask) {
+      return;
+    }
+    await cashierRemote.doneTask();
+    await showDialog(
+      context: context,
+      child: AlertDialog(
+        title: Text(
+          '裂变游戏·交个朋友',
+        ),
+        content: Text('任务处理完毕，请去微信继续抢红包！'),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.context.backward();
+            },
+            child: Text(
+              '好',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 /*
   Future<PurchaseOR> _purchaseImpl(user, msgid) async {
@@ -474,7 +510,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               var image = await picker.getImage(
                                 source: ImageSource.gallery,
                                 imageQuality: 80,
-                                // maxHeight: Adapt.screenH(),
+                                maxHeight: Adapt.screenH(),
                               );
                               if (image == null) {
                                 return;
@@ -534,16 +570,14 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var path=image.path;
-                              if(!Platform.isIOS) {
-                                var info= await VideoCompress.compressVideo(
-                                  image.path,
-                                  quality: VideoQuality.HighestQuality,
-                                  // deleteOrigin: true, // It's false by default
-                                );
-                                var newfile=await copyVideoCompressFile(info.file);
-                                path=newfile;
-                              }
+                              // var videoCompress = FlutterVideoCompress();
+                              // var info = await videoCompress.compressVideo(
+                              //   image.path,
+                              //   quality: VideoQuality.MediumQuality,
+                              //   // 默认(VideoQuality.DefaultQuality)
+                              //   deleteOrigin: true, // 默认(false)
+                              //   // frameRate: 10,
+                              // );
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;
@@ -551,7 +585,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               }
                               shower_key.currentState.addImage(
                                 MediaFile(
-                                  src: File(path),
+                                  src: File(image.path),
                                   type: MediaFileType.video,
                                 ),
                               );
@@ -596,7 +630,7 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                               var image = await picker.getImage(
                                 source: ImageSource.camera,
                                 imageQuality: 80,
-                                // maxHeight: Adapt.screenH(),
+                                maxHeight: Adapt.screenH(),
                               );
                               if (image == null) {
                                 return;
@@ -654,12 +688,13 @@ class _GeospherePublishArticleState extends State<GeospherePublishArticle> {
                                   _isVideoCompressing = true;
                                 });
                               }
-                              var info= await VideoCompress.compressVideo(
+                              var info = await VideoCompress.compressVideo(
                                 image.path,
                                 quality: VideoQuality.DefaultQuality,
                                 deleteOrigin: true, // It's false by default
                               );
-                              var newfile=await copyVideoCompressFile(info.file);
+                              var newfile =
+                                  await copyVideoCompressFile(info.file);
                               if (mounted) {
                                 setState(() {
                                   _isVideoCompressing = false;

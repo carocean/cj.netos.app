@@ -29,6 +29,7 @@ import 'package:netos_app/portals/gbera/pages/viewers/video_view.dart';
 import 'package:netos_app/portals/gbera/parts/parts.dart';
 import 'package:netos_app/portals/gbera/share/share_card.dart';
 import 'package:netos_app/portals/gbera/store/remotes.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_records.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/system/local/entities.dart';
@@ -402,8 +403,39 @@ class _ChatTalkState extends State<ChatTalk> {
     }
     await messageService.addMessage(_chatRoom.creator, message);
     _p2pMessages.insert(0, message);
+    await _checkFissionMFTask();
   }
-
+  Future<void> _checkFissionMFTask()async{
+    IFissionMFCashierRemote cashierRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask=await cashierRemote.isTask("publishRoomMsg");
+    if(!isTask) {
+      return;
+    }
+    await cashierRemote.doneTask();
+    await showDialog(
+      context: context,
+      child: AlertDialog(
+        title: Text(
+          '裂变游戏·交个朋友',
+        ),
+        content: Text('任务处理完毕，请去微信继续抢红包！'),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.context.backward();
+            },
+            child: Text(
+              '好',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     if (!_isloaded) {

@@ -307,6 +307,8 @@ class BossInfoOR {
 }
 
 mixin IFissionMFCashierRemote {
+  Future<bool> isTask(String task);
+  Future<void> doneTask();
   Future<MFSettingsOR> getSettings();
 
   Future<WithdrawShuntOR> computeWithdrawShuntInfo(int amount);
@@ -513,6 +515,26 @@ class FissionMFCashierRemote
       parameters: {
         'person': official,
       },
+    );
+  }
+
+  @override
+  Future<bool> isTask(String task) async{
+    return  await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'isTask',
+      parameters: {
+        'task':task,
+      },
+    );
+  }
+
+  @override
+  Future<Function> doneTask() async{
+    await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'doneTask',
+      parameters: {},
     );
   }
 
