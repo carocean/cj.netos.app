@@ -176,8 +176,40 @@ class _FissionMFBecomeBossPageState extends State<FissionMFBecomeBossPage> {
         _shareProgress = 0;
       });
     }
-  }
 
+    await _checkFissionMFTask();
+  }
+  Future<void> _checkFissionMFTask()async{
+    IFissionMFCashierRemote cashierRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask=await cashierRemote.isTask("shareByBoss");
+    if(!isTask) {
+      return;
+    }
+    await cashierRemote.doneTask();
+    await showDialog(
+      context: context,
+      child: AlertDialog(
+        title: Text(
+          '裂变游戏·交个朋友',
+        ),
+        content: Text('任务处理完毕，请去微信继续抢红包！'),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.context.backward();
+            },
+            child: Text(
+              '好',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
