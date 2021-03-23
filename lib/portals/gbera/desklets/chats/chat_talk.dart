@@ -793,22 +793,18 @@ class _PlusPannelState extends State<_PlusPannel> {
         if (image == null) {
           return;
         }
-        var path=image.path;
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
             message: 'beginVideoCompressing',
           ),
         );
-        if(!Platform.isIOS) {
-          var info= await VideoCompress.compressVideo(
-            image.path,
-            quality: VideoQuality.HighestQuality,
-            // deleteOrigin: true, // It's false by default
-          );
-          var newfile=await copyVideoCompressFile(info.file);
-          path=newfile;
-        }
+        // var info= await VideoCompress.compressVideo(
+        //   image.path,
+        //   quality: VideoQuality.MediumQuality,
+        //   deleteOrigin: true, // It's false by default
+        // );
+        // var newfile=await copyVideoCompressFile(info.file);
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
@@ -818,7 +814,7 @@ class _PlusPannelState extends State<_PlusPannel> {
         widget.pluginTap(
           _ChatCommand(
             cmd: plugin.id,
-            message: path,
+            message: image.path,
           ),
         );
         break;
