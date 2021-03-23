@@ -30,21 +30,8 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
   StreamController _rechargeController;
   StreamSubscription _rechargeHandler;
   bool _isLoading = true;
-  Person _agent;
-  var _data = [
-    100,
-    20000,
-    30000,
-    40000,
-    50000,
-    150000,
-    200000,
-    300000,
-    400000,
-    800000,
-    1000000,
-    2000000,
-    5000000,
+  // Person _agent;
+  var _data = <int>[
   ];
   List<BusinessIncomeRatioOR> _ratios = [];
   double _selectedRatio;
@@ -67,7 +54,9 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
     IFissionMFCashierRemote cashierRemote =
         widget.context.site.getService('/wallet/fission/mf/cashier');
     _ratios = await cashierRemote.listBusinessIncomeRatio();
-    await _loadAgent();
+    var prices=await cashierRemote.listPrice();
+    _data.addAll(prices);
+    // await _loadAgent();
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -84,9 +73,9 @@ class _FissionMfRechargePageState extends State<FissionMfRechargePage> {
       return;
     }
     salesman = '$salesman@gbera.netos';
-    IPersonService personService =
-        widget.context.site.getService('/gbera/persons');
-    _agent = await personService.getPerson(salesman);
+    // IPersonService personService =
+    //     widget.context.site.getService('/gbera/persons');
+    // _agent = await personService.getPerson(salesman);
     if (mounted) {
       setState(() {});
     }

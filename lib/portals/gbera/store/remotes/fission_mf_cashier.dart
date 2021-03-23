@@ -389,6 +389,9 @@ mixin IFissionMFCashierRemote {
   Future<int> totalStaff() {}
 
   Future<List<FissionMFPerson>> pageStaffInfo(int limit, int offset) {}
+
+  Future<List<int>>listPrice() {}
+
 }
 
 class FissionMFCashierRemote
@@ -536,6 +539,21 @@ class FissionMFCashierRemote
       'doneTask',
       parameters: {},
     );
+  }
+
+  @override
+  Future<List<int>> listPrice() async{
+    var list = await remotePorts.portPOST(
+      fissionMfCashierPorts,
+      'listPrice',
+      parameters: {},
+    );
+    List<int> prices=[];
+    for(var obj in list){
+      var price=obj['price'];
+      prices.add(price);
+    }
+    return prices;
   }
 
   @override
