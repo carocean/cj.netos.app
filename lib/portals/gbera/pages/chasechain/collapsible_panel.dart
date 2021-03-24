@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:framework/framework.dart';
 import 'package:netos_app/common/cc_medias_widget.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/netflow/cat_widget.dart';
 import 'package:netos_app/portals/gbera/pages/system/tip_off_item.dart';
 import 'package:netos_app/portals/gbera/store/remotes/chasechain_recommender.dart';
 import 'package:netos_app/portals/gbera/store/services.dart';
@@ -154,9 +155,8 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
 
     var box = await recommender.getContentBox(item.pool, item.box);
     var pointer = box.pointer;
-    var pointerBoxID = box.pointer.id;
     var absorbabler;
-    absorbabler = '${pointer.type}/$pointerBoxID';
+    absorbabler = 'desktop/${pointer.creator}';
     switch (behave) {
       case 'like':
         _tryAddRecipients(
@@ -471,10 +471,11 @@ class _CollapsiblePanelState extends State<CollapsiblePanel> {
         automaticallyImplyLeading: false,
         actions: <Widget>[
           useSimpleLayout()?SizedBox.shrink():
-          Padding(padding: EdgeInsets.only(left: 10,right: 10,),child: _AbsorberAction(
+          Padding(padding: EdgeInsets.only(left: 10,right: 10,),child: CatWidget(
             context: widget.context,
-            doc: widget.doc,
-            timerStream: _streamController.stream,
+            size: 18,
+            canTap: true,
+            person: widget.doc.message.creator,
           ),),
           IconButton(
             icon: Icon(
@@ -1592,150 +1593,4 @@ class _ContentItemDetail {
 Future<Person> _getPerson(IServiceProvider site, String person) async {
   IPersonService personService = site.getService('/gbera/persons');
   return await personService.getPerson(person);
-}
-
-class _AbsorberAction extends StatefulWidget {
-  PageContext context;
-  RecommenderDocument doc;
-  Stream timerStream;
-
-  _AbsorberAction({
-    this.context,
-    this.doc,
-    this.timerStream,
-  });
-
-  @override
-  __AbsorberActionState createState() => __AbsorberActionState();
-}
-
-class __AbsorberActionState extends State<_AbsorberAction> {
-  AbsorberResultOR _absorberResultOR;
-  DomainBulletin _bulletin;
-  bool _isLoading = false, _isRefreshing = false;
-  StreamController _streamController;
-  StreamSubscription _streamSubscription;
-  bool _isDiff = false;
-
-  @override
-  void initState() {
-    _load().then((value) {
-      if (mounted) setState(() {});
-    });
-    _streamController = StreamController.broadcast();
-    _streamSubscription = widget.timerStream.listen((event) async {
-      if (_isRefreshing) {
-        return;
-      }
-      await _refresh();
-      if (!_isDiff) {
-        return;
-      }
-      if (!_streamController.isClosed) {
-        _streamController
-            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _streamSubscription?.cancel();
-    _streamController?.close();
-    super.dispose();
-  }
-
-  Future<void> _refresh() async {
-    _isRefreshing = true;
-    await _load();
-    _isRefreshing = false;
-  }
-
-  @override
-  void didUpdateWidget(_AbsorberAction oldWidget) {
-    if (oldWidget.doc.item.id != widget.doc.item.id) {
-      oldWidget.doc = widget.doc;
-      _refresh().then((value) {
-        if (mounted) setState(() {});
-      });
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  Future<void> _load() async {
-    if (_isLoading) {
-      return;
-    }
-    _isLoading = true;
-
-    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-
-    var item = widget.doc.item;
-    IChasechainRecommenderRemote recommender =
-    widget.context.site.getService('/remote/chasechain/recommender');
-    var box = await recommender.getContentBox(item.pool, item.box);
-    var pointer = box.pointer;
-    var pointerBoxID = box.pointer.id;
-    var absorbabler;
-    absorbabler = '${pointer.type}/$pointerBoxID';
-    var absorberResultOR =
-    await robotRemote.getAbsorberByAbsorbabler(absorbabler);
-    if (absorberResultOR == null) {
-      return false;
-    }
-    var bulletin =
-    await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
-    _isDiff = (_absorberResultOR == null ||
-        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
-        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
-    _bulletin = bulletin;
-    _absorberResultOR = absorberResultOR;
-    _isLoading = false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading || _absorberResultOR == null) {
-      return SizedBox(
-        height: 0,
-        width: 0,
-      );
-    }
-    //存在
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        var absorber = _absorberResultOR.absorber;
-        if (absorber.type == 0) {
-          widget.context.forward('/absorber/details/simple', arguments: {
-            'absorber': _absorberResultOR.absorber.id,
-            'stream': _streamController.stream.asBroadcastStream(),
-            'initAbsorber': _absorberResultOR,
-            'initBulletin': _bulletin,
-          });
-          return;
-        }
-        widget.context.forward('/absorber/details/geo', arguments: {
-          'absorber': _absorberResultOR.absorber.id,
-          'stream': _streamController.stream.asBroadcastStream(),
-          'initAbsorber': _absorberResultOR,
-          'initBulletin': _bulletin,
-        });
-      },
-      child: Icon(
-        IconData(
-          0xe6b2,
-          fontFamily: 'absorber',
-        ),
-        size: 18,
-        color: _absorberResultOR.bucket.price >= _bulletin.bucket.waaPrice
-            ? Colors.red
-            : Colors.green,
-      ),
-    );
-  }
 }

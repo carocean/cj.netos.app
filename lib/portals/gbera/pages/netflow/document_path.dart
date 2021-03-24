@@ -229,7 +229,7 @@ class _DocumentPathState extends State<DocumentPath> {
                     ),
                     CatWidget(
                       context: widget.context,
-                      channelId: _channel.id,
+                      person: _message?.creator,
                       size: 20,
                       canTap: true,
                     ),

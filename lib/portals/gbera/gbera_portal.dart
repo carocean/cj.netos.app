@@ -23,6 +23,7 @@ import 'package:netos_app/portals/gbera/desklets/chats/view_licence.dart';
 import 'package:netos_app/portals/gbera/errors/errors.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_slices.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/create_progress.dart';
+import 'package:netos_app/portals/gbera/pages/absorber/desktop_apply.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_settings.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_absorber_details.dart';
 import 'package:netos_app/portals/gbera/pages/absorber/geo_apply.dart';
@@ -3064,6 +3065,15 @@ class GberaPortal {
           icon: Icons.business,
           url: '/absorber/apply/geosphere',
           buildPage: (PageContext pageContext) => AbsorberGeoApplyPage(
+            context: pageContext,
+          ),
+        ),
+        LogicPage(
+          title: '申请洇取器',
+          subtitle: '',
+          icon: Icons.business,
+          url: '/absorber/apply/desktop',
+          buildPage: (PageContext pageContext) => AbsorberDesktopApplyPage(
             context: pageContext,
           ),
         ),

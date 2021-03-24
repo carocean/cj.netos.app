@@ -103,7 +103,7 @@ class _ShowSliceAbsorbersPageState extends State<ShowSliceAbsorbersPage> {
     var me = widget.context.principal.person;
     bool hasMyAbsorbers = false;
     for (var a in _absorbers.values) {
-      if (a.absorber.creator == me) {
+      if (a.absorber.creator != me) {
         continue;
       }
       hasMyAbsorbers = true;
@@ -144,7 +144,7 @@ class _ShowSliceAbsorbersPageState extends State<ShowSliceAbsorbersPage> {
     var me = widget.context.principal.person;
     bool hasMyAbsorbers = false;
     for (var a in _absorbers.values) {
-      if (a.absorber.creator != me) {
+      if (a.absorber.creator == me) {
         continue;
       }
       hasMyAbsorbers = true;

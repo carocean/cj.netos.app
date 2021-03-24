@@ -374,9 +374,9 @@ class _MessagesRegionState extends State<_MessagesRegion> {
                                       ),
                                       CatWidget(
                                         context: widget.context,
-                                        channelId: v.channelis?.id,
                                         size: 11,
                                         canTap: false,
+                                        person: v.who,
                                       ),
                                     ],
                                   ),

@@ -312,7 +312,7 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
                             right: 5,
                           ),
                           child: Text(
-                            '纹银洇金',
+                            '平台派发',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -337,7 +337,7 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
                             right: 5,
                           ),
                           child: Text(
-                            '公众洇金',
+                            '公众喂食',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -390,9 +390,9 @@ class _RecipientsRecordsState extends State<AbsorberRecipientsRecordsPage> {
       return '-';
     }
     if (order == 0) {
-      return '纹银洇金';
+      return '平台派发';
     }
-    return '公众洇金';
+    return '公众喂食';
   }
 }
 

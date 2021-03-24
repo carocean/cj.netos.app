@@ -1271,7 +1271,7 @@ class _InsiteMessagesRegionState extends State<_InsiteMessagesRegion> {
     if (StringUtil.isEmpty(sourceCreator)) {
       sourceCreator = docMap['creator'];
     }
-    String absorbabler = '$sourceCreator/${docMap['channel']}';
+    String absorbabler = 'desktop/$sourceCreator';
     AbsorberResultOR absorberResultOR;
     if (!StringUtil.isEmpty(absorbabler)) {
       absorberResultOR = await _getAbsorberByAbsorbabler(absorbabler);
@@ -1694,9 +1694,9 @@ class __InsiteMessageItemState extends State<_InsiteMessageItem> {
                       )
                     : CatWidget(
                         context: widget.context,
-                        channelId: _channel.id,
                         size: 11,
                         canTap: false,
+                        person: widget.message.creator,
                       ),
               ],
             ),

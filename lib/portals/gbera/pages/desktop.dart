@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,6 +13,7 @@ import 'package:netos_app/common/easy_refresh.dart';
 import 'package:netos_app/common/portlet_market.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/common/util.dart';
+import 'package:netos_app/portals/gbera/pages/geosphere/geo_utils.dart';
 import 'package:netos_app/portals/gbera/pages/profile/qrcode.dart' as person;
 import 'package:netos_app/portals/gbera/pages/screen/screen_popup2.dart';
 import 'package:netos_app/portals/gbera/pages/system/tiptool_opener.dart';
@@ -20,6 +22,8 @@ import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
+import 'package:netos_app/portals/landagent/remote/robot.dart';
+import 'package:netos_app/system/system.dart';
 
 class Desktop extends StatefulWidget {
   PageContext context;
@@ -96,19 +100,19 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
         }
         break;
       case 'begin_time':
-        if(StringUtil.isEmpty(rule.args)) {
+        if (StringUtil.isEmpty(rule.args)) {
           break;
         }
-        var begin=jsonDecode(rule.args);
-        var time=begin['time'];
-        if(time==null) {
+        var begin = jsonDecode(rule.args);
+        var time = begin['time'];
+        if (time == null) {
           break;
         }
         var v = share.getString('/desktop/screen/begin_time');
-        if(!StringUtil.isEmpty(v)&&v=='$time'){
+        if (!StringUtil.isEmpty(v) && v == '$time') {
           break;
         }
-        if(DateTime.now().millisecondsSinceEpoch>=time){
+        if (DateTime.now().millisecondsSinceEpoch >= time) {
           share.setString('/desktop/screen/begin_time', '$time');
           if (mounted) {
             setState(() {
@@ -177,60 +181,82 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             Padding(
               padding: EdgeInsets.only(
                 left: 10,
-                right: 10,
+                right: 0,
                 top: 30,
                 bottom: 30,
               ),
               child: Row(
                 children: <Widget>[
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onProfileTap,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        right: 10,
-                      ),
-                      child: CircleAvatar(
-                        backgroundImage: FileImage(
-                          File('${widget.context.principal.avatarOnLocal}'),
-                        ),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onProfileTap,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          '${widget.context.principal?.nickName}',
-                          softWrap: true,
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onProfileTap,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: 10,
+                            ),
+                            child: CircleAvatar(
+                              backgroundImage: FileImage(
+                                File(
+                                    '${widget.context.principal.avatarOnLocal}'),
+                              ),
+                            ),
                           ),
                         ),
-                        StringUtil.isEmpty(widget.context.principal.signature)
-                            ? Container(
-                                width: 0,
-                                height: 0,
-                              )
-                            : Padding(
-                                padding: EdgeInsets.only(
-                                  top: 3,
-                                ),
-                                child: Text(
-                                  '${widget.context.principal.signature}',
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onProfileTap,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  '${widget.context.principal?.nickName}',
                                   softWrap: true,
                                   style: TextStyle(
-                                    color: Colors.black54,
+                                    color: Colors.black87,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 12,
                                   ),
                                 ),
-                              ),
+                                StringUtil.isEmpty(
+                                        widget.context.principal.signature)
+                                    ? Container(
+                                        width: 0,
+                                        height: 0,
+                                      )
+                                    : Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 3,
+                                        ),
+                                        child: Text(
+                                          '${widget.context.principal.signature}',
+                                          softWrap: true,
+                                          style: TextStyle(
+                                            color: Colors.black54,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  useSimpleLayout()?SizedBox.shrink():
+                  Container(
+                    padding: EdgeInsets.only(
+                      right: 20,
+                    ),
+                    child: _AbsorberAction(
+                      context: widget.context,
                     ),
                   ),
                 ],
@@ -845,4 +871,237 @@ class MyRow {
   final int cost;
 
   MyRow(this.timeStamp, this.cost);
+}
+
+class _AbsorberAction extends StatefulWidget {
+  PageContext context;
+
+  _AbsorberAction({
+    this.context,
+  });
+
+  @override
+  __AbsorberActionState createState() => __AbsorberActionState();
+}
+
+class __AbsorberActionState extends State<_AbsorberAction> {
+  AbsorberResultOR _absorberResultOR;
+  DomainBulletin _bulletin;
+  bool _isLoaded = false, _isRefreshing = false;
+  StreamController _streamController;
+  StreamSubscription _streamSubscription;
+
+  @override
+  void initState() {
+    _streamController = StreamController.broadcast();
+    _isLoaded = false;
+    _load().then((value) {
+      _isLoaded = true;
+      if (mounted) setState(() {});
+    });
+    _streamSubscription = Stream.periodic(
+        Duration(
+          seconds: 5,
+        ), (count) async {
+      if (!_isRefreshing && mounted) {
+        return await _refresh();
+      }
+    }).listen((event) async {
+      var v = await event;
+      if (v == null) {
+        return;
+      }
+      if (v && !_streamController.isClosed) {
+        _streamController
+            .add({'absorber': _absorberResultOR, 'bulletin': _bulletin});
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _streamController?.close();
+    super.dispose();
+  }
+
+  Future<bool> _refresh() async {
+    _isRefreshing = true;
+    var diff = await _load();
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+    return diff;
+  }
+
+  Future<bool> _load() async {
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorbabler = 'desktop/${widget.context.principal.person}';
+    var absorberResultOR =
+        await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+    if (absorberResultOR == null) {
+      return false;
+    }
+    var bulletin =
+        await robotRemote.getDomainBucket(absorberResultOR.absorber.bankid);
+    bool diff = (_absorberResultOR == null ||
+        (_absorberResultOR.bucket.price != absorberResultOR.bucket.price) ||
+        (_bulletin.bucket.waaPrice != bulletin.bucket.waaPrice));
+    _bulletin = bulletin;
+    _absorberResultOR = absorberResultOR;
+    return diff;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded) {
+      return SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+
+    if (_absorberResultOR == null) {
+      return InkWell(
+        onTap: () {
+          var principal = widget.context.principal;
+          widget.context.forward(
+            '/absorber/apply/desktop',
+            arguments: {
+              'title': principal.nickName,
+              'radius': 500.00,
+              'usage': 1,
+              'absorbabler': 'desktop/${principal.person}',
+            },
+          ).then((value) {
+            _load().then((value) {
+              _isLoaded = true;
+              if (mounted) setState(() {});
+            });
+          });
+        },
+        child: Column(
+          children: [
+            SizedBox(
+              width: 30,
+              height: 30,
+              child: Icon(
+                IconData(
+                  0xe6b2,
+                  fontFamily: 'absorber',
+                ),
+                color: Colors.grey[600],
+              ),
+            ),
+            Text(
+              '开通',
+              style: TextStyle(
+                fontSize: 8,
+                color: Colors.grey,
+              ),
+            ),
+            Text(
+              '源源不断有钱发',
+              style: TextStyle(
+                fontSize: 8,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    //存在
+    var waaPrice = _bulletin.bucket.waaPrice;
+    var abPrice = _absorberResultOR.bucket.price;
+    return InkWell(
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            padding: EdgeInsets.only(
+              left: 10,
+              right: 2,
+              top: 5,
+              bottom: 5,
+            ),
+            alignment: Alignment.center,
+            child: abPrice >= waaPrice
+                ? Image.asset(
+                    'lib/portals/gbera/images/cat-red.gif',
+                    fit: BoxFit.fill,
+                  )
+                : Image.asset(
+                    'lib/portals/gbera/images/cat-green.gif',
+                    fit: BoxFit.fill,
+                  ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'R',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Text(
+                    '${getFriendlyDistance(_absorberResultOR.absorber.radius * 1.00)}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              abPrice >= waaPrice
+                  ? Text(
+                      '饱饱哒:)',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                      ),
+                    )
+                  : Text(
+                      '我饿了，喂喂我吧',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+
+
+
+
+            ],
+          ),
+        ],
+      ),
+      onTap: () {
+        widget.context.forward('/absorber/details/geo', arguments: {
+          'absorber': _absorberResultOR.absorber.id,
+          'stream': _streamController.stream.asBroadcastStream(),
+          'initAbsorber': _absorberResultOR,
+          'initBulletin': _bulletin,
+        });
+      },
+    );
+  }
 }

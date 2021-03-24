@@ -579,7 +579,7 @@ class _InsiteApprovalsState extends State<InsiteApprovals> {
                                               children: [
                                                 CatWidget(
                                                   context: widget.context,
-                                                  channelId: _channel.id,
+                                                  person: _message?.creator,
                                                   size: 14,
                                                   canTap: false,
                                                   tipsWidget: Text(

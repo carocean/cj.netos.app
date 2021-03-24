@@ -670,11 +670,6 @@ class _ContentItemPanelState extends State<ContentItemPanel> {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                _AbsorberAction(
-                                  context: widget.context,
-                                  doc: _doc,
-                                  timerStream: _streamController.stream,
-                                ),
 
                                  */
                               ],

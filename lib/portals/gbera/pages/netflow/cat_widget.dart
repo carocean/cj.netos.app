@@ -8,16 +8,16 @@ import 'package:netos_app/system/local/entities.dart';
 
 class CatWidget extends StatefulWidget {
   PageContext context;
-  String channelId;
   double size;
   Widget tipsWidget;
   bool canTap;
+  String person;
   CatWidget({
     this.context,
-    this.channelId,
     this.size,
     this.tipsWidget,
     this.canTap,
+    this.person,
   });
 
   @override
@@ -30,7 +30,6 @@ class _CatWidgetState extends State<CatWidget> {
   bool _isLoaded = false, _isRefreshing = false;
   StreamController _streamController;
   StreamSubscription _streamSubscription;
-  Channel _channel;
 
   @override
   void initState() {
@@ -82,17 +81,8 @@ class _CatWidgetState extends State<CatWidget> {
   }
 
   Future<bool> _load() async {
-    if(StringUtil.isEmpty(widget.channelId)) {
-      return false;
-    }
     IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
-    IChannelService channelService =
-        widget.context.site.getService('/netflow/channels');
-    _channel = await channelService.getChannel(widget.channelId);
-    if (_channel == null) {
-      return false;
-    }
-    var absorbabler = '${_channel.owner}/${_channel.id}';
+    var absorbabler = 'desktop/${widget.person}';
     var absorberResultOR =
         await robotRemote.getAbsorberByAbsorbabler(absorbabler);
     if (absorberResultOR == null) {
@@ -110,7 +100,7 @@ class _CatWidgetState extends State<CatWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isLoaded || _channel == null||_absorberResultOR == null) {
+    if (!_isLoaded || _absorberResultOR == null) {
       return SizedBox(
         height: 0,
         width: 0,
@@ -136,7 +126,7 @@ class _CatWidgetState extends State<CatWidget> {
       items.add(GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: (){
-          widget.context.forward('/absorber/details/simple', arguments: {
+          widget.context.forward('/absorber/details/geo', arguments: {
             'absorber': _absorberResultOR.absorber.id,
             'stream': _streamController.stream.asBroadcastStream(),
             'initAbsorber': _absorberResultOR,
