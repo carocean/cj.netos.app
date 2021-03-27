@@ -272,10 +272,10 @@ class _GeosphereState extends State<Geosphere>
               .getService('/geosphere/receptor/messages/medias');
 
           var creator = frame.parameter('creator');
-          IPersonService personService =
-              widget.context.site.getService('/gbera/persons');
-          var mediaPerson =
-              await personService.getPerson(creator, isDownloadAvatar: true);
+          // IPersonService personService =
+          //     widget.context.site.getService('/gbera/persons');
+          // var mediaPerson =
+          //     await personService.getPerson(creator, isDownloadAvatar: true);
 
           var media = GeosphereMediaOL(
             mediaid,

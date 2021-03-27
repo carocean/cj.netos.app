@@ -67,6 +67,7 @@ class _TaskBarState extends State<TaskBar> {
     }
     return LinearProgressIndicator(
       value: percent,
+      valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
     );
   }
 
