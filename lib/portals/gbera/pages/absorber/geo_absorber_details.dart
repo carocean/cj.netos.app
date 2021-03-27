@@ -37,6 +37,8 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
   bool _isMemberOfRecipients = false;
   StreamController _filterRecipientsForMe;
   String _filter = 'me'; //al
+  GlobalKey<ScaffoldState> _key = GlobalKey();
+
   @override
   void initState() {
     _filterRecipientsForMe = StreamController.broadcast();
@@ -74,6 +76,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       floatingActionButton: !_isMemberOfRecipients
           ? null
           : FloatingActionButton(
@@ -127,6 +130,7 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                   )
                 : SliverToBoxAdapter(
                     child: _DashBoard(
+                      parentKey: _key,
                       stream: _stream.asBroadcastStream(),
                       absorberResultOR: _absorberResultOR,
                     ),
@@ -177,54 +181,59 @@ class _AbsorberDetailsState extends State<GeoAbsorberDetailsPage> {
                                 ),
                               ),
                             ),
-                            useSimpleLayout()?SizedBox(height: 0,width: 0,):
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (ctx) {
-                                    return InvestPopupWidget(
-                                      context: widget.context,
-                                      absorberResultOR: _absorberResultOR,
-                                      bulletin: _bulletin,
-                                    );
-                                  },
-                                ).then((value) {
-                                  if (value != null) {
+                            useSimpleLayout()
+                                ? SizedBox(
+                                    height: 0,
+                                    width: 0,
+                                  )
+                                : GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) {
+                                          return InvestPopupWidget(
+                                            context: widget.context,
+                                            absorberResultOR: _absorberResultOR,
+                                            bulletin: _bulletin,
+                                          );
+                                        },
+                                      ).then((value) {
+                                        if (value != null) {
 //                                  _reloadAbsorber();
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: 15,
-                                  right: 0,
-                                  top: 3,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Icon(
-                                      Icons.emoji_food_beverage,
-                                      size: 30,
-                                      color: Colors.red,
-                                    ),
-                                    SizedBox(
-                                      width: 0,
-                                    ),
-                                    Text(
-                                      '喂喵',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14,
-                                        // decoration: TextDecoration.underline,
+                                        }
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 15,
+                                        right: 0,
+                                        top: 3,
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Icon(
+                                            Icons.emoji_food_beverage,
+                                            size: 30,
+                                            color: Colors.red,
+                                          ),
+                                          SizedBox(
+                                            width: 0,
+                                          ),
+                                          Text(
+                                            '喂喵',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 14,
+                                              // decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                                  ),
                           ],
                         ),
                       ),
@@ -1080,8 +1089,9 @@ class __InvestPopupWidgetState extends State<_InvestPopupWidget> {
 class _DashBoard extends StatefulWidget {
   AbsorberResultOR absorberResultOR;
   Stream stream;
+  GlobalKey<ScaffoldState> parentKey;
 
-  _DashBoard({this.absorberResultOR, this.stream});
+  _DashBoard({this.absorberResultOR, this.stream, this.parentKey});
 
   @override
   __DashBoardState createState() => __DashBoardState();
@@ -1093,6 +1103,8 @@ class __DashBoardState extends State<_DashBoard> {
 
   @override
   void initState() {
+    _absorberResultOR = widget.absorberResultOR;
+    _showTips();
     _streamSubscription = widget.stream.listen((event) async {
       var absorberResultOR = event['absorber'];
       if (mounted &&
@@ -1100,17 +1112,34 @@ class __DashBoardState extends State<_DashBoard> {
               _absorberResultOR.bucket.price !=
                   absorberResultOR.bucket.price)) {
         _absorberResultOR = absorberResultOR;
+        _showTips();
         if (mounted) {
           setState(() {});
         }
         return;
       }
       _absorberResultOR = absorberResultOR;
+      _showTips();
       if (mounted) {
         setState(() {});
       }
     });
     super.initState();
+  }
+
+  _showTips() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if(_absorberResultOR==null) {
+        return;
+      }
+      if (_absorberResultOR.bucket.pInvestAmount == 0) {
+        widget.parentKey?.currentState?.showSnackBar(
+          SnackBar(
+            content: Text('刚开通需要喂食一次，之后才可能源源不断的接收洇金'),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -1122,9 +1151,6 @@ class __DashBoardState extends State<_DashBoard> {
   @override
   Widget build(BuildContext context) {
     Widget content;
-    if (_absorberResultOR == null) {
-      _absorberResultOR = widget.absorberResultOR;
-    }
     if (_absorberResultOR == null) {
       content = Center(
         child: Text('-'),

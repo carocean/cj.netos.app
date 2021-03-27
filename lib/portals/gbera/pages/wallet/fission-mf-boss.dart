@@ -457,6 +457,20 @@ class _FissionMFBecomeBossPageState extends State<FissionMFBecomeBossPage> {
                   ),
                 ],
               ),
+              SizedBox(height: 5,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '做个老板，赚佣金！',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
               SizedBox(
                 height: 30,
               ),

@@ -173,151 +173,161 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
 
     var _slivers = <Widget>[
       SliverToBoxAdapter(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(
-                left: 10,
-                right: 0,
-                top: 30,
-                bottom: 30,
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onProfileTap,
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: 10,
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: FileImage(
-                                File(
-                                    '${widget.context.principal.avatarOnLocal}'),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onProfileTap,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  '${widget.context.principal?.nickName}',
-                                  softWrap: true,
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 10,
+                    right: 0,
+                    top: 30,
+                    bottom: 30,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onProfileTap,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: 10,
+                                ),
+                                child: CircleAvatar(
+                                  backgroundImage: FileImage(
+                                    File(
+                                        '${widget.context.principal.avatarOnLocal}'),
                                   ),
                                 ),
-                                StringUtil.isEmpty(
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: onProfileTap,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      '${widget.context.principal?.nickName}',
+                                      softWrap: true,
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    StringUtil.isEmpty(
                                         widget.context.principal.signature)
-                                    ? Container(
-                                        width: 0,
-                                        height: 0,
-                                      )
-                                    : Padding(
-                                        padding: EdgeInsets.only(
-                                          top: 3,
-                                        ),
-                                        child: Text(
-                                          '${widget.context.principal.signature}',
-                                          softWrap: true,
-                                          style: TextStyle(
-                                            color: Colors.black54,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                          ),
+                                        ? Container(
+                                      width: 0,
+                                      height: 0,
+                                    )
+                                        : Padding(
+                                      padding: EdgeInsets.only(
+                                        top: 3,
+                                      ),
+                                      child: Text(
+                                        '${widget.context.principal.signature}',
+                                        softWrap: true,
+                                        style: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 12,
                                         ),
                                       ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10, bottom: 2),
+                  child: Flex(
+                    direction: Axis.horizontal,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          '桌面',
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+
+                      Expanded(
+                        flex: 1,
+                        child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    right: 5,
+                                  ),
+                                  child: Text(
+                                    '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  useSimpleLayout()?SizedBox.shrink():
-                  Container(
-                    padding: EdgeInsets.only(
-                      right: 20,
-                    ),
-                    child: _AbsorberAction(
-                      context: widget.context,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
+            Positioned(
+              right: 0,
+              bottom: 2,
+              child: useSimpleLayout()?SizedBox.shrink():
+              Container(
+                padding: EdgeInsets.only(
+                  right: 15,
+                ),
+                child: _AbsorberAction(
+                  context: widget.context,
+                ),
+              ),),
           ],
         ),
       ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.only(left: 10, right: 10, bottom: 2),
-          child: Flex(
-            direction: Axis.horizontal,
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              // Expanded(
-              //   flex: 1,
-              //   child: Text(
-              //     '桌面',
-              //     style: TextStyle(
-              //       fontSize: 18,
-              //     ),
-              //   ),
-              // ),
-              Expanded(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: 5,
-                          ),
-                          child: Text(
-                            '',
-                            style: TextStyle(
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '',
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+
+
+
     ];
 
     var lets_region = SliverToBoxAdapter(
