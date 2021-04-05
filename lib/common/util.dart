@@ -321,3 +321,15 @@ String findCityCode(String provinceCode,String cityName) {
   }
   return null;
 }
+
+///取小数点后几位
+///num 数据
+///location 几位
+String formatNum2(double num) {
+ var text=num.toStringAsFixed(2);
+ int pos=text.indexOf('.');
+ if(pos>-1) {
+   return text.substring(pos+1);
+ }
+ return '00';
+}

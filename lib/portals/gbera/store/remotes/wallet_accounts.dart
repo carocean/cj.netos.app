@@ -144,6 +144,7 @@ class PersonCardOR {
   String person;
   String cardSn;
   String cardHolder;
+  String holderAlias;
   String cardName;
   String cardAvatar;
   String cardAttrBank;
@@ -160,6 +161,7 @@ class PersonCardOR {
     this.person,
     this.cardSn,
     this.cardHolder,
+    this.holderAlias,
     this.cardName,
     this.cardAvatar,
     this.cardAttrBank,
@@ -176,6 +178,7 @@ class PersonCardOR {
     this.person = obj['person'];
     this.cardSn = obj['cardSn'];
     this.cardHolder = obj['cardHolder'];
+    this.holderAlias=obj['holderAlias'];
     this.cardName = obj['cardName'];
     this.cardAvatar = obj['cardAvatar'];
     this.cardAttrBank = obj['cardAttrBank'];

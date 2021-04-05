@@ -172,6 +172,10 @@ void main() => platformRun(
                 'https://www.nodespower.com/webshare/pages/netflow-viewer.html',
             '@.prop.website.webshare.geosphere-viewer':
                 'https://www.nodespower.com/webshare/pages/geosphere-viewer.html',
+            '@.prop.ports.market':
+            'http://47.105.165.186/market/market.ports',
+            '@.prop.ports.market.material':
+            'http://47.105.165.186/market/material.ports',
           },
           buildServices: (site) async {
             await registerWxApi(

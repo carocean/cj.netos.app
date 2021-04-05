@@ -219,6 +219,9 @@ flutter:
     - family: market
       fonts:
         - asset: lib/portals/gbera/fonts/market.ttf
+    - family: market_icon
+      fonts:
+        - asset: lib/portals/gbera/fonts/market_icon.ttf
     - family: market_shishang
       fonts:
         - asset: lib/portals/gbera/fonts/market_shishang.ttf

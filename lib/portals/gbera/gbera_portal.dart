@@ -6,6 +6,7 @@ import 'package:netos_app/common/avatar.dart';
 import 'package:netos_app/common/icons.dart';
 import 'package:netos_app/common/location_map.dart';
 import 'package:netos_app/common/media_watcher.dart';
+import 'package:netos_app/common/media_watcher_external.dart';
 import 'package:netos_app/common/qrcode_scanner.dart';
 import 'package:netos_app/portals/gbera/contants/cardcases.dart';
 import 'package:netos_app/portals/gbera/contants/friend_list.dart';
@@ -272,6 +273,8 @@ import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/fission_mf_record.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_categories.dart';
 import 'package:netos_app/portals/gbera/store/remotes/geo_receptors.dart';
+import 'package:netos_app/portals/gbera/store/remotes/market.dart';
+import 'package:netos_app/portals/gbera/store/remotes/market_material.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
 import 'package:netos_app/portals/gbera/store/remotes/org.dart';
 import 'package:netos_app/portals/gbera/store/remotes/wallet_accounts.dart';
@@ -379,6 +382,8 @@ class GberaPortal {
           '/feedback/tipoff': TipOffRemote(),
           '/feedback/tiptool': TipToolRemote(),
           '/desktop/screen': DefaultScreenRemote(),
+          '/market': TaobaoMarketRemote(),
+          '/market/material': TaobaoMarketMaterialRemote(),
         };
       },
       builderShareServices: (site) async {
@@ -1396,6 +1401,30 @@ class GberaPortal {
                   context: context,
                 );
                 return MediaWatcher(
+                  pageContext: pageContext,
+                );
+              },
+              fullscreenDialog: true,
+            );
+          },
+        ),
+        LogicPage(
+          title: '图片查看器',
+          subtitle: '',
+          desc: '',
+          icon: Icons.image,
+          url: '/images/viewer/external',
+          buildRoute:
+              (RouteSettings settings, LogicPage page, IServiceProvider site) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                PageContext pageContext = PageContext(
+                  page: page,
+                  site: site,
+                  context: context,
+                );
+                return MediaWatcherExternal(
                   pageContext: pageContext,
                 );
               },
