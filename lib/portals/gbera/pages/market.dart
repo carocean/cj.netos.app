@@ -7,6 +7,7 @@ import 'package:framework/framework.dart';
 import 'package:netos_app/common/util.dart';
 import 'package:netos_app/portals/gbera/pages/viewers/image_viewer.dart';
 import 'package:netos_app/portals/gbera/parts/timeline_listview.dart';
+import 'package:netos_app/portals/gbera/store/remotes/fission_mf_cashier.dart';
 import 'package:netos_app/portals/gbera/store/remotes/market.dart';
 import 'dart:math';
 import 'package:tobias/tobias.dart' as tobias;
@@ -104,13 +105,44 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
       });
     }
     await _onload();
+    await _checkFissionMFTask();
     if (mounted) {
       setState(() {
         _isDataLoading = false;
       });
     }
   }
-
+  Future<void> _checkFissionMFTask()async{
+    IFissionMFCashierRemote cashierRemote =
+    widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask=await cashierRemote.isTask("goShop");
+    if(!isTask) {
+      return;
+    }
+    await cashierRemote.doneTask();
+    await showDialog(
+      context: context,
+      child: AlertDialog(
+        title: Text(
+          '裂变游戏·交个朋友',
+        ),
+        content: Text('任务处理完毕，请去微信继续抢红包！'),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.context.backward();
+            },
+            child: Text(
+              '好',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Future<void> _searchMaterial() async {
     _materials.clear();
     _offset = 0;
@@ -227,9 +259,9 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                 height: 10,
               ),
             ),
-            SliverToBoxAdapter(
-              child: _renderBonus(),
-            ),
+            // SliverToBoxAdapter(
+            //   child: _renderBonus(),
+            // ),
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 10,
@@ -905,26 +937,26 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                                     ],
                                   ),
                                   content: Text(
-                                    '${(double.parse('${material['coupon_amount'] ?? '0.00'}')).toStringAsFixed(2)}元',
+                                    '- ${(double.parse('${material['coupon_amount'] ?? '0.00'}')).toStringAsFixed(2)}元',
                                     style: TextStyle(
                                       fontSize: 12,
                                     ),
                                   ),
                                 ),
-                                rendTimelineListRow(
-                                  title: Text(
-                                    '补',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  content: Text(
-                                    '6.00元',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
+                                // rendTimelineListRow(
+                                //   title: Text(
+                                //     '补',
+                                //     style: TextStyle(
+                                //       fontSize: 12,
+                                //     ),
+                                //   ),
+                                //   content: Text(
+                                //     '6.00元',
+                                //     style: TextStyle(
+                                //       fontSize: 12,
+                                //     ),
+                                //   ),
+                                // ),
                                 Row(
                                   children: [
                                     Container(
