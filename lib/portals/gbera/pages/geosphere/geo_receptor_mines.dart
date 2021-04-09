@@ -145,10 +145,23 @@ class _GeoReceptorMineWidgetState extends State<GeoReceptorMineWidget> {
         continue;
       }
       var msglatLng = LatLng.fromJson(jsonDecode(loc));
+      var msgDistance = getDistance(start: latLng, end: msglatLng);
       var distanceLabel =
-          getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
+          getFriendlyDistance(msgDistance);
       msgwrapper.distanceLabel = distanceLabel;
-      msgwrapper.poi = _currentPoi;
+      var recode = await AmapSearch.instance.searchReGeocode(msglatLng);
+      var poiList = await  AmapSearch.instance.searchAround(msglatLng);
+      Poi thePoi;
+      if (poiList.isNotEmpty) {
+        thePoi = poiList[0];
+      }
+      msgwrapper.poi = AmapPoi(
+        distance: msgDistance?.floor(),
+        title: thePoi?.title,
+        latLng: msglatLng,
+        address: recode.formatAddress,
+        poiId: poiId,
+      );
     }
     if (mounted) {
       setState(() {});
@@ -1250,64 +1263,64 @@ class __MessageCardState extends State<_MessageCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Container(
-                      child: Wrap(
-                        direction: Axis.vertical,
-                        spacing: 2,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 0,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                text: '${TimelineUtil.format(
-                                  widget.messageWrapper.message.ctime,
-                                  locale: 'zh',
-                                  dayFormat: DayFormat.Simple,
-                                )}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[400],
-                                ),
-                                children: [
-                                  TextSpan(text: '  '),
-                                  (useSimpleLayout()||widget.messageWrapper.purchaseOR?.principalAmount==null)?TextSpan(text: ''):
-                                  TextSpan(
-                                    text:
-                                        '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        IWyBankPurchaserRemote purchaserRemote =
-                                            widget.context.site.getService(
-                                                '/remote/purchaser');
-                                        WenyBank bank = await purchaserRemote
-                                            .getWenyBank(widget.messageWrapper
-                                                .purchaseOR.bankid);
-                                        widget.context.forward(
-                                          '/wybank/purchase/details',
-                                          arguments: {
-                                            'purch': widget
-                                                .messageWrapper.purchaseOR,
-                                            'bank': bank
-                                          },
-                                        );
-                                      },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 0,
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
+                   Expanded(child:  Container(
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: <Widget>[
+                         Padding(
+                           padding: EdgeInsets.only(
+                             bottom: 0,
+                           ),
+                           child: Text.rich(
+                             TextSpan(
+                               text: '${TimelineUtil.format(
+                                 widget.messageWrapper.message.ctime,
+                                 locale: 'zh',
+                                 dayFormat: DayFormat.Simple,
+                               )}',
+                               style: TextStyle(
+                                 fontSize: 12,
+                                 color: Colors.grey[400],
+                               ),
+                               children: [
+                                 TextSpan(text: '  '),
+                                 (useSimpleLayout()||widget.messageWrapper.purchaseOR?.principalAmount==null)?TextSpan(text: ''):
+                                 TextSpan(
+                                   text:
+                                   '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                   style: TextStyle(
+                                     decoration: TextDecoration.underline,
+                                   ),
+                                   recognizer: TapGestureRecognizer()
+                                     ..onTap = () async {
+                                       IWyBankPurchaserRemote purchaserRemote =
+                                       widget.context.site.getService(
+                                           '/remote/purchaser');
+                                       WenyBank bank = await purchaserRemote
+                                           .getWenyBank(widget.messageWrapper
+                                           .purchaseOR.bankid);
+                                       widget.context.forward(
+                                         '/wybank/purchase/details',
+                                         arguments: {
+                                           'purch': widget
+                                               .messageWrapper.purchaseOR,
+                                           'bank': bank
+                                         },
+                                       );
+                                     },
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                         SizedBox(height: 2,),
+                         Padding(
+                           padding: EdgeInsets.only(
+                             bottom: 0,
+                           ),
+                           child: Row(
+                             crossAxisAlignment: CrossAxisAlignment.end,
+                             children: <Widget>[
 //                                  Padding(
 //                                    padding: EdgeInsets.only(
 //                                      right: 2,
@@ -1318,36 +1331,43 @@ class __MessageCardState extends State<_MessageCard> {
 //                                      color: Colors.grey[400],
 //                                    ),
 //                                  ),
-                                Text.rich(
-                                  TextSpan(
-                                    text:
-                                        '${poi == null ? '' : '${poi.title}附近'}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[400],
-                                    ),
-                                    children:
-                                        widget.messageWrapper.distanceLabel ==
-                                                null
-                                            ? []
-                                            : [
-                                                TextSpan(text: ' '),
-                                                TextSpan(
-                                                  text:
-                                                      '距${widget.messageWrapper.distanceLabel}',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
+                              Expanded(child:  Text.rich(
+                                TextSpan(
+                                  text: '${poi?.address ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
                                   ),
+                                  children:
+                                  widget.messageWrapper.distanceLabel ==
+                                      null
+                                      ? []
+                                      : [
+                                    TextSpan(text: ' '),
+                                    TextSpan(
+                                      text:
+                                      '距${widget.messageWrapper.distanceLabel}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                    recognizer: TapGestureRecognizer()..onTap=poi==null?null:(){
+                                      widget.context
+                                          .forward('/gbera/location', arguments: {
+                                        'location': poi?.latLng,
+                                        'label':
+                                        '${poi?.title??''}'
+                                      });
+                                    }
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                              ),),
+                             ],
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),),
                     _MessageOperatesPopupMenu(
                       messageWrapper: widget.messageWrapper,
                       titleLabel: _titleLabel,

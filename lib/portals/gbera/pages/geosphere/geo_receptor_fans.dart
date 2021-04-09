@@ -187,10 +187,22 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
         continue;
       }
       var msglatLng = LatLng.fromJson(jsonDecode(loc));
-      var distanceLabel =
-          getFriendlyDistance(getDistance(start: latLng, end: msglatLng));
+      var msgDistance = getDistance(start: latLng, end: msglatLng);
+      var distanceLabel = getFriendlyDistance(msgDistance);
       msgwrapper.distanceLabel = distanceLabel;
-      msgwrapper.poi = _currentPoi;
+      var recode = await AmapSearch.instance.searchReGeocode(msglatLng);
+      var poiList = await  AmapSearch.instance.searchAround(msglatLng);
+      Poi thePoi;
+      if (poiList.isNotEmpty) {
+        thePoi = poiList[0];
+      }
+      msgwrapper.poi = AmapPoi(
+        distance: msgDistance?.floor(),
+        title: thePoi?.title,
+        latLng: msglatLng,
+        address: recode.formatAddress,
+        poiId: poiId,
+      );
     }
     setState(() {});
   }
@@ -567,7 +579,7 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
     for (var msg in _messageList) {
       list.add(
         SliverToBoxAdapter(
-          child: rendTimelineListRow(
+          child: _rendTimelineListRow(
             content: _MessageCard(
               context: widget.context,
               receptor: _receptorInfo,
@@ -575,9 +587,11 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
               onDeleted: _deleteMessage,
             ),
             title: Container(
-              child: Wrap(
-                direction: Axis.vertical,
-                spacing: 2,
+              constraints: BoxConstraints.tightForFinite(
+                width: double.maxFinite,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Padding(
                     padding: EdgeInsets.only(
@@ -599,32 +613,37 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
                         ),
                         children: [
                           TextSpan(text: '  '),
-                          (useSimpleLayout()||msg.purchaseOR?.principalAmount==null)?TextSpan(text: ''):
-                          TextSpan(
-                            text:
-                                '¥${((msg.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                IWyBankPurchaserRemote purchaserRemote = widget
-                                    .context.site
-                                    .getService('/remote/purchaser');
-                                WenyBank bank = await purchaserRemote
-                                    .getWenyBank(msg.purchaseOR.bankid);
-                                widget.context.forward(
-                                  '/wybank/purchase/details',
-                                  arguments: {
-                                    'purch': msg.purchaseOR,
-                                    'bank': bank
-                                  },
-                                );
-                              },
-                          ),
+                          (useSimpleLayout() ||
+                                  msg.purchaseOR?.principalAmount == null)
+                              ? TextSpan(text: '')
+                              : TextSpan(
+                                  text:
+                                      '¥${((msg.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      IWyBankPurchaserRemote purchaserRemote =
+                                          widget.context.site
+                                              .getService('/remote/purchaser');
+                                      WenyBank bank = await purchaserRemote
+                                          .getWenyBank(msg.purchaseOR.bankid);
+                                      widget.context.forward(
+                                        '/wybank/purchase/details',
+                                        arguments: {
+                                          'purch': msg.purchaseOR,
+                                          'bank': bank
+                                        },
+                                      );
+                                    },
+                                ),
                         ],
                       ),
                     ),
+                  ),
+                  SizedBox(
+                    height: 2,
                   ),
                   Padding(
                     padding: EdgeInsets.only(
@@ -643,28 +662,37 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
 //                                      color: Colors.grey[400],
 //                                    ),
 //                                  ),
-                        Text.rich(
-                          TextSpan(
-                            text:
-                                '${msg.poi == null ? '' : '${msg.poi.title}附近'}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _receptorInfo.backgroundMode ==
-                                      BackgroundMode.vertical
-                                  ? Colors.white
-                                  : Colors.grey[400],
-                            ),
-                            children: msg.distanceLabel == null
-                                ? []
-                                : [
-                                    TextSpan(text: ' '),
-                                    TextSpan(
-                                      text: '距${msg.distanceLabel}',
-                                      style: TextStyle(
-                                        fontSize: 12,
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              text: '${msg?.poi?.address ?? ''}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _receptorInfo.backgroundMode ==
+                                        BackgroundMode.vertical
+                                    ? Colors.white
+                                    : Colors.grey[400],
+                              ),
+                              children: msg.distanceLabel == null
+                                  ? []
+                                  : [
+                                      TextSpan(text: ' '),
+                                      TextSpan(
+                                        text: '距${msg.distanceLabel}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                recognizer: TapGestureRecognizer()..onTap=msg?.poi==null?null:(){
+                                widget.context
+                                    .forward('/gbera/location', arguments: {
+                                  'location': msg?.poi?.latLng,
+                                  'label':
+                                  '${msg?.poi?.title??''}'
+                                });
+                              }
+                            ),
                           ),
                         ),
                       ],
@@ -683,14 +711,13 @@ class _GeoReceptorFansWidgetState extends State<GeoReceptorFansWidget> {
   }
 
   List<Widget> _getActions(Color color) {
-    var actions = <Widget>[
-    ];
+    var actions = <Widget>[];
     if (!_isDenyFollowSpeak) {
       actions.add(
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onLongPress: () {
-            if(useSimpleLayout()){
+            if (useSimpleLayout()) {
               widget.context.forward('/geosphere/publish_article/ios',
                   arguments: <String, dynamic>{
                     'type': 'text',
@@ -1513,7 +1540,7 @@ class __MessageCardState extends State<_MessageCard> {
   @override
   void initState() {
     _interactiveRegionRefreshAdapter = _InteractiveRegionRefreshAdapter();
-    _setTitleLabel() ;
+    _setTitleLabel();
     super.initState();
   }
 
@@ -1528,7 +1555,7 @@ class __MessageCardState extends State<_MessageCard> {
     if (oldWidget.messageWrapper.message.id !=
         widget.messageWrapper.message.id) {
       oldWidget.messageWrapper = widget.messageWrapper;
-      _setTitleLabel() ;
+      _setTitleLabel();
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -1738,7 +1765,7 @@ class __MessageCardState extends State<_MessageCard> {
   }
 
   _getleadingImg() {
-    var _leading=_creator.avatar;
+    var _leading = _creator.avatar;
     var leadingImg;
     if (StringUtil.isEmpty(_leading)) {
       leadingImg = Image(
@@ -2101,14 +2128,14 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                     var webshareSite = widget.context.site
                         .getService('@.prop.website.webshare.geosphere-viewer');
                     String imgSrc;
-                    if(widget.messageWrapper.medias.isNotEmpty){
-                      var img=widget.messageWrapper.medias[0];
-                      if(img.type=='image'){
-                        imgSrc=img.src;
+                    if (widget.messageWrapper.medias.isNotEmpty) {
+                      var img = widget.messageWrapper.medias[0];
+                      if (img.type == 'image') {
+                        imgSrc = img.src;
                       }
                     }
-                    if(StringUtil.isEmpty(imgSrc)) {
-                      imgSrc=widget.messageWrapper.creator.avatar;
+                    if (StringUtil.isEmpty(imgSrc)) {
+                      imgSrc = widget.messageWrapper.creator.avatar;
                     }
                     return Container(
                       height: 100,
@@ -2123,7 +2150,7 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                           'desc': widget.messageWrapper.message.text ?? '',
                           'imgSrc': imgSrc,
                           'link':
-                          '$webshareSite?docid=${widget.messageWrapper.message.id}',
+                              '$webshareSite?docid=${widget.messageWrapper.message.id}',
                         },
                       ),
                     );
@@ -2636,4 +2663,88 @@ class _GeosphereMessageWrapper {
   String get distanceLabel {
     return _distanceLabel;
   }
+}
+
+Widget _rendTimelineListRow({Widget content, Widget title,Color lineColor=Colors.grey,double paddingLeft=15,double paddingRight=15,double paddingContentLeft=37}) {
+  Widget firstRow;
+  Widget contentWidget = SizedBox();
+  //跟进记录
+  contentWidget = content;
+
+  firstRow = Row(
+    children: <Widget>[
+      Expanded(child: title,),
+    ],
+  );
+
+  Widget pointWidget;
+  double topSpace = 0;
+  topSpace = 3;
+  pointWidget = ClipOval(
+    child: Container(
+      width: 7,
+      height: 7,
+      color: lineColor,
+    ),
+  );
+
+  return Container(
+    padding: EdgeInsets.only(
+      left: paddingLeft,
+      right: paddingRight,
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        //灰色右
+        Expanded(
+          child: Stack(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: paddingContentLeft),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(
+                      height: topSpace == 0 ? 4 : 0,
+                    ),
+                    firstRow,
+                    SizedBox(
+                      height: 12.0,
+                    ),
+                    contentWidget,
+                    SizedBox(
+                      height: 12.0,
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 0,
+                width: 37,
+                bottom: 0,
+                top: topSpace,
+                child: Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      pointWidget,
+                      Expanded(
+                        child: Container(
+                          width: 27,
+                          child: TimelineSeparatorVertical(
+                            color: lineColor,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }

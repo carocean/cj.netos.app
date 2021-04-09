@@ -129,13 +129,13 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
   }
 
   Future<void> _updateLocation(Location location) async {
-    var city = await location.city;
+    var city = location.city;
     if (StringUtil.isEmpty(city)) {
       return;
     }
     //计算文档离我的距离
 
-    LatLng latLng = await location.latLng;
+    LatLng latLng = location.latLng;
     if (latLng == null) {
       return;
     }
@@ -147,9 +147,9 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
 //      return;
 //    }
 //    var amapPoi = poiList[0];
-    var title = await location.poiName;
-    var address = await location.address;
-    var poiId = await location.adCode;
+    var title = location.poiName;
+    var address = location.address;
+    var poiId = location.adCode;
     if (StringUtil.isEmpty(address)) {
       return;
     }
@@ -181,10 +181,22 @@ class _GeoReceptorLordWidgetState extends State<GeoReceptorLordWidget> {
         continue;
       }
       var msglatLng = LatLng.fromJson(jsonDecode(loc));
-      var distanceLabel = getFriendlyDistance(
-          getDistance(start: _currentPoi.latLng, end: msglatLng));
+      var msgDistance = getDistance(start: latLng, end: msglatLng);
+      var distanceLabel = getFriendlyDistance(msgDistance);
       msgwrapper.distanceLabel = distanceLabel;
-      msgwrapper.poi = _currentPoi;
+      var recode = await AmapSearch.instance.searchReGeocode(msglatLng);
+      var poiList = await  AmapSearch.instance.searchAround(msglatLng);
+      Poi thePoi;
+      if (poiList.isNotEmpty) {
+        thePoi = poiList[0];
+      }
+      msgwrapper.poi = AmapPoi(
+        distance: msgDistance?.floor(),
+        title: thePoi?.title,
+        latLng: msglatLng,
+        address: recode.formatAddress,
+        poiId: poiId,
+      );
     }
     if (mounted) {
       setState(() {});
@@ -1376,99 +1388,103 @@ class __MessageCardState extends State<_MessageCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Container(
-                      child: Wrap(
-                        direction: Axis.vertical,
-                        spacing: 2,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 0,
-                            ),
-                            child: Text.rich(
-                              TextSpan(
-                                text: '${TimelineUtil.format(
-                                  widget.messageWrapper.message.ctime,
-                                  locale: 'zh',
-                                  dayFormat: DayFormat.Simple,
-                                )}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[400],
-                                ),
-                                children: [
-                                  TextSpan(text: '  '),
-                                  (useSimpleLayout() ||
-                                          widget.messageWrapper.purchaseOR
-                                                  ?.principalAmount ==
-                                              null)
-                                      ? TextSpan(text: '')
-                                      : TextSpan(
-                                          text:
-                                              '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            decoration:
-                                                TextDecoration.underline,
+                    Expanded(
+                      child: Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 0,
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  text: '${TimelineUtil.format(
+                                    widget.messageWrapper.message.ctime,
+                                    locale: 'zh',
+                                    dayFormat: DayFormat.Simple,
+                                  )}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                  children: [
+                                    TextSpan(text: '  '),
+                                    (useSimpleLayout() ||
+                                            widget.messageWrapper.purchaseOR
+                                                    ?.principalAmount ==
+                                                null)
+                                        ? TextSpan(text: '')
+                                        : TextSpan(
+                                            text:
+                                                '¥${((widget.messageWrapper.purchaseOR?.principalAmount ?? 0.00) / 100.00).toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () async {
+                                                if (widget.messageWrapper
+                                                        .purchaseOR ==
+                                                    null) {
+                                                  return;
+                                                }
+                                                IWyBankPurchaserRemote
+                                                    purchaserRemote = widget
+                                                        .context.site
+                                                        .getService(
+                                                            '/remote/purchaser');
+                                                WenyBank bank =
+                                                    await purchaserRemote
+                                                        .getWenyBank(widget
+                                                            .messageWrapper
+                                                            .purchaseOR
+                                                            .bankid);
+                                                widget.context.forward(
+                                                  '/wybank/purchase/details',
+                                                  arguments: {
+                                                    'purch': widget
+                                                        .messageWrapper
+                                                        .purchaseOR,
+                                                    'bank': bank
+                                                  },
+                                                );
+                                              },
                                           ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              if (widget.messageWrapper
-                                                      .purchaseOR ==
-                                                  null) {
-                                                return;
-                                              }
-                                              IWyBankPurchaserRemote
-                                                  purchaserRemote = widget
-                                                      .context.site
-                                                      .getService(
-                                                          '/remote/purchaser');
-                                              WenyBank bank =
-                                                  await purchaserRemote
-                                                      .getWenyBank(widget
-                                                          .messageWrapper
-                                                          .purchaseOR
-                                                          .bankid);
-                                              widget.context.forward(
-                                                '/wybank/purchase/details',
-                                                arguments: {
-                                                  'purch': widget.messageWrapper
-                                                      .purchaseOR,
-                                                  'bank': bank
-                                                },
-                                              );
-                                            },
-                                        ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 0,
+                            SizedBox(
+                              height: 2,
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-//                                  Padding(
-//                                    padding: EdgeInsets.only(
-//                                      right: 2,
-//                                    ),
-//                                    child: Icon(
-//                                      Icons.location_on,
-//                                      size: 12,
-//                                      color: Colors.grey[400],
-//                                    ),
-//                                  ),
-                                Text.rich(
-                                  TextSpan(
-                                    text:
-                                        '${poi == null ? '' : '${poi.title}附近'}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[400],
-                                    ),
-                                    children:
-                                        widget.messageWrapper.distanceLabel ==
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: 0,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  // Padding(
+                                  //   padding: EdgeInsets.only(
+                                  //     right: 2,
+                                  //   ),
+                                  //   child: Icon(
+                                  //     Icons.location_on,
+                                  //     size: 12,
+                                  //     color: Colors.grey[400],
+                                  //   ),
+                                  // ),
+                                  Expanded(
+                                    child: Text.rich(
+                                      TextSpan(
+                                        text: '${poi?.address ?? ''}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[400],
+                                        ),
+                                        children: widget.messageWrapper
+                                                    .distanceLabel ==
                                                 null
                                             ? []
                                             : [
@@ -1481,12 +1497,22 @@ class __MessageCardState extends State<_MessageCard> {
                                                   ),
                                                 ),
                                               ],
+                                          recognizer: TapGestureRecognizer()..onTap=poi==null?null:(){
+                                            widget.context
+                                                .forward('/gbera/location', arguments: {
+                                              'location': poi?.latLng,
+                                              'label':
+                                              '${poi?.title??''}'
+                                            });
+                                          }
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     _MessageOperatesPopupMenu(
@@ -1899,14 +1925,14 @@ class __MessageOperatesPopupMenuState extends State<_MessageOperatesPopupMenu> {
                     var webshareSite = widget.context.site
                         .getService('@.prop.website.webshare.geosphere-viewer');
                     String imgSrc;
-                    if(widget.messageWrapper.medias.isNotEmpty){
-                      var img=widget.messageWrapper.medias[0];
-                      if(img.type=='image'){
-                        imgSrc=img.src;
+                    if (widget.messageWrapper.medias.isNotEmpty) {
+                      var img = widget.messageWrapper.medias[0];
+                      if (img.type == 'image') {
+                        imgSrc = img.src;
                       }
                     }
-                    if(StringUtil.isEmpty(imgSrc)) {
-                      imgSrc=widget.leading;
+                    if (StringUtil.isEmpty(imgSrc)) {
+                      imgSrc = widget.leading;
                     }
                     return Container(
                       height: 100,

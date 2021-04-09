@@ -1061,8 +1061,8 @@ class _GeoDistrictState extends State<_GeoDistrict> {
       }
       _updateBeginTime = nowTime;
       //当坐标偏移一定距离时更新行政区信息
-      var city = await location.city;
-      var district = await location.district;
+      var city =  location.city;
+      var district =  location.district;
       if (StringUtil.isEmpty(district)) {
         return;
       }
@@ -1073,7 +1073,7 @@ class _GeoDistrictState extends State<_GeoDistrict> {
           setState(() {});
         }
       }
-      _location = await location.latLng;
+      _location = location.latLng;
 
       _receptors.clear();
       await _searchAroundLocation();
