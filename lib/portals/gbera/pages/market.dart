@@ -112,11 +112,12 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
       });
     }
   }
-  Future<void> _checkFissionMFTask()async{
+
+  Future<void> _checkFissionMFTask() async {
     IFissionMFCashierRemote cashierRemote =
-    widget.context.site.getService('/wallet/fission/mf/cashier');
-    var isTask=await cashierRemote.isTask("goShop");
-    if(!isTask) {
+        widget.context.site.getService('/wallet/fission/mf/cashier');
+    var isTask = await cashierRemote.isTask("goShop");
+    if (!isTask) {
       return;
     }
     await cashierRemote.doneTask();
@@ -143,6 +144,7 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
+
   Future<void> _searchMaterial() async {
     _materials.clear();
     _offset = 0;
@@ -235,8 +237,9 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
     if (!logo.startsWith('http')) {
       logo = 'https:$logo';
     }
-    String url = material['coupon_share_url'];//coupon_click_url，click_url
-    if(StringUtil.isEmpty(url)) {//没有券地址则直接进入商品
+    String url = material['coupon_share_url']; //coupon_click_url，click_url
+    if (StringUtil.isEmpty(url)) {
+      //没有券地址则直接进入商品
       url = material['click_url'];
     }
     if (!url.startsWith('http')) {
@@ -1024,6 +1027,34 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                 onTap: () async {
                   var url = 'taobao://taobao.com';
                   if (!(await canLaunch(url))) {
+                    await showDialog(
+                      context: context,
+                      child: AlertDialog(
+                        title: Text('提示'),
+                        elevation: 0,
+                        content: Container(
+                          padding: EdgeInsets.only(left: 10,right: 10,),
+                          child: Text(
+                            '没有安装淘宝app，请到应用商店下载',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          FlatButton(
+                            onPressed: () {},
+                            child: Text(
+                              '取消',
+                              style: TextStyle(
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                     return;
                   }
                   //生成淘口令并拷贝到粘贴版
