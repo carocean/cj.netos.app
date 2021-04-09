@@ -53,6 +53,8 @@
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>tmall</string>
+		<string>taobao</string>
 		<string>weixin</string>
 		<string>weixinULAPI</string>
 		<string>amapuri</string>

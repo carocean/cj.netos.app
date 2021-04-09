@@ -1044,7 +1044,9 @@ class _MarketState extends State<Market> with AutomaticKeepAliveClientMixin {
                         ),
                         actions: [
                           FlatButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              widget.context.backward();
+                            },
                             child: Text(
                               '取消',
                               style: TextStyle(
