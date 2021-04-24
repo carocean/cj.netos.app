@@ -959,6 +959,15 @@ class _$IGeoReceptorDAO extends IGeoReceptorDAO {
   }
 
   @override
+  Future<GeoReceptor> getReceptor2(
+      String category, String creator, String sandbox) async {
+    return _queryAdapter.query(
+        'SELECT * FROM GeoReceptor WHERE category=? and creator=? and sandbox=? LIMIT 1',
+        arguments: <dynamic>[category, creator, sandbox],
+        mapper: _geoReceptorMapper);
+  }
+
+  @override
   Future<GeoReceptor> get(String id, String sandbox) async {
     return _queryAdapter.query(
         'SELECT * FROM GeoReceptor WHERE id=? and sandbox=?',

@@ -208,6 +208,12 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
   }
 
   @override
+  Future<GeoReceptor> getMobileReceptor2(String person) async{
+    return await receptorDAO.getReceptor2(
+        'mobiles', person, principal.person);
+  }
+
+  @override
   Future<Function> remove(String id) async {
     await receptorDAO.remove(id, principal.person);
     await receptorRemote.removeReceptor(id);
@@ -220,15 +226,15 @@ class GeoReceptorService implements IGeoReceptorService, IServiceBuilder {
     await receptorDAO.updateLocation(json, receptor, principal.person);
     if (!isOnlyLocal) {
       await receptorRemote.updateLocation(receptor, json);
-      var receptorObj = await receptorDAO.get(receptor, principal.person);
-      if (receptorObj.moveMode != 'unmoveable') {
-        var absorbabler = 'geo.receptor/$receptor';
-        var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
-        if (absorber != null) {
-          await robotRemote.updateAbsorberLocation(
-              absorber.absorber.id, location);
-        }
-      }
+      // var receptorObj = await receptorDAO.get(receptor, principal.person);
+      // if (receptorObj.moveMode != 'unmoveable') {
+      //   var absorbabler = 'geo.receptor/$receptor';
+      //   var absorber = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+      //   if (absorber != null) {
+      //     await robotRemote.updateAbsorberLocation(
+      //         absorber.absorber.id, location);
+      //   }
+      // }
     }
     return null;
   }

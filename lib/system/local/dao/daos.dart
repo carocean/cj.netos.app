@@ -778,6 +778,11 @@ abstract class IGeoReceptorDAO {
   Future<GeoReceptor> getReceptor(
       String category, String creator, String device, String sandbox) {}
 
+  @Query(
+      'SELECT *  FROM GeoReceptor WHERE category=:category and creator=:creator and sandbox=:sandbox LIMIT 1')
+  Future<GeoReceptor> getReceptor2(
+      String category, String creator,  String sandbox) {}
+
   @Query('SELECT *  FROM GeoReceptor WHERE id=:id and sandbox=:sandbox')
   Future<GeoReceptor> get(String id, String sandbox) {}
 

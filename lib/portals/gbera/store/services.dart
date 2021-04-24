@@ -467,7 +467,7 @@ mixin IGeoReceptorService {
   Future<GeoReceptor> get(String receptorid);
 
   Future<GeoReceptor> getMobileReceptor(String person, String device);
-
+  Future<GeoReceptor> getMobileReceptor2(String person) {}
   Future<List<GeoReceptor>> page(int limit, int offset);
 
   Future<void> updateLeading(String id, String lleading, String rleading);
@@ -490,6 +490,8 @@ mixin IGeoReceptorService {
   Future<bool> existsLocal(String receptor) {}
 
   Future<void> updateUtime(String receptor) {}
+
+
 }
 mixin IGeoCategoryRemote {
   Future<List<GeoCategoryOR>> listCategory();

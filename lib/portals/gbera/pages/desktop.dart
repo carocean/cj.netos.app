@@ -22,6 +22,7 @@ import 'package:netos_app/portals/gbera/pages/wallet/receivables.dart'
 import 'package:netos_app/portals/gbera/pages/wallet/payables.dart' as payables;
 import 'package:netos_app/portals/gbera/store/remotes/feedback_tiptool.dart';
 import 'package:netos_app/portals/gbera/store/remotes/operation_screen.dart';
+import 'package:netos_app/portals/gbera/store/services.dart';
 import 'package:netos_app/portals/landagent/remote/robot.dart';
 import 'package:netos_app/system/system.dart';
 
@@ -223,25 +224,25 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                                       ),
                                     ),
                                     StringUtil.isEmpty(
-                                        widget.context.principal.signature)
+                                            widget.context.principal.signature)
                                         ? Container(
-                                      width: 0,
-                                      height: 0,
-                                    )
+                                            width: 0,
+                                            height: 0,
+                                          )
                                         : Padding(
-                                      padding: EdgeInsets.only(
-                                        top: 3,
-                                      ),
-                                      child: Text(
-                                        '${widget.context.principal.signature}',
-                                        softWrap: true,
-                                        style: TextStyle(
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
+                                            padding: EdgeInsets.only(
+                                              top: 3,
+                                            ),
+                                            child: Text(
+                                              '${widget.context.principal.signature}',
+                                              softWrap: true,
+                                              style: TextStyle(
+                                                color: Colors.black54,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
                                   ],
                                 ),
                               ),
@@ -252,7 +253,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: 10,
                       ),
-
                     ],
                   ),
                 ),
@@ -271,7 +271,6 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
                           ),
                         ),
                       ),
-
                       Expanded(
                         flex: 1,
                         child: Align(
@@ -313,21 +312,20 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
             Positioned(
               right: 0,
               bottom: 2,
-              child: useSimpleLayout()?SizedBox.shrink():
-              Container(
-                padding: EdgeInsets.only(
-                  right: 15,
-                ),
-                child: _AbsorberAction(
-                  context: widget.context,
-                ),
-              ),),
+              child: useSimpleLayout()
+                  ? SizedBox.shrink()
+                  : Container(
+                      padding: EdgeInsets.only(
+                        right: 15,
+                      ),
+                      child: _AbsorberAction(
+                        context: widget.context,
+                      ),
+                    ),
+            ),
           ],
         ),
       ),
-
-
-
     ];
 
     var lets_region = SliverToBoxAdapter(
@@ -897,7 +895,7 @@ class _AbsorberAction extends StatefulWidget {
 class __AbsorberActionState extends State<_AbsorberAction> {
   AbsorberResultOR _absorberResultOR;
   DomainBulletin _bulletin;
-  bool _isLoaded = false, _isRefreshing = false;
+  bool _isLoaded = false, _isRefreshing = false, _isUpdatingLocation = false;
   StreamController _streamController;
   StreamSubscription _streamSubscription;
 
@@ -907,6 +905,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     _isLoaded = false;
     _load().then((value) {
       _isLoaded = true;
+      _updateAbsorberLocation();
       if (mounted) setState(() {});
     });
     _streamSubscription = Stream.periodic(
@@ -929,6 +928,7 @@ class __AbsorberActionState extends State<_AbsorberAction> {
         setState(() {});
       }
     });
+
     super.initState();
   }
 
@@ -966,6 +966,43 @@ class __AbsorberActionState extends State<_AbsorberAction> {
     _bulletin = bulletin;
     _absorberResultOR = absorberResultOR;
     return diff;
+  }
+
+  Future<void> _updateAbsorberLocation() async {
+    if (_absorberResultOR == null) {
+      return false;
+    }
+    IGeoReceptorService receptorService =
+        widget.context.site.getService('/geosphere/receptors');
+    IRobotRemote robotRemote = widget.context.site.getService('/remote/robot');
+    var absorbabler = 'desktop/${widget.context.principal.person}';
+
+    geoLocation.listen('desktop.absorber', 50.00, (location) async {
+      if (_isUpdatingLocation) {
+        return;
+      }
+      if (_absorberResultOR == null) {
+        return;
+      }
+      _isUpdatingLocation = true;
+      if (mounted) {
+        setState(() {});
+      }
+      await robotRemote.updateAbsorberLocation(
+          _absorberResultOR.absorber.id, location.latLng);
+      _absorberResultOR = await robotRemote.getAbsorberByAbsorbabler(absorbabler);
+
+      var receptor = await receptorService
+          .getMobileReceptor2(widget.context.principal.person);
+      if (receptor != null) {
+        await receptorService.updateLocation(receptor.id, location.latLng);
+      }
+      _isUpdatingLocation = false;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    geoLocation.start();
   }
 
   @override
@@ -1069,13 +1106,21 @@ class __AbsorberActionState extends State<_AbsorberAction> {
                   SizedBox(
                     width: 4,
                   ),
-                  Text(
-                    '${getFriendlyDistance(_absorberResultOR.absorber.radius * 1.00)}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                  _isUpdatingLocation
+                      ? Text(
+                          '位置更新...',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
+                        )
+                      : Text(
+                          '${getFriendlyDistance(_absorberResultOR.absorber.radius * 1.00)}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                 ],
               ),
               SizedBox(
@@ -1096,10 +1141,6 @@ class __AbsorberActionState extends State<_AbsorberAction> {
                         color: Colors.grey[600],
                       ),
                     ),
-
-
-
-
             ],
           ),
         ],
