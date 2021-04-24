@@ -394,18 +394,16 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
     var sender;
     if (info.order == 0) {
       sender = info.bankid; //添加福利中心成员
-      if (!(await chatRoomService.existsMember(room, sender))) {
-        IWyBankRemote wyBankRemote =
-            widget.context.site.getService('/remote/wybank');
-        var bank = await wyBankRemote.getWenyBank(sender);
+      var existMember=await chatRoomService.existsMember(room, sender);
+      if (!existMember) {
         try {
           await chatRoomService.addMember(
               RoomMember(
                 room,
                 sender,
-                bank.title,
+                '平台派发中心',
                 'false',
-                bank.icon,
+                'http://47.105.165.186:7100/app/cats/wulianwang-.png',
                 'wybank',
                 DateTime.now().millisecondsSinceEpoch,
                 widget.context.principal.person,
