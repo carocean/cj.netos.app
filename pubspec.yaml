@@ -92,8 +92,8 @@ dependencies:
     path: flutter_nineold
   #微信分享、支付插件
   fluwx: ^2.5.0+1
-  #alipay插件
-  tobias: ^1.6.1
+  #alipay插件,去掉前面的^防止自动升级的编译错误
+  tobias: 1.6.1
   #保存图片到相册
   image_gallery_saver: ^1.2.2
   city_pickers: ^0.1.30

@@ -96,8 +96,8 @@ class _WithBottomScaffoldState extends State<WithBottomScaffold> {
     } else {
       parts.add(widget.context.part('/chasechain', context,
           arguments: {'From-Page-Url': widget.context.page.url}));
-      parts.add(widget.context.part('/market', context,
-          arguments: {'From-Page-Url': widget.context.page.url}));
+      // parts.add(widget.context.part('/market', context,
+      //     arguments: {'From-Page-Url': widget.context.page.url}));
     }
 
     super.initState();
