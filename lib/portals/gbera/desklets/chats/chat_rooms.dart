@@ -1217,7 +1217,7 @@ class _ChatRoomsPortletState extends State<ChatRoomsPortlet> {
                       color: Colors.grey[500],
                     ),
                   ),
-                  Text(''),
+                  Text('消息',),
                 ],
               ),
               GestureDetector(

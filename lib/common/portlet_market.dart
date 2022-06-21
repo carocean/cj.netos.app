@@ -86,7 +86,7 @@ class _DesktopManagerForAssets implements IDesktopManager {
   @override
   Future<List<Portlet>> getInstalledPortlets(PageContext context) async {
     var portlets = _getInstalledPortlets(context);
-    if (portlets.length == 0) {
+    if (portlets.length == 0||portlets.length == 1) {
       //装载应用默认插件
       await _installDefaultPortlets(context);
       portlets = _getInstalledPortlets(context);

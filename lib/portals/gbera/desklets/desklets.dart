@@ -8,6 +8,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'chats/chat_rooms.dart';
 import 'package:intl/intl.dart';
 
+import 'circle/chat_circle.dart';
+
 List<Desklet> buildDesklets(site) {
   return <Desklet>[
     Desklet(
@@ -250,6 +252,19 @@ List<Desklet> buildDesklets(site) {
       desc: '聊天、群、聊天室等',
       buildDesklet: (portlet, desklet, desktopContext) {
         return ChatRoomsPortlet(
+          desklet: desklet,
+          context: desktopContext,
+          portlet: portlet,
+        );
+      },
+    ),
+    Desklet(
+      title: '周边即聊',
+      url: '/p2p/circle',
+      icon: Icons.chat_bubble,
+      desc: '聊天、群、聊天室等',
+      buildDesklet: (portlet, desklet, desktopContext) {
+        return ChatCirclePortlet(
           desklet: desklet,
           context: desktopContext,
           portlet: portlet,

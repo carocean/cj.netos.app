@@ -146,6 +146,12 @@ class _DesktopState extends State<Desktop> with AutomaticKeepAliveClientMixin {
     }
     var portlets = await desktopManager.getInstalledPortlets(widget.context);
     if (portlets != null) {
+      portlets.sort((a,b){
+        if(a.id==b.id) {
+          return 0;
+        }
+        return a.id.compareTo(b.id)>0?-1:1;
+      });
       for (Portlet portlet in portlets) {
         var desklet = portlet.build(context: widget.context);
         _desklets.add(desklet);
